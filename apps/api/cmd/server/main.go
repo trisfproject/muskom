@@ -79,6 +79,9 @@ func main() {
 	auth.SetupRoutes(v1.Group("/auth"), db, cfg, log, val)
 	musyawarah.SetupRoutes(v1.Group("/musyawarah"), db, log, val)
 
+	// Protected Admin Routes
+	_ = v1.Group("/admin", auth.JWTMiddleware(cfg, log))
+
 	// 8. Graceful Shutdown
 	go func() {
 		port := cfg.Port

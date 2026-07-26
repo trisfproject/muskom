@@ -9,6 +9,7 @@ All notable changes to the MUSKOM project will be documented in this file.
   - `auth/dto.go`: Added `LoginRequest` and `LoginResponse`.
   - `auth/service.go`: Added `Authenticate` service with `bcrypt` hash comparison.
   - `auth/handler.go`: Added `POST /api/v1/auth/login`.
+  - `auth/middleware.go`: Implemented JWT Middleware for route protection.
 
 ### Changed
-- `apps/api/cmd/server/main.go`: Wired `config` and `validator` dependencies into the Auth routes to support JWT issuance and request validation.
+- `apps/api/cmd/server/main.go`: Wired `config` and `validator` dependencies into the Auth routes to support JWT issuance and request validation. Registered `/api/v1/admin` route group secured by `JWTMiddleware`.
