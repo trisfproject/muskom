@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
-	"github.com/trisfproject/muskom/apps/api/internal/modules/event"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
@@ -77,7 +77,7 @@ func main() {
 
 	// Modules
 	auth.SetupRoutes(v1.Group("/auth"), db, log)
-	event.SetupRoutes(v1.Group("/events"), db, log, val)
+	musyawarah.SetupRoutes(v1.Group("/musyawarah"), db, log, val)
 
 	// 8. Graceful Shutdown
 	go func() {
