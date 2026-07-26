@@ -5,6 +5,7 @@ All notable changes to the MUSKOM project will be documented in this file.
 ## [Unreleased] - 2026-07-27
 
 ### Added
+- **Storage Abstraction (FND-06)**: Implemented `apps/api/platform/storage` defining a clean `Storage` interface and a `local` provider for file persistence.
 - **Timeline Management (MKS-030-002)**: Added GET and PUT `/api/v1/admin/musyawarah/timeline` with strict chronological validations for the 7 Musyawarah phases.
 - **Musyawarah Routing Update**: Remapped `musyawarah` module to the protected `/admin` route group, ensuring configuration APIs are secured by JWT.
 - **Sprint 1 Completion**: Conducted end-to-end review and completed the Authentication module.

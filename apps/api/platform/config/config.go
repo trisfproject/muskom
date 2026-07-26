@@ -16,6 +16,9 @@ type Config struct {
 	JWTSecret        string        `env:"JWT_SECRET,required"`
 	JWTRefreshSecret string        `env:"JWT_REFRESH_SECRET,required"`
 	JWTRefreshTTL    time.Duration `env:"JWT_REFRESH_TTL" envDefault:"168h"`
+	StorageProvider  string        `env:"STORAGE_PROVIDER" envDefault:"local"`
+	StorageRoot      string        `env:"STORAGE_ROOT" envDefault:"./uploads"`
+	StorageBaseURL   string        `env:"STORAGE_BASE_URL" envDefault:"http://localhost:8080/uploads"`
 }
 
 func Load() (*Config, error) {

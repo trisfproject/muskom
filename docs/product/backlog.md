@@ -18,7 +18,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 | FND-03 | Setup Redis for caching and sessions. | Critical | 1d | FND-01 | Sprint 1 | ✅ Done |
 | FND-04 | Configure docker-compose & Dockerfiles. | Critical | 1d | FND-02, FND-03 | Sprint 1 | ✅ Done |
 | FND-05 | Document Engineering Standards. | Critical | 1d | None | Sprint 1 | ✅ Done |
-| FND-06 | File Storage Abstraction (Local/S3). | High | 2d | FND-07 | Sprint 2 | ⏳ Planned |
+| FND-06 | File Storage Abstraction (Local/S3). | High | 2d | FND-07 | Sprint 2 | ✅ Done |
 | FND-07 | Backend Bootstrap (Go Fiber API). | Critical | 2d | FND-04, FND-05 | Sprint 1 | ✅ Done |
 | FND-08 | Frontend Bootstrap (Next.js/Vite). | Critical | 2d | FND-05 | Sprint 3 | ⏳ Planned |
 | FND-09 | Database Seeders (Master Data). | Medium | 1d | FND-02 | Sprint 2 | ⏳ Planned |
@@ -83,7 +83,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 ### Sprint 2: Event Configuration & Content
 **Status**: 🚧 In Progress
 - ADM-01: Musyawarah Config & Timeline (MKS-030) (✅ Done)
-- FND-06: File Storage Abstraction (Local/S3)
+- FND-06: File Storage Abstraction (Local/S3) (✅ Done)
 - FND-09: Database Seeders (Master Data)
 - ADM-07: Announcement Management (CRUD)
 - ADM-08: Document & Media Management (CRUD)
