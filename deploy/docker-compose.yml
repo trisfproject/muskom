@@ -49,11 +49,7 @@ services:
     restart: unless-stopped
     environment:
       - PORT=8080
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USER=${DB_USER:-muskom}
-      - DB_PASSWORD=${DB_PASSWORD:-secret}
-      - DB_NAME=${DB_NAME:-muskom}
+      - DATABASE_URL=postgres://${DB_USER:-muskom}:${DB_PASSWORD:-secret}@postgres:5432/${DB_NAME:-muskom}?sslmode=disable
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET:-secret}
     networks:

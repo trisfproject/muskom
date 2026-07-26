@@ -10,7 +10,7 @@ RUN go mod download
 COPY . .
 
 # Build standard production binary
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o api main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o api cmd/server/main.go
 
 # Production Stage
 FROM alpine:3.19
