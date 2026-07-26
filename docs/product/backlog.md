@@ -30,7 +30,7 @@ This document serves as the single source of truth for the MUSKOM (Musyawarah KO
 | ID | Feature | Description | Priority | Status | Dependency |
 |---|---|---|---|---|---|
 | ADM-01 | Musyawarah Configuration | Singleton API to manage active event settings and phases. | Critical | ✅ Done | FND-07 |
-| ADM-02 | Authentication | Admin login, JWT generation, and Middleware (MKS-021-002). | Critical | ✅ Done | FND-07 |
+| ADM-02 | Authentication | Admin login, JWT generation, Middleware (MKS-021-002), and Refresh Token (MKS-021-003). | Critical | 🚧 In Progress | FND-07 |
 | ADM-03 | Dashboard | Overview of participants, candidates, and voting metrics. | High | ⏳ Planned | ADM-02, ADM-01 |
 | ADM-04 | Participant Verification | Admin interface to verify registered users (approve/reject). | High | ⏳ Planned | ADM-02, PUB-05 |
 | ADM-05 | Candidate Verification | Admin interface to verify candidates. | High | ⏳ Planned | ADM-02, PUB-06 |
