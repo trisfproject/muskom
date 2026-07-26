@@ -29,6 +29,7 @@ type MusyawarahResponse struct {
 	Location                   *string `json:"location"`
 	BannerPath                 *string `json:"banner_path"`
 	LogoPath                   *string `json:"logo_path"`
+	CoverPath                  *string `json:"cover_path"`
 	Status                     string  `json:"status"`
 	MaxParticipants            *int    `json:"max_participants"`
 	PublishResult              bool    `json:"publish_result"`
@@ -65,4 +66,10 @@ type TimelineResponse struct {
 	CoolingOff            TimelinePhaseDTO `json:"cooling_off"`
 	Voting                TimelinePhaseDTO `json:"voting"`
 	ResultPublication     TimelinePhaseDTO `json:"result_publication"`
+}
+
+type MediaResponse struct {
+	LogoURL   *string `json:"logo_url"`
+	BannerURL *string `json:"banner_url"`
+	CoverURL  *string `json:"cover_url"`
 }

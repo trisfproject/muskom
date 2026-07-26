@@ -5,8 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
+	"path/filepath"
 	"time"
 
+	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"go.uber.org/zap"
 )
 
@@ -19,15 +22,19 @@ type Service interface {
 	UpdateConfig(ctx context.Context, req *UpdateMusyawarahRequest) (*MusyawarahResponse, error)
 	GetTimeline(ctx context.Context) (*TimelineResponse, error)
 	UpdateTimeline(ctx context.Context, req *TimelineRequest) (*TimelineResponse, error)
+	GetMedia(ctx context.Context) (*MediaResponse, error)
+	UploadMedia(ctx context.Context, mediaType string, file io.Reader, filename string, contentType string) (*MediaResponse, error)
+	DeleteMedia(ctx context.Context, mediaType string) error
 }
 
 type service struct {
-	repo Repository
-	log  *zap.Logger
+	repo    Repository
+	log     *zap.Logger
+	storage storage.Storage
 }
 
-func NewService(repo Repository, log *zap.Logger) Service {
-	return &service{repo: repo, log: log}
+func NewService(repo Repository, log *zap.Logger, strg storage.Storage) Service {
+	return &service{repo: repo, log: log, storage: strg}
 }
 
 func (s *service) GetConfig(ctx context.Context) (*MusyawarahResponse, error) {
@@ -54,12 +61,23 @@ func (s *service) GetConfig(ctx context.Context) (*MusyawarahResponse, error) {
 		Name:                       evt.Name,
 		Theme:                      evt.Theme,
 		Location:                   evt.Location,
-		BannerPath:                 evt.BannerPath,
-		LogoPath:                   evt.LogoPath,
 		Status:                     evt.Status,
 		MaxParticipants:            stg.RegistrationLimit,
 		PublishResult:              stg.ShowLiveResult,
 		AllowCandidateRegistration: stg.AllowCandidateRegistration,
+	}
+
+	if evt.LogoPath != nil && *evt.LogoPath != "" {
+		url := s.storage.URL(*evt.LogoPath)
+		res.LogoPath = &url
+	}
+	if evt.BannerPath != nil && *evt.BannerPath != "" {
+		url := s.storage.URL(*evt.BannerPath)
+		res.BannerPath = &url
+	}
+	if evt.CoverPath != nil && *evt.CoverPath != "" {
+		url := s.storage.URL(*evt.CoverPath)
+		res.CoverPath = &url
 	}
 
 	for _, p := range phases {
@@ -262,4 +280,127 @@ func (s *service) UpdateTimeline(ctx context.Context, req *TimelineRequest) (*Ti
 	}
 
 	return s.GetTimeline(ctx)
+}
+
+func (s *service) GetMedia(ctx context.Context) (*MediaResponse, error) {
+	evt, err := s.repo.GetActiveEvent(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrConfigNotFound
+		}
+		return nil, err
+	}
+
+	res := &MediaResponse{}
+	if evt.LogoPath != nil && *evt.LogoPath != "" {
+		url := s.storage.URL(*evt.LogoPath)
+		res.LogoURL = &url
+	}
+	if evt.BannerPath != nil && *evt.BannerPath != "" {
+		url := s.storage.URL(*evt.BannerPath)
+		res.BannerURL = &url
+	}
+	if evt.CoverPath != nil && *evt.CoverPath != "" {
+		url := s.storage.URL(*evt.CoverPath)
+		res.CoverURL = &url
+	}
+	return res, nil
+}
+
+func (s *service) UploadMedia(ctx context.Context, mediaType string, file io.Reader, filename string, contentType string) (*MediaResponse, error) {
+	if mediaType != "logo" && mediaType != "banner" && mediaType != "cover" {
+		return nil, errors.New("invalid media type")
+	}
+
+	if contentType != "image/png" && contentType != "image/jpeg" && contentType != "image/webp" {
+		return nil, errors.New("invalid content type, must be PNG, JPEG, or WebP")
+	}
+
+	evt, err := s.repo.GetActiveEvent(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrConfigNotFound
+		}
+		return nil, err
+	}
+
+	var oldPath *string
+	switch mediaType {
+	case "logo":
+		oldPath = evt.LogoPath
+	case "banner":
+		oldPath = evt.BannerPath
+	case "cover":
+		oldPath = evt.CoverPath
+	}
+
+	ext := filepath.Ext(filename)
+	if ext == "" {
+		switch contentType {
+		case "image/png":
+			ext = ".png"
+		case "image/jpeg":
+			ext = ".jpg"
+		case "image/webp":
+			ext = ".webp"
+		}
+	}
+	newFileName := fmt.Sprintf("%s_%s_%d%s", evt.ID, mediaType, time.Now().UnixNano(), ext)
+
+	fileInfo, err := s.storage.Upload(ctx, file, newFileName)
+	if err != nil {
+		s.log.Error("Failed to upload media", zap.Error(err))
+		return nil, errors.New("failed to upload file")
+	}
+
+	if err := s.repo.UpdateMedia(ctx, evt.ID, mediaType, &fileInfo.Path); err != nil {
+		_ = s.storage.Delete(ctx, fileInfo.Path)
+		return nil, err
+	}
+
+	if oldPath != nil && *oldPath != "" {
+		if err := s.storage.Delete(ctx, *oldPath); err != nil {
+			s.log.Warn("Failed to delete old media file", zap.String("path", *oldPath), zap.Error(err))
+		}
+	}
+
+	return s.GetMedia(ctx)
+}
+
+func (s *service) DeleteMedia(ctx context.Context, mediaType string) error {
+	if mediaType != "logo" && mediaType != "banner" && mediaType != "cover" {
+		return errors.New("invalid media type")
+	}
+
+	evt, err := s.repo.GetActiveEvent(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrConfigNotFound
+		}
+		return err
+	}
+
+	var oldPath *string
+	switch mediaType {
+	case "logo":
+		oldPath = evt.LogoPath
+	case "banner":
+		oldPath = evt.BannerPath
+	case "cover":
+		oldPath = evt.CoverPath
+	}
+
+	if oldPath == nil || *oldPath == "" {
+		return nil
+	}
+
+	if err := s.repo.UpdateMedia(ctx, evt.ID, mediaType, nil); err != nil {
+		return err
+	}
+
+	if err := s.storage.Delete(ctx, *oldPath); err != nil {
+		s.log.Warn("Failed to delete media file from storage", zap.String("path", *oldPath), zap.Error(err))
+	}
+
+	return nil
 }

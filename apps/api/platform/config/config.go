@@ -19,6 +19,7 @@ type Config struct {
 	StorageProvider  string        `env:"STORAGE_PROVIDER" envDefault:"local"`
 	StorageRoot      string        `env:"STORAGE_ROOT" envDefault:"./uploads"`
 	StorageBaseURL   string        `env:"STORAGE_BASE_URL" envDefault:"http://localhost:8080/uploads"`
+	MaxUploadSize    int64         `env:"MAX_UPLOAD_SIZE" envDefault:"5242880"`
 }
 
 func Load() (*Config, error) {

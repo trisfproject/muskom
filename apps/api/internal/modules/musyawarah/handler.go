@@ -10,12 +10,13 @@ import (
 )
 
 type Handler struct {
-	service   Service
-	validator *validator.Validator
+	service       Service
+	validator     *validator.Validator
+	maxUploadSize int64
 }
 
-func NewHandler(service Service, val *validator.Validator) *Handler {
-	return &Handler{service: service, validator: val}
+func NewHandler(service Service, val *validator.Validator, maxUploadSize int64) *Handler {
+	return &Handler{service: service, validator: val, maxUploadSize: maxUploadSize}
 }
 
 func (h *Handler) Get(c fiber.Ctx) error {
@@ -80,4 +81,69 @@ func (h *Handler) UpdateTimeline(c fiber.Ctx) error {
 	}
 
 	return response.SendSuccess(c, fiber.StatusOK, "Timeline updated", res, nil)
+}
+
+func (h *Handler) GetMedia(c fiber.Ctx) error {
+	res, err := h.service.GetMedia(c.Context())
+	if err != nil {
+		if errors.Is(err, ErrConfigNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Media retrieved", res, nil)
+}
+
+func (h *Handler) UploadMedia(c fiber.Ctx) error {
+	mediaType := c.Params("type")
+	if mediaType != "logo" && mediaType != "banner" && mediaType != "cover" {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid media type", nil)
+	}
+
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "File is required", nil)
+	}
+
+	if h.maxUploadSize > 0 && fileHeader.Size > h.maxUploadSize {
+		return response.SendError(c, fiber.StatusRequestEntityTooLarge, "File exceeds maximum upload size", nil)
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to open file", nil)
+	}
+	defer file.Close()
+
+	contentType := fileHeader.Header.Get("Content-Type")
+
+	res, err := h.service.UploadMedia(c.Context(), mediaType, file, fileHeader.Filename, contentType)
+	if err != nil {
+		if errors.Is(err, ErrConfigNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
+		}
+		if err.Error() == "invalid content type, must be PNG, JPEG, or WebP" {
+			return response.SendError(c, fiber.StatusUnsupportedMediaType, err.Error(), nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Media uploaded successfully", res, nil)
+}
+
+func (h *Handler) DeleteMedia(c fiber.Ctx) error {
+	mediaType := c.Params("type")
+	if mediaType != "logo" && mediaType != "banner" && mediaType != "cover" {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid media type", nil)
+	}
+
+	err := h.service.DeleteMedia(c.Context(), mediaType)
+	if err != nil {
+		if errors.Is(err, ErrConfigNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Media deleted successfully", nil, nil)
 }

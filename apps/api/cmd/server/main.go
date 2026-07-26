@@ -17,6 +17,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
 	"github.com/trisfproject/muskom/apps/api/platform/middleware"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
+	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 )
 
@@ -53,6 +54,12 @@ func main() {
 	defer redisClient.Close()
 	log.Info("Connected to Redis")
 
+	strg, err := storage.NewService(cfg.StorageProvider, cfg.StorageRoot, cfg.StorageBaseURL)
+	if err != nil {
+		log.Fatal("Storage initialization failed", zap.Error(err))
+	}
+	log.Info("Initialized Storage Provider", zap.String("provider", cfg.StorageProvider))
+
 	// 4. Initialize Fiber App
 	app := fiber.New(fiber.Config{
 		AppName:      "MUSKOM API v0.1.0",
@@ -80,7 +87,7 @@ func main() {
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
-	musyawarah.SetupRoutes(adminGroup.Group("/musyawarah"), db, log, val)
+	musyawarah.SetupRoutes(adminGroup.Group("/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 
 	// 8. Graceful Shutdown
 	go func() {

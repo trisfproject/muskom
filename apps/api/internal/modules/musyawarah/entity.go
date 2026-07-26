@@ -9,6 +9,7 @@ type MusyawarahEvent struct {
 	Location   *string `db:"location"`
 	BannerPath *string `db:"banner_path"`
 	LogoPath   *string `db:"logo_path"`
+	CoverPath  *string `db:"cover_path"`
 	Status     string  `db:"status"`
 }
 

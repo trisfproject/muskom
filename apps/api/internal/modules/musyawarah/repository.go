@@ -13,6 +13,7 @@ type Repository interface {
 	GetPhases(ctx context.Context, eventID string) ([]MusyawarahPhase, error)
 	UpdateEvent(ctx context.Context, tx *sqlx.Tx, e *MusyawarahEvent) error
 	UpdateSettings(ctx context.Context, tx *sqlx.Tx, eventID string, s *MusyawarahSettings) error
+	UpdateMedia(ctx context.Context, eventID string, mediaType string, path *string) error
 	UpsertPhase(ctx context.Context, tx *sqlx.Tx, eventID string, p *MusyawarahPhase) error
 	BeginTx(ctx context.Context) (*sqlx.Tx, error)
 }
@@ -31,7 +32,7 @@ func (r *repository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
 
 func (r *repository) GetActiveEvent(ctx context.Context) (*MusyawarahEvent, error) {
 	query := `
-		SELECT id, name, theme, location, banner_path, logo_path, status 
+		SELECT id, name, theme, location, banner_path, logo_path, cover_path, status 
 		FROM events 
 		WHERE deleted_at IS NULL 
 		ORDER BY created_at ASC 
@@ -67,10 +68,26 @@ func (r *repository) GetPhases(ctx context.Context, eventID string) ([]Musyawara
 func (r *repository) UpdateEvent(ctx context.Context, tx *sqlx.Tx, e *MusyawarahEvent) error {
 	query := `
 		UPDATE events 
-		SET name = $1, theme = $2, location = $3, banner_path = $4, logo_path = $5, status = $6, updated_at = NOW()
-		WHERE id = $7
+		SET name = $1, theme = $2, location = $3, banner_path = $4, logo_path = $5, cover_path = $6, status = $7, updated_at = NOW()
+		WHERE id = $8
 	`
-	_, err := tx.ExecContext(ctx, query, e.Name, e.Theme, e.Location, e.BannerPath, e.LogoPath, e.Status, e.ID)
+	_, err := tx.ExecContext(ctx, query, e.Name, e.Theme, e.Location, e.BannerPath, e.LogoPath, e.CoverPath, e.Status, e.ID)
+	return err
+}
+
+func (r *repository) UpdateMedia(ctx context.Context, eventID string, mediaType string, path *string) error {
+	var query string
+	switch mediaType {
+	case "logo":
+		query = "UPDATE events SET logo_path = $1, updated_at = NOW() WHERE id = $2"
+	case "banner":
+		query = "UPDATE events SET banner_path = $1, updated_at = NOW() WHERE id = $2"
+	case "cover":
+		query = "UPDATE events SET cover_path = $1, updated_at = NOW() WHERE id = $2"
+	default:
+		return sql.ErrNoRows // Or custom error
+	}
+	_, err := r.db.ExecContext(ctx, query, path, eventID)
 	return err
 }
 
