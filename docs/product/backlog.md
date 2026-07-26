@@ -1,6 +1,6 @@
-# MUSKOM Product Backlog
+# MUSKOM Final Product Backlog
 
-This document serves as the single source of truth for the MUSKOM (Musyawarah KOMITKABE) project development.
+This document serves as the **FROZEN** single source of truth for the MUSKOM (Musyawarah KOMITKABE) project development. Future development MUST follow this backlog.
 
 ## Status Legend
 - ✅ Done
@@ -10,103 +10,116 @@ This document serves as the single source of truth for the MUSKOM (Musyawarah KO
 
 ---
 
-## 1. Epic: Foundation
+## 1. Epic: Foundation (FND)
+| Task ID | Description | Priority | Effort | Dependencies | Sprint | Status |
+|---|---|---|---|---|---|---|
+| FND-01 | Setup Git mono-repo, CI/CD basics. | Critical | 2d | None | Sprint 1 | ✅ Done |
+| FND-02 | Create PostgreSQL schema and migrations. | Critical | 1d | FND-01 | Sprint 1 | ✅ Done |
+| FND-03 | Setup Redis for caching and sessions. | Critical | 1d | FND-01 | Sprint 1 | ✅ Done |
+| FND-04 | Configure docker-compose & Dockerfiles. | Critical | 1d | FND-02, FND-03 | Sprint 1 | ✅ Done |
+| FND-05 | Document Engineering Standards. | Critical | 1d | None | Sprint 1 | ✅ Done |
+| FND-06 | File Storage Abstraction (Local/S3). | High | 2d | FND-07 | Sprint 2 | ⏳ Planned |
+| FND-07 | Backend Bootstrap (Go Fiber API). | Critical | 2d | FND-04, FND-05 | Sprint 1 | ✅ Done |
+| FND-08 | Frontend Bootstrap (Next.js/Vite). | Critical | 2d | FND-05 | Sprint 3 | ⏳ Planned |
+| FND-09 | Database Seeders (Master Data). | Medium | 1d | FND-02 | Sprint 2 | ⏳ Planned |
 
-| ID | Feature | Description | Priority | Status | Dependency |
-|---|---|---|---|---|---|
-| FND-01 | Repository | Setup Git repository, mono-repo structure, and CI/CD basics. | Critical | ✅ Done | None |
-| FND-02 | PostgreSQL | Create database schema and migration files. | Critical | ✅ Done | FND-01 |
-| FND-03 | Redis | Setup Redis for caching and session management. | Critical | ✅ Done | FND-01 |
-| FND-04 | Docker | Configure docker-compose and multi-stage Dockerfiles. | Critical | ✅ Done | FND-02, FND-03 |
-| FND-05 | Engineering Standards | Document API, DB, Go, and frontend standards. | Critical | ✅ Done | None |
-| FND-06 | Documentation | Setup architecture and product documentation. | Critical | ✅ Done | None |
-| FND-07 | Backend Bootstrap | Initialize Go Fiber API, DB connections, graceful shutdown. | Critical | ✅ Done | FND-04, FND-05 |
-| FND-08 | Frontend Bootstrap | Initialize Next.js / Vite web application foundation. | Critical | ⏳ Planned | FND-05 |
+## 2. Epic: Admin Portal (ADM)
+| Task ID | Description | Priority | Effort | Dependencies | Sprint | Status |
+|---|---|---|---|---|---|---|
+| ADM-01 | Musyawarah Config & Timeline (MKS-030). | Critical | 3d | FND-07 | Sprint 2 | ✅ Done |
+| ADM-02 | Admin Authentication & Logout (MKS-021).| Critical | 3d | FND-07 | Sprint 1 | ✅ Done |
+| ADM-03 | Dashboard Analytics (Participants/Votes). | High | 3d | ADM-01, ADM-02 | Sprint 4 | ⏳ Planned |
+| ADM-04 | Participant Verification Interface. | High | 2d | ADM-02, PUB-05 | Sprint 4 | ⏳ Planned |
+| ADM-05 | Candidate Verification Interface. | High | 2d | ADM-02, PUB-06 | Sprint 4 | ⏳ Planned |
+| ADM-06 | Attendance Check-in API (QR/Manual). | High | 2d | ADM-04 | Sprint 5 | ⏳ Planned |
+| ADM-07 | Announcement Management (CRUD). | Medium | 1d | ADM-02 | Sprint 2 | ⏳ Planned |
+| ADM-08 | Document & Media Management (CRUD). | High | 2d | ADM-02, FND-06 | Sprint 2 | ⏳ Planned |
 
----
+## 3. Epic: Public Portal (PUB)
+| Task ID | Description | Priority | Effort | Dependencies | Sprint | Status |
+|---|---|---|---|---|---|---|
+| PUB-01 | Landing Page (Banner, Theme, Logo). | High | 2d | FND-08, ADM-01 | Sprint 3 | ⏳ Planned |
+| PUB-02 | Timeline Display (Event Phases). | High | 1d | PUB-01 | Sprint 3 | ⏳ Planned |
+| PUB-03 | View Announcements. | Medium | 1d | ADM-07, PUB-01 | Sprint 3 | ⏳ Planned |
+| PUB-04 | View & Download Public Documents. | Medium | 1d | ADM-08, PUB-01 | Sprint 3 | ⏳ Planned |
+| PUB-05 | Participant Registration Form & OTP. | Critical | 3d | PUB-01 | Sprint 3 | ⏳ Planned |
+| PUB-06 | Candidate Registration Form & Uploads. | High | 3d | PUB-05, FND-06 | Sprint 3 | ⏳ Planned |
 
-## 2. Epic: Admin Portal
+## 4. Epic: E-Voting (EVT)
+| Task ID | Description | Priority | Effort | Dependencies | Sprint | Status |
+|---|---|---|---|---|---|---|
+| EVT-01 | Voter Booth Validation & Authorization. | Critical | 2d | ADM-04, ADM-06 | Sprint 5 | ⏳ Planned |
+| EVT-02 | Candidate Profile Display. | Critical | 1d | ADM-05 | Sprint 5 | ⏳ Planned |
+| EVT-03 | Anonymous Vote Submission & Transaction. | Critical | 4d | EVT-01, EVT-02 | Sprint 5 | ⏳ Planned |
+| EVT-04 | Voting Session & Timeout Management. | High | 2d | EVT-03 | Sprint 5 | ⏳ Planned |
+| EVT-05 | Live Real-time Statistics. | Medium | 3d | EVT-03 | Sprint 5 | ⏳ Planned |
+| EVT-06 | Final Result Publication & Freeze. | High | 1d | EVT-03, ADM-01 | Sprint 6 | ⏳ Planned |
+| EVT-07 | Audit Reports (PDF/Excel) Export. | Low | 2d | EVT-06 | Sprint 6 | ⏳ Planned |
 
-| ID | Feature | Description | Priority | Status | Dependency |
-|---|---|---|---|---|---|
-| ADM-01 | Musyawarah Configuration | Singleton API to manage active event settings, phases, and Timeline Management (MKS-030-002). | Critical | ✅ Done | FND-07 |
-| ADM-02 | Authentication | Admin login, JWT generation, Middleware (MKS-021-002), Refresh Token (MKS-021-003), and Logout (MKS-021-004). | Critical | ✅ Done | FND-07 |
-| ADM-03 | Dashboard | Overview of participants, candidates, and voting metrics. | High | ⏳ Planned | ADM-02, ADM-01 |
-| ADM-04 | Participant Verification | Admin interface to verify registered users (approve/reject). | High | ⏳ Planned | ADM-02, PUB-05 |
-| ADM-05 | Candidate Verification | Admin interface to verify candidates. | High | ⏳ Planned | ADM-02, PUB-06 |
-| ADM-06 | Attendance Check-in | API to scan/mark participants as attended on event day. | High | ⏳ Planned | ADM-04 |
-| ADM-07 | Announcement Management | CRUD for public announcements. | Medium | ⏳ Planned | ADM-02 |
-| ADM-08 | Document Management | Upload and manage public documents (rules, guides). | Medium | ⏳ Planned | ADM-02 |
-
----
-
-## 3. Epic: Public Portal
-
-| ID | Feature | Description | Priority | Status | Dependency |
-|---|---|---|---|---|---|
-| PUB-01 | Landing Page | Display active Musyawarah banner, theme, and logo. | High | ⏳ Planned | FND-08, ADM-01 |
-| PUB-02 | Timeline | Display event phases and start/end dates. | High | ⏳ Planned | PUB-01 |
-| PUB-03 | Announcements | View broadcasted announcements. | Medium | ⏳ Planned | ADM-07 |
-| PUB-04 | Documents | Download available rules and guides. | Medium | ⏳ Planned | ADM-08 |
-| PUB-05 | Participant Registration | Form for users to register as voters. | Critical | ⏳ Planned | PUB-01 |
-| PUB-06 | Candidate Registration | Form for users to register as election candidates. | High | ⏳ Planned | PUB-05 |
-
----
-
-## 4. Epic: E-Voting
-
-| ID | Feature | Description | Priority | Status | Dependency |
-|---|---|---|---|---|---|
-| EVT-01 | Voter Validation | Secure mechanism to authenticate voters entering the booth. | Critical | ⏳ Planned | ADM-04, ADM-06 |
-| EVT-02 | Candidate Selection | Display verified candidates and their profiles. | Critical | ⏳ Planned | ADM-05 |
-| EVT-03 | Vote Submission | Secure, anonymous, transaction-safe vote casting. | Critical | ⏳ Planned | EVT-01, EVT-02 |
-| EVT-04 | Voting Session | Manage user voting timeouts and active tokens. | High | ⏳ Planned | EVT-03 |
-| EVT-05 | Live Statistics | Real-time websocket or polling for current vote counts. | Medium | ⏳ Planned | EVT-03 |
-| EVT-06 | Final Result | Freeze results and publish if `publish_result` is true. | High | ⏳ Planned | EVT-03, ADM-01 |
-| EVT-07 | Reports | Export voting results and audit logs as PDF/Excel. | Low | ⏳ Planned | EVT-06 |
-
----
-
-## 5. Epic: System
-
-| ID | Feature | Description | Priority | Status | Dependency |
-|---|---|---|---|---|---|
-| SYS-01 | Notification | Email/Telegram integration for OTPs and status updates. | High | ⏳ Planned | FND-07 |
-| SYS-02 | Audit Log | System-wide logging of all admin actions (who, what, when). | High | ⏳ Planned | ADM-02 |
-| SYS-03 | Settings | Manage global app configurations not tied to Musyawarah. | Medium | ⏳ Planned | ADM-02 |
-| SYS-04 | Health Check | Advanced endpoint verifying DB, Redis, and disk status. | Medium | ⏳ Planned | FND-07 |
-| SYS-05 | Monitoring | Prometheus/Grafana integration for performance tracking. | Low | ⏳ Planned | SYS-04 |
-| SYS-06 | Backup | Automated CRON scripts to dump database and upload to S3. | High | ⏳ Planned | FND-02 |
+## 5. Epic: System & Operations (SYS)
+| Task ID | Description | Priority | Effort | Dependencies | Sprint | Status |
+|---|---|---|---|---|---|---|
+| SYS-01 | Notifications Engine (Email/Telegram). | High | 3d | FND-07 | Sprint 6 | ⏳ Planned |
+| SYS-02 | Admin Audit Log (Who, What, When). | High | 2d | ADM-02 | Sprint 6 | ⏳ Planned |
+| SYS-03 | Global System Settings. | Medium | 1d | ADM-02 | Sprint 6 | ⏳ Planned |
+| SYS-04 | Infrastructure Health Check API. | Medium | 1d | FND-07 | Sprint 6 | ⏳ Planned |
+| SYS-05 | Prometheus/Grafana Monitoring. | Low | 2d | SYS-04 | Sprint 6 | ⏳ Planned |
+| SYS-06 | Automated DB Backup to S3 via CRON. | High | 2d | FND-02, FND-06 | Sprint 6 | ⏳ Planned |
 
 ---
 
-## Milestone Roadmap
+## Sprints Layout
 
-### Milestone 1: Foundation & Architecture (Current)
-- Establish mono-repo, CI/CD, database schemas, Docker.
-- Implement API Core, Musyawarah Configuration.
-- Establish Engineering Standards.
-- **Target**: Ensure a robust, highly-available backend foundation.
+### Sprint 1: Foundation & Core API
+**Status**: ✅ Completed
+- FND-01: Setup Git mono-repo, CI/CD basics
+- FND-02: Create PostgreSQL schema and migrations
+- FND-03: Setup Redis for caching and sessions
+- FND-04: Configure docker-compose & Dockerfiles
+- FND-05: Document Engineering Standards
+- FND-07: Backend Bootstrap (Go Fiber API)
+- ADM-02: Admin Authentication & Logout (MKS-021)
 
-### Milestone 2: Registration & Admin Tools
-- Complete Admin Authentication & RBAC.
-- Implement Public Portal (Landing Page, Timeline).
-- Implement Participant & Candidate Registration flows.
-- Implement Admin Verification interfaces.
-- **Target**: Allow users to register and admins to approve them.
+### Sprint 2: Event Configuration & Content
+**Status**: 🚧 In Progress
+- ADM-01: Musyawarah Config & Timeline (MKS-030) (✅ Done)
+- FND-06: File Storage Abstraction (Local/S3)
+- FND-09: Database Seeders (Master Data)
+- ADM-07: Announcement Management (CRUD)
+- ADM-08: Document & Media Management (CRUD)
 
-### Milestone 3: Event Day & Check-In
-- Build QR/Manual Attendance Check-in systems.
-- Build Dashboard analytics.
-- **Target**: System is ready to handle physical event check-ins.
+### Sprint 3: Public Portal & Registrations
+**Status**: ⏳ Planned
+- FND-08: Frontend Bootstrap (Next.js/Vite)
+- PUB-01: Landing Page (Banner, Theme, Logo)
+- PUB-02: Timeline Display (Event Phases)
+- PUB-03: View Announcements
+- PUB-04: View & Download Public Documents
+- PUB-05: Participant Registration Form & OTP
+- PUB-06: Candidate Registration Form & Uploads
 
-### Milestone 4: Secure E-Voting
-- Develop the core E-Voting engine (Submission, Validation).
-- Implement Live Statistics and Final Result publication.
-- **Target**: Conduct a secure, fault-tolerant election.
+### Sprint 4: Admin Verification & Dashboard
+**Status**: ⏳ Planned
+- ADM-04: Participant Verification Interface
+- ADM-05: Candidate Verification Interface
+- ADM-03: Dashboard Analytics (Participants/Votes)
 
-### Milestone 5: Hardening & Handover
-- Implement Audit Logs, Automated Backups, and Notifications.
-- Final security penetration testing.
-- Export capabilities (Reports).
-- **Target**: Production-ready deployment.
+### Sprint 5: Event Day & E-Voting
+**Status**: ⏳ Planned
+- ADM-06: Attendance Check-in API (QR/Manual)
+- EVT-01: Voter Booth Validation & Authorization
+- EVT-02: Candidate Profile Display
+- EVT-03: Anonymous Vote Submission & Transaction
+- EVT-04: Voting Session & Timeout Management
+- EVT-05: Live Real-time Statistics
+
+### Sprint 6: Hardening, System & Handover
+**Status**: ⏳ Planned
+- EVT-06: Final Result Publication & Freeze
+- EVT-07: Audit Reports (PDF/Excel) Export
+- SYS-01: Notifications Engine (Email/Telegram)
+- SYS-02: Admin Audit Log (Who, What, When)
+- SYS-03: Global System Settings
+- SYS-04: Infrastructure Health Check API
+- SYS-05: Prometheus/Grafana Monitoring
+- SYS-06: Automated DB Backup to S3 via CRON
