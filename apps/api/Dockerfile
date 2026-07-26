@@ -1,27 +1,31 @@
-# Build stage
+# Build Stage
 FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
-# Copy go mod and sum files
-COPY go.mod go.sum ./
-
-# Download all dependencies
+COPY go.mod ./
+COPY go.sum* ./
 RUN go mod download
 
-# Copy source code
 COPY . .
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o api main.go
+# Build standard production binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o api main.go
 
-# Run stage
-FROM alpine:latest
+# Production Stage
+FROM alpine:3.19
 
-WORKDIR /root/
+WORKDIR /app
+
+# Add tzdata for timezone support and ca-certificates for secure API calls
+RUN apk --no-cache add ca-certificates tzdata
 
 COPY --from=builder /app/api .
 
+# Create non-root user for security best practices
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+
 EXPOSE 8080
 
-CMD ["./api"]
+ENTRYPOINT ["./api"]
