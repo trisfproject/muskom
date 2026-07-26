@@ -49,23 +49,27 @@ type TimelinePhaseDTO struct {
 }
 
 type TimelineRequest struct {
-	Registration          TimelinePhaseDTO `json:"registration"`
-	CandidateRegistration TimelinePhaseDTO `json:"candidate_registration"`
-	Verification          TimelinePhaseDTO `json:"verification"`
-	Campaign              TimelinePhaseDTO `json:"campaign"`
-	CoolingOff            TimelinePhaseDTO `json:"cooling_off"`
-	Voting                TimelinePhaseDTO `json:"voting"`
-	ResultPublication     TimelinePhaseDTO `json:"result_publication"`
+	Registration               TimelinePhaseDTO `json:"registration"`
+	CandidateRegistration      TimelinePhaseDTO `json:"candidate_registration"`
+	AdministrativeVerification TimelinePhaseDTO `json:"administrative_verification"`
+	CandidateVerification      TimelinePhaseDTO `json:"candidate_verification"`
+	Campaign                   TimelinePhaseDTO `json:"campaign"`
+	CoolingOff                 TimelinePhaseDTO `json:"cooling_off"`
+	AttendanceCheckIn          TimelinePhaseDTO `json:"attendance_check_in"`
+	Voting                     TimelinePhaseDTO `json:"voting"`
+	ResultPublication          TimelinePhaseDTO `json:"result_publication"`
 }
 
 type TimelineResponse struct {
-	Registration          TimelinePhaseDTO `json:"registration"`
-	CandidateRegistration TimelinePhaseDTO `json:"candidate_registration"`
-	Verification          TimelinePhaseDTO `json:"verification"`
-	Campaign              TimelinePhaseDTO `json:"campaign"`
-	CoolingOff            TimelinePhaseDTO `json:"cooling_off"`
-	Voting                TimelinePhaseDTO `json:"voting"`
-	ResultPublication     TimelinePhaseDTO `json:"result_publication"`
+	Registration               TimelinePhaseDTO `json:"registration"`
+	CandidateRegistration      TimelinePhaseDTO `json:"candidate_registration"`
+	AdministrativeVerification TimelinePhaseDTO `json:"administrative_verification"`
+	CandidateVerification      TimelinePhaseDTO `json:"candidate_verification"`
+	Campaign                   TimelinePhaseDTO `json:"campaign"`
+	CoolingOff                 TimelinePhaseDTO `json:"cooling_off"`
+	AttendanceCheckIn          TimelinePhaseDTO `json:"attendance_check_in"`
+	Voting                     TimelinePhaseDTO `json:"voting"`
+	ResultPublication          TimelinePhaseDTO `json:"result_publication"`
 }
 
 type MediaResponse struct {

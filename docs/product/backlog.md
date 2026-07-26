@@ -26,7 +26,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 ## 2. Epic: Admin Portal (ADM)
 | Task ID | Description | Priority | Effort | Dependencies | Sprint | Status |
 |---|---|---|---|---|---|---|
-| ADM-01 | Musyawarah Config, Timeline & Media (MKS-030). | Critical | 3d | FND-07 | Sprint 2 | ✅ Done |
+| ADM-01 | Musyawarah Config, Media & Expanded Timeline (MKS-030-003). | Critical | 3d | FND-07 | Sprint 2 | ✅ Done |
 | ADM-02 | Admin Authentication & Logout (MKS-021).| Critical | 3d | FND-07 | Sprint 1 | ✅ Done |
 | ADM-03 | Dashboard Analytics (Participants/Votes). | High | 3d | ADM-01, ADM-02 | Sprint 4 | ⏳ Planned |
 | ADM-04 | Participant Verification Interface. | High | 2d | ADM-02, PUB-05 | Sprint 4 | ⏳ Planned |
@@ -82,7 +82,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 
 ### Sprint 2: Event Configuration & Content
 **Status**: 🚧 In Progress
-- ADM-01: Musyawarah Config, Timeline & Media (MKS-030) (✅ Done)
+- ADM-01: Musyawarah Config, Media & Expanded Timeline (MKS-030-003) (✅ Done)
 - FND-06: File Storage Abstraction (Local/S3) (✅ Done)
 - FND-09: Database Seeders (Master Data)
 - ADM-07: Announcement Management (CRUD)

@@ -5,6 +5,7 @@ All notable changes to the MUSKOM project will be documented in this file.
 ## [Unreleased] - 2026-07-27
 
 ### Added
+- **Timeline Management (MKS-030-003)**: Expanded and refined Musyawarah timeline to support 9 chronological phases including Administrative/Candidate Verification and Attendance Check-in.
 - **Media Management (MKS-030-002)**: Added GET, POST, and DELETE endpoints for `/api/v1/admin/musyawarah/media/:type` handling `logo`, `banner`, and `cover`.
 - **Media Upload Validation**: Enforced image type validations (PNG, JPG, WebP) and integrated max file size limit configurable via environment variable.
 - **Storage Abstraction (FND-06)**: Implemented `apps/api/platform/storage` defining a clean `Storage` interface and a `local` provider for file persistence.

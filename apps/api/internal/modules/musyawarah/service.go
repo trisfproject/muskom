@@ -174,12 +174,16 @@ func (s *service) GetTimeline(ctx context.Context) (*TimelineResponse, error) {
 			res.Registration = dto
 		case "CANDIDATE_REGISTRATION":
 			res.CandidateRegistration = dto
-		case "VERIFICATION":
-			res.Verification = dto
+		case "ADMINISTRATIVE_VERIFICATION":
+			res.AdministrativeVerification = dto
+		case "CANDIDATE_VERIFICATION":
+			res.CandidateVerification = dto
 		case "CAMPAIGN":
 			res.Campaign = dto
 		case "COOLING_OFF":
 			res.CoolingOff = dto
+		case "ATTENDANCE_CHECK_IN":
+			res.AttendanceCheckIn = dto
 		case "VOTING":
 			res.Voting = dto
 		case "RESULT_PUBLICATION":
@@ -198,9 +202,11 @@ func (s *service) validateTimeline(req *TimelineRequest) error {
 	phases := []PhaseInfo{
 		{"Registration", req.Registration},
 		{"Candidate Registration", req.CandidateRegistration},
-		{"Verification", req.Verification},
+		{"Administrative Verification", req.AdministrativeVerification},
+		{"Candidate Verification", req.CandidateVerification},
 		{"Campaign", req.Campaign},
 		{"Cooling-off", req.CoolingOff},
+		{"Attendance Check-in", req.AttendanceCheckIn},
 		{"Voting", req.Voting},
 		{"Result Publication", req.ResultPublication},
 	}
@@ -256,9 +262,11 @@ func (s *service) UpdateTimeline(ctx context.Context, req *TimelineRequest) (*Ti
 	phases := []MusyawarahPhase{
 		{Phase: "REGISTRATION", StartAt: req.Registration.StartAt, EndAt: req.Registration.EndAt},
 		{Phase: "CANDIDATE_REGISTRATION", StartAt: req.CandidateRegistration.StartAt, EndAt: req.CandidateRegistration.EndAt},
-		{Phase: "VERIFICATION", StartAt: req.Verification.StartAt, EndAt: req.Verification.EndAt},
+		{Phase: "ADMINISTRATIVE_VERIFICATION", StartAt: req.AdministrativeVerification.StartAt, EndAt: req.AdministrativeVerification.EndAt},
+		{Phase: "CANDIDATE_VERIFICATION", StartAt: req.CandidateVerification.StartAt, EndAt: req.CandidateVerification.EndAt},
 		{Phase: "CAMPAIGN", StartAt: req.Campaign.StartAt, EndAt: req.Campaign.EndAt},
 		{Phase: "COOLING_OFF", StartAt: req.CoolingOff.StartAt, EndAt: req.CoolingOff.EndAt},
+		{Phase: "ATTENDANCE_CHECK_IN", StartAt: req.AttendanceCheckIn.StartAt, EndAt: req.AttendanceCheckIn.EndAt},
 		{Phase: "VOTING", StartAt: req.Voting.StartAt, EndAt: req.Voting.EndAt},
 		{Phase: "RESULT_PUBLICATION", StartAt: req.ResultPublication.StartAt, EndAt: req.ResultPublication.EndAt},
 	}
