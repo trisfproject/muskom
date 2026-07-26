@@ -4,12 +4,15 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
+
+	"github.com/trisfproject/muskom/apps/api/platform/config"
+	"github.com/trisfproject/muskom/apps/api/platform/validator"
 )
 
-// SetupRoutes wires the Auth module dependencies.
-// Login routes will be registered here in future tasks.
-func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger) {
+func SetupRoutes(router fiber.Router, db *sqlx.DB, cfg *config.Config, log *zap.Logger, val *validator.Validator) {
 	repo := NewRepository(db)
-	svc := NewService(repo, log)
-	_ = NewHandler(svc) // Handler instantiated but not attached to routes yet
+	svc := NewService(repo, cfg, log)
+	handler := NewHandler(svc, val)
+
+	router.Post("/login", handler.Login)
 }

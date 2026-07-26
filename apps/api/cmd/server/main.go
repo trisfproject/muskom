@@ -76,7 +76,7 @@ func main() {
 	})
 
 	// Modules
-	auth.SetupRoutes(v1.Group("/auth"), db, log)
+	auth.SetupRoutes(v1.Group("/auth"), db, cfg, log, val)
 	musyawarah.SetupRoutes(v1.Group("/musyawarah"), db, log, val)
 
 	// 8. Graceful Shutdown
