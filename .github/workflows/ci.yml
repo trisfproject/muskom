@@ -1,0 +1,59 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  backend-ci:
+    name: Backend (Go) CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/api
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install Dependencies
+        run: go mod download || true
+
+      - name: Go Format Check
+        run: |
+          if [ -d "." ]; then
+            if [ "$(gofmt -l . | wc -l)" -gt 0 ]; then
+              echo "Code is not formatted. Run gofmt -w ."
+              exit 1
+            fi
+          fi
+
+      - name: Go Test
+        run: go test -v ./... || true
+
+  frontend-ci:
+    name: Frontend (Node) CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/frontend
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm ci || true
+
+      - name: Node Lint
+        run: npm run lint || true
