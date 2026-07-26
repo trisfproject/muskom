@@ -1,6 +1,6 @@
 package auth
 
-// AuthUser represents a user retrieved for authentication purposes.
+// AuthUser represents an administrator account retrieved for authentication.
 type AuthUser struct {
 	ID           string `db:"id"`
 	PersonID     string `db:"person_id"`

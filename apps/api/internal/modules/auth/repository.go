@@ -2,13 +2,14 @@ package auth
 
 import (
 	"context"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
 
 type Repository interface {
-	GetUserByUsername(ctx context.Context, username string) (*AuthUser, error)
-	UpdateLastLogin(ctx context.Context, userID string) error
+	FindByUsername(ctx context.Context, username string) (*AuthUser, error)
+	UpdateLastLogin(ctx context.Context, userID string, loginAt time.Time) error
 }
 
 type repository struct {
@@ -20,7 +21,7 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
-func (r *repository) GetUserByUsername(ctx context.Context, username string) (*AuthUser, error) {
+func (r *repository) FindByUsername(ctx context.Context, username string) (*AuthUser, error) {
 	query := `
 		SELECT 
 			u.id, 
@@ -46,8 +47,8 @@ func (r *repository) GetUserByUsername(ctx context.Context, username string) (*A
 	return &user, nil
 }
 
-func (r *repository) UpdateLastLogin(ctx context.Context, userID string) error {
-	query := `UPDATE users SET last_login_at = NOW(), updated_at = NOW() WHERE id = $1`
-	_, err := r.db.ExecContext(ctx, query, userID)
+func (r *repository) UpdateLastLogin(ctx context.Context, userID string, loginAt time.Time) error {
+	query := `UPDATE users SET last_login_at = $1, updated_at = NOW() WHERE id = $2`
+	_, err := r.db.ExecContext(ctx, query, loginAt, userID)
 	return err
 }
