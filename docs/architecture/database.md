@@ -12,9 +12,7 @@ Basis data MUSKOM menggunakan arsitektur relasional (*Relational Database*) yang
 database/
 ├── migrations/       # File SQL untuk skema naik (up) dan turun (down)
 ├── seed/             # File SQL atau skrip untuk mengisi data awal (dummy/master)
-├── README.md         # Dokumentasi utama basis data (file ini)
-├── SPECIFICATION.md  # Spesifikasi teknis, standar, dan kebijakan basis data
-└── ERD.md            # Entity Relationship Diagram menggunakan format Mermaid
+└── schema/           # Struktur atau dump dari schema basis data
 ```
 
 ## Alur Kerja Migrasi (*Migration Workflow*)
