@@ -10,11 +10,13 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"go.uber.org/zap"
 
+	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
 	"github.com/trisfproject/muskom/apps/api/platform/middleware"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
+	"github.com/trisfproject/muskom/apps/api/platform/validator"
 )
 
 func main() {
@@ -60,7 +62,10 @@ func main() {
 	// 5. Global Middlewares
 	middleware.Setup(app, log)
 
-	// 6. Routes
+	// 6. Common Utilities
+	val := validator.New()
+
+	// 7. Routes
 	v1 := app.Group("/api/v1")
 	v1.Get("/health", func(c fiber.Ctx) error {
 		return response.SendSuccess(c, 200, "Service is running", fiber.Map{
@@ -69,7 +74,10 @@ func main() {
 		}, nil)
 	})
 
-	// 7. Graceful Shutdown
+	// Modules
+	auth.SetupRoutes(v1.Group("/auth"), db, cfg, log, val)
+
+	// 8. Graceful Shutdown
 	go func() {
 		port := cfg.Port
 		if port == "" {
