@@ -45,7 +45,12 @@ func (r *repository) GetActiveEvent(ctx context.Context) (*MusyawarahEvent, erro
 
 func (r *repository) GetSettings(ctx context.Context, eventID string) (*MusyawarahSettings, error) {
 	query := `
-		SELECT registration_limit, show_live_result, allow_candidate_registration 
+		SELECT 
+			registration_limit, registration_approval_mode, candidate_approval_mode,
+			enable_attendance, attendance_qr_expiration, attendance_radius,
+			enable_voting, allow_revote, show_live_result, publish_final_result,
+			allow_candidate_registration, show_candidate_list, show_timeline, 
+			show_statistics, show_announcements
 		FROM event_settings 
 		WHERE event_id = $1
 	`
@@ -93,15 +98,39 @@ func (r *repository) UpdateMedia(ctx context.Context, eventID string, mediaType 
 
 func (r *repository) UpdateSettings(ctx context.Context, tx *sqlx.Tx, eventID string, s *MusyawarahSettings) error {
 	query := `
-		INSERT INTO event_settings (event_id, registration_limit, show_live_result, allow_candidate_registration, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, NOW(), NOW())
+		INSERT INTO event_settings (
+			event_id, registration_limit, registration_approval_mode, candidate_approval_mode,
+			enable_attendance, attendance_qr_expiration, attendance_radius,
+			enable_voting, allow_revote, show_live_result, publish_final_result,
+			allow_candidate_registration, show_candidate_list, show_timeline, 
+			show_statistics, show_announcements, created_at, updated_at
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW())
 		ON CONFLICT (event_id) DO UPDATE SET 
 			registration_limit = EXCLUDED.registration_limit,
+			registration_approval_mode = EXCLUDED.registration_approval_mode,
+			candidate_approval_mode = EXCLUDED.candidate_approval_mode,
+			enable_attendance = EXCLUDED.enable_attendance,
+			attendance_qr_expiration = EXCLUDED.attendance_qr_expiration,
+			attendance_radius = EXCLUDED.attendance_radius,
+			enable_voting = EXCLUDED.enable_voting,
+			allow_revote = EXCLUDED.allow_revote,
 			show_live_result = EXCLUDED.show_live_result,
+			publish_final_result = EXCLUDED.publish_final_result,
 			allow_candidate_registration = EXCLUDED.allow_candidate_registration,
+			show_candidate_list = EXCLUDED.show_candidate_list,
+			show_timeline = EXCLUDED.show_timeline,
+			show_statistics = EXCLUDED.show_statistics,
+			show_announcements = EXCLUDED.show_announcements,
 			updated_at = NOW()
 	`
-	_, err := tx.ExecContext(ctx, query, eventID, s.RegistrationLimit, s.ShowLiveResult, s.AllowCandidateRegistration)
+	_, err := tx.ExecContext(ctx, query,
+		eventID, s.RegistrationLimit, s.RegistrationApprovalMode, s.CandidateApprovalMode,
+		s.EnableAttendance, s.AttendanceQRExpiration, s.AttendanceRadius,
+		s.EnableVoting, s.AllowRevote, s.ShowLiveResult, s.PublishFinalResult,
+		s.AllowCandidateRegistration, s.ShowCandidateList, s.ShowTimeline,
+		s.ShowStatistics, s.ShowAnnouncements,
+	)
 	return err
 }
 

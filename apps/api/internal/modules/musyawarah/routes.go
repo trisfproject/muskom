@@ -17,6 +17,8 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 
 	router.Get("/", handler.Get)
 	router.Put("/", handler.Update)
+	router.Get("/settings", handler.GetSettings)
+	router.Put("/settings", handler.UpdateSettings)
 	router.Get("/timeline", handler.GetTimeline)
 	router.Put("/timeline", handler.UpdateTimeline)
 

@@ -51,6 +51,38 @@ func (h *Handler) Update(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Musyawarah configuration updated", res, nil)
 }
 
+func (h *Handler) GetSettings(c fiber.Ctx) error {
+	res, err := h.service.GetSettings(c.Context())
+	if err != nil {
+		if errors.Is(err, ErrConfigNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Settings retrieved", res, nil)
+}
+
+func (h *Handler) UpdateSettings(c fiber.Ctx) error {
+	var req SettingsRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+
+	if errs := h.validator.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	res, err := h.service.UpdateSettings(c.Context(), &req)
+	if err != nil {
+		if errors.Is(err, ErrConfigNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Settings updated", res, nil)
+}
+
 func (h *Handler) GetTimeline(c fiber.Ctx) error {
 	res, err := h.service.GetTimeline(c.Context())
 	if err != nil {

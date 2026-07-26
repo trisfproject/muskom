@@ -20,6 +20,8 @@ var (
 type Service interface {
 	GetConfig(ctx context.Context) (*MusyawarahResponse, error)
 	UpdateConfig(ctx context.Context, req *UpdateMusyawarahRequest) (*MusyawarahResponse, error)
+	GetSettings(ctx context.Context) (*SettingsResponse, error)
+	UpdateSettings(ctx context.Context, req *SettingsRequest) (*SettingsResponse, error)
 	GetTimeline(ctx context.Context) (*TimelineResponse, error)
 	UpdateTimeline(ctx context.Context, req *TimelineRequest) (*TimelineResponse, error)
 	GetMedia(ctx context.Context) (*MediaResponse, error)
@@ -113,11 +115,14 @@ func (s *service) UpdateConfig(ctx context.Context, req *UpdateMusyawarahRequest
 	evt.LogoPath = req.LogoPath
 	evt.Status = req.Status
 
-	stg := &MusyawarahSettings{
-		RegistrationLimit:          req.MaxParticipants,
-		ShowLiveResult:             req.PublishResult,
-		AllowCandidateRegistration: req.AllowCandidateRegistration,
+	stg, err := s.repo.GetSettings(ctx, evt.ID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
 	}
+
+	stg.RegistrationLimit = req.MaxParticipants
+	stg.ShowLiveResult = req.PublishResult
+	stg.AllowCandidateRegistration = req.AllowCandidateRegistration
 
 	phases := []MusyawarahPhase{
 		{Phase: "REGISTRATION", StartAt: req.RegistrationStart, EndAt: req.RegistrationEnd},
@@ -150,6 +155,83 @@ func (s *service) UpdateConfig(ctx context.Context, req *UpdateMusyawarahRequest
 	}
 
 	return s.GetConfig(ctx)
+}
+
+func (s *service) GetSettings(ctx context.Context) (*SettingsResponse, error) {
+	evt, err := s.repo.GetActiveEvent(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrConfigNotFound
+		}
+		return nil, err
+	}
+
+	stg, err := s.repo.GetSettings(ctx, evt.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SettingsResponse{
+		MaxParticipants:            stg.RegistrationLimit,
+		RegistrationApprovalMode:   stg.RegistrationApprovalMode,
+		CandidateApprovalMode:      stg.CandidateApprovalMode,
+		EnableAttendance:           stg.EnableAttendance,
+		AttendanceQRExpiration:     stg.AttendanceQRExpiration,
+		AttendanceRadius:           stg.AttendanceRadius,
+		EnableVoting:               stg.EnableVoting,
+		AllowRevote:                stg.AllowRevote,
+		ShowLiveResult:             stg.ShowLiveResult,
+		PublishFinalResult:         stg.PublishFinalResult,
+		AllowCandidateRegistration: stg.AllowCandidateRegistration,
+		ShowCandidateList:          stg.ShowCandidateList,
+		ShowTimeline:               stg.ShowTimeline,
+		ShowStatistics:             stg.ShowStatistics,
+		ShowAnnouncements:          stg.ShowAnnouncements,
+	}, nil
+}
+
+func (s *service) UpdateSettings(ctx context.Context, req *SettingsRequest) (*SettingsResponse, error) {
+	evt, err := s.repo.GetActiveEvent(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrConfigNotFound
+		}
+		return nil, err
+	}
+
+	stg := &MusyawarahSettings{
+		RegistrationLimit:          req.MaxParticipants,
+		RegistrationApprovalMode:   req.RegistrationApprovalMode,
+		CandidateApprovalMode:      req.CandidateApprovalMode,
+		EnableAttendance:           req.EnableAttendance,
+		AttendanceQRExpiration:     req.AttendanceQRExpiration,
+		AttendanceRadius:           req.AttendanceRadius,
+		EnableVoting:               req.EnableVoting,
+		AllowRevote:                req.AllowRevote,
+		ShowLiveResult:             req.ShowLiveResult,
+		PublishFinalResult:         req.PublishFinalResult,
+		AllowCandidateRegistration: req.AllowCandidateRegistration,
+		ShowCandidateList:          req.ShowCandidateList,
+		ShowTimeline:               req.ShowTimeline,
+		ShowStatistics:             req.ShowStatistics,
+		ShowAnnouncements:          req.ShowAnnouncements,
+	}
+
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	if err := s.repo.UpdateSettings(ctx, tx, evt.ID, stg); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return s.GetSettings(ctx)
 }
 
 func (s *service) GetTimeline(ctx context.Context) (*TimelineResponse, error) {
