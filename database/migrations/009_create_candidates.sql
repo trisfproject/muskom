@@ -11,5 +11,3 @@ CREATE TABLE IF NOT EXISTS candidates (
     CONSTRAINT fk_candidates_events FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE RESTRICT,
     CONSTRAINT fk_candidates_registrations FOREIGN KEY (registration_id) REFERENCES registrations (id) ON DELETE RESTRICT
 );
-
-CREATE INDEX IF NOT EXISTS idx_candidates_event_id ON candidates (event_id);

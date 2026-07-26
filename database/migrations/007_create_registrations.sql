@@ -17,6 +17,5 @@ CREATE TABLE IF NOT EXISTS registrations (
     CONSTRAINT chk_registrations_status CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_registrations_event_id ON registrations (event_id);
 CREATE INDEX IF NOT EXISTS idx_registrations_person_id ON registrations (person_id);
 CREATE INDEX IF NOT EXISTS idx_registrations_approved_by ON registrations (approved_by);

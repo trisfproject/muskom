@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
-    slug VARCHAR(255) UNIQUE NOT NULL,
+    slug VARCHAR(255) NOT NULL,
     theme VARCHAR(255),
     description TEXT,
     location VARCHAR(255),
@@ -15,11 +15,9 @@ CREATE TABLE IF NOT EXISTS events (
     deleted_at TIMESTAMPTZ NULL,
 
     -- Enforce business rules on status
-    CONSTRAINT chk_events_status CHECK (status IN ('DRAFT', 'UPCOMING', 'ONGOING', 'COMPLETED', 'CANCELLED'))
+    CONSTRAINT chk_events_status CHECK (status IN ('DRAFT', 'UPCOMING', 'ONGOING', 'COMPLETED', 'CANCELLED')),
+    CONSTRAINT uq_events_slug UNIQUE (slug)
 );
-
--- Index for the unique slug
-CREATE INDEX IF NOT EXISTS idx_events_slug ON events (slug);
 
 -- Index for status since it will likely be used for filtering
 CREATE INDEX IF NOT EXISTS idx_events_status ON events (status);

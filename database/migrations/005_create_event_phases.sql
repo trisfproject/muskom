@@ -10,5 +10,3 @@ CREATE TABLE IF NOT EXISTS event_phases (
     CONSTRAINT uq_event_phases_event_id_phase UNIQUE (event_id, phase),
     CONSTRAINT fk_event_phases_events FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE
 );
-
-CREATE INDEX IF NOT EXISTS idx_event_phases_event_id ON event_phases (event_id);
