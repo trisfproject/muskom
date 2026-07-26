@@ -59,3 +59,16 @@ func (h *Handler) Refresh(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusOK, "Token refreshed successfully", res, nil)
 }
+
+func (h *Handler) Logout(c fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized", nil)
+	}
+
+	if err := h.service.Logout(c.Context(), userID); err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to logout", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Logout successful", nil, nil)
+}

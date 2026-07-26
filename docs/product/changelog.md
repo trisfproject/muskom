@@ -5,7 +5,8 @@ All notable changes to the MUSKOM project will be documented in this file.
 ## [Unreleased] - 2026-07-27
 
 ### Added
-- **Sprint 1 Review**: Conducted end-to-end review of the Authentication module. Identified missing Refresh Token and Logout implementations to be carried over.
+- **Sprint 1 Completion**: Conducted end-to-end review and completed the Authentication module.
+- **Logout (MKS-021-004)**: Implemented idempotent logout by revoking active Refresh Tokens from Redis.
 - **Refresh Token (MKS-021-003)**: Implemented token rotation logic and Redis integration.
 - **Authentication**: JWT-based login for administrators under `apps/api/internal/modules/auth`.
   - `auth/dto.go`: Added `LoginRequest` and `LoginResponse`.

@@ -18,6 +18,7 @@ import (
 type Service interface {
 	Authenticate(ctx context.Context, username, password string) (*LoginResponse, error)
 	Refresh(ctx context.Context, refreshToken string) (*RefreshResponse, error)
+	Logout(ctx context.Context, userID string) error
 }
 
 type service struct {
@@ -173,4 +174,14 @@ func (s *service) Refresh(ctx context.Context, refreshTokenString string) (*Refr
 		RefreshToken: newRefreshToken,
 		ExpiresAt:    expiresAt,
 	}, nil
+}
+
+func (s *service) Logout(ctx context.Context, userID string) error {
+	redisKey := fmt.Sprintf("muskom:refresh:%s", userID)
+	if err := s.redis.Del(ctx, redisKey).Err(); err != nil {
+		s.log.Error("Failed to delete refresh token from Redis during logout", zap.String("user_id", userID), zap.Error(err))
+		return err
+	}
+	s.log.Info("Administrator logged out successfully", zap.String("user_id", userID))
+	return nil
 }

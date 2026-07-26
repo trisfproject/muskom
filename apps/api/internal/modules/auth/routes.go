@@ -17,4 +17,5 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, cfg *confi
 
 	router.Post("/login", handler.Login)
 	router.Post("/refresh", handler.Refresh)
+	router.Post("/logout", JWTMiddleware(cfg, log), handler.Logout)
 }
