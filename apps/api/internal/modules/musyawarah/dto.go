@@ -41,3 +41,28 @@ type MusyawarahResponse struct {
 	VotingStart                *time.Time `json:"voting_start"`
 	VotingEnd                  *time.Time `json:"voting_end"`
 }
+
+type TimelinePhaseDTO struct {
+	StartAt *time.Time `json:"start_at"`
+	EndAt   *time.Time `json:"end_at"`
+}
+
+type TimelineRequest struct {
+	Registration          TimelinePhaseDTO `json:"registration"`
+	CandidateRegistration TimelinePhaseDTO `json:"candidate_registration"`
+	Verification          TimelinePhaseDTO `json:"verification"`
+	Campaign              TimelinePhaseDTO `json:"campaign"`
+	CoolingOff            TimelinePhaseDTO `json:"cooling_off"`
+	Voting                TimelinePhaseDTO `json:"voting"`
+	ResultPublication     TimelinePhaseDTO `json:"result_publication"`
+}
+
+type TimelineResponse struct {
+	Registration          TimelinePhaseDTO `json:"registration"`
+	CandidateRegistration TimelinePhaseDTO `json:"candidate_registration"`
+	Verification          TimelinePhaseDTO `json:"verification"`
+	Campaign              TimelinePhaseDTO `json:"campaign"`
+	CoolingOff            TimelinePhaseDTO `json:"cooling_off"`
+	Voting                TimelinePhaseDTO `json:"voting"`
+	ResultPublication     TimelinePhaseDTO `json:"result_publication"`
+}

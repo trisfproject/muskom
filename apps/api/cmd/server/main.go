@@ -75,12 +75,12 @@ func main() {
 		}, nil)
 	})
 
-	// Modules
+	// Modules (Public / Dedicated)
 	auth.SetupRoutes(v1.Group("/auth"), db, redisClient, cfg, log, val)
-	musyawarah.SetupRoutes(v1.Group("/musyawarah"), db, log, val)
 
 	// Protected Admin Routes
-	_ = v1.Group("/admin", auth.JWTMiddleware(cfg, log))
+	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
+	musyawarah.SetupRoutes(adminGroup.Group("/musyawarah"), db, log, val)
 
 	// 8. Graceful Shutdown
 	go func() {

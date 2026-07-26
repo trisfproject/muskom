@@ -5,6 +5,8 @@ All notable changes to the MUSKOM project will be documented in this file.
 ## [Unreleased] - 2026-07-27
 
 ### Added
+- **Timeline Management (MKS-030-002)**: Added GET and PUT `/api/v1/admin/musyawarah/timeline` with strict chronological validations for the 7 Musyawarah phases.
+- **Musyawarah Routing Update**: Remapped `musyawarah` module to the protected `/admin` route group, ensuring configuration APIs are secured by JWT.
 - **Sprint 1 Completion**: Conducted end-to-end review and completed the Authentication module.
 - **Logout (MKS-021-004)**: Implemented idempotent logout by revoking active Refresh Tokens from Redis.
 - **Refresh Token (MKS-021-003)**: Implemented token rotation logic and Redis integration.
