@@ -25,6 +25,8 @@ type Repository interface {
 	GetAdminCandidateList(ctx context.Context, filter CandidateAdminListRequest) ([]CandidateAdminListResponse, int, error)
 	GetAdminCandidateDetail(ctx context.Context, candidateCode string) (*CandidateAdminDetailResponse, error)
 	UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, candidateCode, status, reviewedBy string) error
+	GetCandidateAuditHistory(ctx context.Context, candidateCode string) ([]CandidateAuditLogResponse, error)
+	UpdateCandidateDetails(ctx context.Context, tx *sqlx.Tx, candidateCode string, req *CandidateAdminUpdateRequest) error
 	BeginTx(ctx context.Context) (*sqlx.Tx, error)
 	LogAudit(ctx context.Context, tx *sqlx.Tx, action, module, tableName, recordID, metadata string) error
 }
@@ -175,6 +177,21 @@ func (r *repository) GetAdminCandidateList(ctx context.Context, filter Candidate
 		args = append(args, "%"+filter.Search+"%")
 		argId++
 	}
+	if filter.CandidateID != "" {
+		baseQuery += fmt.Sprintf(" AND ca.id = $%d", argId)
+		args = append(args, filter.CandidateID)
+		argId++
+	}
+	if filter.RegistrationID != "" {
+		baseQuery += fmt.Sprintf(" AND ca.registration_id = $%d", argId)
+		args = append(args, filter.RegistrationID)
+		argId++
+	}
+	if filter.SubmissionDate != "" {
+		baseQuery += fmt.Sprintf(" AND DATE(ca.created_at) = $%d", argId)
+		args = append(args, filter.SubmissionDate)
+		argId++
+	}
 
 	countQuery := "SELECT COUNT(ca.id) " + baseQuery
 	var total int
@@ -190,6 +207,20 @@ func (r *repository) GetAdminCandidateList(ctx context.Context, filter Candidate
 	}
 	offset := (filter.Page - 1) * filter.Limit
 
+	orderColumn := "ca.created_at"
+	switch filter.SortBy {
+	case "updated_at":
+		orderColumn = "ca.updated_at"
+	case "status":
+		orderColumn = "ca.status"
+	case "created_at":
+		orderColumn = "ca.created_at"
+	}
+	orderDir := "DESC"
+	if filter.SortOrder == "asc" || filter.SortOrder == "ASC" {
+		orderDir = "ASC"
+	}
+
 	dataQuery := `
 		SELECT 
 			ca.id,
@@ -199,7 +230,7 @@ func (r *repository) GetAdminCandidateList(ctx context.Context, filter Candidate
 			reg.participant_category,
 			ca.status,
 			ca.created_at
-	` + baseQuery + fmt.Sprintf(" ORDER BY ca.created_at DESC LIMIT $%d OFFSET $%d", argId, argId+1)
+	` + baseQuery + fmt.Sprintf(" ORDER BY %s %s LIMIT $%d OFFSET $%d", orderColumn, orderDir, argId, argId+1)
 
 	args = append(args, filter.Limit, offset)
 
@@ -272,6 +303,48 @@ func (r *repository) UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, can
 		_, err = tx.ExecContext(ctx, query, status, reviewedBy, candidateCode)
 	} else {
 		_, err = r.db.ExecContext(ctx, query, status, reviewedBy, candidateCode)
+	}
+	return err
+}
+
+func (r *repository) GetCandidateAuditHistory(ctx context.Context, candidateCode string) ([]CandidateAuditLogResponse, error) {
+	query := `
+		SELECT 
+			al.id,
+			al.action,
+			COALESCE(al.metadata::text, '') as metadata,
+			al.created_at,
+			u.name as user_name
+		FROM audit_logs al
+		LEFT JOIN users u ON al.user_id = u.id
+		WHERE al.entity = 'candidate_applications' AND al.entity_id = $1
+		ORDER BY al.created_at DESC
+	`
+	var list []CandidateAuditLogResponse
+	if err := r.db.SelectContext(ctx, &list, query, candidateCode); err != nil {
+		return nil, err
+	}
+	// Return empty list instead of nil if no logs
+	if list == nil {
+		list = []CandidateAuditLogResponse{}
+	}
+	return list, nil
+}
+
+func (r *repository) UpdateCandidateDetails(ctx context.Context, tx *sqlx.Tx, candidateCode string, req *CandidateAdminUpdateRequest) error {
+	query := `
+		UPDATE candidate_applications
+		SET vision = COALESCE($1, vision),
+		    mission = COALESCE($2, mission),
+		    work_program = COALESCE($3, work_program),
+		    updated_at = NOW()
+		WHERE id = $4
+	`
+	var err error
+	if tx != nil {
+		_, err = tx.ExecContext(ctx, query, req.Vision, req.Mission, req.WorkProgram, candidateCode)
+	} else {
+		_, err = r.db.ExecContext(ctx, query, req.Vision, req.Mission, req.WorkProgram, candidateCode)
 	}
 	return err
 }

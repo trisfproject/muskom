@@ -60,4 +60,12 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Developed `GET /api/v1/admin/candidates` (list), `GET /api/v1/admin/candidates/{id}` (detail), and `PATCH /api/v1/admin/candidates/{id}/status` endpoints.
   - Added a strict state transition validator enforcing only valid status progressions (`SUBMITTED` -> `REVIEWING` -> `ACCEPTED` / `REJECTED`).
   - Integrated with the Audit Log and JWT Middleware to automatically capture the reviewer's ID (`reviewed_by`) and timestamps (`reviewed_at`) upon status change.
+- **Admin Candidate Management (MKS-050-005)**: Implemented advanced filtering, candidate data modification, and audit log retrieval.
+  - Upgraded `GET /api/v1/admin/candidates` with filters for `candidate_id`, `registration_id`, `submission_date` and sorting logic (`sort_by`, `sort_order`).
+  - Upgraded `GET /api/v1/admin/candidates/{id}` to automatically query and embed the candidate's Audit Log history seamlessly using the `audit_logs` schema natively.
+  - Added `PATCH /api/v1/admin/candidates/{id}` allowing admins to safely perform partial updates for candidate `vision`, `mission`, and `work_program` using atomic `COALESCE` handling. Included full Audit Log tracking for modifications.
+- **Sprint 4 Review**:
+  - Validated architectural adherence and state machine transitions.
+  - Verified security rules (JWT, file uploads constraints) and audit log integrity.
+  - No critical bugs or architectural violations were found. Build compiles cleanly. Sprint 4 is ✅ Completed.
 

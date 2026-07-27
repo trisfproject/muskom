@@ -30,5 +30,6 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 
 	router.Get("/", h.AdminList)
 	router.Get("/:id", h.AdminGet)
+	router.Patch("/:id", h.AdminUpdateDetails)
 	router.Patch("/:id/status", h.AdminUpdateStatus)
 }

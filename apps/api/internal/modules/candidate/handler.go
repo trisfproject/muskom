@@ -145,6 +145,29 @@ func (h *Handler) AdminGet(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Candidate detail retrieved successfully", detail, nil)
 }
 
+func (h *Handler) AdminUpdateDetails(c fiber.Ctx) error {
+	candidateCode := c.Params("id")
+	if candidateCode == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "candidate id is required", nil)
+	}
+
+	var req CandidateAdminUpdateRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request body", nil)
+	}
+
+	reviewerID, ok := c.Locals("user_id").(string)
+	if !ok || reviewerID == "" {
+		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized reviewer", nil)
+	}
+
+	if err := h.service.AdminUpdateCandidateDetails(c.Context(), candidateCode, &req, reviewerID); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Candidate details updated successfully", nil, nil)
+}
+
 func (h *Handler) AdminUpdateStatus(c fiber.Ctx) error {
 	candidateCode := c.Params("id")
 	if candidateCode == "" {

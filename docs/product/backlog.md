@@ -50,6 +50,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 | PUB-10 | Candidate Registration API & Uploads. | Critical | 3d | PUB-01, FND-06 | Sprint 4 | ✅ Done |
 | PUB-11 | Candidate Registration Validation. | High | 1d | PUB-10 | Sprint 4 | ✅ Done |
 | PUB-12 | Candidate Registration Attachments. | High | 1d | PUB-10 | Sprint 4 | ✅ Done |
+| MKS-050-005 | Admin Candidate Management. | Medium | 2d | MKS-050-004 | Sprint 4 | ✅ Done |
 
 ## 4. Epic: E-Voting (EVT)
 | Task ID | Description | Priority | Effort | Dependencies | Sprint | Status |
@@ -107,13 +108,14 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 - PUB-08: View Announcements
 - PUB-09: View & Download Public Documents
 
-### Sprint 4: Candidate Registration
-**Status**: 🚧 In Progress
+### Sprint 4: Candidate Registration & Dashboards
+**Status**: ✅ Completed
 - PUB-10: Candidate Registration API & Uploads (✅ Done)
 - PUB-11: Candidate Registration Validation (MKS-050-002) (✅ Done)
 - PUB-12: Candidate Registration Attachments (MKS-050-003) (✅ Done)
 - ADM-02: Admin Candidate Verification (MKS-050-004) (✅ Done)
 - ADM-03: Dashboard Analytics (Participants/Votes)
+- MKS-050-005: Admin Candidate Management (✅ Done)
 
 ### Sprint 5: Verification & Attendance
 **Status**: ⏳ Planned

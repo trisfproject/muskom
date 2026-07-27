@@ -29,6 +29,7 @@ type Service interface {
 
 	AdminListCandidates(ctx context.Context, filter CandidateAdminListRequest) ([]CandidateAdminListResponse, int, error)
 	AdminGetCandidateDetail(ctx context.Context, candidateCode string) (*CandidateAdminDetailResponse, error)
+	AdminUpdateCandidateDetails(ctx context.Context, candidateCode string, req *CandidateAdminUpdateRequest, reviewerID string) error
 	AdminUpdateCandidateStatus(ctx context.Context, candidateCode string, req *CandidateUpdateStatusRequest, reviewerID string) error
 }
 
@@ -378,7 +379,43 @@ func (s *service) AdminGetCandidateDetail(ctx context.Context, candidateCode str
 		detail.DocumentURL = s.storage.URL(detail.DocumentURL)
 	}
 
+	history, err := s.repo.GetCandidateAuditHistory(ctx, candidateCode)
+	if err == nil {
+		detail.AuditHistory = history
+	} else {
+		detail.AuditHistory = []CandidateAuditLogResponse{}
+	}
+
 	return detail, nil
+}
+
+func (s *service) AdminUpdateCandidateDetails(ctx context.Context, candidateCode string, req *CandidateAdminUpdateRequest, reviewerID string) error {
+	if err := s.validator.ValidateStruct(req); err != nil {
+		return &ValidationError{Details: err}
+	}
+
+	// Verify candidate exists
+	_, err := s.repo.GetCandidateApplicationByID(ctx, candidateCode)
+	if err != nil {
+		return err
+	}
+
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err := s.repo.UpdateCandidateDetails(ctx, tx, candidateCode, req); err != nil {
+		return err
+	}
+
+	// Log audit
+	if err := s.repo.LogAudit(ctx, tx, "candidate", "UPDATE_DETAILS", "candidate_applications", candidateCode, "{}"); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (s *service) AdminUpdateCandidateStatus(ctx context.Context, candidateCode string, req *CandidateUpdateStatusRequest, reviewerID string) error {

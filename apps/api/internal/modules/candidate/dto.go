@@ -31,11 +31,16 @@ type DeleteDocumentsRequest struct {
 }
 
 type CandidateAdminListRequest struct {
-	EventID string `query:"event_id"`
-	Status  string `query:"status"`
-	Search  string `query:"search"`
-	Page    int    `query:"page"`
-	Limit   int    `query:"limit"`
+	EventID        string `query:"event_id"`
+	Status         string `query:"status"`
+	Search         string `query:"search"`
+	CandidateID    string `query:"candidate_id"`
+	RegistrationID string `query:"registration_id"`
+	SubmissionDate string `query:"submission_date"`
+	SortBy         string `query:"sort_by"`
+	SortOrder      string `query:"sort_order"`
+	Page           int    `query:"page"`
+	Limit          int    `query:"limit"`
 }
 
 type CandidateAdminListResponse struct {
@@ -50,16 +55,31 @@ type CandidateAdminListResponse struct {
 
 type CandidateAdminDetailResponse struct {
 	CandidateAdminListResponse
-	Vision       string     `json:"vision"`
-	Mission      string     `json:"mission"`
-	WorkProgram  string     `json:"work_program"`
-	PhotoURL     string     `json:"photo_url,omitempty"`
-	DocumentURL  string     `json:"document_url,omitempty"`
-	ReviewedBy   *string    `json:"reviewed_by,omitempty"`
-	ReviewedAt   *time.Time `json:"reviewed_at,omitempty"`
-	ReviewerName *string    `json:"reviewer_name,omitempty"`
+	Vision       string                      `json:"vision"`
+	Mission      string                      `json:"mission"`
+	WorkProgram  string                      `json:"work_program"`
+	PhotoURL     string                      `json:"photo_url,omitempty"`
+	DocumentURL  string                      `json:"document_url,omitempty"`
+	ReviewedBy   *string                     `json:"reviewed_by,omitempty"`
+	ReviewedAt   *time.Time                  `json:"reviewed_at,omitempty"`
+	ReviewerName *string                     `json:"reviewer_name,omitempty"`
+	AuditHistory []CandidateAuditLogResponse `json:"audit_history,omitempty"`
+}
+
+type CandidateAuditLogResponse struct {
+	ID        string    `json:"id"`
+	Action    string    `json:"action"`
+	Metadata  string    `json:"metadata"`
+	CreatedAt time.Time `json:"created_at"`
+	UserName  *string   `json:"user_name,omitempty"`
 }
 
 type CandidateUpdateStatusRequest struct {
 	Status string `json:"status" validate:"required,oneof=REVIEWING ACCEPTED REJECTED"`
+}
+
+type CandidateAdminUpdateRequest struct {
+	Vision      *string `json:"vision" validate:"omitempty"`
+	Mission     *string `json:"mission" validate:"omitempty"`
+	WorkProgram *string `json:"work_program" validate:"omitempty"`
 }
