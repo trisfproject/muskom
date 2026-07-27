@@ -10,8 +10,8 @@ import (
 
 func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator) {
 	repo := NewRepository(db)
-	svc := NewService(repo, log)
-	handler := NewHandler(svc, val)
+	svc := NewService(repo, log, val)
+	handler := NewHandler(svc)
 
 	router.Post("/", handler.Register)
 	router.Get("/:registration_code", handler.GetStatus)

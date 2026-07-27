@@ -11,6 +11,7 @@ type Repository interface {
 	IsPhaseActive(ctx context.Context, eventID string, phaseName string) (bool, error)
 	CountRegistrations(ctx context.Context, eventID string) (int, error)
 	CheckExistingRegistration(ctx context.Context, eventID string, email string) (bool, error)
+	CheckExistingPhone(ctx context.Context, eventID string, phone string) (bool, error)
 	BeginTx(ctx context.Context) (*sqlx.Tx, error)
 	FindOrCreatePerson(ctx context.Context, tx *sqlx.Tx, p *Person) error
 	CreateRegistration(ctx context.Context, tx *sqlx.Tx, r *Registration) error
@@ -71,6 +72,18 @@ func (r *repository) CheckExistingRegistration(ctx context.Context, eventID stri
 	`
 	var count int
 	err := r.db.GetContext(ctx, &count, query, eventID, email)
+	return count > 0, err
+}
+
+func (r *repository) CheckExistingPhone(ctx context.Context, eventID string, phone string) (bool, error) {
+	query := `
+		SELECT COUNT(1) 
+		FROM registrations r
+		JOIN persons p ON r.person_id = p.id
+		WHERE r.event_id = $1 AND p.phone = $2
+	`
+	var count int
+	err := r.db.GetContext(ctx, &count, query, eventID, phone)
 	return count > 0, err
 }
 

@@ -5,6 +5,8 @@ All notable changes to the MUSKOM project will be documented in this file.
 ## [Unreleased] - 2026-07-27
 
 ### Added
+- **Registration Validation (MKS-040-002)**: Shifted structural validation logic to the Service layer to strictly conform to clean architecture. Implemented exhaustive business validation including duplicate email/phone checks, registration phase bounds, and maximum participant quota. Also exposed a `ValidateRegistrationFiles` hook to prepare for future file uploads (MKS-040-003).
+- *PRD Discrepancy Note (Validation)*: The PRD mentioned possible age validation, but `persons` or `registrations` tables do not have a `date_of_birth` column, so this validation was skipped to respect the database schema.
 - **Public Registration API (MKS-040-001)**: Implemented the participant registration module with endpoints `POST /api/v1/public/registrations` and `GET /api/v1/public/registrations/:registration_code`. Includes chronological validation against active musyawarah phase, quota limits check, duplicate email check, and database transactions for atomic inserts into `persons` and `registrations` tables. 
 - *Schema Discrepancy Note*: PRD requested a "Unique Registration Code", but `registrations` table lacked a dedicated column. The generated `id` (UUID) in the `registrations` table is now utilized safely as the unique `registration_code`.
 - **Sprint 2 Review**: Conducted architecture, security, and functional review. Verified zero critical defects. Validated storage abstraction and configuration settings. Marked Sprint 2 as fully completed.
