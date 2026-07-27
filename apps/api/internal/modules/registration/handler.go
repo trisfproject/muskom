@@ -146,3 +146,70 @@ func (h *Handler) DeleteAttachment(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusOK, "Attachment deleted successfully", nil, nil)
 }
+
+// Admin Handlers
+
+func (h *Handler) AdminList(c fiber.Ctx) error {
+	var req AdminListRegistrationsRequest
+	if err := c.Bind().Query(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid query parameters", nil)
+	}
+
+	res, err := h.service.AdminListRegistrations(c.Context(), &req)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Registrations retrieved successfully", res, nil)
+}
+
+func (h *Handler) AdminGet(c fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "Registration ID is required", nil)
+	}
+
+	res, err := h.service.AdminGetRegistration(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrRegistrationNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Registration detail retrieved", res, nil)
+}
+
+func (h *Handler) AdminUpdateStatus(c fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "Registration ID is required", nil)
+	}
+
+	var req AdminUpdateRegistrationStatusRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+
+	// Assuming the JWT middleware sets user_id in context locals
+	adminUserID := c.Locals("user_id")
+	if adminUserID == nil {
+		adminUserID = "system" // fallback if middleware not properly configured
+	}
+
+	err := h.service.AdminUpdateRegistrationStatus(c.Context(), id, &req, adminUserID.(string))
+	if err != nil {
+		var valErr *ValidationError
+		if errors.As(err, &valErr) {
+			return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", valErr.Details)
+		}
+
+		if errors.Is(err, ErrRegistrationNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
+		}
+
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Registration status updated successfully", nil, nil)
+}

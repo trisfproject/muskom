@@ -22,3 +22,13 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 	router.Get("/:registration_code/attachments", handler.GetAttachments)
 	router.Delete("/:registration_code/attachments/:attachment_id", handler.DeleteAttachment)
 }
+
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, strg storage.Storage, maxSize int64) {
+	repo := NewRepository(db)
+	svc := NewService(repo, log, val, strg, maxSize)
+	handler := NewHandler(svc)
+
+	router.Get("/", handler.AdminList)
+	router.Get("/:id", handler.AdminGet)
+	router.Patch("/:id/status", handler.AdminUpdateStatus)
+}

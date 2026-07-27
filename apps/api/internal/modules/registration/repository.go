@@ -2,7 +2,9 @@ package registration
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"strconv"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
@@ -30,6 +32,11 @@ type Repository interface {
 
 	// Confirmation
 	GetRegistrationConfirmation(ctx context.Context, registrationID string) (*RegistrationConfirmationData, error)
+
+	// Admin operations
+	ListRegistrations(ctx context.Context, filter AdminListRegistrationsRequest) ([]AdminRegistrationResponse, int, error)
+	GetRegistrationAdminByID(ctx context.Context, id string) (*AdminRegistrationResponse, error)
+	UpdateRegistrationStatus(ctx context.Context, tx *sqlx.Tx, id string, status string) error
 }
 
 type RegistrationConfirmationData struct {
@@ -187,4 +194,202 @@ func (r *repository) GetRegistrationConfirmation(ctx context.Context, registrati
 	var data RegistrationConfirmationData
 	err := r.db.GetContext(ctx, &data, query, registrationID)
 	return &data, err
+}
+
+func (r *repository) ListRegistrations(ctx context.Context, filter AdminListRegistrationsRequest) ([]AdminRegistrationResponse, int, error) {
+	baseQuery := `
+		FROM registrations r
+		JOIN events e ON r.event_id = e.id
+		JOIN persons p ON r.person_id = p.id
+		WHERE 1=1
+	`
+	args := []interface{}{}
+	argIdx := 1
+
+	if filter.Status != "" {
+		baseQuery += ` AND r.status = $` + itoa(argIdx)
+		args = append(args, filter.Status)
+		argIdx++
+	}
+	if filter.RegistrationCode != "" {
+		baseQuery += ` AND r.id = $` + itoa(argIdx)
+		args = append(args, filter.RegistrationCode)
+		argIdx++
+	}
+	if filter.ParticipantName != "" {
+		baseQuery += ` AND p.full_name ILIKE $` + itoa(argIdx)
+		args = append(args, "%"+filter.ParticipantName+"%")
+		argIdx++
+	}
+	if filter.Email != "" {
+		baseQuery += ` AND p.email ILIKE $` + itoa(argIdx)
+		args = append(args, "%"+filter.Email+"%")
+		argIdx++
+	}
+	if filter.Phone != "" {
+		baseQuery += ` AND p.phone ILIKE $` + itoa(argIdx)
+		args = append(args, "%"+filter.Phone+"%")
+		argIdx++
+	}
+	if filter.RegistrationDate != "" {
+		baseQuery += ` AND DATE(r.created_at) = $` + itoa(argIdx)
+		args = append(args, filter.RegistrationDate)
+		argIdx++
+	}
+
+	countQuery := `SELECT COUNT(1) ` + baseQuery
+	var total int
+	err := r.db.GetContext(ctx, &total, countQuery, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if filter.Limit <= 0 {
+		filter.Limit = 10
+	}
+	if filter.Page <= 0 {
+		filter.Page = 1
+	}
+	offset := (filter.Page - 1) * filter.Limit
+
+	sortCol := "r.created_at"
+	switch filter.SortBy {
+	case "participant_name":
+		sortCol = "p.full_name"
+	case "status":
+		sortCol = "r.status"
+	case "created_at":
+		sortCol = "r.created_at"
+	}
+
+	sortDir := "DESC"
+	if filter.SortOrder == "asc" || filter.SortOrder == "ASC" {
+		sortDir = "ASC"
+	}
+
+	selectQuery := `
+		SELECT 
+			r.id,
+			r.event_id,
+			e.title AS event_name,
+			p.full_name AS participant_name,
+			p.email,
+			p.phone,
+			p.company,
+			p.job_title,
+			r.participant_category,
+			r.source,
+			r.status,
+			r.created_at::text,
+			r.updated_at::text
+		` + baseQuery + ` ORDER BY ` + sortCol + ` ` + sortDir + ` LIMIT $` + itoa(argIdx) + ` OFFSET $` + itoa(argIdx+1)
+
+	args = append(args, filter.Limit, offset)
+
+	rows, err := r.db.QueryContext(ctx, selectQuery, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var result []AdminRegistrationResponse
+	for rows.Next() {
+		var resp AdminRegistrationResponse
+		var company, jobTitle sql.NullString
+		err := rows.Scan(
+			&resp.ID,
+			&resp.EventID,
+			&resp.EventName,
+			&resp.ParticipantName,
+			&resp.Email,
+			&resp.Phone,
+			&company,
+			&jobTitle,
+			&resp.ParticipantCategory,
+			&resp.Source,
+			&resp.Status,
+			&resp.CreatedAt,
+			&resp.UpdatedAt,
+		)
+		if err != nil {
+			return nil, 0, err
+		}
+		if company.Valid {
+			resp.Company = company.String
+		}
+		if jobTitle.Valid {
+			resp.JobTitle = jobTitle.String
+		}
+		result = append(result, resp)
+	}
+
+	if len(result) == 0 {
+		result = []AdminRegistrationResponse{}
+	}
+
+	return result, total, nil
+}
+
+func (r *repository) GetRegistrationAdminByID(ctx context.Context, id string) (*AdminRegistrationResponse, error) {
+	query := `
+		SELECT 
+			r.id,
+			r.event_id,
+			e.title AS event_name,
+			p.full_name AS participant_name,
+			p.email,
+			p.phone,
+			p.company,
+			p.job_title,
+			r.participant_category,
+			r.source,
+			r.status,
+			r.created_at::text,
+			r.updated_at::text
+		FROM registrations r
+		JOIN events e ON r.event_id = e.id
+		JOIN persons p ON r.person_id = p.id
+		WHERE r.id = $1
+	`
+	var resp AdminRegistrationResponse
+	var company, jobTitle sql.NullString
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&resp.ID,
+		&resp.EventID,
+		&resp.EventName,
+		&resp.ParticipantName,
+		&resp.Email,
+		&resp.Phone,
+		&company,
+		&jobTitle,
+		&resp.ParticipantCategory,
+		&resp.Source,
+		&resp.Status,
+		&resp.CreatedAt,
+		&resp.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if company.Valid {
+		resp.Company = company.String
+	}
+	if jobTitle.Valid {
+		resp.JobTitle = jobTitle.String
+	}
+	return &resp, nil
+}
+
+func (r *repository) UpdateRegistrationStatus(ctx context.Context, tx *sqlx.Tx, id string, status string) error {
+	query := `
+		UPDATE registrations
+		SET status = $1, updated_at = NOW()
+		WHERE id = $2
+	`
+	_, err := tx.ExecContext(ctx, query, status, id)
+	return err
+}
+
+func itoa(i int) string {
+	return strconv.Itoa(i)
 }

@@ -89,11 +89,12 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 - ADM-08: Document & Media Management (CRUD)
 
 ### Sprint 3: Core Operations
-**Status**: 🚧 In Progress
+**Status**: 🚧 Ready for Review
 - PUB-01: Public Registration API (MKS-040-001) (✅ Done)
 - PUB-02: Registration Validation (MKS-040-002) (✅ Done)
 - PUB-03: Registration Attachments (MKS-040-003) (✅ Done)
 - PUB-04: Registration Confirmation (MKS-040-004) (✅ Done)
+- PUB-05: Admin Registration Management (MKS-040-005) (✅ Done)
 - EVT-01: Voter Booth Validation & Authorization
 - EVT-02: Candidate Profile Display
 - EVT-03: Anonymous Vote Submission & Transaction

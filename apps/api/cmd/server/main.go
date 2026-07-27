@@ -90,6 +90,7 @@ func main() {
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
 	musyawarah.SetupRoutes(adminGroup.Group("/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
+	registration.SetupAdminRoutes(adminGroup.Group("/registrations"), db, log, val, strg, cfg.MaxUploadSize)
 
 	// 8. Graceful Shutdown
 	go func() {

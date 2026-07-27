@@ -46,6 +46,11 @@ type Service interface {
 	UploadAttachment(ctx context.Context, registrationID string, file *multipart.FileHeader) (*AttachmentResponse, error)
 	GetAttachments(ctx context.Context, registrationID string) ([]AttachmentResponse, error)
 	DeleteAttachment(ctx context.Context, registrationID, attachmentID string) error
+
+	// Admin operations
+	AdminListRegistrations(ctx context.Context, req *AdminListRegistrationsRequest) (*AdminListRegistrationsResponse, error)
+	AdminGetRegistration(ctx context.Context, id string) (*AdminRegistrationResponse, error)
+	AdminUpdateRegistrationStatus(ctx context.Context, id string, req *AdminUpdateRegistrationStatusRequest, adminUserID string) error
 }
 
 type service struct {
@@ -344,6 +349,89 @@ func (s *service) DeleteAttachment(ctx context.Context, registrationID, attachme
 
 	// Normally we would fetch the path and delete it from storage, but we can't fetch it here.
 	return nil
+}
+
+func (s *service) AdminListRegistrations(ctx context.Context, req *AdminListRegistrationsRequest) (*AdminListRegistrationsResponse, error) {
+	data, total, err := s.repo.ListRegistrations(ctx, *req)
+	if err != nil {
+		return nil, err
+	}
+
+	limit := req.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+	page := req.Page
+	if page <= 0 {
+		page = 1
+	}
+
+	totalPages := total / limit
+	if total%limit != 0 {
+		totalPages++
+	}
+
+	return &AdminListRegistrationsResponse{
+		Data:       data,
+		Total:      total,
+		Page:       page,
+		Limit:      limit,
+		TotalPages: totalPages,
+	}, nil
+}
+
+func (s *service) AdminGetRegistration(ctx context.Context, id string) (*AdminRegistrationResponse, error) {
+	resp, err := s.repo.GetRegistrationAdminByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrRegistrationNotFound
+		}
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (s *service) AdminUpdateRegistrationStatus(ctx context.Context, id string, req *AdminUpdateRegistrationStatusRequest, adminUserID string) error {
+	if err := s.validator.ValidateStruct(req); err != nil {
+		return &ValidationError{Details: err}
+	}
+
+	// Verify Registration exists
+	reg, err := s.repo.GetRegistrationAdminByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrRegistrationNotFound
+		}
+		return err
+	}
+
+	if reg.Status == req.Status {
+		return nil // No change
+	}
+
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = s.repo.UpdateRegistrationStatus(ctx, tx, id, req.Status)
+	if err != nil {
+		return err
+	}
+
+	// Log audit
+	meta := map[string]string{
+		"old_status": reg.Status,
+		"new_status": req.Status,
+	}
+	metaBytes, _ := json.Marshal(meta)
+	err = s.repo.LogAudit(ctx, tx, "registration", "UPDATE_STATUS", "registrations", id, string(metaBytes))
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 // TODO: MKS-040-003 Implement File Validation Hook

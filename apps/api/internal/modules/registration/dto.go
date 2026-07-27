@@ -35,3 +35,44 @@ type RegistrationConfirmationResponse struct {
 	ParticipantName  string `json:"participant_name"`
 	NextStep         string `json:"next_step"`
 }
+
+type AdminListRegistrationsRequest struct {
+	Page             int    `query:"page"`
+	Limit            int    `query:"limit"`
+	SortBy           string `query:"sort_by"`
+	SortOrder        string `query:"sort_order"`
+	Status           string `query:"status"`
+	RegistrationCode string `query:"registration_code"`
+	ParticipantName  string `query:"participant_name"`
+	Email            string `query:"email"`
+	Phone            string `query:"phone"`
+	RegistrationDate string `query:"registration_date"`
+}
+
+type AdminUpdateRegistrationStatusRequest struct {
+	Status string `json:"status" validate:"required,oneof=PENDING APPROVED REJECTED"`
+}
+
+type AdminRegistrationResponse struct {
+	ID                  string `json:"id"`
+	EventID             string `json:"event_id"`
+	EventName           string `json:"event_name"`
+	ParticipantName     string `json:"participant_name"`
+	Email               string `json:"email"`
+	Phone               string `json:"phone"`
+	Company             string `json:"company"`
+	JobTitle            string `json:"job_title"`
+	ParticipantCategory string `json:"participant_category"`
+	Source              string `json:"source"`
+	Status              string `json:"status"`
+	CreatedAt           string `json:"created_at"`
+	UpdatedAt           string `json:"updated_at"`
+}
+
+type AdminListRegistrationsResponse struct {
+	Data       []AdminRegistrationResponse `json:"data"`
+	Total      int                         `json:"total"`
+	Page       int                         `json:"page"`
+	Limit      int                         `json:"limit"`
+	TotalPages int                         `json:"total_pages"`
+}
