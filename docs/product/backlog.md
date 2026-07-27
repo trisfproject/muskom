@@ -47,7 +47,9 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 | PUB-07 | Timeline Display (Event Phases). | High | 1d | PUB-06 | Sprint 3 | ⏳ Planned |
 | PUB-08 | View Announcements. | Medium | 1d | ADM-07, PUB-06 | Sprint 3 | ⏳ Planned |
 | PUB-09 | View & Download Public Documents. | Medium | 1d | ADM-08, PUB-06 | Sprint 3 | ⏳ Planned |
-| PUB-10 | Candidate Registration API & Uploads. | Critical | 3d | PUB-01, FND-06 | Sprint 4 | ⏳ Planned |
+| PUB-10 | Candidate Registration API & Uploads. | Critical | 3d | PUB-01, FND-06 | Sprint 4 | ✅ Done |
+| PUB-11 | Candidate Registration Validation. | High | 1d | PUB-10 | Sprint 4 | ✅ Done |
+| PUB-12 | Candidate Registration Attachments. | High | 1d | PUB-10 | Sprint 4 | ✅ Done |
 
 ## 4. Epic: E-Voting (EVT)
 | Task ID | Description | Priority | Effort | Dependencies | Sprint | Status |
@@ -106,8 +108,10 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 - PUB-09: View & Download Public Documents
 
 ### Sprint 4: Candidate Registration
-**Status**: ⏳ Planned
-- PUB-10: Candidate Registration API & Uploads
+**Status**: 🚧 In Progress
+- PUB-10: Candidate Registration API & Uploads (✅ Done)
+- PUB-11: Candidate Registration Validation (MKS-050-002) (✅ Done)
+- PUB-12: Candidate Registration Attachments (MKS-050-003) (✅ Done)
 - ADM-03: Dashboard Analytics (Participants/Votes)
 
 ### Sprint 5: Verification & Attendance

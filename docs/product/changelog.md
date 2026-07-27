@@ -34,3 +34,25 @@ All notable changes to the MUSKOM project will be documented in this file.
 
 ### Changed
 - `apps/api/cmd/server/main.go`: Wired `config` and `validator` dependencies into the Auth routes to support JWT issuance and request validation. Registered `/api/v1/admin` route group secured by `JWTMiddleware`.
+
+## [0.4.0] - 2026-07-27 (Sprint 4)
+### Added
+- Created `candidate` module to handle Public Candidate Registration (MKS-050-001 / PUB-10).
+- Implemented `POST /api/v1/public/candidates` to submit candidate applications.
+- Implemented `GET /api/v1/public/candidates/{id}` to fetch candidate status.
+
+### Discrepancies & Deviations (MKS-050-001)
+- **Initial Status**: The PRD requested `PENDING` as the initial status, but the database schema (`008_create_candidate_applications.sql`) restricts status to `SUBMITTED`, `REVIEWING`, `ACCEPTED`, `REJECTED`. The application conforms to the database schema by setting initial status to `SUBMITTED`.
+- **Created By**: The PRD requested tracking `created_by (SYSTEM)`. However, the table `candidate_applications` does not possess a `created_by` column. Thus, it is not stored.
+- **Candidate Code**: The PRD requested to "Generate: Unique Candidate Code". Since there is no explicit string identifier column in the schema, the application uses the auto-generated `id` (UUID) as the public candidate identifier.
+
+### Changed
+- **Candidate Registration Validation (MKS-050-002)**: Added robust business validation to the Service layer for Candidate Registration.
+  - Implemented participant registration eligibility check (participant must have an `APPROVED` status).
+  - Enforced musyawarah event status constraints (must be `UPCOMING` or `ONGOING`).
+  - Reused `candidate_registration` phase validation and duplicate application prevention logic.
+- **Candidate Documents (MKS-050-003)**: Implemented document uploads replacing the previous placeholder.
+  - Developed `POST`, `GET`, and `DELETE /api/v1/public/candidates/{id}/documents` for uploading candidate photos and mission documents securely.
+  - Ensured operations use the Storage abstraction directly, blocking any manual file access.
+  - Implemented validation for `.jpg`, `.jpeg`, `.png`, `.webp`, `.pdf` and maximum file sizes natively.
+  - Added atomic `COALESCE` DB updates so `photo_path` and `document_path` are independently managed without losing the other file when partial uploads occur. Old files are correctly cleaned up asynchronously.
