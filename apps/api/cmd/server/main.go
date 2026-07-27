@@ -85,7 +85,7 @@ func main() {
 
 	// Modules (Public / Dedicated)
 	auth.SetupRoutes(v1.Group("/auth"), db, redisClient, cfg, log, val)
-	registration.SetupRoutes(v1.Group("/public/registrations"), db, log, val)
+	registration.SetupRoutes(v1.Group("/public/registrations"), db, log, val, strg, cfg.MaxUploadSize)
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))

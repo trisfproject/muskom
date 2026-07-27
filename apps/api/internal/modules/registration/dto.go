@@ -17,3 +17,12 @@ type PublicRegistrationResponse struct {
 type RegistrationStatusResponse struct {
 	Status string `json:"status"`
 }
+
+type AttachmentResponse struct {
+	ID        string `json:"id"`
+	FileName  string `json:"file_name"`
+	FileURL   string `json:"file_url"`
+	MimeType  string `json:"mime_type"`
+	Size      int64  `json:"size"`
+	CreatedAt string `json:"created_at"`
+}

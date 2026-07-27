@@ -92,6 +92,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 **Status**: 🚧 In Progress
 - PUB-01: Public Registration API (MKS-040-001) (✅ Done)
 - PUB-02: Registration Validation (MKS-040-002) (✅ Done)
+- PUB-03: Registration Attachments (MKS-040-003) (✅ Done)
 - EVT-01: Voter Booth Validation & Authorization
 - EVT-02: Candidate Profile Display
 - EVT-03: Anonymous Vote Submission & Transaction

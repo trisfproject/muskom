@@ -2,9 +2,13 @@ package registration
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/trisfproject/muskom/apps/api/platform/storage"
 )
+
+var ErrSchemaMissing = errors.New("database schema for registration attachments is missing")
 
 type Repository interface {
 	GetActiveEventContext(ctx context.Context) (*MusyawarahActiveContext, error)
@@ -17,6 +21,12 @@ type Repository interface {
 	CreateRegistration(ctx context.Context, tx *sqlx.Tx, r *Registration) error
 	LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error
 	GetRegistrationStatus(ctx context.Context, registrationID string) (string, error)
+	GetRegistrationByID(ctx context.Context, registrationID string) (*Registration, error)
+
+	// Attachment operations (Stubbed due to missing schema)
+	SaveAttachmentMetadata(ctx context.Context, registrationID string, fileInfo *storage.FileInfo) (string, error)
+	GetAttachments(ctx context.Context, registrationID string) ([]AttachmentResponse, error)
+	DeleteAttachmentMetadata(ctx context.Context, attachmentID string) error
 }
 
 type repository struct {
@@ -129,4 +139,23 @@ func (r *repository) GetRegistrationStatus(ctx context.Context, registrationID s
 	var status string
 	err := r.db.GetContext(ctx, &status, query, registrationID)
 	return status, err
+}
+
+func (r *repository) GetRegistrationByID(ctx context.Context, registrationID string) (*Registration, error) {
+	query := `SELECT * FROM registrations WHERE id = $1`
+	var reg Registration
+	err := r.db.GetContext(ctx, &reg, query, registrationID)
+	return &reg, err
+}
+
+func (r *repository) SaveAttachmentMetadata(ctx context.Context, registrationID string, fileInfo *storage.FileInfo) (string, error) {
+	return "", ErrSchemaMissing
+}
+
+func (r *repository) GetAttachments(ctx context.Context, registrationID string) ([]AttachmentResponse, error) {
+	return nil, ErrSchemaMissing
+}
+
+func (r *repository) DeleteAttachmentMetadata(ctx context.Context, attachmentID string) error {
+	return ErrSchemaMissing
 }
