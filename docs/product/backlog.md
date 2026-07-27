@@ -31,7 +31,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 | ADM-03 | Dashboard Analytics (Participants/Votes). | High | 3d | ADM-01, ADM-02 | Sprint 4 | ⏳ Planned |
 | ADM-04 | Participant Verification Interface. | High | 2d | ADM-02, PUB-05 | Sprint 4 | ⏳ Planned |
 | ADM-05 | Candidate Verification Interface. | High | 2d | ADM-02, PUB-06 | Sprint 4 | ⏳ Planned |
-| ADM-06 | Attendance Check-in API (QR/Manual). | High | 2d | ADM-04 | Sprint 5 | ⏳ Planned |
+| PUB-01 | Public Registration API (MKS-040-001). | High | 2d | ADM-01 | Sprint 3 | ✅ Done |
 | ADM-07 | Announcement Management (CRUD). | Medium | 1d | ADM-02 | Sprint 2 | ⏳ Planned |
 | ADM-08 | Document & Media Management (CRUD). | High | 2d | ADM-02, FND-06 | Sprint 2 | ⏳ Planned |
 
@@ -88,15 +88,14 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 - ADM-07: Announcement Management (CRUD)
 - ADM-08: Document & Media Management (CRUD)
 
-### Sprint 3: Public Portal & Registrations
-**Status**: ⏳ Planned
-- FND-08: Frontend Bootstrap (Next.js/Vite)
-- PUB-01: Landing Page (Banner, Theme, Logo)
-- PUB-02: Timeline Display (Event Phases)
-- PUB-03: View Announcements
-- PUB-04: View & Download Public Documents
-- PUB-05: Participant Registration Form & OTP
-- PUB-06: Candidate Registration Form & Uploads
+### Sprint 3: Core Operations
+**Status**: 🚧 In Progress
+- PUB-01: Public Registration API (MKS-040-001) (✅ Done)
+- EVT-01: Voter Booth Validation & Authorization
+- EVT-02: Candidate Profile Display
+- EVT-03: Anonymous Vote Submission & Transaction
+- EVT-04: Voting Session & Timeout Management
+- EVT-05: Live Real-time Statistics
 
 ### Sprint 4: Admin Verification & Dashboard
 **Status**: ⏳ Planned

@@ -12,6 +12,7 @@ import (
 
 	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/registration"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
@@ -84,6 +85,7 @@ func main() {
 
 	// Modules (Public / Dedicated)
 	auth.SetupRoutes(v1.Group("/auth"), db, redisClient, cfg, log, val)
+	registration.SetupRoutes(v1.Group("/public/registrations"), db, log, val)
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))

@@ -5,6 +5,8 @@ All notable changes to the MUSKOM project will be documented in this file.
 ## [Unreleased] - 2026-07-27
 
 ### Added
+- **Public Registration API (MKS-040-001)**: Implemented the participant registration module with endpoints `POST /api/v1/public/registrations` and `GET /api/v1/public/registrations/:registration_code`. Includes chronological validation against active musyawarah phase, quota limits check, duplicate email check, and database transactions for atomic inserts into `persons` and `registrations` tables. 
+- *Schema Discrepancy Note*: PRD requested a "Unique Registration Code", but `registrations` table lacked a dedicated column. The generated `id` (UUID) in the `registrations` table is now utilized safely as the unique `registration_code`.
 - **Sprint 2 Review**: Conducted architecture, security, and functional review. Verified zero critical defects. Validated storage abstraction and configuration settings. Marked Sprint 2 as fully completed.
 - **Sprint 2 Completed**: Finalized Musyawarah Event Configuration & Content milestone.
 - **Operational Settings (MKS-030-004)**: Added detailed event settings including attendance controls, voting options, approval modes, and public portal visibility toggles.
