@@ -89,7 +89,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 - ADM-08: Document & Media Management (CRUD)
 
 ### Sprint 3: Core Operations
-**Status**: 🚧 Ready for Review
+**Status**: ✅ Completed
 - PUB-01: Public Registration API (MKS-040-001) (✅ Done)
 - PUB-02: Registration Validation (MKS-040-002) (✅ Done)
 - PUB-03: Registration Attachments (MKS-040-003) (✅ Done)

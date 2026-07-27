@@ -36,7 +36,7 @@ type Repository interface {
 	// Admin operations
 	ListRegistrations(ctx context.Context, filter AdminListRegistrationsRequest) ([]AdminRegistrationResponse, int, error)
 	GetRegistrationAdminByID(ctx context.Context, id string) (*AdminRegistrationResponse, error)
-	UpdateRegistrationStatus(ctx context.Context, tx *sqlx.Tx, id string, status string) error
+	UpdateRegistrationStatus(ctx context.Context, tx *sqlx.Tx, id string, status string, adminID string) error
 }
 
 type RegistrationConfirmationData struct {
@@ -380,13 +380,23 @@ func (r *repository) GetRegistrationAdminByID(ctx context.Context, id string) (*
 	return &resp, nil
 }
 
-func (r *repository) UpdateRegistrationStatus(ctx context.Context, tx *sqlx.Tx, id string, status string) error {
+func (r *repository) UpdateRegistrationStatus(ctx context.Context, tx *sqlx.Tx, id string, status string, adminID string) error {
 	query := `
 		UPDATE registrations
-		SET status = $1, updated_at = NOW()
-		WHERE id = $2
+		SET status = $1, approved_by = $2, approved_at = NOW(), updated_at = NOW()
+		WHERE id = $3
 	`
-	_, err := tx.ExecContext(ctx, query, status, id)
+	var err error
+	if adminID == "system" {
+		query = `
+			UPDATE registrations
+			SET status = $1, updated_at = NOW()
+			WHERE id = $2
+		`
+		_, err = tx.ExecContext(ctx, query, status, id)
+	} else {
+		_, err = tx.ExecContext(ctx, query, status, adminID, id)
+	}
 	return err
 }
 

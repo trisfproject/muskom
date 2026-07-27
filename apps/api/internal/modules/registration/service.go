@@ -415,7 +415,7 @@ func (s *service) AdminUpdateRegistrationStatus(ctx context.Context, id string, 
 	}
 	defer tx.Rollback()
 
-	err = s.repo.UpdateRegistrationStatus(ctx, tx, id, req.Status)
+	err = s.repo.UpdateRegistrationStatus(ctx, tx, id, req.Status, adminUserID)
 	if err != nil {
 		return err
 	}
