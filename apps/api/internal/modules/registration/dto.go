@@ -26,3 +26,12 @@ type AttachmentResponse struct {
 	Size      int64  `json:"size"`
 	CreatedAt string `json:"created_at"`
 }
+
+type RegistrationConfirmationResponse struct {
+	RegistrationCode string `json:"registration_code"`
+	Status           string `json:"status"`
+	RegistrationDate string `json:"registration_date"`
+	MusyawarahName   string `json:"musyawarah_name"`
+	ParticipantName  string `json:"participant_name"`
+	NextStep         string `json:"next_step"`
+}

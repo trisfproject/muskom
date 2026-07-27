@@ -61,6 +61,23 @@ func (h *Handler) GetStatus(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Registration status retrieved", res, nil)
 }
 
+func (h *Handler) GetConfirmation(c fiber.Ctx) error {
+	code := c.Params("registration_code")
+	if code == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "Registration code is required", nil)
+	}
+
+	res, err := h.service.GetRegistrationConfirmation(c.Context(), code)
+	if err != nil {
+		if errors.Is(err, ErrRegistrationNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Registration confirmation retrieved", res, nil)
+}
+
 func (h *Handler) UploadAttachment(c fiber.Ctx) error {
 	code := c.Params("registration_code")
 	if code == "" {

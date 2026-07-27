@@ -16,6 +16,7 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 
 	router.Post("/", handler.Register)
 	router.Get("/:registration_code", handler.GetStatus)
+	router.Get("/:registration_code/confirmation", handler.GetConfirmation)
 
 	router.Post("/:registration_code/attachments", handler.UploadAttachment)
 	router.Get("/:registration_code/attachments", handler.GetAttachments)

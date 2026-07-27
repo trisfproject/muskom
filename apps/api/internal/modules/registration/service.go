@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"mime/multipart"
+	"strings"
 
 	"go.uber.org/zap"
 
@@ -40,6 +41,7 @@ func (e *ValidationError) Error() string {
 type Service interface {
 	RegisterParticipant(ctx context.Context, req *PublicRegistrationRequest) (*PublicRegistrationResponse, error)
 	CheckRegistrationStatus(ctx context.Context, registrationCode string) (*RegistrationStatusResponse, error)
+	GetRegistrationConfirmation(ctx context.Context, registrationCode string) (*RegistrationConfirmationResponse, error)
 
 	UploadAttachment(ctx context.Context, registrationID string, file *multipart.FileHeader) (*AttachmentResponse, error)
 	GetAttachments(ctx context.Context, registrationID string) ([]AttachmentResponse, error)
@@ -188,6 +190,47 @@ func (s *service) CheckRegistrationStatus(ctx context.Context, registrationCode 
 	return &RegistrationStatusResponse{
 		Status: status,
 	}, nil
+}
+
+func (s *service) GetRegistrationConfirmation(ctx context.Context, registrationCode string) (*RegistrationConfirmationResponse, error) {
+	data, err := s.repo.GetRegistrationConfirmation(ctx, registrationCode)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrRegistrationNotFound
+		}
+		return nil, err
+	}
+
+	var nextStep string
+	switch data.Status {
+	case "PENDING":
+		nextStep = "Waiting for administrator approval"
+	case "APPROVED":
+		nextStep = "Please check your email for the entrance ticket or barcode"
+	case "REJECTED":
+		nextStep = "Your registration was not approved. Please contact the administrator for details"
+	default:
+		nextStep = "Status unknown"
+	}
+
+	return &RegistrationConfirmationResponse{
+		RegistrationCode: data.RegistrationCode,
+		Status:           data.Status,
+		RegistrationDate: data.RegistrationDate,
+		MusyawarahName:   data.MusyawarahName,
+		ParticipantName:  maskName(data.ParticipantName),
+		NextStep:         nextStep,
+	}, nil
+}
+
+func maskName(name string) string {
+	parts := strings.Split(name, " ")
+	for i, part := range parts {
+		if len(part) > 2 {
+			parts[i] = string(part[0]) + strings.Repeat("*", len(part)-2) + string(part[len(part)-1])
+		}
+	}
+	return strings.Join(parts, " ")
 }
 
 func (s *service) UploadAttachment(ctx context.Context, registrationID string, file *multipart.FileHeader) (*AttachmentResponse, error) {

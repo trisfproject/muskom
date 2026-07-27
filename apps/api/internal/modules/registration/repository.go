@@ -27,6 +27,17 @@ type Repository interface {
 	SaveAttachmentMetadata(ctx context.Context, registrationID string, fileInfo *storage.FileInfo) (string, error)
 	GetAttachments(ctx context.Context, registrationID string) ([]AttachmentResponse, error)
 	DeleteAttachmentMetadata(ctx context.Context, attachmentID string) error
+
+	// Confirmation
+	GetRegistrationConfirmation(ctx context.Context, registrationID string) (*RegistrationConfirmationData, error)
+}
+
+type RegistrationConfirmationData struct {
+	RegistrationCode string `db:"registration_code"`
+	Status           string `db:"status"`
+	RegistrationDate string `db:"registration_date"`
+	MusyawarahName   string `db:"musyawarah_name"`
+	ParticipantName  string `db:"participant_name"`
 }
 
 type repository struct {
@@ -158,4 +169,22 @@ func (r *repository) GetAttachments(ctx context.Context, registrationID string) 
 
 func (r *repository) DeleteAttachmentMetadata(ctx context.Context, attachmentID string) error {
 	return ErrSchemaMissing
+}
+
+func (r *repository) GetRegistrationConfirmation(ctx context.Context, registrationID string) (*RegistrationConfirmationData, error) {
+	query := `
+		SELECT 
+			r.id AS registration_code,
+			r.status,
+			r.created_at::text AS registration_date,
+			e.title AS musyawarah_name,
+			p.full_name AS participant_name
+		FROM registrations r
+		JOIN events e ON r.event_id = e.id
+		JOIN persons p ON r.person_id = p.id
+		WHERE r.id = $1
+	`
+	var data RegistrationConfirmationData
+	err := r.db.GetContext(ctx, &data, query, registrationID)
+	return &data, err
 }
