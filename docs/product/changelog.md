@@ -56,3 +56,8 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Ensured operations use the Storage abstraction directly, blocking any manual file access.
   - Implemented validation for `.jpg`, `.jpeg`, `.png`, `.webp`, `.pdf` and maximum file sizes natively.
   - Added atomic `COALESCE` DB updates so `photo_path` and `document_path` are independently managed without losing the other file when partial uploads occur. Old files are correctly cleaned up asynchronously.
+- **Admin Candidate Verification (MKS-050-004)**: Implemented verification workflow for administrators.
+  - Developed `GET /api/v1/admin/candidates` (list), `GET /api/v1/admin/candidates/{id}` (detail), and `PATCH /api/v1/admin/candidates/{id}/status` endpoints.
+  - Added a strict state transition validator enforcing only valid status progressions (`SUBMITTED` -> `REVIEWING` -> `ACCEPTED` / `REJECTED`).
+  - Integrated with the Audit Log and JWT Middleware to automatically capture the reviewer's ID (`reviewed_by`) and timestamps (`reviewed_at`) upon status change.
+

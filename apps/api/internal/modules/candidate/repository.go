@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -21,6 +22,9 @@ type Repository interface {
 	GetEventActivePhase(ctx context.Context, eventID, phaseName string) (bool, error)
 	GetRegistrationDetails(ctx context.Context, registrationID string) (*RegistrationDetails, error)
 	UpdateDocumentPaths(ctx context.Context, tx *sqlx.Tx, applicationID string, photoPath, docPath *string) error
+	GetAdminCandidateList(ctx context.Context, filter CandidateAdminListRequest) ([]CandidateAdminListResponse, int, error)
+	GetAdminCandidateDetail(ctx context.Context, candidateCode string) (*CandidateAdminDetailResponse, error)
+	UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, candidateCode, status, reviewedBy string) error
 	BeginTx(ctx context.Context) (*sqlx.Tx, error)
 	LogAudit(ctx context.Context, tx *sqlx.Tx, action, module, tableName, recordID, metadata string) error
 }
@@ -144,4 +148,130 @@ func (r *repository) GetEventActivePhase(ctx context.Context, eventID, phaseName
 		return false, err
 	}
 	return isActive, nil
+}
+
+func (r *repository) GetAdminCandidateList(ctx context.Context, filter CandidateAdminListRequest) ([]CandidateAdminListResponse, int, error) {
+	baseQuery := `
+		FROM candidate_applications ca
+		JOIN registrations reg ON ca.registration_id = reg.id
+		JOIN persons p ON reg.person_id = p.id
+		WHERE 1=1
+	`
+	args := []interface{}{}
+	argId := 1
+
+	if filter.EventID != "" {
+		baseQuery += fmt.Sprintf(" AND reg.event_id = $%d", argId)
+		args = append(args, filter.EventID)
+		argId++
+	}
+	if filter.Status != "" {
+		baseQuery += fmt.Sprintf(" AND ca.status = $%d", argId)
+		args = append(args, filter.Status)
+		argId++
+	}
+	if filter.Search != "" {
+		baseQuery += fmt.Sprintf(" AND p.full_name ILIKE $%d", argId)
+		args = append(args, "%"+filter.Search+"%")
+		argId++
+	}
+
+	countQuery := "SELECT COUNT(ca.id) " + baseQuery
+	var total int
+	if err := r.db.GetContext(ctx, &total, countQuery, args...); err != nil {
+		return nil, 0, err
+	}
+
+	if filter.Limit == 0 {
+		filter.Limit = 10
+	}
+	if filter.Page == 0 {
+		filter.Page = 1
+	}
+	offset := (filter.Page - 1) * filter.Limit
+
+	dataQuery := `
+		SELECT 
+			ca.id,
+			ca.id as candidate_code,
+			ca.registration_id,
+			p.full_name as name,
+			reg.participant_category,
+			ca.status,
+			ca.created_at
+	` + baseQuery + fmt.Sprintf(" ORDER BY ca.created_at DESC LIMIT $%d OFFSET $%d", argId, argId+1)
+
+	args = append(args, filter.Limit, offset)
+
+	var list []CandidateAdminListResponse
+	if err := r.db.SelectContext(ctx, &list, dataQuery, args...); err != nil {
+		return nil, 0, err
+	}
+
+	return list, total, nil
+}
+
+func (r *repository) GetAdminCandidateDetail(ctx context.Context, candidateCode string) (*CandidateAdminDetailResponse, error) {
+	query := `
+		SELECT 
+			ca.id,
+			ca.id as candidate_code,
+			ca.registration_id,
+			p.full_name as name,
+			reg.participant_category,
+			ca.status,
+			ca.created_at,
+			ca.vision,
+			ca.mission,
+			ca.work_program,
+			ca.photo_path,
+			ca.document_path,
+			ca.reviewed_by,
+			ca.reviewed_at,
+			u.name as reviewer_name
+		FROM candidate_applications ca
+		JOIN registrations reg ON ca.registration_id = reg.id
+		JOIN persons p ON reg.person_id = p.id
+		LEFT JOIN users u ON ca.reviewed_by = u.id
+		WHERE ca.id = $1
+	`
+	var detail struct {
+		CandidateAdminDetailResponse
+		PhotoPath    *string `db:"photo_path"`
+		DocumentPath *string `db:"document_path"`
+	}
+	if err := r.db.GetContext(ctx, &detail, query, candidateCode); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("candidate not found")
+		}
+		return nil, err
+	}
+
+	resp := detail.CandidateAdminDetailResponse
+	if detail.PhotoPath != nil {
+		resp.PhotoURL = *detail.PhotoPath
+	}
+	if detail.DocumentPath != nil {
+		resp.DocumentURL = *detail.DocumentPath
+	}
+
+	return &resp, nil
+}
+
+func (r *repository) UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, candidateCode, status, reviewedBy string) error {
+	query := `
+		UPDATE candidate_applications
+		SET status = $1,
+		    reviewed_by = $2,
+		    reviewed_at = NOW(),
+		    updated_at = NOW()
+		WHERE id = $3
+	`
+	var err error
+	if tx != nil {
+		_, err = tx.ExecContext(ctx, query, status, reviewedBy, candidateCode)
+	} else {
+		_, err = r.db.ExecContext(ctx, query, status, reviewedBy, candidateCode)
+	}
+	return err
 }

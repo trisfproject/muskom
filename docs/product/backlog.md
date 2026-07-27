@@ -26,9 +26,9 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 ## 2. Epic: Admin Portal (ADM)
 | Task ID | Description | Priority | Effort | Dependencies | Sprint | Status |
 |---|---|---|---|---|---|---|
-| ADM-01 | Musyawarah Config, Settings & Timeline. | Critical | 3d | FND-07 | Sprint 2 | ✅ Done |
-| ADM-02 | Admin Authentication & Logout. | Critical | 3d | FND-07 | Sprint 1 | ✅ Done |
-| ADM-03 | Dashboard Analytics (Participants/Votes). | High | 3d | ADM-01, ADM-02 | Sprint 4 | ⏳ Planned |
+| ADM-01 | Admin Registration Management (Listing, Detail, Status). | High | 2d | PUB-01 | Sprint 3 | ✅ Done |
+| ADM-02 | Admin Candidate Management (Listing, Detail, Status). | High | 2d | PUB-10 | Sprint 4 | ✅ Done |
+| ADM-03 | Dashboard Analytics (Participant counts, Votes). | Medium | 2d | ADM-01, EVT-01 | Sprint 4 | ⏳ Planned |
 | ADM-04 | Participant Verification Interface. | High | 2d | ADM-02, PUB-05 | Sprint 5 | ⏳ Planned |
 | ADM-05 | Candidate Verification Interface. | High | 2d | ADM-02, PUB-10 | Sprint 5 | ⏳ Planned |
 | ADM-06 | Attendance Check-in API (QR/Manual). | High | 2d | ADM-02 | Sprint 5 | ⏳ Planned |
@@ -112,6 +112,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 - PUB-10: Candidate Registration API & Uploads (✅ Done)
 - PUB-11: Candidate Registration Validation (MKS-050-002) (✅ Done)
 - PUB-12: Candidate Registration Attachments (MKS-050-003) (✅ Done)
+- ADM-02: Admin Candidate Verification (MKS-050-004) (✅ Done)
 - ADM-03: Dashboard Analytics (Participants/Votes)
 
 ### Sprint 5: Verification & Attendance

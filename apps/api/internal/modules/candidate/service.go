@@ -26,6 +26,10 @@ type Service interface {
 	UploadDocuments(ctx context.Context, candidateCode string, photo, document *multipart.FileHeader) (*CandidateDocumentsResponse, error)
 	GetDocuments(ctx context.Context, candidateCode string) (*CandidateDocumentsResponse, error)
 	DeleteDocuments(ctx context.Context, candidateCode string, req *DeleteDocumentsRequest) error
+
+	AdminListCandidates(ctx context.Context, filter CandidateAdminListRequest) ([]CandidateAdminListResponse, int, error)
+	AdminGetCandidateDetail(ctx context.Context, candidateCode string) (*CandidateAdminDetailResponse, error)
+	AdminUpdateCandidateStatus(ctx context.Context, candidateCode string, req *CandidateUpdateStatusRequest, reviewerID string) error
 }
 
 type service struct {
@@ -351,6 +355,71 @@ func (s *service) DeleteDocuments(ctx context.Context, candidateCode string, req
 	}
 
 	if err := s.repo.LogAudit(ctx, tx, "candidate", "DELETE_DOCUMENTS", "candidate_applications", candidateCode, ""); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (s *service) AdminListCandidates(ctx context.Context, filter CandidateAdminListRequest) ([]CandidateAdminListResponse, int, error) {
+	return s.repo.GetAdminCandidateList(ctx, filter)
+}
+
+func (s *service) AdminGetCandidateDetail(ctx context.Context, candidateCode string) (*CandidateAdminDetailResponse, error) {
+	detail, err := s.repo.GetAdminCandidateDetail(ctx, candidateCode)
+	if err != nil {
+		return nil, err
+	}
+
+	if detail.PhotoURL != "" {
+		detail.PhotoURL = s.storage.URL(detail.PhotoURL)
+	}
+	if detail.DocumentURL != "" {
+		detail.DocumentURL = s.storage.URL(detail.DocumentURL)
+	}
+
+	return detail, nil
+}
+
+func (s *service) AdminUpdateCandidateStatus(ctx context.Context, candidateCode string, req *CandidateUpdateStatusRequest, reviewerID string) error {
+	if err := s.validator.ValidateStruct(req); err != nil {
+		return &ValidationError{Details: err}
+	}
+
+	app, err := s.repo.GetCandidateApplicationByID(ctx, candidateCode)
+	if err != nil {
+		return err
+	}
+
+	// State Transition Validator
+	validTransition := false
+	switch app.Status {
+	case "SUBMITTED":
+		if req.Status == "REVIEWING" || req.Status == "ACCEPTED" || req.Status == "REJECTED" {
+			validTransition = true
+		}
+	case "REVIEWING":
+		if req.Status == "ACCEPTED" || req.Status == "REJECTED" {
+			validTransition = true
+		}
+	}
+
+	if !validTransition {
+		return fmt.Errorf("invalid state transition from %s to %s", app.Status, req.Status)
+	}
+
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err := s.repo.UpdateCandidateStatus(ctx, tx, candidateCode, req.Status, reviewerID); err != nil {
+		return err
+	}
+
+	metadata := fmt.Sprintf(`{"old_status":"%s", "new_status":"%s"}`, app.Status, req.Status)
+	if err := s.repo.LogAudit(ctx, tx, "candidate", "VERIFY", "candidate_applications", candidateCode, metadata); err != nil {
 		return err
 	}
 

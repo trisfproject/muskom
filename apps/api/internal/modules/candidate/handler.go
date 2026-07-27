@@ -113,3 +113,57 @@ func (h *Handler) DeleteDocuments(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusOK, "Candidate documents deleted successfully", nil, nil)
 }
+
+func (h *Handler) AdminList(c fiber.Ctx) error {
+	var filter CandidateAdminListRequest
+	if err := c.Bind().Query(&filter); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid query parameters", nil)
+	}
+
+	list, total, err := h.service.AdminListCandidates(c.Context(), filter)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Candidate list retrieved successfully", fiber.Map{
+		"data":  list,
+		"total": total,
+	}, nil)
+}
+
+func (h *Handler) AdminGet(c fiber.Ctx) error {
+	candidateCode := c.Params("id")
+	if candidateCode == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "candidate id is required", nil)
+	}
+
+	detail, err := h.service.AdminGetCandidateDetail(c.Context(), candidateCode)
+	if err != nil {
+		return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Candidate detail retrieved successfully", detail, nil)
+}
+
+func (h *Handler) AdminUpdateStatus(c fiber.Ctx) error {
+	candidateCode := c.Params("id")
+	if candidateCode == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "candidate id is required", nil)
+	}
+
+	var req CandidateUpdateStatusRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request body", nil)
+	}
+
+	reviewerID, ok := c.Locals("user_id").(string)
+	if !ok || reviewerID == "" {
+		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized reviewer", nil)
+	}
+
+	if err := h.service.AdminUpdateCandidateStatus(c.Context(), candidateCode, &req, reviewerID); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Candidate status updated successfully", nil, nil)
+}
