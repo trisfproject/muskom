@@ -16,6 +16,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/registration"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/verification"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/voting"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
@@ -90,6 +91,10 @@ func main() {
 	auth.SetupRoutes(v1.Group("/auth"), db, redisClient, cfg, log, val)
 	registration.SetupRoutes(v1.Group("/public/registrations"), db, log, val, strg, cfg.MaxUploadSize)
 	candidate.SetupRoutes(v1.Group("/public"), db, log, val, strg, cfg.MaxUploadSize)
+
+	// Protected Participant Routes
+	participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
+	voting.SetupRoutes(participantGroup, db, log, val)
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
