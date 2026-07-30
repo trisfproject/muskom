@@ -22,4 +22,5 @@ type ElectionResultResponse struct {
 	Candidates     []CandidateResult `json:"candidates"`
 	PublishedAt    *time.Time        `json:"published_at,omitempty"`
 	IsTie          bool              `json:"is_tie"`
+	TiedCandidates []CandidateResult `json:"tied_candidates,omitempty"`
 }

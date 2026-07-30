@@ -119,4 +119,11 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Implemented `GET /api/v1/admin/votes/statistics` to retrieve vote count and percentage per candidate.
   - Ensured that votes cannot be edited, deleted, replaced, or reset by anyone.
 
+### Sprint 7: Election Results & Finalization
+- **Vote Counting Engine (MKS-080-001)**: Developed a highly scalable, SQL-native aggregation engine to evaluate election outcomes.
+  - Implemented complex `GROUP BY` and `LEFT JOIN` aggregations inside the `result` repository to rapidly calculate total votes and individual candidate percentages without loading votes into memory.
+  - Successfully embedded automatic business-rule detection for ties (calculating multiple identical highest vote counts).
+  - Protected against zero-vote anomalies (division by zero) and `N+1` database queries through eager candidate demographic loading.
+  - Engineered the module strictly as an internal service/repository layer to prevent premature exposure to public API routes prior to formal finalization.
+
 

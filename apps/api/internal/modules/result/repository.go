@@ -42,58 +42,68 @@ func (r *repository) GetElectionResults(ctx context.Context, eventID uuid.UUID) 
 		GROUP BY c.id, cp.full_name
 		ORDER BY vote_count DESC
 	`
-	
+
 	type statRow struct {
 		CandidateID   uuid.UUID `db:"candidate_id"`
 		CandidateName string    `db:"candidate_name"`
 		VoteCount     int       `db:"vote_count"`
 	}
-	
+
 	var rows []statRow
 	err = r.db.SelectContext(ctx, &rows, statsQuery, eventID)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	stats := make([]CandidateResult, 0, len(rows))
 	var highestVotes int
 	var winnerID *uuid.UUID
 	var winnerName string
 	var isTie bool
+	var tiedCandidates []CandidateResult
 
 	for i, row := range rows {
 		percentage := float64(0)
 		if totalVotes > 0 {
 			percentage = (float64(row.VoteCount) / float64(totalVotes)) * 100.0
 		}
-		
-		stats = append(stats, CandidateResult{
+
+		candidateRes := CandidateResult{
 			CandidateID:   row.CandidateID,
 			CandidateName: row.CandidateName,
 			VoteCount:     row.VoteCount,
 			Percentage:    percentage,
-		})
+		}
 
-		// Simple Plurality Winner Logic
+		stats = append(stats, candidateRes)
+
+		// Tie and Winner Logic
 		if i == 0 {
 			highestVotes = row.VoteCount
 			id := row.CandidateID
 			winnerID = &id
 			winnerName = row.CandidateName
+			tiedCandidates = append(tiedCandidates, candidateRes)
 		} else if row.VoteCount == highestVotes && highestVotes > 0 {
 			isTie = true
 			winnerID = nil
 			winnerName = ""
+			tiedCandidates = append(tiedCandidates, candidateRes)
 		}
 	}
-	
+
+	if !isTie {
+		tiedCandidates = nil
+	}
+
 	return &ElectionResultResponse{
-		EventID:    eventID,
-		TotalVotes: totalVotes,
-		ValidVotes: totalVotes,
-		WinnerID:   winnerID,
-		WinnerName: winnerName,
-		Candidates: stats,
-		IsTie:      isTie,
+		EventID:        eventID,
+		TotalVotes:     totalVotes,
+		ValidVotes:     totalVotes,
+		WinnerID:       winnerID,
+		WinnerName:     winnerName,
+		Candidates:     stats,
+		IsTie:          isTie,
+		TiedCandidates: tiedCandidates,
 	}, nil
 }
