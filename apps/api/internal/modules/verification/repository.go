@@ -10,6 +10,10 @@ import (
 type Repository interface {
 	GetVerifications(ctx context.Context, filter VerificationListRequest) ([]VerificationItemResponse, int, error)
 	GetVerificationSummary(ctx context.Context) (*VerificationSummaryResponse, error)
+	GetParticipantDetail(ctx context.Context, registrationID string) (*ParticipantDetailResponse, error)
+	BeginTx(ctx context.Context) (*sqlx.Tx, error)
+	LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error
+	UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string) error
 }
 
 type repository struct {
@@ -127,4 +131,70 @@ func (r *repository) GetVerificationSummary(ctx context.Context) (*VerificationS
 
 	summary.TotalPending = summary.PendingParticipants + summary.PendingCandidates
 	return &summary, nil
+}
+
+func (r *repository) GetParticipantDetail(ctx context.Context, registrationID string) (*ParticipantDetailResponse, error) {
+	query := `
+		SELECT 
+			r.id, r.event_id, r.participant_category, r.source, r.status, r.rejection_reason, r.created_at, r.updated_at,
+			p.id as person_id, p.full_name, p.email, p.phone, p.institution
+		FROM registrations r
+		JOIN persons p ON r.person_id = p.id
+		WHERE r.id = $1
+	`
+	var detail ParticipantDetailResponse
+	if err := r.db.GetContext(ctx, &detail, query, registrationID); err != nil {
+		return nil, err
+	}
+	return &detail, nil
+}
+
+func (r *repository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
+	return r.db.BeginTxx(ctx, nil)
+}
+
+func (r *repository) LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error {
+	query := `
+		INSERT INTO audit_logs (module, action, entity, entity_id, user_id, metadata)
+		VALUES ($1, $2, $3, $4, $5, NULLIF($6, ''))
+	`
+	userID := ctx.Value("user_id")
+	if userID == nil {
+		userID = ""
+	}
+
+	executor := r.db.ExecContext
+	if tx != nil {
+		executor = tx.ExecContext
+	}
+
+	_, err := executor(ctx, query, module, action, entity, entityID, userID, metadata)
+	return err
+}
+
+func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string) error {
+	query := `
+		UPDATE registrations
+		SET status = $1, approved_by = $2, approved_at = NOW(), rejection_reason = $3, updated_at = NOW()
+		WHERE id = $4
+	`
+	executor := r.db.ExecContext
+	if tx != nil {
+		executor = tx.ExecContext
+	}
+
+	res, err := executor(ctx, query, status, verifierID, rejectionReason, registrationID)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return fmt.Errorf("registration not found")
+	}
+
+	return nil
 }

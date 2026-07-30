@@ -72,5 +72,9 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Developed `GET /api/v1/admin/verifications` using a `UNION ALL` query merging `registrations` and `candidate_applications`.
   - Added robust filtering support for `queue_type`, `status`, `submission_date`, and `applicant_name`.
   - Implemented `GET /api/v1/admin/verifications/summary` to fetch parallel aggregate totals of pending participants and candidates.
+- **Participant Verification (MKS-060-002)**: Implemented verification workflows for participant profiles using the Verification Queue.
+  - Developed `GET /api/v1/admin/verifications/participants/{id}` to fetch rich participant profiles and status.
+  - Developed `PATCH /api/v1/admin/verifications/participants/{id}` handling explicit status state progression (from `PENDING` to `APPROVED` or `REJECTED`) within ACID transactions.
+  - Reused `LogAudit` helper to track explicit approval and rejections (attaching contextual `rejection_reason` metadata natively).
 
 

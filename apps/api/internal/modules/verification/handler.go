@@ -44,3 +44,47 @@ func (h *Handler) GetSummary(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusOK, "Verification summary retrieved successfully", summary, nil)
 }
+
+func (h *Handler) GetParticipant(c fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "Participant verification ID is required", nil)
+	}
+
+	detail, err := h.service.GetParticipantVerification(c.Context(), id)
+	if err != nil {
+		return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Participant verification detail retrieved", detail, nil)
+}
+
+func (h *Handler) VerifyParticipant(c fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "Participant verification ID is required", nil)
+	}
+
+	var req VerifyParticipantRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request body", nil)
+	}
+
+	verifierID, ok := c.Locals("user_id").(string)
+	if !ok || verifierID == "" {
+		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized verifier", nil)
+	}
+
+	if err := h.service.VerifyParticipant(c.Context(), id, &req, verifierID); err != nil {
+		var valErr *ValidationError
+		if errors.As(err, &valErr) {
+			return response.SendError(c, fiber.StatusBadRequest, "Validation error", valErr.Details)
+		}
+		if err.Error() == "cannot verify participant: invalid state transition, status is not PENDING" {
+			return response.SendError(c, fiber.StatusConflict, err.Error(), nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Participant verification updated successfully", nil, nil)
+}

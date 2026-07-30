@@ -14,4 +14,8 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 
 	router.Get("/", h.ListVerifications)
 	router.Get("/summary", h.GetSummary)
+
+	// Participant Verification
+	router.Get("/participants/:id", h.GetParticipant)
+	router.Patch("/participants/:id", h.VerifyParticipant)
 }

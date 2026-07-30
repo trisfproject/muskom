@@ -28,3 +28,24 @@ type VerificationSummaryResponse struct {
 	PendingParticipants int `json:"pending_participants"`
 	PendingCandidates   int `json:"pending_candidates"`
 }
+
+type ParticipantDetailResponse struct {
+	ID                  string    `json:"id"`
+	EventID             string    `json:"event_id"`
+	ParticipantCategory string    `json:"participant_category"`
+	Source              string    `json:"source"`
+	Status              string    `json:"status"`
+	RejectionReason     *string   `json:"rejection_reason,omitempty"`
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
+	PersonID            string    `json:"person_id"`
+	FullName            string    `json:"full_name"`
+	Email               string    `json:"email"`
+	Phone               string    `json:"phone"`
+	Institution         string    `json:"institution"`
+}
+
+type VerifyParticipantRequest struct {
+	Status          string  `json:"status" validate:"required,oneof=APPROVED REJECTED"`
+	RejectionReason *string `json:"rejection_reason" validate:"omitempty"`
+}
