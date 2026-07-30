@@ -12,7 +12,10 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger) {
 	handler := NewHandler(svc)
 
 	// Admin API
-	router.Get("/events/:eventId/results", handler.AdminGetResults)
+	router.Get("/events/:eventId/results/overview", handler.AdminGetOverview)
+	router.Get("/events/:eventId/results/candidates", handler.AdminGetCandidates)
+	router.Get("/events/:eventId/results/summary", handler.AdminGetSummary)
+	router.Get("/events/:eventId/results/audit", handler.AdminGetAudit)
 }
 
 func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger) {

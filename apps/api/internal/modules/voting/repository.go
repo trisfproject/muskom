@@ -172,8 +172,8 @@ func (r *repository) SubmitVote(ctx context.Context, eventID, registrationID, ca
 	err = tx.GetContext(ctx, &actorID, actorQuery, registrationID)
 	if err == nil {
 		auditQuery := `
-			INSERT INTO audit_logs (id, actor_id, entity_type, entity_id, action, metadata, ip_address, user_agent, status, created_at)
-			VALUES (gen_random_uuid(), $1, 'VOTE', $2, 'CAST_VOTE', $3, 'system', 'system', 'SUCCESS', NOW())
+			INSERT INTO audit_logs (id, user_id, module, action, entity, entity_id, ip_address, user_agent, metadata, created_at)
+			VALUES (gen_random_uuid(), $1, 'VOTING', 'CAST_VOTE', 'EVENT', $2, 'system', 'system', $3, NOW())
 		`
 		_, _ = tx.ExecContext(ctx, auditQuery, actorID, eventID, metadata)
 	}

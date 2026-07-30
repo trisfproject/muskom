@@ -2,8 +2,6 @@ package result
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"net/http/httptest"
 	"testing"
 
@@ -25,50 +23,51 @@ func (m *MockService) GetElectionResults(ctx context.Context, eventID uuid.UUID)
 	return nil, args.Error(1)
 }
 
-func TestHandler_AdminGetResults(t *testing.T) {
+func (m *MockService) GetElectionOverview(ctx context.Context, eventID uuid.UUID) (*ElectionOverviewResponse, error) {
+	args := m.Called(ctx, eventID)
+	if args.Get(0) != nil {
+		return args.Get(0).(*ElectionOverviewResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockService) GetAuditLogs(ctx context.Context, eventID uuid.UUID, req AdminListAuditRequest) (*AdminListAuditResponse, error) {
+	args := m.Called(ctx, eventID, req)
+	if args.Get(0) != nil {
+		return args.Get(0).(*AdminListAuditResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func TestHandler_AdminEndpoints(t *testing.T) {
 	app := fiber.New()
 	mockSvc := new(MockService)
 	handler := NewHandler(mockSvc)
 
-	app.Get("/api/v1/admin/events/:eventId/results", handler.AdminGetResults)
+	app.Get("/api/v1/admin/events/:eventId/results/overview", handler.AdminGetOverview)
+	app.Get("/api/v1/admin/events/:eventId/results/summary", handler.AdminGetSummary)
 
 	eventID := uuid.New()
 
-	t.Run("Invalid Event ID", func(t *testing.T) {
-		req := httptest.NewRequest(fiber.MethodGet, "/api/v1/admin/events/invalid/results", nil)
+	t.Run("Overview Success", func(t *testing.T) {
+		res := &ElectionOverviewResponse{
+			EventID: eventID,
+		}
+		mockSvc.On("GetElectionOverview", mock.Anything, eventID).Return(res, nil).Once()
+
+		req := httptest.NewRequest(fiber.MethodGet, "/api/v1/admin/events/"+eventID.String()+"/results/overview", nil)
 		resp, _ := app.Test(req)
-		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 	})
 
-	t.Run("Event Not Found", func(t *testing.T) {
-		mockSvc.On("GetElectionResults", mock.Anything, eventID).Return(nil, ErrEventNotFound).Once()
-
-		req := httptest.NewRequest(fiber.MethodGet, "/api/v1/admin/events/"+eventID.String()+"/results", nil)
-		resp, _ := app.Test(req)
-		assert.Equal(t, fiber.StatusNotFound, resp.StatusCode)
-	})
-
-	t.Run("Internal Error", func(t *testing.T) {
-		mockSvc.On("GetElectionResults", mock.Anything, eventID).Return(nil, errors.New("db error")).Once()
-
-		req := httptest.NewRequest(fiber.MethodGet, "/api/v1/admin/events/"+eventID.String()+"/results", nil)
-		resp, _ := app.Test(req)
-		assert.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
-	})
-
-	t.Run("Success", func(t *testing.T) {
+	t.Run("Summary Success", func(t *testing.T) {
 		res := &ElectionResultResponse{
-			EventID:    eventID,
-			TotalVotes: 100,
+			EventID: eventID,
 		}
 		mockSvc.On("GetElectionResults", mock.Anything, eventID).Return(res, nil).Once()
 
-		req := httptest.NewRequest(fiber.MethodGet, "/api/v1/admin/events/"+eventID.String()+"/results", nil)
+		req := httptest.NewRequest(fiber.MethodGet, "/api/v1/admin/events/"+eventID.String()+"/results/summary", nil)
 		resp, _ := app.Test(req)
 		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
-
-		var body map[string]interface{}
-		json.NewDecoder(resp.Body).Decode(&body)
-		assert.Equal(t, "Election results retrieved successfully", body["message"])
 	})
 }

@@ -9,6 +9,8 @@ import (
 
 type Repository interface {
 	GetElectionResults(ctx context.Context, eventID uuid.UUID) (*ElectionResultResponse, error)
+	GetElectionOverview(ctx context.Context, eventID uuid.UUID) (*ElectionOverviewResponse, error)
+	GetAuditLogs(ctx context.Context, eventID uuid.UUID, req AdminListAuditRequest) ([]AuditLogResponse, int, error)
 }
 
 type repository struct {
@@ -106,4 +108,97 @@ func (r *repository) GetElectionResults(ctx context.Context, eventID uuid.UUID) 
 		IsTie:          isTie,
 		TiedCandidates: tiedCandidates,
 	}, nil
+}
+
+func (r *repository) GetElectionOverview(ctx context.Context, eventID uuid.UUID) (*ElectionOverviewResponse, error) {
+	var overview ElectionOverviewResponse
+	overview.EventID = eventID
+
+	// Total Eligible (Approved Registrations for Event)
+	err := r.db.GetContext(ctx, &overview.TotalEligible, `SELECT COUNT(id) FROM registrations WHERE event_id = $1 AND status = 'ACCEPTED'`, eventID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Total Checked-In (Attendance)
+	err = r.db.GetContext(ctx, &overview.TotalCheckedIn, `SELECT COUNT(id) FROM attendance WHERE event_id = $1`, eventID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Total Votes
+	err = r.db.GetContext(ctx, &overview.TotalVotes, `SELECT COUNT(id) FROM votes WHERE event_id = $1`, eventID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Participation Percentage
+	if overview.TotalEligible > 0 {
+		overview.Participation = (float64(overview.TotalVotes) / float64(overview.TotalEligible)) * 100.0
+	} else {
+		overview.Participation = 0
+	}
+
+	return &overview, nil
+}
+
+func (r *repository) GetAuditLogs(ctx context.Context, eventID uuid.UUID, req AdminListAuditRequest) ([]AuditLogResponse, int, error) {
+	// Query the audit_logs table for module VOTING and entity_id eventID
+	baseQuery := ` FROM audit_logs WHERE module = 'VOTING' AND entity = 'EVENT' AND entity_id = $1`
+	args := []interface{}{eventID}
+	argID := 2
+
+	if req.Action != "" {
+		baseQuery += ` AND action = $` + string(rune('0'+argID))
+		args = append(args, req.Action)
+		argID++
+	}
+
+	// Get total
+	var total int
+	err := r.db.GetContext(ctx, &total, `SELECT COUNT(id)`+baseQuery, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Build main query
+	orderClause := " ORDER BY created_at DESC"
+	if req.SortBy == "action" {
+		if req.SortOrder == "asc" {
+			orderClause = " ORDER BY action ASC"
+		} else {
+			orderClause = " ORDER BY action DESC"
+		}
+	} else if req.SortBy == "created_at" {
+		if req.SortOrder == "asc" {
+			orderClause = " ORDER BY created_at ASC"
+		} else {
+			orderClause = " ORDER BY created_at DESC"
+		}
+	}
+
+	limit := req.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+	offset := (req.Page - 1) * limit
+	if offset < 0 {
+		offset = 0
+	}
+
+	args = append(args, limit, offset)
+
+	// Format arg parameters. e.g. $2, $3
+	// using direct query construction for simplicity in this exercise, normally you'd use a query builder like squirrel
+	// To avoid complex string runes, let's just use `sqlx.Rebind` or query builder
+	query := `SELECT id, user_id, action, ip_address, metadata, created_at` + baseQuery + orderClause + ` LIMIT ? OFFSET ?`
+	query = r.db.Rebind(query)
+
+	var logs []AuditLogResponse
+	err = r.db.SelectContext(ctx, &logs, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return logs, total, nil
 }
