@@ -43,3 +43,27 @@ func (m *MockRepository) SubmitVote(ctx context.Context, eventID, registrationID
 	args := m.Called(ctx, eventID, registrationID, candidateID, metadata)
 	return args.Error(0)
 }
+
+func (m *MockRepository) AdminListVotes(ctx context.Context, req AdminListVotesRequest) ([]AdminVoteResponse, int, error) {
+	args := m.Called(ctx, req)
+	if args.Get(0) != nil {
+		return args.Get(0).([]AdminVoteResponse), args.Int(1), args.Error(2)
+	}
+	return nil, 0, args.Error(2)
+}
+
+func (m *MockRepository) AdminGetVote(ctx context.Context, id uuid.UUID) (*AdminVoteResponse, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) != nil {
+		return args.Get(0).(*AdminVoteResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockRepository) AdminGetVoteStatistics(ctx context.Context, eventID uuid.UUID) (*AdminVoteStatisticsResponse, error) {
+	args := m.Called(ctx, eventID)
+	if args.Get(0) != nil {
+		return args.Get(0).(*AdminVoteStatisticsResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}

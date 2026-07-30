@@ -130,7 +130,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 **Status**: 🚧 In Progress
 - MKS-070-001: Election Session Setup (✅ Done - Blocked by Schema)
 - MKS-070-002: Vote Validation & Locking (✅ Done)
-- MKS-070-003: Vote Casting API (✅ Done)
+- MKS-070-003: Vote Administration & Monitoring (✅ Done)
 - MKS-060-004: Voting Session & Timeout Management
 - MKS-060-005: Live Real-time Statistics
 - MKS-060-006: Final Result Publication & Freeze

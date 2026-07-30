@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,6 +18,7 @@ var (
 	ErrNotCheckedIn        = errors.New("participant has not checked in")
 	ErrInvalidCandidate    = errors.New("invalid candidate for this event")
 	ErrAlreadyVoted        = errors.New("participant has already cast a vote for this event")
+	ErrVoteNotFound        = errors.New("vote not found")
 )
 
 type Repository interface {
@@ -25,6 +28,11 @@ type Repository interface {
 	CheckCandidateEligibility(ctx context.Context, candidateID, eventID uuid.UUID) (bool, error)
 	GetMyVoteStatus(ctx context.Context, registrationID, eventID uuid.UUID) (*MyVoteStatusResponse, error)
 	SubmitVote(ctx context.Context, eventID, registrationID, candidateID uuid.UUID, metadata string) error
+
+	// Admin Methods
+	AdminListVotes(ctx context.Context, req AdminListVotesRequest) ([]AdminVoteResponse, int, error)
+	AdminGetVote(ctx context.Context, id uuid.UUID) (*AdminVoteResponse, error)
+	AdminGetVoteStatistics(ctx context.Context, eventID uuid.UUID) (*AdminVoteStatisticsResponse, error)
 }
 
 type repository struct {
@@ -171,4 +179,186 @@ func (r *repository) SubmitVote(ctx context.Context, eventID, registrationID, ca
 	}
 
 	return tx.Commit()
+}
+
+func (r *repository) AdminListVotes(ctx context.Context, req AdminListVotesRequest) ([]AdminVoteResponse, int, error) {
+	query := `
+		SELECT 
+			v.id, v.event_id, v.registration_id, v.candidate_id, v.created_at,
+			p.full_name as participant_name,
+			cp.full_name as candidate_name
+		FROM votes v
+		JOIN registrations r ON v.registration_id = r.id
+		JOIN persons p ON r.person_id = p.id
+		JOIN candidates c ON v.candidate_id = c.id
+		JOIN registrations cr ON c.registration_id = cr.id
+		JOIN persons cp ON cr.person_id = cp.id
+		WHERE 1=1
+	`
+	countQuery := `
+		SELECT COUNT(v.id)
+		FROM votes v
+		WHERE 1=1
+	`
+
+	var args []interface{}
+	argID := 1
+
+	if req.EventID != nil {
+		query += fmt.Sprintf(" AND v.event_id = $%d", argID)
+		countQuery += fmt.Sprintf(" AND v.event_id = $%d", argID)
+		args = append(args, *req.EventID)
+		argID++
+	}
+	if req.CandidateID != nil {
+		query += fmt.Sprintf(" AND v.candidate_id = $%d", argID)
+		countQuery += fmt.Sprintf(" AND v.candidate_id = $%d", argID)
+		args = append(args, *req.CandidateID)
+		argID++
+	}
+	if req.RegistrationID != nil {
+		query += fmt.Sprintf(" AND v.registration_id = $%d", argID)
+		countQuery += fmt.Sprintf(" AND v.registration_id = $%d", argID)
+		args = append(args, *req.RegistrationID)
+		argID++
+	}
+
+	var total int
+	err := r.db.GetContext(ctx, &total, countQuery, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if total == 0 {
+		return []AdminVoteResponse{}, 0, nil
+	}
+
+	// Sorting
+	sortBy := "v.created_at"
+	sortOrder := "DESC"
+
+	if req.SortBy != "" {
+		switch req.SortBy {
+		case "created_at":
+			sortBy = "v.created_at"
+		case "candidate":
+			sortBy = "cp.full_name"
+		case "registration":
+			sortBy = "p.full_name"
+		}
+	}
+	if strings.ToUpper(req.SortOrder) == "ASC" {
+		sortOrder = "ASC"
+	}
+
+	query += fmt.Sprintf(" ORDER BY %s %s", sortBy, sortOrder)
+
+	// Pagination
+	limit := req.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+	page := req.Page
+	if page <= 0 {
+		page = 1
+	}
+	offset := (page - 1) * limit
+
+	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", argID, argID+1)
+	args = append(args, limit, offset)
+
+	var votes []AdminVoteResponse
+	err = r.db.SelectContext(ctx, &votes, query, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if len(votes) == 0 {
+		votes = []AdminVoteResponse{} // Ensure JSON returns [] instead of null
+	}
+
+	return votes, total, nil
+}
+
+func (r *repository) AdminGetVote(ctx context.Context, id uuid.UUID) (*AdminVoteResponse, error) {
+	query := `
+		SELECT 
+			v.id, v.event_id, v.registration_id, v.candidate_id, v.created_at,
+			p.full_name as participant_name,
+			cp.full_name as candidate_name
+		FROM votes v
+		JOIN registrations r ON v.registration_id = r.id
+		JOIN persons p ON r.person_id = p.id
+		JOIN candidates c ON v.candidate_id = c.id
+		JOIN registrations cr ON c.registration_id = cr.id
+		JOIN persons cp ON cr.person_id = cp.id
+		WHERE v.id = $1
+	`
+	var vote AdminVoteResponse
+	err := r.db.GetContext(ctx, &vote, query, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("vote not found")
+		}
+		return nil, err
+	}
+	return &vote, nil
+}
+
+func (r *repository) AdminGetVoteStatistics(ctx context.Context, eventID uuid.UUID) (*AdminVoteStatisticsResponse, error) {
+	// 1. Get total votes
+	var totalVotes int
+	totalQuery := `SELECT COUNT(id) FROM votes WHERE event_id = $1`
+	err := r.db.GetContext(ctx, &totalVotes, totalQuery, eventID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Get statistics per candidate
+	statsQuery := `
+		SELECT 
+			c.id as candidate_id, 
+			cp.full_name as candidate_name,
+			COUNT(v.id) as vote_count
+		FROM candidates c
+		JOIN registrations cr ON c.registration_id = cr.id
+		JOIN persons cp ON cr.person_id = cp.id
+		LEFT JOIN votes v ON v.candidate_id = c.id AND v.event_id = $1
+		WHERE c.event_id = $1 AND c.status = 'ACCEPTED'
+		GROUP BY c.id, cp.full_name
+		ORDER BY vote_count DESC
+	`
+
+	// We'll map the results into a temporary struct since sqlx might not map Percentage automatically
+	type statRow struct {
+		CandidateID   uuid.UUID `db:"candidate_id"`
+		CandidateName string    `db:"candidate_name"`
+		VoteCount     int       `db:"vote_count"`
+	}
+
+	var rows []statRow
+	err = r.db.SelectContext(ctx, &rows, statsQuery, eventID)
+	if err != nil {
+		return nil, err
+	}
+
+	stats := make([]CandidateStatistic, 0, len(rows))
+	for _, r := range rows {
+		percentage := float64(0)
+		if totalVotes > 0 {
+			percentage = (float64(r.VoteCount) / float64(totalVotes)) * 100.0
+		}
+		stats = append(stats, CandidateStatistic{
+			CandidateID:   r.CandidateID,
+			CandidateName: r.CandidateName,
+			VoteCount:     r.VoteCount,
+			Percentage:    percentage,
+		})
+	}
+
+	return &AdminVoteStatisticsResponse{
+		EventID:    eventID,
+		TotalVotes: totalVotes,
+		Candidates: stats,
+	}, nil
 }

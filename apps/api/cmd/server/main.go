@@ -103,6 +103,7 @@ func main() {
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), db, log, val, strg, cfg.MaxUploadSize)
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications"), db, log, val)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance"), db, log, val)
+	voting.SetupAdminRoutes(adminGroup.Group("/votes"), db, log, val)
 
 	// 8. Graceful Shutdown
 	go func() {

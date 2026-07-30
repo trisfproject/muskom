@@ -9,9 +9,15 @@ import (
 	"go.uber.org/zap"
 )
 
+// Service defines the voting service interface
 type Service interface {
 	SubmitVote(ctx context.Context, userID uuid.UUID, req *SubmitVoteRequest) error
 	GetMyVoteStatus(ctx context.Context, userID, eventID uuid.UUID) (*MyVoteStatusResponse, error)
+
+	// Admin Methods
+	AdminListVotes(ctx context.Context, req AdminListVotesRequest) (*AdminListVotesResponse, error)
+	AdminGetVote(ctx context.Context, id uuid.UUID) (*AdminVoteResponse, error)
+	AdminGetVoteStatistics(ctx context.Context, eventID uuid.UUID) (*AdminVoteStatisticsResponse, error)
 }
 
 type service struct {
@@ -83,6 +89,55 @@ func (s *service) SubmitVote(ctx context.Context, userID uuid.UUID, req *SubmitV
 
 	s.log.Info("vote submitted successfully", zap.String("registration_id", regID.String()))
 	return nil
+}
+
+func (s *service) AdminListVotes(ctx context.Context, req AdminListVotesRequest) (*AdminListVotesResponse, error) {
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+
+	votes, total, err := s.repo.AdminListVotes(ctx, req)
+	if err != nil {
+		s.log.Error("failed to get admin vote list", zap.Error(err))
+		return nil, err
+	}
+
+	totalPages := total / req.Limit
+	if total%req.Limit != 0 {
+		totalPages++
+	}
+
+	return &AdminListVotesResponse{
+		Data:       votes,
+		Total:      total,
+		Page:       req.Page,
+		Limit:      req.Limit,
+		TotalPages: totalPages,
+	}, nil
+}
+
+func (s *service) AdminGetVote(ctx context.Context, id uuid.UUID) (*AdminVoteResponse, error) {
+	vote, err := s.repo.AdminGetVote(ctx, id)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return nil, ErrVoteNotFound
+		}
+		s.log.Error("failed to get vote details", zap.Error(err), zap.String("vote_id", id.String()))
+		return nil, err
+	}
+	return vote, nil
+}
+
+func (s *service) AdminGetVoteStatistics(ctx context.Context, eventID uuid.UUID) (*AdminVoteStatisticsResponse, error) {
+	stats, err := s.repo.AdminGetVoteStatistics(ctx, eventID)
+	if err != nil {
+		s.log.Error("failed to get vote statistics", zap.Error(err), zap.String("event_id", eventID.String()))
+		return nil, err
+	}
+	return stats, nil
 }
 
 func (s *service) GetMyVoteStatus(ctx context.Context, userID, eventID uuid.UUID) (*MyVoteStatusResponse, error) {

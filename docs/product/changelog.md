@@ -113,5 +113,10 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Integrated `attendance` logic to verify that participants physically checked in prior to voting.
   - Ensured vote secrecy by generating anonymized audit logs containing only the action and `event_id`, purposely omitting the selected candidate.
   - Added `GET /api/v1/vote/me` for participants to seamlessly verify their current voting status.
+- **Vote Administration & Monitoring (MKS-070-003)**: Provided secure administrator visibility into voting activity without allowing vote modification.
+  - Implemented `GET /api/v1/admin/votes` with pagination, filtering, and sorting.
+  - Implemented `GET /api/v1/admin/votes/{id}` for retrieving specific vote details.
+  - Implemented `GET /api/v1/admin/votes/statistics` to retrieve vote count and percentage per candidate.
+  - Ensured that votes cannot be edited, deleted, replaced, or reset by anyone.
 
 

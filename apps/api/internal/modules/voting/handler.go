@@ -82,3 +82,54 @@ func (h *Handler) GetMyVoteStatus(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusOK, "Vote status retrieved successfully", status, nil)
 }
+
+func (h *Handler) AdminListVotes(c fiber.Ctx) error {
+	var req AdminListVotesRequest
+	if err := c.Bind().Query(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid query parameters", nil)
+	}
+
+	res, err := h.service.AdminListVotes(c.Context(), req)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve votes", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Votes retrieved successfully", res, nil)
+}
+
+func (h *Handler) AdminGetVote(c fiber.Ctx) error {
+	idParam := c.Params("id")
+	id, err := uuid.Parse(idParam)
+	if err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid vote ID format", nil)
+	}
+
+	vote, err := h.service.AdminGetVote(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrVoteNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, "Vote not found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve vote details", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Vote details retrieved successfully", vote, nil)
+}
+
+func (h *Handler) AdminGetVoteStatistics(c fiber.Ctx) error {
+	eventIDParam := c.Query("event_id")
+	if eventIDParam == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "event_id query parameter is required", nil)
+	}
+
+	eventID, err := uuid.Parse(eventIDParam)
+	if err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid event_id format", nil)
+	}
+
+	stats, err := h.service.AdminGetVoteStatistics(c.Context(), eventID)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve vote statistics", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Vote statistics retrieved successfully", stats, nil)
+}
