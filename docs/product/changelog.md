@@ -125,5 +125,8 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Successfully embedded automatic business-rule detection for ties (calculating multiple identical highest vote counts).
   - Protected against zero-vote anomalies (division by zero) and `N+1` database queries through eager candidate demographic loading.
   - Engineered the module strictly as an internal service/repository layer to prevent premature exposure to public API routes prior to formal finalization.
+- **Result Publication API (MKS-080-002)**: Implemented secure exposure of election results via the API layer.
+  - Integrated `GET /api/v1/admin/events/{eventId}/results` allowing administrators to safely fetch real-time election statistics using the Vote Counting Engine.
+  - Identified a critical missing business rule regarding publication timing in the PRD. Adhering to strict engineering protocols, development of the public-facing `GET /api/v1/events/{eventId}/results` route was explicitly halted to prevent premature, unauthorized data leakage. This constraint was documented for Product Owner resolution.
 
 

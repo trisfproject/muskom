@@ -15,6 +15,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/candidate"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/registration"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/result"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/verification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/voting"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
@@ -91,6 +92,7 @@ func main() {
 	auth.SetupRoutes(v1.Group("/auth"), db, redisClient, cfg, log, val)
 	registration.SetupRoutes(v1.Group("/public/registrations"), db, log, val, strg, cfg.MaxUploadSize)
 	candidate.SetupRoutes(v1.Group("/public"), db, log, val, strg, cfg.MaxUploadSize)
+	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 
 	// Protected Participant Routes
 	participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
@@ -104,6 +106,7 @@ func main() {
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications"), db, log, val)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance"), db, log, val)
 	voting.SetupAdminRoutes(adminGroup.Group("/votes"), db, log, val)
+	result.SetupAdminRoutes(adminGroup, db, log)
 
 	// 8. Graceful Shutdown
 	go func() {

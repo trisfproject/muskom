@@ -1,0 +1,21 @@
+package result
+
+import (
+	"github.com/gofiber/fiber/v3"
+	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
+)
+
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger) {
+	repo := NewRepository(db)
+	svc := NewService(repo, db, log)
+	handler := NewHandler(svc)
+
+	// Admin API
+	router.Get("/events/:eventId/results", handler.AdminGetResults)
+}
+
+func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger) {
+	// Public API is intentionally omitted pending PRD publication timing rules.
+	// As mandated by the Sprint 7 Review requirements, we must STOP here and document the missing business rule.
+}
