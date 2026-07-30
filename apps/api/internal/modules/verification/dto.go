@@ -49,3 +49,29 @@ type VerifyParticipantRequest struct {
 	Status          string  `json:"status" validate:"required,oneof=APPROVED REJECTED"`
 	RejectionReason *string `json:"rejection_reason" validate:"omitempty"`
 }
+
+type CandidateDetailResponse struct {
+	ID                  string    `json:"id"`
+	RegistrationID      string    `json:"registration_id"`
+	EventID             string    `json:"event_id"`
+	ParticipantCategory string    `json:"participant_category"`
+	Source              string    `json:"source"`
+	Status              string    `json:"status"`
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
+	PersonID            string    `json:"person_id"`
+	FullName            string    `json:"full_name"`
+	Email               string    `json:"email"`
+	Phone               string    `json:"phone"`
+	Institution         string    `json:"institution"`
+	Vision              *string   `json:"vision,omitempty"`
+	Mission             *string   `json:"mission,omitempty"`
+	WorkProgram         *string   `json:"work_program,omitempty"`
+	PhotoPath           *string   `json:"photo_path,omitempty"`
+	DocumentPath        *string   `json:"document_path,omitempty"`
+}
+
+type VerifyCandidateRequest struct {
+	Status string  `json:"status" validate:"required,oneof=REVIEWING ACCEPTED REJECTED"`
+	Notes  *string `json:"notes" validate:"omitempty"`
+}

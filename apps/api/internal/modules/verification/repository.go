@@ -14,6 +14,8 @@ type Repository interface {
 	BeginTx(ctx context.Context) (*sqlx.Tx, error)
 	LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error
 	UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string) error
+	GetCandidateDetail(ctx context.Context, candidateID string) (*CandidateDetailResponse, error)
+	UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, candidateID string, status string, verifierID string) error
 }
 
 type repository struct {
@@ -194,6 +196,51 @@ func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, r
 	}
 	if rows == 0 {
 		return fmt.Errorf("registration not found")
+	}
+
+	return nil
+}
+
+func (r *repository) GetCandidateDetail(ctx context.Context, candidateID string) (*CandidateDetailResponse, error) {
+	query := `
+		SELECT 
+			ca.id, ca.registration_id, r.event_id, r.participant_category, r.source, ca.status, 
+			ca.created_at, ca.updated_at, p.id as person_id, p.full_name, p.email, p.phone, p.institution,
+			ca.vision, ca.mission, ca.work_program, ca.photo_path, ca.document_path
+		FROM candidate_applications ca
+		JOIN registrations r ON ca.registration_id = r.id
+		JOIN persons p ON r.person_id = p.id
+		WHERE ca.id = $1
+	`
+	var detail CandidateDetailResponse
+	if err := r.db.GetContext(ctx, &detail, query, candidateID); err != nil {
+		return nil, err
+	}
+	return &detail, nil
+}
+
+func (r *repository) UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, candidateID string, status string, verifierID string) error {
+	query := `
+		UPDATE candidate_applications
+		SET status = $1, reviewed_by = $2, reviewed_at = NOW(), updated_at = NOW()
+		WHERE id = $3
+	`
+	executor := r.db.ExecContext
+	if tx != nil {
+		executor = tx.ExecContext
+	}
+
+	res, err := executor(ctx, query, status, verifierID, candidateID)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return fmt.Errorf("candidate application not found")
 	}
 
 	return nil

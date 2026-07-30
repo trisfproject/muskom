@@ -30,7 +30,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 | MKS-020-002 | Admin Candidate Management (Listing, Detail, Status). | High | 2d | MKS-050-001 | Sprint 4 | ✅ Done |
 | MKS-020-003 | Dashboard Analytics (Participant counts, Votes). | Medium | 2d | MKS-020-001, MKS-060-001 | Sprint 4 | ⏳ Planned |
 | MKS-020-004 | Participant Verification Interface. | High | 2d | MKS-020-002, MKS-040-005 | Sprint 5 | ✅ Done |
-| MKS-020-005 | Candidate Verification Interface. | High | 2d | MKS-020-002, MKS-050-001 | Sprint 5 | ⏳ Planned |
+| MKS-060-003 | Candidate Verification Interface. | High | 2d | MKS-020-002, MKS-050-001 | Sprint 5 | ✅ Done |
 | MKS-020-006 | Attendance Check-in API (QR/Manual). | High | 2d | MKS-020-002 | Sprint 5 | ⏳ Planned |
 | MKS-020-007 | Announcement Management (CRUD). | Medium | 1d | MKS-020-002 | Sprint 2 | ⏳ Planned |
 | MKS-020-008 | Document & Media Management (CRUD). | High | 2d | MKS-020-002, FND-06 | Sprint 2 | ⏳ Planned |
@@ -121,7 +121,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 **Status**: 🚧 In Progress
 - MKS-060-001: Verification Queue (✅ Done)
 - MKS-020-004: Participant Verification Interface (✅ Done)
-- MKS-020-005: Candidate Verification Interface
+- MKS-060-003: Candidate Verification Interface (✅ Done)
 - MKS-020-006: Attendance Check-in API (QR/Manual)
 
 ### Sprint 6: Voting & Result

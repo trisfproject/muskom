@@ -14,6 +14,8 @@ type Service interface {
 	GetSummary(ctx context.Context) (*VerificationSummaryResponse, error)
 	GetParticipantVerification(ctx context.Context, id string) (*ParticipantDetailResponse, error)
 	VerifyParticipant(ctx context.Context, id string, req *VerifyParticipantRequest, verifierID string) error
+	GetCandidateVerification(ctx context.Context, id string) (*CandidateDetailResponse, error)
+	VerifyCandidate(ctx context.Context, id string, req *VerifyCandidateRequest, verifierID string) error
 }
 
 type service struct {
@@ -56,6 +58,33 @@ func (s *service) GetParticipantVerification(ctx context.Context, id string) (*P
 	return s.repo.GetParticipantDetail(ctx, id)
 }
 
+func (s *service) validateTransition(entityType, currentStatus, newStatus string) error {
+	if entityType == "participant" {
+		if currentStatus != "PENDING" {
+			return errors.New("cannot verify participant: invalid state transition, status is not PENDING")
+		}
+		if newStatus != "APPROVED" && newStatus != "REJECTED" {
+			return errors.New("cannot verify participant: invalid target status")
+		}
+		return nil
+	}
+
+	if entityType == "candidate" {
+		if currentStatus == "ACCEPTED" || currentStatus == "REJECTED" {
+			return errors.New("cannot verify candidate: invalid state transition, already finalized")
+		}
+		if currentStatus == "SUBMITTED" && newStatus != "REVIEWING" {
+			return errors.New("cannot verify candidate: SUBMITTED must transition to REVIEWING first")
+		}
+		if currentStatus == "REVIEWING" && newStatus != "ACCEPTED" && newStatus != "REJECTED" {
+			return errors.New("cannot verify candidate: REVIEWING must transition to ACCEPTED or REJECTED")
+		}
+		return nil
+	}
+
+	return errors.New("unknown entity type for transition validation")
+}
+
 func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyParticipantRequest, verifierID string) error {
 	if errs := s.validator.ValidateStruct(req); len(errs) > 0 {
 		return &ValidationError{Details: errs}
@@ -66,8 +95,8 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 		return err
 	}
 
-	if detail.Status != "PENDING" {
-		return errors.New("cannot verify participant: invalid state transition, status is not PENDING")
+	if err := s.validateTransition("participant", detail.Status, req.Status); err != nil {
+		return err
 	}
 
 	tx, err := s.repo.BeginTx(ctx)
@@ -86,6 +115,46 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 	}
 
 	if err := s.repo.LogAudit(ctx, tx, "verification", "VERIFY_PARTICIPANT", "registrations", id, metadata); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (s *service) GetCandidateVerification(ctx context.Context, id string) (*CandidateDetailResponse, error) {
+	return s.repo.GetCandidateDetail(ctx, id)
+}
+
+func (s *service) VerifyCandidate(ctx context.Context, id string, req *VerifyCandidateRequest, verifierID string) error {
+	if errs := s.validator.ValidateStruct(req); len(errs) > 0 {
+		return &ValidationError{Details: errs}
+	}
+
+	detail, err := s.repo.GetCandidateDetail(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if err := s.validateTransition("candidate", detail.Status, req.Status); err != nil {
+		return err
+	}
+
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err := s.repo.UpdateCandidateStatus(ctx, tx, id, req.Status, verifierID); err != nil {
+		return err
+	}
+
+	metadata := ""
+	if req.Notes != nil {
+		metadata = *req.Notes
+	}
+
+	if err := s.repo.LogAudit(ctx, tx, "verification", "VERIFY_CANDIDATE", "candidate_applications", id, metadata); err != nil {
 		return err
 	}
 

@@ -75,6 +75,10 @@ All notable changes to the MUSKOM project will be documented in this file.
 - **Participant Verification (MKS-060-002)**: Implemented verification workflows for participant profiles using the Verification Queue.
   - Developed `GET /api/v1/admin/verifications/participants/{id}` to fetch rich participant profiles and status.
   - Developed `PATCH /api/v1/admin/verifications/participants/{id}` handling explicit status state progression (from `PENDING` to `APPROVED` or `REJECTED`) within ACID transactions.
-  - Reused `LogAudit` helper to track explicit approval and rejections (attaching contextual `rejection_reason` metadata natively).
+- **Candidate Verification (MKS-060-003)**: Integrated candidate review processes directly into the shared Verification Engine.
+  - Refactored `validateTransition` into a unified shared validator to enforce rules for both Participants (`PENDING` -> `APPROVED` | `REJECTED`) and Candidates (`SUBMITTED` -> `REVIEWING` -> `ACCEPTED` | `REJECTED`).
+  - Added `GET /api/v1/admin/verifications/candidates/{id}` to fetch comprehensive application packages including vision, mission, and document paths.
+  - Developed `PATCH /api/v1/admin/verifications/candidates/{id}` to lock verification progress within DB transactions.
+  - Stored verifier comments inside Audit Log metadata (since candidate schema lacks a dedicated rejection/notes column), maintaining schema-level *Single Source of Truth* while delivering required features.
 
 
