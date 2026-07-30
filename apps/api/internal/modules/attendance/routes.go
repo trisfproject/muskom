@@ -13,5 +13,10 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 	h := NewHandler(svc)
 
 	router.Post("/check-in", h.CheckIn)
-	router.Get("/:participantId", h.GetAttendance)
+	router.Get("/", h.ListAttendances)
+	router.Get("/:id", h.GetAttendanceByID)
+	router.Patch("/:id", h.CorrectAttendance)
+	
+	// Legacy endpoint (we keep it for backward compatibility from previous task if needed)
+	router.Get("/participant/:participantId", h.GetAttendance)
 }

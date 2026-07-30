@@ -85,5 +85,9 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Developed `POST /api/v1/admin/attendance/check-in` using `ON CONFLICT (registration_id) DO NOTHING` for native database-level idempotency, preventing duplicate records gracefully without explicit software-level race condition locks.
   - Created `GET /api/v1/admin/attendance/{participantId}` to display attendance metadata merged natively with verified registration and person demographics.
   - Protected attendance logic to ensure only explicitly `APPROVED` verified participants may check in, discarding unauthorized/eligibility bypass attempts.
+- **Attendance Administration (MKS-060-005)**: Added listing, reporting, and discrepancy tracing.
+  - Developed `GET /api/v1/admin/attendance` with robust paginated, sortable filtering spanning `registrations` combined with `attendance` (`LEFT JOIN`) to evaluate absentee statuses in real-time.
+  - Documented schema limitation: Because the `attendance` schema lacks a mutable state column (like `status`), corrections or revocations are not permitted.
+  - Created `PATCH /api/v1/admin/attendance/{id}` as a rigid rejection endpoint that explicitly blocks invalidations while recording the attempt to the Audit Log.
 
 
