@@ -55,7 +55,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 ## 4. Epic: E-Voting (EVT)
 | Task ID | Description | Priority | Effort | Dependencies | Sprint | Status |
 |---|---|---|---|---|---|---|
-| MKS-060-001 | Voter Booth Validation & Authorization. | Critical | 2d | MKS-020-004, MKS-020-006 | Sprint 6 | ⏳ Planned |
+| MKS-060-001 | Verification Queue. | Critical | 2d | MKS-020-004, MKS-020-006 | Sprint 5 | ✅ Done |
 | MKS-060-002 | Candidate Profile Display. | Critical | 1d | MKS-020-005 | Sprint 6 | ⏳ Planned |
 | MKS-060-003 | Anonymous Vote Submission & Transaction. | Critical | 4d | MKS-060-001, MKS-060-002 | Sprint 6 | ⏳ Planned |
 | MKS-060-004 | Voting Session & Timeout Management. | High | 2d | MKS-060-003 | Sprint 6 | ⏳ Planned |
@@ -118,14 +118,14 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 - MKS-050-005: Admin Candidate Management (✅ Done)
 
 ### Sprint 5: Verification & Attendance
-**Status**: ⏳ Planned
+**Status**: 🚧 In Progress
+- MKS-060-001: Verification Queue (✅ Done)
 - MKS-020-004: Participant Verification Interface
 - MKS-020-005: Candidate Verification Interface
 - MKS-020-006: Attendance Check-in API (QR/Manual)
 
 ### Sprint 6: Voting & Result
 **Status**: ⏳ Planned
-- MKS-060-001: Voter Booth Validation & Authorization
 - MKS-060-002: Candidate Profile Display
 - MKS-060-003: Anonymous Vote Submission & Transaction
 - MKS-060-004: Voting Session & Timeout Management

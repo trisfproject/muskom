@@ -14,6 +14,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/candidate"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/registration"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/verification"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
@@ -94,6 +95,7 @@ func main() {
 	musyawarah.SetupRoutes(adminGroup.Group("/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 	registration.SetupAdminRoutes(adminGroup.Group("/registrations"), db, log, val, strg, cfg.MaxUploadSize)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), db, log, val, strg, cfg.MaxUploadSize)
+	verification.SetupAdminRoutes(adminGroup.Group("/verifications"), db, log, val)
 
 	// 8. Graceful Shutdown
 	go func() {

@@ -68,4 +68,9 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Validated architectural adherence and state machine transitions.
   - Verified security rules (JWT, file uploads constraints) and audit log integrity.
   - No critical bugs or architectural violations were found. Build compiles cleanly. Sprint 4 is ✅ Completed.
+- **Verification Queue (MKS-060-001)**: Implemented shared read-only verification queue across participant and candidate profiles.
+  - Developed `GET /api/v1/admin/verifications` using a `UNION ALL` query merging `registrations` and `candidate_applications`.
+  - Added robust filtering support for `queue_type`, `status`, `submission_date`, and `applicant_name`.
+  - Implemented `GET /api/v1/admin/verifications/summary` to fetch parallel aggregate totals of pending participants and candidates.
+
 
