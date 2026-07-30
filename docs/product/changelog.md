@@ -104,5 +104,14 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Detected a missing dependency in the database migrations. The `election_sessions` table does not exist.
   - The `votes` table links directly to `event_id` rather than a dedicated election session parent entity.
   - Complied strictly with the Engineering Workflow to *STOP* and not create artificial migrations or code workarounds. The task is marked as ✅ Done (Blocked).
+- **Architecture Resolution**: Formally ratified `ADR-001: Event-Based Voting`, rejecting session/ballot concepts in favor of tying votes directly to the `event_phases` and `event_id`.
+- **Vote Validation & Locking (MKS-070-002)**: Formalized vote immutability and concurrent safety.
+  - Implemented standard Go tests in `voting/service_test.go` ensuring all preconditions (invalid phase, absent participant, candidate mismatch) are rejected properly.
+  - Asserted optimistic concurrency by validating that simultaneous vote attempts trigger DB-level unique constraint errors (`uq_votes_event_registration`), guaranteeing exactly one vote succeeds without reliance on software locks.
+- **Vote Casting API (MKS-070-003)**: Built the core voting module.
+  - Engineered `POST /api/v1/vote` allowing participants to securely cast votes within the `VOTING` phase.
+  - Integrated `attendance` logic to verify that participants physically checked in prior to voting.
+  - Ensured vote secrecy by generating anonymized audit logs containing only the action and `event_id`, purposely omitting the selected candidate.
+  - Added `GET /api/v1/vote/me` for participants to seamlessly verify their current voting status.
 
 

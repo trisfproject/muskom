@@ -60,7 +60,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 | MKS-060-002 | Candidate Profile Display. | Critical | 1d | MKS-020-005 | Sprint 6 | ⏳ Planned |
 | MKS-060-003 | Anonymous Vote Submission & Transaction. | Critical | 4d | MKS-060-001, MKS-060-002 | Sprint 6 | ⏳ Planned |
 | MKS-070-001 | Election Session Setup. | High | 2d | MKS-060-005 | Sprint 6 | ✅ Done (Blocked) |
-| MKS-070-002 | Ballot Generation API. | High | 2d | MKS-070-001 | Sprint 6 | ⏳ Planned |
+| MKS-070-002 | Vote Validation & Locking. | High | 2d | MKS-070-001 | Sprint 6 | ✅ Done |
 | MKS-060-006 | Final Result Publication & Freeze. | High | 1d | MKS-060-003, MKS-020-001 | Sprint 6 | ⏳ Planned |
 | MKS-060-007 | Audit Reports (PDF/Excel) Export. | Low | 2d | MKS-060-006 | Sprint 6 | ⏳ Planned |
 
@@ -129,8 +129,8 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 ### Sprint 6: Voting & Result
 **Status**: 🚧 In Progress
 - MKS-070-001: Election Session Setup (✅ Done - Blocked by Schema)
-- MKS-070-002: Ballot Generation API
-- MKS-070-003: Vote Casting API
+- MKS-070-002: Vote Validation & Locking (✅ Done)
+- MKS-070-003: Vote Casting API (✅ Done)
 - MKS-060-004: Voting Session & Timeout Management
 - MKS-060-005: Live Real-time Statistics
 - MKS-060-006: Final Result Publication & Freeze
