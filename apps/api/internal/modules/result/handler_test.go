@@ -70,4 +70,59 @@ func TestHandler_AdminEndpoints(t *testing.T) {
 		resp, _ := app.Test(req)
 		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 	})
+	app.Get("/api/v1/admin/events/:eventId/results/export/csv", handler.AdminExportResultCSV)
+	app.Get("/api/v1/admin/events/:eventId/results/export/xlsx", handler.AdminExportResultXLSX)
+
+	t.Run("CSV Export Success", func(t *testing.T) {
+		res := &ElectionResultResponse{
+			EventID:    eventID,
+			EventName:  "Test Event",
+			TotalVotes: 100,
+			WinnerName: "Candidate A",
+			Candidates: []CandidateResult{
+				{CandidateName: "Candidate A", VoteCount: 60, Percentage: 60.0},
+				{CandidateName: "Candidate B", VoteCount: 40, Percentage: 40.0},
+			},
+		}
+		mockSvc.On("GetElectionResults", mock.Anything, eventID).Return(res, nil).Once()
+
+		req := httptest.NewRequest(fiber.MethodGet, "/api/v1/admin/events/"+eventID.String()+"/results/export/csv", nil)
+		resp, _ := app.Test(req)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+		assert.Equal(t, "text/csv", resp.Header.Get("Content-Type"))
+	})
+
+	t.Run("XLSX Export Success", func(t *testing.T) {
+		res := &ElectionResultResponse{
+			EventID:    eventID,
+			EventName:  "Test Event",
+			TotalVotes: 100,
+			IsTie:      true,
+			Candidates: []CandidateResult{
+				{CandidateName: "Candidate A", VoteCount: 50, Percentage: 50.0},
+				{CandidateName: "Candidate B", VoteCount: 50, Percentage: 50.0},
+			},
+		}
+		mockSvc.On("GetElectionResults", mock.Anything, eventID).Return(res, nil).Once()
+
+		req := httptest.NewRequest(fiber.MethodGet, "/api/v1/admin/events/"+eventID.String()+"/results/export/xlsx", nil)
+		resp, _ := app.Test(req)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+		assert.Equal(t, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", resp.Header.Get("Content-Type"))
+	})
+
+	t.Run("Export Empty Event", func(t *testing.T) {
+		res := &ElectionResultResponse{
+			EventID:    eventID,
+			EventName:  "Empty Event",
+			TotalVotes: 0,
+			WinnerName: "",
+			Candidates: []CandidateResult{},
+		}
+		mockSvc.On("GetElectionResults", mock.Anything, eventID).Return(res, nil).Once()
+
+		req := httptest.NewRequest(fiber.MethodGet, "/api/v1/admin/events/"+eventID.String()+"/results/export/csv", nil)
+		resp, _ := app.Test(req)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+	})
 }

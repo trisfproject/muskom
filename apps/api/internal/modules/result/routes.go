@@ -16,6 +16,8 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger) {
 	router.Get("/events/:eventId/results/candidates", handler.AdminGetCandidates)
 	router.Get("/events/:eventId/results/summary", handler.AdminGetSummary)
 	router.Get("/events/:eventId/results/audit", handler.AdminGetAudit)
+	router.Get("/events/:eventId/results/export/csv", handler.AdminExportResultCSV)
+	router.Get("/events/:eventId/results/export/xlsx", handler.AdminExportResultXLSX)
 }
 
 func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger) {

@@ -22,10 +22,16 @@ func NewRepository(db *sqlx.DB) Repository {
 }
 
 func (r *repository) GetElectionResults(ctx context.Context, eventID uuid.UUID) (*ElectionResultResponse, error) {
-	// 1. Get total votes for the event
+	// 1. Get event info and total votes
+	var eventName string
+	err := r.db.GetContext(ctx, &eventName, `SELECT name FROM events WHERE id = $1`, eventID)
+	if err != nil {
+		return nil, err
+	}
+
 	var totalVotes int
 	totalQuery := `SELECT COUNT(id) FROM votes WHERE event_id = $1`
-	err := r.db.GetContext(ctx, &totalVotes, totalQuery, eventID)
+	err = r.db.GetContext(ctx, &totalVotes, totalQuery, eventID)
 	if err != nil {
 		return nil, err
 	}
@@ -100,6 +106,7 @@ func (r *repository) GetElectionResults(ctx context.Context, eventID uuid.UUID) 
 
 	return &ElectionResultResponse{
 		EventID:        eventID,
+		EventName:      eventName,
 		TotalVotes:     totalVotes,
 		ValidVotes:     totalVotes,
 		WinnerID:       winnerID,

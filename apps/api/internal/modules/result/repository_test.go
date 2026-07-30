@@ -21,6 +21,11 @@ func TestRepository_GetElectionResults(t *testing.T) {
 		sqlxDB := sqlx.NewDb(db, "postgres")
 		repo := NewRepository(sqlxDB)
 
+		// Mock event info
+		mock.ExpectQuery("^SELECT name FROM events WHERE id = \\$1$").
+			WithArgs(eventID).
+			WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow("Test Event"))
+
 		// Mock total votes
 		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes WHERE event_id = \\$1$").
 			WithArgs(eventID).
@@ -53,6 +58,11 @@ func TestRepository_GetElectionResults(t *testing.T) {
 		defer db.Close()
 		sqlxDB := sqlx.NewDb(db, "postgres")
 		repo := NewRepository(sqlxDB)
+
+		// Mock event info
+		mock.ExpectQuery("^SELECT name FROM events WHERE id = \\$1$").
+			WithArgs(eventID).
+			WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow("Test Event"))
 
 		// Mock total votes
 		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes WHERE event_id = \\$1$").
@@ -89,6 +99,11 @@ func TestRepository_GetElectionResults(t *testing.T) {
 		sqlxDB := sqlx.NewDb(db, "postgres")
 		repo := NewRepository(sqlxDB)
 
+		// Mock event info
+		mock.ExpectQuery("^SELECT name FROM events WHERE id = \\$1$").
+			WithArgs(eventID).
+			WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow("Test Event"))
+
 		// Mock total votes
 		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes WHERE event_id = \\$1$").
 			WithArgs(eventID).
@@ -122,6 +137,11 @@ func TestRepository_GetElectionResults(t *testing.T) {
 		defer db.Close()
 		sqlxDB := sqlx.NewDb(db, "postgres")
 		repo := NewRepository(sqlxDB)
+
+		// Mock event info
+		mock.ExpectQuery("^SELECT name FROM events WHERE id = \\$1$").
+			WithArgs(eventID).
+			WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow("Test Event"))
 
 		// Mock total votes - massive volume
 		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes WHERE event_id = \\$1$").

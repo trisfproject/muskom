@@ -15,6 +15,7 @@ type CandidateResult struct {
 
 type ElectionResultResponse struct {
 	EventID        uuid.UUID         `json:"event_id"`
+	EventName      string            `json:"event_name"`
 	TotalVotes     int               `json:"total_votes"`
 	ValidVotes     int               `json:"valid_votes"`
 	WinnerID       *uuid.UUID        `json:"winner_id,omitempty"`

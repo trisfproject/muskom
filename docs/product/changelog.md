@@ -134,5 +134,11 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Integrated `audit_logs` retrieval with support for limits, offsets, sorting, and action-based filtering.
   - Fixed a critical regression in the core `voting` repository where vote audit logs were silently failing insertion due to an outdated schema reference (`actor_id` vs `user_id`).
   - Ensured all administrative tools remain 100% read-only; administrators cannot edit, recalculate, or override vote outcomes.
+- **Result Finalization (MKS-080-004)**: Blocked at Architecture Gate. Identified massive business gap in PRD regarding approval/publication rules. Database lacks schema support (`finalized_at`, `result_status`) to execute safely without inventing business logic.
+- **Export Results (MKS-080-005)**: Added CSV and XLSX export capability for election results.
+  - Implemented `GET /api/v1/admin/events/{eventId}/results/export/csv` and `xlsx`.
+  - Reused the SQL-native Vote Counting Engine to ensure 100% aggregation consistency.
+  - Generates comprehensive exports containing event metadata, accurate candidate rankings, and explicit tie indicators.
+  - Safely streams file content while adhering to security requirements (stripping participant identities and private logs).
 
 
