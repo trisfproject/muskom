@@ -149,7 +149,7 @@ func (r *repository) ListAttendances(ctx context.Context, filter AttendanceListR
 	} else if filter.SortBy == "participant_name" {
 		sortCol = "p.full_name"
 	}
-	
+
 	sortDir := "DESC"
 	if filter.SortDirection == "asc" || filter.SortDirection == "ASC" {
 		sortDir = "ASC"
