@@ -80,5 +80,10 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Added `GET /api/v1/admin/verifications/candidates/{id}` to fetch comprehensive application packages including vision, mission, and document paths.
   - Developed `PATCH /api/v1/admin/verifications/candidates/{id}` to lock verification progress within DB transactions.
   - Stored verifier comments inside Audit Log metadata (since candidate schema lacks a dedicated rejection/notes column), maintaining schema-level *Single Source of Truth* while delivering required features.
+- **Attendance Check-in API (MKS-060-004)**: Implemented highly concurrent and idempotent event attendance check-in.
+  - Built an entirely new isolated module `attendance` adhering to the Hexagonal Architecture.
+  - Developed `POST /api/v1/admin/attendance/check-in` using `ON CONFLICT (registration_id) DO NOTHING` for native database-level idempotency, preventing duplicate records gracefully without explicit software-level race condition locks.
+  - Created `GET /api/v1/admin/attendance/{participantId}` to display attendance metadata merged natively with verified registration and person demographics.
+  - Protected attendance logic to ensure only explicitly `APPROVED` verified participants may check in, discarding unauthorized/eligibility bypass attempts.
 
 

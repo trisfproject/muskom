@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"go.uber.org/zap"
 
+	"github.com/trisfproject/muskom/apps/api/internal/modules/attendance"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/candidate"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
@@ -96,6 +97,7 @@ func main() {
 	registration.SetupAdminRoutes(adminGroup.Group("/registrations"), db, log, val, strg, cfg.MaxUploadSize)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), db, log, val, strg, cfg.MaxUploadSize)
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications"), db, log, val)
+	attendance.SetupAdminRoutes(adminGroup.Group("/attendance"), db, log, val)
 
 	// 8. Graceful Shutdown
 	go func() {
