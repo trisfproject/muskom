@@ -17,6 +17,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/rbac"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/registration"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/reporting"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/result"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/verification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/voting"
@@ -118,6 +119,7 @@ func main() {
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications"), db, log, val)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance"), db, log, val)
 	audit.SetupAdminRoutes(adminGroup.Group("/audit", checker.RequirePermission("audit.view")), db)
+	reporting.SetupAdminRoutes(adminGroup.Group("/reporting"), db, log)
 	voting.SetupAdminRoutes(adminGroup.Group("/votes"), db, log, bus)
 	result.SetupAdminRoutes(adminGroup, db, log)
 

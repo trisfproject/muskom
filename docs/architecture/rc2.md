@@ -56,6 +56,15 @@ The core business capability of MUSKOM, designed around absolute integrity and a
 - **Event Bus Dispatch**: Casting a vote synchronously inserts into DB and fires an `EventVoteSubmitted` Domain Event.
 - **Anonymity vs Accountability**: Since Physical Booth setups are supported, an `OPERATOR` may technically execute the `CastVote` API. The Audit Log tracks the Operator JWT as the actor, while the actual `Vote` row binds to the Participant's `registration_id`, guaranteeing booth accountability.
 
+## Reporting & Official Result Domain
+Designed as a read-only aggregation layer, ensuring business rules remain within their respective authoritative domains.
+- **Official Result Aggregation**: Calculates live statistics directly from the database schema:
+  - `TotalRegistered`: Count of all `registrations` for the event.
+  - `EligibleVoters`: Unique `registration_id` mapped in the `attendance` table (Check-Ins).
+  - `TotalVotes`: Derived from the `votes` table.
+  - `Abstain`: Implicitly calculated (`EligibleVoters` - `TotalVotes`), strictly preventing any DB mutations just for "Blank/Abstain" ballots while perfectly mapping to physical booth realities.
+- **Export Architecture**: Features an abstract `Exporter` interface (`Export(ctx, reportType, format, data)`). The underlying HTTP handler (`GenerateExport`) logs the operation in `report_history`, guaranteeing a permanent audit trail for all downloaded artifacts.
+
 ## Realtime Architecture
 
 For RC2, real-time data features (such as live Attendance stats and live Voting progress) use the `useRealtimeSync` hook.
