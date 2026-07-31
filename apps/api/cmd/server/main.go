@@ -15,6 +15,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/candidate"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/rbac"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/registration"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/reporting"
@@ -118,6 +119,7 @@ func main() {
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), db, log, val, strg, cfg.MaxUploadSize)
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications"), db, log, val)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance"), db, log, val)
+	notification.SetupAdminRoutes(adminGroup.Group("/notifications"), db, log)
 	audit.SetupAdminRoutes(adminGroup.Group("/audit", checker.RequirePermission("audit.view")), db)
 	reporting.SetupAdminRoutes(adminGroup.Group("/reporting"), db, log)
 	voting.SetupAdminRoutes(adminGroup.Group("/votes"), db, log, bus)

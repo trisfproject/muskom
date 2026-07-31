@@ -65,6 +65,16 @@ Designed as a read-only aggregation layer, ensuring business rules remain within
   - `Abstain`: Implicitly calculated (`EligibleVoters` - `TotalVotes`), strictly preventing any DB mutations just for "Blank/Abstain" ballots while perfectly mapping to physical booth realities.
 - **Export Architecture**: Features an abstract `Exporter` interface (`Export(ctx, reportType, format, data)`). The underlying HTTP handler (`GenerateExport`) logs the operation in `report_history`, guaranteeing a permanent audit trail for all downloaded artifacts.
 
+## Notification Domain
+The outbound communications engine, designed to reliably handle high volumes of messages without blocking standard HTTP API requests.
+- **Provider Architecture**: Outbound channels (Email, WhatsApp, Telegram) are abstracted under a strict `Provider` interface. The `ProviderRegistry` allows the application to inject concrete or mock drivers dynamically at runtime.
+- **Queue Lifecycle**:
+  - `PENDING`: The initial state when a job is created by the application (e.g. via the `EventBus` triggering an email).
+  - `PROCESSING`: Picked up by the background worker lock, preventing dual-sends.
+  - `SENT`: The provider successfully dispatched the message. A `NotificationHistory` record is generated.
+  - `FAILED`: The provider returned a fatal error, or retries exceeded. History is logged with the exact `error_message`.
+- **Worker Process**: The background worker runs continuously in an isolated goroutine. It polls `notification_jobs` for `PENDING` states. This async approach guarantees that if an upstream API (like WhatsApp) goes down, the core MUSKOM event flow continues unaffected while messages queue safely.
+
 ## Realtime Architecture
 
 For RC2, real-time data features (such as live Attendance stats and live Voting progress) use the `useRealtimeSync` hook.
