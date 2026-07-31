@@ -1,115 +1,89 @@
-'use client';
+"use client"
+import { motion } from "framer-motion"
+import { MaxWidthWrapper } from "@/components/layout/MaxWidthWrapper"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { UserCircle } from "lucide-react"
+import { useEffect, useState } from "react"
+import { landingService } from "@/services/landing"
 
-import { useQuery } from '@tanstack/react-query';
-import { landingService } from '@/services/landing';
-import { ArrowRight, Building2, Quote, User } from 'lucide-react';
-import Link from 'next/link';
-
-interface PublicCandidate {
-  id: string;
-  number?: number;
-  name: string;
-  photo_url?: string;
-  organization?: string;
-  motto?: string;
+interface CandidateData {
+  id?: string;
+  name?: string;
+  title?: string;
+  photo_path?: string;
+  sequence_number?: number;
   vision?: string;
 }
 
 export function CandidatesSection() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['public-candidates'],
-    queryFn: landingService.getPublicCandidates,
-    staleTime: 60 * 1000 * 5, // 5 minutes
-    gcTime: 60 * 1000 * 30, // 30 minutes
-    retry: 1,
-  });
+  const [candidates, setCandidates] = useState<CandidateData[]>([])
 
-  const candidates = data || [];
+  useEffect(() => {
+    landingService.getPublicCandidates().then((res) => setCandidates(res as CandidateData[])).catch(() => setCandidates([]))
+  }, [])
 
-  if (isLoading || candidates.length === 0) return null;
+  if (candidates.length === 0) {
+    return (
+      <section id="kandidat" className="py-24 bg-white">
+        <MaxWidthWrapper>
+          <div className="text-center">
+            <Badge variant="secondary" className="mb-4">Kandidat</Badge>
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-4">Profil Kandidat</h2>
+            <p className="text-slate-500">Belum ada kandidat yang dipublikasikan saat ini.</p>
+          </div>
+        </MaxWidthWrapper>
+      </section>
+    )
+  }
 
   return (
-    <section id="kandidat" className="py-24 bg-slate-50 relative">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header */}
-        <div className="text-center mb-20">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
-            Kandidat Ketua
+    <section id="kandidat" className="py-24 bg-white relative overflow-hidden">
+      <div className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-slate-50 rounded-full blur-3xl -z-10" />
+      
+      <MaxWidthWrapper>
+        <div className="text-center mb-16">
+          <Badge variant="emerald" className="mb-4">Kandidat Resmi</Badge>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Mengenal Calon Pemimpin
           </h2>
-          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
-            Mengenal lebih dekat para calon pemimpin yang akan membawa arah baru komunitas kita.
+          <p className="mt-4 text-slate-500 max-w-2xl mx-auto">
+            Pelajari profil, visi, dan misi dari setiap kandidat yang telah diverifikasi dan siap memimpin komunitas kita ke depan.
           </p>
         </div>
 
-        {/* Candidates Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {(candidates as PublicCandidate[]).map((candidate: PublicCandidate) => (
-            <div 
-              key={candidate.id} 
-              className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-200 transition-all duration-300 overflow-hidden flex flex-col h-full"
+          {candidates.map((candidate, index) => (
+            <motion.div
+              key={candidate.id || index}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
             >
-              {/* Image Area */}
-              <div className="relative aspect-square w-full bg-slate-100 overflow-hidden">
-                {candidate.photo_url ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={candidate.photo_url}
-                    alt={candidate.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
-                    <User size={80} strokeWidth={1} />
+              <Card className="h-full border-slate-100 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-100/50 transition-all duration-300 group">
+                <CardHeader className="text-center pb-4">
+                  <div className="w-24 h-24 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-4 overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                    {candidate.photo_path ? (
+                      <img src={candidate.photo_path} alt={candidate.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <UserCircle className="w-12 h-12 text-slate-300" />
+                    )}
                   </div>
-                )}
-                
-                {/* Number Badge */}
-                <div className="absolute top-4 left-4 w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-xl font-black text-slate-900 shadow-md">
-                  {candidate.number}
-                </div>
-              </div>
-
-              {/* Content Area */}
-              <div className="p-8 flex-1 flex flex-col">
-                <h3 className="text-2xl font-bold text-slate-900 mb-2 leading-tight">
-                  {candidate.name}
-                </h3>
-                
-                <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm mb-6">
-                  <Building2 size={16} />
-                  <span>{candidate.organization || 'Delegasi Mandiri'}</span>
-                </div>
-
-                <div className="relative mb-6">
-                  <Quote size={24} className="absolute -top-2 -left-2 text-slate-100 rotate-180" />
-                  <p className="text-slate-600 font-medium italic relative z-10 text-sm leading-relaxed pl-4 border-l-2 border-emerald-100">
-                    &quot;{candidate.motto || 'Membangun komunitas yang lebih baik bersama-sama.'}&quot;
+                  <Badge variant="secondary" className="w-fit mx-auto mb-2">No. Urut {candidate.sequence_number || index + 1}</Badge>
+                  <CardTitle className="text-xl">{candidate.name}</CardTitle>
+                  <CardDescription className="font-medium text-emerald-600">{candidate.title || "Kandidat"}</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <p className="text-sm text-slate-600 line-clamp-3">
+                    {candidate.vision || "Kandidat ini belum mencantumkan detail visi secara publik."}
                   </p>
-                </div>
-
-                {/* Visi Summary (mocking it if not strictly short) */}
-                <div className="mb-8 flex-1">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Ringkasan Visi</h4>
-                  <p className="text-slate-600 text-sm leading-relaxed line-clamp-3">
-                    {candidate.vision || 'Berkomitmen untuk mewujudkan komunitas yang inklusif, inovatif, dan berdaya saing global melalui kolaborasi aktif seluruh anggota.'}
-                  </p>
-                </div>
-
-                {/* CTA */}
-                <Link 
-                  href={`/candidates/${candidate.id}`}
-                  className="mt-auto flex items-center justify-center gap-2 w-full py-4 bg-slate-50 text-slate-900 font-semibold rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300"
-                >
-                  Lihat Profil Lengkap
-                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
-
-      </div>
+      </MaxWidthWrapper>
     </section>
-  );
+  )
 }
