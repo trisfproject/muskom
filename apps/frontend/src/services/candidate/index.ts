@@ -14,11 +14,11 @@ export const candidateService = {
   },
 
   async verifyCandidate(id: string, payload: { status: 'ACCEPTED' | 'REJECTED', notes?: string }): Promise<void> {
-    await api.patch(`/admin/verification/candidates/${id}`, payload);
+    await api.patch(`/admin/verifications/candidates/${id}`, payload);
   },
 
   async getSummary(): Promise<VerificationSummary> {
-    const { data } = await api.get('/admin/verification/summary');
+    const { data } = await api.get('/admin/verifications/summary');
     return data.data;
   },
 

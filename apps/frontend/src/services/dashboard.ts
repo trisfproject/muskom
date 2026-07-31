@@ -7,9 +7,9 @@ export const dashboardService = {
       // Execute calls concurrently
       const [eventRes, verificationRes, participantsRes, candidatesRes] = await Promise.allSettled([
         api.get('/admin/musyawarah'),
-        api.get('/admin/verification/summary'),
-        api.get('/admin/registration?limit=1'),
-        api.get('/admin/candidate?limit=1')
+        api.get('/admin/verifications/summary'),
+        api.get('/admin/registrations?limit=1'),
+        api.get('/admin/candidates?limit=1')
       ]);
 
       const event = eventRes.status === 'fulfilled' ? eventRes.value.data.data as EventInfo : null;

@@ -35,7 +35,7 @@ func (r *repository) GetVerifications(ctx context.Context, filter VerificationLi
 				r.id::text as id,
 				'participant' as queue_type,
 				p.full_name as applicant_name,
-				r.registration_status as status,
+				r.status as status,
 				r.created_at
 			FROM registrations r
 			JOIN persons p ON r.person_id = p.id
@@ -122,7 +122,7 @@ func (r *repository) GetVerifications(ctx context.Context, filter VerificationLi
 func (r *repository) GetVerificationSummary(ctx context.Context) (*VerificationSummaryResponse, error) {
 	query := `
 		SELECT 
-			(SELECT COUNT(*) FROM registrations WHERE registration_status IN ('SUBMITTED', 'REVIEWING')) as pending_participants,
+			(SELECT COUNT(*) FROM registrations WHERE status IN ('PENDING', 'APPROVED', 'REJECTED')) as pending_participants,
 			(SELECT COUNT(*) FROM candidate_applications WHERE status IN ('SUBMITTED', 'REVIEWING')) as pending_candidates
 	`
 
