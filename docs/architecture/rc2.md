@@ -75,6 +75,14 @@ The outbound communications engine, designed to reliably handle high volumes of 
   - `FAILED`: The provider returned a fatal error, or retries exceeded. History is logged with the exact `error_message`.
 - **Worker Process**: The background worker runs continuously in an isolated goroutine. It polls `notification_jobs` for `PENDING` states. This async approach guarantees that if an upstream API (like WhatsApp) goes down, the core MUSKOM event flow continues unaffected while messages queue safely.
 
+## Operations Dashboard
+The Dashboard (`dashboard` module) serves as a pure presentation layer designed using the Backend-For-Frontend (BFF) pattern.
+- **Aggregation Layer**: Instead of forcing the frontend to execute 6 different `fetch()` calls for each domain widget (which causes waterfall loading and client overhead), the `dashboard` Go service directly queries the required domains concurrently on the server.
+- **Data Source Map**:
+  - `SummaryMetricsGrid` aggregates from Registration, Candidate, Attendance, Voting, and Notification tables.
+  - `RecentActivityFeed` draws directly from `audit_logs`.
+  - `QuickActionsPanel` provides central navigation to operational workflows.
+
 ## Realtime Architecture
 
 For RC2, real-time data features (such as live Attendance stats and live Voting progress) use the `useRealtimeSync` hook.

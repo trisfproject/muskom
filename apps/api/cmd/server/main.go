@@ -14,6 +14,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/candidate"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/dashboard"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/rbac"
@@ -114,6 +115,7 @@ func main() {
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
+	dashboard.SetupAdminRoutes(adminGroup.Group("/dashboard"), db, log)
 	musyawarah.SetupRoutes(adminGroup.Group("/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 	registration.SetupAdminRoutes(adminGroup.Group("/registrations"), db, log, val, strg, cfg.MaxUploadSize)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), db, log, val, strg, cfg.MaxUploadSize)
