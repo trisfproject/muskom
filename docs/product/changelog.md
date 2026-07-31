@@ -22,6 +22,7 @@ All notable changes to the MUSKOM project will be documented in this file.
 ## [1.0.0-rc1] - 2026-07-31
 
 ### RC1 Final (Release Candidate)
+- **Status:** Release Candidate Ready
 - **Bug Fixes:** Cleaned up unused comments and development artifacts (TODOs) across Frontend and Backend.
 - **Refactoring:** Consolidated Shadcn UI primitive setups and ensured controlled components are used across all public-facing forms to prevent React Compiler cache bailouts.
 - **Performance:** Enforced `staleTime` of 5 minutes on all public data fetches (Landing Page & Registrations) using TanStack Query.
