@@ -25,6 +25,16 @@ type CandidateDocumentsResponse struct {
 	DocumentURL string `json:"document_url,omitempty"`
 }
 
+type CandidatePublicResponse struct {
+	ID           string `json:"id" db:"id"`
+	Name         string `json:"name" db:"name"`
+	Number       int    `json:"number" db:"number"`
+	Organization string `json:"organization" db:"organization"`
+	Motto        string `json:"motto" db:"motto"`
+	Vision       string `json:"vision" db:"vision"`
+	PhotoURL     string `json:"photo_url" db:"photo_url"`
+}
+
 type DeleteDocumentsRequest struct {
 	Photo    bool `json:"photo"`
 	Document bool `json:"document"`

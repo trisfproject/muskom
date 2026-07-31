@@ -29,6 +29,7 @@ type Service interface {
 	DeleteDocuments(ctx context.Context, candidateCode string, req *DeleteDocumentsRequest) error
 
 	AdminListCandidates(ctx context.Context, filter CandidateAdminListRequest) ([]CandidateAdminListResponse, int, error)
+	PublicListCandidates(ctx context.Context) ([]CandidatePublicResponse, error)
 	AdminGetCandidateDetail(ctx context.Context, candidateCode string) (*CandidateAdminDetailResponse, error)
 	AdminUpdateCandidateDetails(ctx context.Context, candidateCode string, req *CandidateAdminUpdateRequest, reviewerID string) error
 	AdminUpdateCandidateStatus(ctx context.Context, candidateCode string, req *CandidateUpdateStatusRequest, reviewerID string) error
@@ -375,6 +376,19 @@ func (s *service) DeleteDocuments(ctx context.Context, candidateCode string, req
 
 func (s *service) AdminListCandidates(ctx context.Context, filter CandidateAdminListRequest) ([]CandidateAdminListResponse, int, error) {
 	return s.repo.GetAdminCandidateList(ctx, filter)
+}
+
+func (s *service) PublicListCandidates(ctx context.Context) ([]CandidatePublicResponse, error) {
+	list, err := s.repo.GetPublicCandidateList(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for i, c := range list {
+		if c.PhotoURL != "" {
+			list[i].PhotoURL = s.storage.URL(c.PhotoURL)
+		}
+	}
+	return list, nil
 }
 
 func (s *service) AdminGetCandidateDetail(ctx context.Context, candidateCode string) (*CandidateAdminDetailResponse, error) {

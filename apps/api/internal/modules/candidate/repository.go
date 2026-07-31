@@ -23,6 +23,7 @@ type Repository interface {
 	GetRegistrationDetails(ctx context.Context, registrationID string) (*RegistrationDetails, error)
 	UpdateDocumentPaths(ctx context.Context, tx *sqlx.Tx, applicationID string, photoPath, docPath *string) error
 	GetAdminCandidateList(ctx context.Context, filter CandidateAdminListRequest) ([]CandidateAdminListResponse, int, error)
+	GetPublicCandidateList(ctx context.Context) ([]CandidatePublicResponse, error)
 	GetAdminCandidateDetail(ctx context.Context, candidateCode string) (*CandidateAdminDetailResponse, error)
 	UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, candidateCode, status, reviewedBy string) error
 	GetCandidateAuditHistory(ctx context.Context, candidateCode string) ([]CandidateAuditLogResponse, error)
@@ -240,6 +241,30 @@ func (r *repository) GetAdminCandidateList(ctx context.Context, filter Candidate
 	}
 
 	return list, total, nil
+}
+
+func (r *repository) GetPublicCandidateList(ctx context.Context) ([]CandidatePublicResponse, error) {
+	query := `
+		SELECT 
+			c.id,
+			p.full_name as name,
+			c.candidate_number as number,
+			COALESCE(p.company, '') as organization,
+			COALESCE(ca.mission, '') as motto,
+			COALESCE(ca.vision, '') as vision,
+			COALESCE(ca.photo_path, '') as photo_url
+		FROM candidates c
+		JOIN registrations reg ON c.registration_id = reg.id
+		JOIN persons p ON reg.person_id = p.id
+		JOIN candidate_applications ca ON ca.registration_id = reg.id
+		WHERE ca.status = 'ACCEPTED'
+		ORDER BY c.candidate_number ASC
+	`
+	var list []CandidatePublicResponse
+	if err := r.db.SelectContext(ctx, &list, query); err != nil {
+		return nil, err
+	}
+	return list, nil
 }
 
 func (r *repository) GetAdminCandidateDetail(ctx context.Context, candidateCode string) (*CandidateAdminDetailResponse, error) {

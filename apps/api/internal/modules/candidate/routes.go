@@ -16,6 +16,7 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 	candidates := router.Group("/candidates")
 
 	// Public routes
+	candidates.Get("/", h.PublicList)
 	candidates.Post("/", h.RegisterCandidate)
 	candidates.Get("/:id", h.GetCandidateStatus)
 	candidates.Post("/:id/documents", h.UploadDocuments)

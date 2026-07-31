@@ -65,6 +65,15 @@ func (h *Handler) GetCandidateStatus(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Candidate status retrieved successfully", res, nil)
 }
 
+func (h *Handler) PublicList(c fiber.Ctx) error {
+	list, err := h.service.PublicListCandidates(c.Context())
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve public candidates", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Candidate list retrieved successfully", list, nil)
+}
+
 func (h *Handler) UploadDocuments(c fiber.Ctx) error {
 	candidateCode := c.Params("id")
 	if candidateCode == "" {

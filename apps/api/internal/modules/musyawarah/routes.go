@@ -27,3 +27,12 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 	media.Post("/:type", handler.UploadMedia)
 	media.Delete("/:type", handler.DeleteMedia)
 }
+
+// SetupPublicRoutes registers public routes for the Musyawarah Configuration module.
+func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, strg storage.Storage, maxUploadSize int64) {
+	repo := NewRepository(db)
+	svc := NewService(repo, log, strg)
+	handler := NewHandler(svc, val, maxUploadSize)
+
+	router.Get("/", handler.Get)
+}
