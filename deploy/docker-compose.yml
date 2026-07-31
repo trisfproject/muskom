@@ -36,8 +36,6 @@ services:
       dockerfile: ../../deploy/api/Dockerfile
     container_name: muskom-api
     env_file: .env
-    ports:
-      - "3200:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -50,22 +48,14 @@ services:
       dockerfile: ../../deploy/frontend/Dockerfile
     container_name: muskom-frontend
     env_file: .env
-    ports:
-      - "3201:3000"
     depends_on:
       - api
-
-  nginx:
-    build:
-      context: ../deploy/nginx
-      dockerfile: Dockerfile
-    container_name: muskom-nginx
-    ports:
-      - "8080:80"
-    depends_on:
-      - api
-      - frontend
 
 volumes:
   muskom_data:
   muskom_redis:
+
+networks:
+  default:
+    name: nyx-dashboard-net
+    external: true
