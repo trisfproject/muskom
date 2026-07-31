@@ -29,7 +29,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 | MKS-020-001 | Admin Registration Management (Listing, Detail, Status). | High | 2d | MKS-040-001 | Sprint 3 | ✅ Done |
 | MKS-020-002 | Admin Candidate Management (Listing, Detail, Status). | High | 2d | MKS-050-001 | Sprint 4 | ✅ Done |
 | MKS-020-003 | Dashboard Analytics (Participant counts, Votes). | Medium | 2d | MKS-020-001, MKS-060-001 | Sprint 4 | ⏳ Planned |
-| MKS-020-004 | Participant Verification Interface. | High | 2d | MKS-020-002, MKS-040-005 | Sprint 5 | ✅ Done |
+| MKS-020-004 | Public Landing Page interface. | High | 3d | MKS-020-003, MKS-050-001 | Sprint 7 | ✅ Done |
 | MKS-060-003 | Candidate Verification Interface. | High | 2d | MKS-020-002, MKS-050-001 | Sprint 5 | ✅ Done |
 | MKS-060-004 | Attendance Check-in API (QR/Manual). | High | 2d | MKS-020-002 | Sprint 5 | ✅ Done |
 | MKS-060-005 | Attendance Administration. | High | 2d | MKS-060-004 | Sprint 5 | ✅ Done |
@@ -114,8 +114,10 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 **Status**: ✅ Completed
 - MKS-050-001: Candidate Registration API & Uploads (✅ Done)
 - MKS-050-002: Candidate Registration Validation (✅ Done)
-- MKS-050-003: Candidate Registration Attachments (✅ Done)
-- MKS-020-002: Admin Candidate Verification (✅ Done)
+- MKS-050-003: Candidate Registration Attachments (✅ RC1 Progress: ██████████░ 95%
+
+### Pending
+- [x] Landing Page (✅ Done)
 - MKS-020-003: Dashboard Analytics (Participants/Votes)
 - MKS-050-005: Admin Candidate Management (✅ Done)
 

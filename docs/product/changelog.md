@@ -28,6 +28,12 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Vision, Mission, and Work Program reviews
   - Manual Candidate registration orchestration
   - Verification workflow integration
+- **Public Landing Page**:
+  - Dynamic Hero section reflecting Event Configuration
+  - Registration Status checks mapped to admin settings
+  - Timeline component visually displaying Phase progress
+  - SEO Server-Side generated metadata
+  - Integrated graceful fallback if API is unreachable
 
 ### Changed
 - Candidate approval workflow centralized.

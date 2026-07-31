@@ -1,14 +1,43 @@
-export default function Home() {
+import { Metadata } from 'next';
+import publicApi from '@/lib/public-api';
+import { MusyawarahEvent } from '@/types/event';
+import LandingPageClient from './LandingPageClient';
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const response = await publicApi.get('/admin/musyawarah');
+    const event: MusyawarahEvent = response.data.data;
+    
+    if (event.status === 'UPCOMING' || event.status === 'ONGOING') {
+      return {
+        title: `${event.name} | Official Portal`,
+        description: event.theme || 'Official Musyawarah Portal for Registration and Electronic Voting.',
+        openGraph: {
+          title: event.name,
+          description: event.theme || 'Official Musyawarah Portal',
+          type: 'website',
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: event.name,
+          description: event.theme || 'Official Musyawarah Portal',
+        }
+      };
+    }
+  } catch {
+    // Fail silently, use defaults
+  }
+  
+  return {
+    title: 'Musyawarah KOMITKABE | Official Portal',
+    description: 'Official Musyawarah Portal for Registration and Electronic Voting.',
+  };
+}
+
+export default function Page() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-zinc-50 dark:bg-zinc-950 font-sans">
-      <main className="flex flex-col items-center gap-4 text-center">
-        <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-zinc-900 dark:text-white">
-          MUSKOM
-        </h1>
-        <p className="text-lg sm:text-xl text-zinc-600 dark:text-zinc-400 max-w-lg">
-          Musyawarah KOMITKABE Management System
-        </p>
-      </main>
-    </div>
+    <main className="min-h-screen flex flex-col bg-slate-50">
+      <LandingPageClient />
+    </main>
   );
 }
