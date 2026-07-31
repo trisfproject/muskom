@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDebounce } from "@/hooks/use-debounce";
 
 interface AttendanceToolbarProps {
@@ -34,34 +33,26 @@ export function AttendanceToolbar({ onFilterChange, filters }: AttendanceToolbar
       </div>
       
       <div className="flex gap-3 w-full sm:w-auto">
-        <Select
+        <select
           value={filters.verification_status}
-          onValueChange={(value) => onFilterChange("verification_status", value)}
+          onChange={(e) => onFilterChange("verification_status", e.target.value)}
+          className="w-full sm:w-[160px] h-10 px-3 py-2 bg-slate-50/50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <SelectTrigger className="w-full sm:w-[160px] h-10 bg-slate-50/50 border-slate-200">
-            <SelectValue placeholder="Verification" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Participants</SelectItem>
-            <SelectItem value="APPROVED">Approved Only</SelectItem>
-            <SelectItem value="PENDING">Pending Only</SelectItem>
-            <SelectItem value="REJECTED">Rejected Only</SelectItem>
-          </SelectContent>
-        </Select>
+          <option value="ALL">All Verification</option>
+          <option value="APPROVED">Approved Only</option>
+          <option value="PENDING">Pending Only</option>
+          <option value="REJECTED">Rejected Only</option>
+        </select>
 
-        <Select
+        <select
           value={filters.attendance_status}
-          onValueChange={(value) => onFilterChange("attendance_status", value)}
+          onChange={(e) => onFilterChange("attendance_status", e.target.value)}
+          className="w-full sm:w-[160px] h-10 px-3 py-2 bg-slate-50/50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <SelectTrigger className="w-full sm:w-[160px] h-10 bg-slate-50/50 border-slate-200">
-            <SelectValue placeholder="Attendance" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Status</SelectItem>
-            <SelectItem value="PRESENT">Checked In</SelectItem>
-            <SelectItem value="ABSENT">Not Checked In</SelectItem>
-          </SelectContent>
-        </Select>
+          <option value="ALL">All Status</option>
+          <option value="PRESENT">Checked In</option>
+          <option value="ABSENT">Not Checked In</option>
+        </select>
       </div>
     </div>
   );

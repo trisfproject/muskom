@@ -61,7 +61,7 @@ export function HeroSection({ event }: HeroSectionProps) {
           )}
 
           {isCandidateRegOpen && (
-            <Link href="/register-candidate" className="w-full sm:w-auto">
+            <Link href="/register/candidate" className="w-full sm:w-auto">
               <Button className="w-full px-8 py-3 text-lg rounded-full border border-slate-300 text-slate-700 hover:bg-slate-50">
                 <UserPlus className="mr-2 h-5 w-5 text-slate-500" />
                 Register as Candidate

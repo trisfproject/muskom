@@ -1,8 +1,6 @@
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useAttendanceDetail } from "@/services/attendance/queries";
 import { format } from "date-fns";
 import { AttendanceStatusBadge } from "./AttendanceStatusBadge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Building2, Phone, Mail, Clock, CalendarDays } from "lucide-react";
 
 interface AttendanceDrawerProps {
@@ -14,21 +12,26 @@ interface AttendanceDrawerProps {
 export function AttendanceDrawer({ registrationId, isOpen, onClose }: AttendanceDrawerProps) {
   const { data: detail, isLoading, isError } = useAttendanceDetail(registrationId || '', isOpen);
 
+  if (!isOpen) return null;
+
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto bg-white p-0">
-        <SheetHeader className="p-6 border-b border-slate-100 bg-slate-50/50">
-          <SheetTitle className="text-xl font-bold text-slate-900">Attendance Details</SheetTitle>
-          <SheetDescription>
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/50">
+      <div className="w-full sm:max-w-md h-full bg-white shadow-xl animate-in slide-in-from-right overflow-y-auto">
+        <div className="p-6 border-b border-slate-100 bg-slate-50/50 relative">
+          <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+             &#x2715;
+          </button>
+          <h2 className="text-xl font-bold text-slate-900">Attendance Details</h2>
+          <p className="text-sm text-slate-500">
             Detailed view of participant registration and check-in metadata.
-          </SheetDescription>
-        </SheetHeader>
+          </p>
+        </div>
 
         <div className="p-6">
           {isLoading && (
             <div className="space-y-6">
-              <Skeleton className="h-20 w-full rounded-xl" />
-              <Skeleton className="h-40 w-full rounded-xl" />
+              <div className="h-20 w-full rounded-xl bg-slate-200 animate-pulse" />
+              <div className="h-40 w-full rounded-xl bg-slate-200 animate-pulse" />
             </div>
           )}
 
@@ -104,7 +107,7 @@ export function AttendanceDrawer({ registrationId, isOpen, onClose }: Attendance
             </div>
           )}
         </div>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </div>
   );
 }

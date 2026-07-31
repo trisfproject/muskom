@@ -57,9 +57,9 @@ export default function AttendancePage() {
             <p className="text-slate-500 mt-1 flex items-center gap-2">
               <LayoutDashboard className="w-4 h-4" />
               {event?.name || 'Loading active event...'} 
-              {event?.current_phase && (
+              {event?.status && (
                 <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold uppercase tracking-wider ml-2 border border-slate-200">
-                  {event.current_phase.replace('_', ' ')}
+                  {event.status.replace('_', ' ')}
                 </span>
               )}
             </p>
@@ -73,7 +73,7 @@ export default function AttendancePage() {
         ) : isError ? (
           <div className="bg-red-50 text-red-600 p-8 text-center rounded-xl border border-red-100">
             <h3 className="text-lg font-semibold mb-2">Failed to load attendance records</h3>
-            <Button onClick={() => refetch()} variant="outline" className="mt-2">
+            <Button onClick={() => refetch()} className="mt-2 bg-transparent text-slate-900 border border-slate-200 hover:bg-slate-100">
               Retry
             </Button>
           </div>
@@ -97,11 +97,9 @@ export default function AttendancePage() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button
-                    variant="outline"
-                    size="sm"
+                    className="h-8 w-8 p-0 bg-transparent text-slate-900 border border-slate-200 hover:bg-slate-100"
                     onClick={() => setPage(p => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="h-8 w-8 p-0"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -109,11 +107,9 @@ export default function AttendancePage() {
                     Page {page} of {totalPages}
                   </div>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    className="h-8 w-8 p-0 bg-transparent text-slate-900 border border-slate-200 hover:bg-slate-100"
                     onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                     disabled={page >= totalPages}
-                    className="h-8 w-8 p-0"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>

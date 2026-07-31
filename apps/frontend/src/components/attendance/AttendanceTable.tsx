@@ -2,11 +2,9 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { MoreHorizontal, ShieldCheck, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AttendanceItemResponse } from "@/types/attendance";
 import { AttendanceStatusBadge } from "./AttendanceStatusBadge";
 import { useCheckInMutation } from "@/services/attendance/mutations";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface AttendanceTableProps {
   data: AttendanceItemResponse[];
@@ -16,6 +14,7 @@ interface AttendanceTableProps {
 export function AttendanceTable({ data, onViewDetail }: AttendanceTableProps) {
   const checkInMutation = useCheckInMutation();
   const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; registrationId: string; participantName: string } | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const handleCheckIn = (registrationId: string) => {
     checkInMutation.mutate({ registration_id: registrationId }, {
@@ -76,11 +75,10 @@ export function AttendanceTable({ data, onViewDetail }: AttendanceTableProps) {
                     {row.checked_in_at ? format(new Date(row.checked_in_at), 'HH:mm:ss') : '-'}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-2 relative">
                       {row.verification_status === 'APPROVED' && row.attendance_status === 'ABSENT' && (
                         <Button
-                          size="sm"
-                          className="hidden sm:inline-flex bg-blue-600 text-white hover:bg-blue-700"
+                          className="hidden sm:inline-flex h-8 px-3 text-xs bg-blue-600 text-white hover:bg-blue-700"
                           onClick={() => setConfirmDialog({ isOpen: true, registrationId: row.registration_id, participantName: row.participant_name })}
                           disabled={checkInMutation.isPending}
                         >
@@ -88,28 +86,41 @@ export function AttendanceTable({ data, onViewDetail }: AttendanceTableProps) {
                         </Button>
                       )}
                       
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[160px]">
-                          {row.verification_status === 'APPROVED' && row.attendance_status === 'ABSENT' && (
-                            <DropdownMenuItem 
-                              className="sm:hidden text-blue-600 font-medium"
-                              onClick={() => setConfirmDialog({ isOpen: true, registrationId: row.registration_id, participantName: row.participant_name })}
+                      <div className="relative">
+                        <Button 
+                          className="h-8 w-8 p-0 bg-transparent text-slate-900 hover:bg-slate-100"
+                          onClick={() => setOpenDropdown(openDropdown === row.registration_id ? null : row.registration_id)}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                        
+                        {openDropdown === row.registration_id && (
+                          <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-50 border border-slate-200 py-1">
+                            {row.verification_status === 'APPROVED' && row.attendance_status === 'ABSENT' && (
+                              <button 
+                                className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-slate-50 flex items-center sm:hidden font-medium"
+                                onClick={() => {
+                                  setOpenDropdown(null);
+                                  setConfirmDialog({ isOpen: true, registrationId: row.registration_id, participantName: row.participant_name });
+                                }}
+                              >
+                                <ShieldCheck className="w-4 h-4 mr-2" />
+                                Check In
+                              </button>
+                            )}
+                            <button 
+                              className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center"
+                              onClick={() => {
+                                setOpenDropdown(null);
+                                onViewDetail(row.registration_id);
+                              }}
                             >
-                              <ShieldCheck className="w-4 h-4 mr-2" />
-                              Check In
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onClick={() => onViewDetail(row.registration_id)}>
-                            <FileText className="w-4 h-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                              <FileText className="w-4 h-4 mr-2" />
+                              View Details
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -119,28 +130,32 @@ export function AttendanceTable({ data, onViewDetail }: AttendanceTableProps) {
         </div>
       </div>
 
-      <Dialog open={!!confirmDialog} onOpenChange={(open) => !open && setConfirmDialog(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Check-In</DialogTitle>
-            <DialogDescription>
+      {confirmDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h2 className="text-lg font-bold mb-2">Confirm Check-In</h2>
+            <p className="text-sm text-slate-500 mb-6">
               Are you sure you want to check in <strong className="text-slate-900">{confirmDialog?.participantName}</strong>? This action will record their attendance for the event.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setConfirmDialog(null)} disabled={checkInMutation.isPending}>
-              Cancel
-            </Button>
-            <Button 
-              className="bg-blue-600 text-white hover:bg-blue-700" 
-              onClick={() => confirmDialog && handleCheckIn(confirmDialog.registrationId)}
-              disabled={checkInMutation.isPending}
-            >
-              {checkInMutation.isPending ? 'Checking In...' : 'Confirm Check-In'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button 
+                className="bg-transparent text-slate-900 border border-slate-200 hover:bg-slate-100" 
+                onClick={() => setConfirmDialog(null)} 
+                disabled={checkInMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="bg-blue-600 text-white hover:bg-blue-700" 
+                onClick={() => confirmDialog && handleCheckIn(confirmDialog.registrationId)}
+                disabled={checkInMutation.isPending}
+              >
+                {checkInMutation.isPending ? 'Checking In...' : 'Confirm Check-In'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
