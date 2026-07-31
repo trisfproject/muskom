@@ -2,14 +2,14 @@ import { MapPin, CalendarDays, Activity } from 'lucide-react';
 import { MusyawarahEvent } from '@/types/event';
 
 interface EventInfoSectionProps {
-  event: MusyawarahEvent;
+  event: MusyawarahEvent | null;
 }
 
 export function EventInfoSection({ event }: EventInfoSectionProps) {
   // Format the primary event date span based on the timeline if possible, 
   // or just fallback to registration start as an anchor point if timeline is complex.
   let dateDisplay = 'Date to be announced';
-  if (event.voting_start && event.voting_end) {
+  if (event?.voting_start && event?.voting_end) {
     const start = new Date(event.voting_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const end = new Date(event.voting_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     dateDisplay = start === end ? start : `${start} - ${end}`;
@@ -25,7 +25,7 @@ export function EventInfoSection({ event }: EventInfoSectionProps) {
               <MapPin className="h-6 w-6 text-blue-600" />
             </div>
             <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Location</h3>
-            <p className="text-lg font-medium text-slate-900">{event.location || 'Location to be announced'}</p>
+            <p className="text-lg font-medium text-slate-900">{event?.location || 'Location to be announced'}</p>
           </div>
 
           <div className="flex flex-col items-center md:items-start pt-6 md:pt-0 px-6">
@@ -41,7 +41,7 @@ export function EventInfoSection({ event }: EventInfoSectionProps) {
               <Activity className="h-6 w-6 text-blue-600" />
             </div>
             <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Current Phase</h3>
-            <p className="text-lg font-medium text-slate-900 capitalize">{event.status.toLowerCase()}</p>
+            <p className="text-lg font-medium text-slate-900 capitalize">{event?.status?.toLowerCase() || 'Planning'}</p>
           </div>
 
         </div>

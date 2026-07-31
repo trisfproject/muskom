@@ -4,11 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Users, UserPlus, CheckCircle2, XCircle } from 'lucide-react';
 import { MusyawarahEvent } from '@/types/event';
 
-interface RegistrationStatusSectionProps {
-  event: MusyawarahEvent;
+import { LandingEmptyState } from './LandingEmptyState';
+
+interface EventSectionProps {
+  event: MusyawarahEvent | null;
 }
 
-export function RegistrationStatusSection({ event }: RegistrationStatusSectionProps) {
+export function EventSection({ event }: EventSectionProps) {
+  if (!event) {
+    return <LandingEmptyState />;
+  }
   const now = new Date();
   
   // Participant Status

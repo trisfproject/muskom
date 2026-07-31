@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { CheckCircle2, Circle } from 'lucide-react';
 
 interface TimelineSectionProps {
-  event: MusyawarahEvent;
+  event: MusyawarahEvent | null;
 }
 
 export function TimelineSection({ event }: TimelineSectionProps) {
@@ -12,20 +12,20 @@ export function TimelineSection({ event }: TimelineSectionProps) {
     {
       id: 'registration',
       name: 'Participant Registration',
-      start: event.registration_start,
-      end: event.registration_end,
+      start: event?.registration_start,
+      end: event?.registration_end,
     },
     {
       id: 'candidate',
       name: 'Candidate Registration',
-      start: event.candidate_registration_start,
-      end: event.candidate_registration_end,
+      start: event?.candidate_registration_start,
+      end: event?.candidate_registration_end,
     },
     {
       id: 'voting',
       name: 'Musyawarah & Voting',
-      start: event.voting_start,
-      end: event.voting_end,
+      start: event?.voting_start,
+      end: event?.voting_end,
     }
   ];
 

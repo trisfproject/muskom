@@ -4,11 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import { landingService } from '@/services/landing';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { EventInfoSection } from '@/components/landing/EventInfoSection';
-import { RegistrationStatusSection } from '@/components/landing/RegistrationStatusSection';
+import { EventSection } from '@/components/landing/EventSection';
 import { TimelineSection } from '@/components/landing/TimelineSection';
 import { FAQSection } from '@/components/landing/FAQSection';
 import { Footer } from '@/components/landing/Footer';
-import { LandingEmptyState } from '@/components/landing/LandingEmptyState';
 import { LandingLoadingSkeleton } from '@/components/landing/LandingLoadingSkeleton';
 
 export default function LandingPageClient() {
@@ -24,13 +23,10 @@ export default function LandingPageClient() {
     return <LandingLoadingSkeleton />;
   }
 
-  // Handle No Event or Unauthorized (handled by the service mapping it to null)
-  if (!event || isError) {
-    return <LandingEmptyState />;
-  }
+  const activeEvent = event || null;
 
   // Handle Draft / Cancelled Status
-  if (event.status === 'DRAFT' || event.status === 'CANCELLED') {
+  if (activeEvent?.status === 'DRAFT' || activeEvent?.status === 'CANCELLED') {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
         <h2 className="text-2xl font-bold text-slate-900 mb-2">Event Under Maintenance</h2>
@@ -42,10 +38,10 @@ export default function LandingPageClient() {
   }
 
   // Handle Finished
-  if (event.status === 'COMPLETED') {
+  if (activeEvent?.status === 'COMPLETED') {
     return (
       <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
-        <h1 className="text-4xl font-extrabold text-slate-900 mb-4">{event.name}</h1>
+        <h1 className="text-4xl font-extrabold text-slate-900 mb-4">{activeEvent.name}</h1>
         <p className="text-xl text-slate-500 text-center max-w-xl mb-8">
           This Musyawarah has successfully concluded. Thank you to all participants, candidates, and organizers for their contribution.
         </p>
@@ -57,13 +53,13 @@ export default function LandingPageClient() {
     );
   }
 
-  // Standard Published Event
+  // Standard Render
   return (
     <>
-      <HeroSection event={event} />
-      <EventInfoSection event={event} />
-      <RegistrationStatusSection event={event} />
-      <TimelineSection event={event} />
+      <HeroSection event={activeEvent} />
+      <EventInfoSection event={activeEvent} />
+      <EventSection event={activeEvent} />
+      <TimelineSection event={activeEvent} />
       <FAQSection />
       <Footer />
     </>

@@ -4,20 +4,20 @@ import { Button } from '@/components/ui/button';
 import { MusyawarahEvent } from '@/types/event';
 
 interface HeroSectionProps {
-  event: MusyawarahEvent;
+  event: MusyawarahEvent | null;
 }
 
 export function HeroSection({ event }: HeroSectionProps) {
   const now = new Date();
-  const regStart = event.registration_start ? new Date(event.registration_start) : null;
-  const regEnd = event.registration_end ? new Date(event.registration_end) : null;
+  const regStart = event?.registration_start ? new Date(event.registration_start) : null;
+  const regEnd = event?.registration_end ? new Date(event.registration_end) : null;
   
   const isParticipantRegOpen = regStart && regEnd && now >= regStart && now <= regEnd;
 
-  const candStart = event.candidate_registration_start ? new Date(event.candidate_registration_start) : null;
-  const candEnd = event.candidate_registration_end ? new Date(event.candidate_registration_end) : null;
+  const candStart = event?.candidate_registration_start ? new Date(event.candidate_registration_start) : null;
+  const candEnd = event?.candidate_registration_end ? new Date(event.candidate_registration_end) : null;
   
-  const isCandidateRegOpen = event.allow_candidate_registration && candStart && candEnd && now >= candStart && now <= candEnd;
+  const isCandidateRegOpen = event?.allow_candidate_registration && candStart && candEnd && now >= candStart && now <= candEnd;
 
   return (
     <section className="relative overflow-hidden bg-white pt-24 pb-16 lg:pt-32 lg:pb-24">
@@ -33,10 +33,10 @@ export function HeroSection({ event }: HeroSectionProps) {
         </div>
         
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
-          {event.name}
+          {event?.name || 'Musyawarah KOMITKABE'}
         </h1>
         
-        {event.theme && (
+        {event?.theme && (
           <p className="text-xl md:text-2xl text-blue-600 font-medium mb-6 max-w-3xl mx-auto">
             &quot;{event.theme}&quot;
           </p>
@@ -56,7 +56,7 @@ export function HeroSection({ event }: HeroSectionProps) {
             </Link>
           ) : (
             <Button disabled className="w-full sm:w-auto px-8 py-3 text-lg bg-slate-100 text-slate-400 rounded-full">
-              Registration Closed
+              {event?.status === 'UPCOMING' ? 'Registration Opening Soon' : 'Registration Closed'}
             </Button>
           )}
 
