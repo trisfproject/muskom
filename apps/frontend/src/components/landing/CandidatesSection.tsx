@@ -5,6 +5,16 @@ import { landingService } from '@/services/landing';
 import { ArrowRight, Building2, Quote, User } from 'lucide-react';
 import Link from 'next/link';
 
+interface PublicCandidate {
+  id: string;
+  number?: number;
+  name: string;
+  photo_url?: string;
+  organization?: string;
+  motto?: string;
+  vision?: string;
+}
+
 export function CandidatesSection() {
   const { data, isLoading } = useQuery({
     queryKey: ['public-candidates'],
@@ -34,7 +44,7 @@ export function CandidatesSection() {
 
         {/* Candidates Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {candidates.map((candidate) => (
+          {(candidates as PublicCandidate[]).map((candidate: PublicCandidate) => (
             <div 
               key={candidate.id} 
               className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-200 transition-all duration-300 overflow-hidden flex flex-col h-full"

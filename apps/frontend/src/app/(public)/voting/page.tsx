@@ -24,9 +24,8 @@ export default function PublicVotingPage() {
     }
   ];
 
-  const handleVote = (candidateId: string) => {
+  const handleVote = (_candidateId: string) => {
     // Submit vote to POST /api/v1/voting/cast
-    console.log("Voted for:", candidateId);
     alert("Your vote has been successfully cast. Thank you for participating.");
   };
 

@@ -8,6 +8,8 @@ All notable changes to the MUSKOM project will be documented in this file.
 ### Added
 - Complete UI/UX redesign of Landing Page, Admin Dashboard, Login Page, and layout components.
 - Stabilized local Docker deployment environment.
+- Completed comprehensive RC2 Code Review and Quality Gate validation.
+- Fixed frontend API interceptor hardcoded localhost URLs for production safety.
 
 ### Fixed
 - Fixed deployment instability by defining explicit project `name: muskom` in docker-compose.

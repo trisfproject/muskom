@@ -17,7 +17,7 @@ export const landingService = {
       throw error;
     }
   },
-  async getPublicCandidates(): Promise<any[]> {
+  async getPublicCandidates(): Promise<unknown[]> {
     try {
       const response = await publicApi.get('/public/candidates');
       return response.data.data || [];
