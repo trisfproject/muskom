@@ -44,6 +44,18 @@ The `Automation Engine` bridges the internal PubSub to External Providers throug
 - **Integration Providers**: External systems are strictly boxed into the `Provider` contract, preventing global SDK sprawl.
 - **Observability**: Every integration attempt generates an `integration_logs` entry capturing `Status, Duration, Retries, and ErrorMessage` for strict auditing.
 
+## Voting Domain
+The core business capability of MUSKOM, designed around absolute integrity and auditability.
+- **Session Lifecycle**: Admin-controlled state machine decoupled from the parent Event state. A `VotingSession` tracks distinct states (`NOT_STARTED`, `RUNNING`, `PAUSED`, `CLOSED`), ensuring voting can be temporarily paused for technical reasons.
+- **Eligibility Validation**: A strict sequence verifies:
+  1. Target Event has `voting_enabled = true`.
+  2. Voting Session is `RUNNING`.
+  3. Participant is `APPROVED` and `CHECKED_IN`.
+  4. The exact `registration_id` does NOT already exist in the `votes` table.
+- **Double-Vote Prevention**: Enforced fundamentally at the database level via a `UNIQUE(event_id, registration_id)` constraint, eliminating application-level race conditions.
+- **Event Bus Dispatch**: Casting a vote synchronously inserts into DB and fires an `EventVoteSubmitted` Domain Event.
+- **Anonymity vs Accountability**: Since Physical Booth setups are supported, an `OPERATOR` may technically execute the `CastVote` API. The Audit Log tracks the Operator JWT as the actor, while the actual `Vote` row binds to the Participant's `registration_id`, guaranteeing booth accountability.
+
 ## Realtime Architecture
 
 For RC2, real-time data features (such as live Attendance stats and live Voting progress) use the `useRealtimeSync` hook.

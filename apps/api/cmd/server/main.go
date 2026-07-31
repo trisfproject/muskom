@@ -27,6 +27,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
+	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
 )
 
 func main() {
@@ -80,6 +81,7 @@ func main() {
 
 	// 6. Common Utilities
 	val := validator.New()
+	bus := eventbus.NewSyncBus(log)
 
 	// 6.5. RBAC Initialization
 	checker, authSvc := rbac.InitRBAC(db, log)
@@ -106,7 +108,7 @@ func main() {
 
 	// Protected Participant Routes
 	participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
-	voting.SetupRoutes(participantGroup, db, log, val)
+	voting.SetupRoutes(participantGroup, db, log, bus)
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
@@ -116,7 +118,7 @@ func main() {
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications"), db, log, val)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance"), db, log, val)
 	audit.SetupAdminRoutes(adminGroup.Group("/audit", checker.RequirePermission("audit.view")), db)
-	voting.SetupAdminRoutes(adminGroup.Group("/votes"), db, log, val)
+	voting.SetupAdminRoutes(adminGroup.Group("/votes"), db, log, bus)
 	result.SetupAdminRoutes(adminGroup, db, log)
 
 	// 8. Graceful Shutdown

@@ -2,155 +2,161 @@ package voting
 
 import (
 	"context"
-	"fmt"
-	"strings"
+	"errors"
 
-	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
+	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
 )
 
-// Service defines the voting service interface
-type Service interface {
-	SubmitVote(ctx context.Context, userID uuid.UUID, req *SubmitVoteRequest) error
-	GetMyVoteStatus(ctx context.Context, userID, eventID uuid.UUID) (*MyVoteStatusResponse, error)
+var (
+	ErrSessionClosed    = errors.New("voting session is closed")
+	ErrSessionNotRunning = errors.New("voting session is not running")
+	ErrAlreadyVoted     = errors.New("participant has already voted")
+	ErrNotCheckedIn     = errors.New("participant is not checked in")
+)
 
-	// Admin Methods
-	AdminListVotes(ctx context.Context, req AdminListVotesRequest) (*AdminListVotesResponse, error)
-	AdminGetVote(ctx context.Context, id uuid.UUID) (*AdminVoteResponse, error)
-	AdminGetVoteStatistics(ctx context.Context, eventID uuid.UUID) (*AdminVoteStatisticsResponse, error)
+type Service interface {
+	GetSession(ctx context.Context, eventID string) (*VotingSession, error)
+	OpenSession(ctx context.Context, eventID string) error
+	PauseSession(ctx context.Context, eventID string) error
+	ResumeSession(ctx context.Context, eventID string) error
+	CloseSession(ctx context.Context, eventID string) error
+	
+	GetBallot(ctx context.Context, eventID string) (*Ballot, error)
+	CastVote(ctx context.Context, eventID, registrationID, candidateID string) error
+	GetSummary(ctx context.Context, eventID string) (*VoteSummary, error)
 }
 
 type service struct {
+	db   *sqlx.DB
 	repo Repository
+	bus  eventbus.EventDispatcher
 	log  *zap.Logger
 }
 
-func NewService(repo Repository, log *zap.Logger) Service {
-	return &service{
-		repo: repo,
-		log:  log,
-	}
+func NewService(db *sqlx.DB, repo Repository, bus eventbus.EventDispatcher, log *zap.Logger) Service {
+	return &service{db: db, repo: repo, bus: bus, log: log}
 }
 
-func (s *service) SubmitVote(ctx context.Context, userID uuid.UUID, req *SubmitVoteRequest) error {
-	s.log.Info("processing vote submission", zap.String("user_id", userID.String()), zap.String("event_id", req.EventID.String()))
+func (s *service) GetSession(ctx context.Context, eventID string) (*VotingSession, error) {
+	return s.repo.GetSessionByEvent(ctx, eventID)
+}
 
-	// 1. Get and validate registration
-	regID, err := s.repo.GetParticipantRegistration(ctx, userID, req.EventID)
+func (s *service) OpenSession(ctx context.Context, eventID string) error {
+	err := s.repo.UpdateSessionStatus(ctx, eventID, SessionRunning)
+	if err == nil {
+		_ = s.bus.Publish(ctx, eventbus.NewEnvelope(eventID, eventbus.EventVotingStarted, nil))
+	}
+	return err
+}
+
+func (s *service) PauseSession(ctx context.Context, eventID string) error {
+	return s.repo.UpdateSessionStatus(ctx, eventID, SessionPaused)
+}
+
+func (s *service) ResumeSession(ctx context.Context, eventID string) error {
+	return s.repo.UpdateSessionStatus(ctx, eventID, SessionRunning)
+}
+
+func (s *service) CloseSession(ctx context.Context, eventID string) error {
+	err := s.repo.UpdateSessionStatus(ctx, eventID, SessionClosed)
+	if err == nil {
+		_ = s.bus.Publish(ctx, eventbus.NewEnvelope(eventID, eventbus.EventVotingStopped, nil))
+	}
+	return err
+}
+
+func (s *service) GetBallot(ctx context.Context, eventID string) (*Ballot, error) {
+	session, err := s.GetSession(ctx, eventID)
 	if err != nil {
-		s.log.Warn("failed to get participant registration", zap.Error(err))
-		return ErrParticipantNotFound
+		return nil, err
+	}
+	if session.Status == SessionClosed {
+		return nil, ErrSessionClosed
 	}
 
-	// 2. Check Event Phase (must be VOTING and active)
-	isVotingActive, err := s.repo.CheckEventPhase(ctx, req.EventID, "VOTING")
+	candidates, err := s.repo.GetBallotCandidates(ctx, eventID)
 	if err != nil {
-		s.log.Error("failed to check event phase", zap.Error(err))
+		return nil, err
+	}
+
+	return &Ballot{Candidates: candidates}, nil
+}
+
+func (s *service) CastVote(ctx context.Context, eventID, registrationID, candidateID string) error {
+	session, err := s.GetSession(ctx, eventID)
+	if err != nil {
 		return err
 	}
-	if !isVotingActive {
-		s.log.Warn("voting phase is not active", zap.String("event_id", req.EventID.String()))
-		return ErrVotingClosed
+	if session.Status != SessionRunning {
+		return ErrSessionNotRunning
 	}
 
-	// 3. Check Attendance
-	hasCheckedIn, err := s.repo.CheckAttendance(ctx, regID)
+	hasVoted, err := s.repo.HasVoted(ctx, eventID, registrationID)
 	if err != nil {
-		s.log.Error("failed to check attendance", zap.Error(err))
 		return err
 	}
-	if !hasCheckedIn {
-		s.log.Warn("participant has not checked in", zap.String("registration_id", regID.String()))
-		return ErrNotCheckedIn
+	if hasVoted {
+		return ErrAlreadyVoted
 	}
 
-	// 4. Check Candidate Eligibility
-	isCandidateEligible, err := s.repo.CheckCandidateEligibility(ctx, req.CandidateID, req.EventID)
+	// Begin Transaction
+	tx, err := s.db.BeginTxx(ctx, nil)
 	if err != nil {
-		s.log.Error("failed to check candidate eligibility", zap.Error(err))
 		return err
 	}
-	if !isCandidateEligible {
-		s.log.Warn("invalid candidate for event", zap.String("candidate_id", req.CandidateID.String()), zap.String("event_id", req.EventID.String()))
-		return ErrInvalidCandidate
+	defer tx.Rollback()
+
+	vote := &Vote{
+		EventID:        eventID,
+		RegistrationID: registrationID,
+		CandidateID:    candidateID,
 	}
 
-	// 5. Submit Vote
-	metadata := fmt.Sprintf(`{"action":"cast_vote", "event_id":"%s"}`, req.EventID.String())
-	err = s.repo.SubmitVote(ctx, req.EventID, regID, req.CandidateID, metadata)
+	err = s.repo.CastVote(ctx, tx, vote)
 	if err != nil {
-		if strings.Contains(err.Error(), "uq_votes_event_registration") || strings.Contains(err.Error(), "23505") {
-			s.log.Warn("duplicate vote attempt detected", zap.String("registration_id", regID.String()))
-			return ErrAlreadyVoted
-		}
-		s.log.Error("failed to submit vote", zap.Error(err))
 		return err
 	}
 
-	s.log.Info("vote submitted successfully", zap.String("registration_id", regID.String()))
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// Dispatch Domain Event
+	_ = s.bus.Publish(ctx, eventbus.NewEnvelope(eventID, eventbus.EventVoteSubmitted, map[string]string{
+		"registration_id": registrationID,
+		"candidate_id":    candidateID,
+	}))
+
 	return nil
 }
 
-func (s *service) AdminListVotes(ctx context.Context, req AdminListVotesRequest) (*AdminListVotesResponse, error) {
-	if req.Limit <= 0 {
-		req.Limit = 10
-	}
-	if req.Page <= 0 {
-		req.Page = 1
-	}
-
-	votes, total, err := s.repo.AdminListVotes(ctx, req)
+func (s *service) GetSummary(ctx context.Context, eventID string) (*VoteSummary, error) {
+	totalCheckedIn, err := s.repo.GetTotalCheckedIn(ctx, eventID)
 	if err != nil {
-		s.log.Error("failed to get admin vote list", zap.Error(err))
 		return nil, err
 	}
 
-	totalPages := total / req.Limit
-	if total%req.Limit != 0 {
-		totalPages++
+	results, err := s.repo.GetResults(ctx, eventID)
+	if err != nil {
+		return nil, err
 	}
 
-	return &AdminListVotesResponse{
-		Data:       votes,
-		Total:      total,
-		Page:       req.Page,
-		Limit:      req.Limit,
-		TotalPages: totalPages,
+	totalVotesCast := 0
+	for _, r := range results {
+		totalVotesCast += r.TotalVotes
+	}
+
+	pct := 0.0
+	if totalCheckedIn > 0 {
+		pct = (float64(totalVotesCast) / float64(totalCheckedIn)) * 100
+	}
+
+	return &VoteSummary{
+		TotalVoters:      totalCheckedIn,
+		VotesCast:        totalVotesCast,
+		ParticipationPct: pct,
+		Results:          results,
 	}, nil
-}
-
-func (s *service) AdminGetVote(ctx context.Context, id uuid.UUID) (*AdminVoteResponse, error) {
-	vote, err := s.repo.AdminGetVote(ctx, id)
-	if err != nil {
-		if strings.Contains(err.Error(), "not found") {
-			return nil, ErrVoteNotFound
-		}
-		s.log.Error("failed to get vote details", zap.Error(err), zap.String("vote_id", id.String()))
-		return nil, err
-	}
-	return vote, nil
-}
-
-func (s *service) AdminGetVoteStatistics(ctx context.Context, eventID uuid.UUID) (*AdminVoteStatisticsResponse, error) {
-	stats, err := s.repo.AdminGetVoteStatistics(ctx, eventID)
-	if err != nil {
-		s.log.Error("failed to get vote statistics", zap.Error(err), zap.String("event_id", eventID.String()))
-		return nil, err
-	}
-	return stats, nil
-}
-
-func (s *service) GetMyVoteStatus(ctx context.Context, userID, eventID uuid.UUID) (*MyVoteStatusResponse, error) {
-	regID, err := s.repo.GetParticipantRegistration(ctx, userID, eventID)
-	if err != nil {
-		if err == ErrParticipantNotFound {
-			return &MyVoteStatusResponse{
-				EventID:  eventID,
-				HasVoted: false,
-			}, nil
-		}
-		return nil, err
-	}
-
-	return s.repo.GetMyVoteStatus(ctx, regID, eventID)
 }

@@ -1,141 +1,105 @@
 package voting
 
 import (
-	"errors"
-
 	"github.com/gofiber/fiber/v3"
-	"github.com/google/uuid"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
-	"github.com/trisfproject/muskom/apps/api/platform/validator"
+	"github.com/trisfproject/muskom/apps/api/platform/eventctx"
 )
 
 type Handler struct {
 	service Service
-	val     *validator.Validator
 }
 
-func NewHandler(service Service, val *validator.Validator) *Handler {
-	return &Handler{
-		service: service,
-		val:     val,
-	}
+func NewHandler(service Service) *Handler {
+	return &Handler{service: service}
 }
 
-func (h *Handler) SubmitVote(c fiber.Ctx) error {
-	userIDStr, ok := c.Locals("user_id").(string)
-	if !ok {
-		return response.SendError(c, fiber.StatusUnauthorized, "Invalid user context", nil)
+func (h *Handler) GetSession(c fiber.Ctx) error {
+	evtCtx := eventctx.Get(c)
+	if evtCtx == nil {
+		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
 	}
-	userID, err := uuid.Parse(userIDStr)
+
+	session, err := h.service.GetSession(c.Context(), evtCtx.ID)
 	if err != nil {
-		return response.SendError(c, fiber.StatusUnauthorized, "Invalid user context", nil)
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to fetch session", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Session retrieved", session, nil)
+}
+
+func (h *Handler) UpdateSessionStatus(c fiber.Ctx) error {
+	evtCtx := eventctx.Get(c)
+	if evtCtx == nil {
+		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
 	}
 
-	var req SubmitVoteRequest
+	action := c.Params("action") // open, pause, resume, close
+	var err error
+	switch action {
+	case "open":
+		err = h.service.OpenSession(c.Context(), evtCtx.ID)
+	case "pause":
+		err = h.service.PauseSession(c.Context(), evtCtx.ID)
+	case "resume":
+		err = h.service.ResumeSession(c.Context(), evtCtx.ID)
+	case "close":
+		err = h.service.CloseSession(c.Context(), evtCtx.ID)
+	default:
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid action", nil)
+	}
+
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to update session", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Session updated successfully", nil, nil)
+}
+
+func (h *Handler) GetBallot(c fiber.Ctx) error {
+	evtCtx := eventctx.Get(c)
+	if evtCtx == nil {
+		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
+	}
+
+	ballot, err := h.service.GetBallot(c.Context(), evtCtx.ID)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get ballot", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Ballot retrieved", ballot, nil)
+}
+
+func (h *Handler) CastVote(c fiber.Ctx) error {
+	evtCtx := eventctx.Get(c)
+	if evtCtx == nil {
+		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
+	}
+
+	var req struct {
+		RegistrationID string `json:"registration_id"`
+		CandidateID    string `json:"candidate_id"`
+	}
 	if err := c.Bind().JSON(&req); err != nil {
-		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid payload", nil)
 	}
 
-	if errs := h.val.ValidateStruct(req); len(errs) > 0 {
-		return response.SendError(c, fiber.StatusBadRequest, "Validation error", errs)
-	}
-
-	err = h.service.SubmitVote(c.Context(), userID, &req)
+	err := h.service.CastVote(c.Context(), evtCtx.ID, req.RegistrationID, req.CandidateID)
 	if err != nil {
-		switch {
-		case errors.Is(err, ErrParticipantNotFound):
-			return response.SendError(c, fiber.StatusForbidden, "Participant is not verified or not found", nil)
-		case errors.Is(err, ErrVotingClosed):
-			return response.SendError(c, fiber.StatusForbidden, "Voting is not currently open for this event", nil)
-		case errors.Is(err, ErrNotCheckedIn):
-			return response.SendError(c, fiber.StatusForbidden, "You must check in to the event before voting", nil)
-		case errors.Is(err, ErrInvalidCandidate):
-			return response.SendError(c, fiber.StatusBadRequest, "Invalid candidate selection", nil)
-		case errors.Is(err, ErrAlreadyVoted):
-			return response.SendError(c, fiber.StatusConflict, "You have already cast a vote for this event", nil)
-		default:
-			return response.SendError(c, fiber.StatusInternalServerError, "Failed to submit vote", nil)
+		if err == ErrAlreadyVoted {
+			return response.SendError(c, fiber.StatusConflict, err.Error(), nil)
 		}
+		return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
 	}
-
-	return response.SendSuccess(c, fiber.StatusCreated, "Vote submitted successfully", nil, nil)
+	return response.SendSuccess(c, fiber.StatusOK, "Vote cast successfully", nil, nil)
 }
 
-func (h *Handler) GetMyVoteStatus(c fiber.Ctx) error {
-	userIDStr, ok := c.Locals("user_id").(string)
-	if !ok {
-		return response.SendError(c, fiber.StatusUnauthorized, "Invalid user context", nil)
+func (h *Handler) GetSummary(c fiber.Ctx) error {
+	evtCtx := eventctx.Get(c)
+	if evtCtx == nil {
+		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
 	}
-	userID, err := uuid.Parse(userIDStr)
+
+	summary, err := h.service.GetSummary(c.Context(), evtCtx.ID)
 	if err != nil {
-		return response.SendError(c, fiber.StatusUnauthorized, "Invalid user context", nil)
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get summary", nil)
 	}
-
-	eventIDStr := c.Query("event_id")
-	if eventIDStr == "" {
-		return response.SendError(c, fiber.StatusBadRequest, "event_id query parameter is required", nil)
-	}
-
-	eventID, err := uuid.Parse(eventIDStr)
-	if err != nil {
-		return response.SendError(c, fiber.StatusBadRequest, "Invalid event_id format", nil)
-	}
-
-	status, err := h.service.GetMyVoteStatus(c.Context(), userID, eventID)
-	if err != nil {
-		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve vote status", nil)
-	}
-
-	return response.SendSuccess(c, fiber.StatusOK, "Vote status retrieved successfully", status, nil)
-}
-
-func (h *Handler) AdminListVotes(c fiber.Ctx) error {
-	var req AdminListVotesRequest
-	if err := c.Bind().Query(&req); err != nil {
-		return response.SendError(c, fiber.StatusBadRequest, "Invalid query parameters", nil)
-	}
-
-	res, err := h.service.AdminListVotes(c.Context(), req)
-	if err != nil {
-		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve votes", nil)
-	}
-
-	return response.SendSuccess(c, fiber.StatusOK, "Votes retrieved successfully", res, nil)
-}
-
-func (h *Handler) AdminGetVote(c fiber.Ctx) error {
-	idParam := c.Params("id")
-	id, err := uuid.Parse(idParam)
-	if err != nil {
-		return response.SendError(c, fiber.StatusBadRequest, "Invalid vote ID format", nil)
-	}
-
-	vote, err := h.service.AdminGetVote(c.Context(), id)
-	if err != nil {
-		if errors.Is(err, ErrVoteNotFound) {
-			return response.SendError(c, fiber.StatusNotFound, "Vote not found", nil)
-		}
-		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve vote details", nil)
-	}
-
-	return response.SendSuccess(c, fiber.StatusOK, "Vote details retrieved successfully", vote, nil)
-}
-
-func (h *Handler) AdminGetVoteStatistics(c fiber.Ctx) error {
-	eventIDParam := c.Query("event_id")
-	if eventIDParam == "" {
-		return response.SendError(c, fiber.StatusBadRequest, "event_id query parameter is required", nil)
-	}
-
-	eventID, err := uuid.Parse(eventIDParam)
-	if err != nil {
-		return response.SendError(c, fiber.StatusBadRequest, "Invalid event_id format", nil)
-	}
-
-	stats, err := h.service.AdminGetVoteStatistics(c.Context(), eventID)
-	if err != nil {
-		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve vote statistics", nil)
-	}
-
-	return response.SendSuccess(c, fiber.StatusOK, "Vote statistics retrieved successfully", stats, nil)
+	return response.SendSuccess(c, fiber.StatusOK, "Summary retrieved", summary, nil)
 }

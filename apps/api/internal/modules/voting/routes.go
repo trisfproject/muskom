@@ -3,25 +3,27 @@ package voting
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
-	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"go.uber.org/zap"
+	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
 )
 
-func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator) {
+func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus.EventDispatcher) {
 	repo := NewRepository(db)
-	svc := NewService(repo, log)
-	handler := NewHandler(svc, val)
+	svc := NewService(db, repo, bus, log)
+	handler := NewHandler(svc)
 
-	router.Post("/", handler.SubmitVote)
-	router.Get("/me", handler.GetMyVoteStatus)
+	// Public / Voter Routes
+	router.Get("/ballot", handler.GetBallot)
+	router.Post("/cast", handler.CastVote)
 }
 
-func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator) {
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus.EventDispatcher) {
 	repo := NewRepository(db)
-	svc := NewService(repo, log)
-	handler := NewHandler(svc, val)
+	svc := NewService(db, repo, bus, log)
+	handler := NewHandler(svc)
 
-	router.Get("/", handler.AdminListVotes)
-	router.Get("/statistics", handler.AdminGetVoteStatistics)
-	router.Get("/:id", handler.AdminGetVote)
+	// Admin / Operator Routes
+	router.Get("/session", handler.GetSession)
+	router.Post("/session/:action", handler.UpdateSessionStatus)
+	router.Get("/summary", handler.GetSummary)
 }
