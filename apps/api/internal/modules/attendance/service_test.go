@@ -18,7 +18,7 @@ func setupTestService(t *testing.T) (*sqlmock.Sqlmock, *MockRepository, Service,
 	assert.NoError(t, err)
 
 	sqlxDB := sqlx.NewDb(db, "postgres")
-	
+
 	log := zaptest.NewLogger(t)
 	val := validator.New()
 	mockRepo := new(MockRepository)
@@ -70,11 +70,11 @@ func TestService_CheckIn(t *testing.T) {
 	t.Run("CreateAttendanceFailed", func(t *testing.T) {
 		req := &CheckInRequest{RegistrationID: "00000000-0000-0000-0000-000000000000"}
 		mockRepo.On("GetParticipantStatus", mock.Anything, "00000000-0000-0000-0000-000000000000").Return("APPROVED", nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("CreateAttendance", mock.Anything, tx, req.RegistrationID, "op1").Return(false, errors.New("db err")).Once()
 
 		res, err := svc.CheckIn(ctx, req, "op1")
@@ -85,12 +85,12 @@ func TestService_CheckIn(t *testing.T) {
 	t.Run("Success_Existing", func(t *testing.T) {
 		req := &CheckInRequest{RegistrationID: "00000000-0000-0000-0000-000000000000"}
 		mockRepo.On("GetParticipantStatus", mock.Anything, "00000000-0000-0000-0000-000000000000").Return("APPROVED", nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		(*mockDB).ExpectCommit()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("CreateAttendance", mock.Anything, tx, req.RegistrationID, "op1").Return(false, nil).Once()
 
 		res, err := svc.CheckIn(ctx, req, "op1")
@@ -101,12 +101,12 @@ func TestService_CheckIn(t *testing.T) {
 	t.Run("Success_New", func(t *testing.T) {
 		req := &CheckInRequest{RegistrationID: "00000000-0000-0000-0000-000000000000"}
 		mockRepo.On("GetParticipantStatus", mock.Anything, "00000000-0000-0000-0000-000000000000").Return("APPROVED", nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		(*mockDB).ExpectCommit()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("CreateAttendance", mock.Anything, tx, req.RegistrationID, "op1").Return(true, nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
@@ -142,7 +142,7 @@ func TestService_ListAttendances(t *testing.T) {
 		assert.Equal(t, 0, total)
 		assert.NotNil(t, res)
 	})
-	
+
 	t.Run("ValidationFailed", func(t *testing.T) {
 		// filter without valid validation logic, wait actually list request doesn't have validate tags
 		// but let's test if validation struct is checked
@@ -182,12 +182,12 @@ func TestService_CorrectAttendance(t *testing.T) {
 
 	t.Run("Success_Rejected", func(t *testing.T) {
 		req := &CorrectAttendanceRequest{Notes: "test"}
-		
+
 		(*mockDB).ExpectBegin()
 		(*mockDB).ExpectCommit()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("LogAudit", mock.Anything, tx, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 
 		err := svc.CorrectAttendance(ctx, "att1", req, "op1")

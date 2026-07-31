@@ -46,7 +46,7 @@ func TestRepository_GetParticipantRegistration(t *testing.T) {
 		assert.ErrorIs(t, err, ErrParticipantNotFound)
 		assert.Equal(t, uuid.Nil, id)
 	})
-	
+
 	t.Run("DBError", func(t *testing.T) {
 		mock.ExpectQuery("^SELECT r.id FROM registrations r").WithArgs(uID, eID).WillReturnError(sql.ErrConnDone)
 
@@ -71,7 +71,7 @@ func TestRepository_CheckEventPhase(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, active)
 	})
-	
+
 	t.Run("Success_NoRows", func(t *testing.T) {
 		mock.ExpectQuery("^SELECT is_active FROM event_phases").WithArgs(eID, "VOTING").WillReturnError(sql.ErrNoRows)
 
@@ -79,7 +79,7 @@ func TestRepository_CheckEventPhase(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, active)
 	})
-	
+
 	t.Run("DBError", func(t *testing.T) {
 		mock.ExpectQuery("^SELECT is_active FROM event_phases").WithArgs(eID, "VOTING").WillReturnError(sql.ErrConnDone)
 
@@ -112,7 +112,7 @@ func TestRepository_CheckAttendance(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, exists)
 	})
-	
+
 	t.Run("DBError", func(t *testing.T) {
 		mock.ExpectQuery("^SELECT 1 FROM attendance").WithArgs(rID).WillReturnError(sql.ErrConnDone)
 
@@ -146,7 +146,7 @@ func TestRepository_CheckCandidateEligibility(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, exists)
 	})
-	
+
 	t.Run("DBError", func(t *testing.T) {
 		mock.ExpectQuery("^SELECT 1 FROM candidates").WithArgs(cID, eID).WillReturnError(sql.ErrConnDone)
 
@@ -183,7 +183,7 @@ func TestRepository_GetMyVoteStatus(t *testing.T) {
 		assert.False(t, status.HasVoted)
 		assert.Nil(t, status.VotedAt)
 	})
-	
+
 	t.Run("DBError", func(t *testing.T) {
 		mock.ExpectQuery("^SELECT created_at FROM votes").WithArgs(rID, eID).WillReturnError(sql.ErrConnDone)
 
@@ -206,10 +206,10 @@ func TestRepository_SubmitVote(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec("^INSERT INTO votes").WithArgs(eID, rID, cID).WillReturnResult(sqlmock.NewResult(1, 1))
-		
+
 		actorRows := sqlmock.NewRows([]string{"id"}).AddRow(uID)
 		mock.ExpectQuery("^SELECT u.id FROM users u").WithArgs(rID).WillReturnRows(actorRows)
-		
+
 		mock.ExpectExec("^INSERT INTO audit_logs").WillReturnResult(sqlmock.NewResult(1, 1))
 		mock.ExpectCommit()
 
@@ -287,7 +287,7 @@ func TestRepository_AdminListVotes(t *testing.T) {
 		assert.Equal(t, 0, total)
 		assert.Nil(t, list)
 	})
-	
+
 	t.Run("DataError", func(t *testing.T) {
 		countRows := sqlmock.NewRows([]string{"count"}).AddRow(1)
 		mock.ExpectQuery("^SELECT COUNT\\(v.id\\) FROM votes v").WillReturnRows(countRows)
@@ -332,7 +332,7 @@ func TestRepository_AdminGetVote(t *testing.T) {
 		assert.Nil(t, vote)
 		assert.Equal(t, "vote not found", err.Error())
 	})
-	
+
 	t.Run("DBError", func(t *testing.T) {
 		mock.ExpectQuery("^SELECT (.+) FROM votes v").WithArgs(vID).WillReturnError(sql.ErrConnDone)
 
@@ -366,7 +366,7 @@ func TestRepository_AdminGetVoteStatistics(t *testing.T) {
 		assert.Equal(t, 60.0, stats.Candidates[0].Percentage)
 		assert.Equal(t, 40.0, stats.Candidates[1].Percentage)
 	})
-	
+
 	t.Run("Success_ZeroTotal", func(t *testing.T) {
 		countRows := sqlmock.NewRows([]string{"count"}).AddRow(0)
 		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes").WithArgs(eID).WillReturnRows(countRows)

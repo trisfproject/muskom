@@ -71,7 +71,7 @@ func TestHandler_CheckIn(t *testing.T) {
 
 		assert.Equal(t, 400, resp.StatusCode)
 	})
-	
+
 	t.Run("NotApproved", func(t *testing.T) {
 		reqBody := CheckInRequest{RegistrationID: "reg1"}
 		body, _ := json.Marshal(reqBody)
@@ -187,7 +187,7 @@ func TestHandler_ListAttendances(t *testing.T) {
 
 		assert.Equal(t, 400, resp.StatusCode)
 	})
-	
+
 	t.Run("ValidationError", func(t *testing.T) {
 		mockSvc.On("ListAttendances", mock.Anything, mock.Anything).Return(([]AttendanceItemResponse)(nil), 0, &ValidationError{}).Once()
 
@@ -232,7 +232,7 @@ func TestHandler_GetAttendanceByID(t *testing.T) {
 
 		assert.Equal(t, 404, resp.StatusCode)
 	})
-	
+
 	t.Run("MissingID", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/attendance/", nil)
 		resp, _ := app.Test(req)
@@ -278,7 +278,7 @@ func TestHandler_CorrectAttendance(t *testing.T) {
 
 		assert.Equal(t, 400, resp.StatusCode)
 	})
-	
+
 	t.Run("InternalError", func(t *testing.T) {
 		reqBody := CorrectAttendanceRequest{Notes: "test"}
 		body, _ := json.Marshal(reqBody)

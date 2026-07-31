@@ -67,10 +67,10 @@ func TestService_GetConfig(t *testing.T) {
 		banner := "banner.png"
 		cover := "cover.png"
 		evt := &MusyawarahEvent{ID: "evt1", LogoPath: &logo, BannerPath: &banner, CoverPath: &cover}
-		
+
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(evt, nil).Once()
 		mockRepo.On("GetSettings", mock.Anything, "evt1").Return(&MusyawarahSettings{}, nil).Once()
-		
+
 		now := time.Now()
 		phases := []MusyawarahPhase{
 			{Phase: "REGISTRATION", StartAt: &now, EndAt: &now},
@@ -94,14 +94,14 @@ func TestService_GetConfig(t *testing.T) {
 		assert.ErrorIs(t, err, ErrConfigNotFound)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("EventError", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return((*MusyawarahEvent)(nil), errors.New("db err")).Once()
 		res, err := svc.GetConfig(ctx)
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("SettingsError", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
 		mockRepo.On("GetSettings", mock.Anything, "evt1").Return((*MusyawarahSettings)(nil), errors.New("db err")).Once()
@@ -109,7 +109,7 @@ func TestService_GetConfig(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("PhasesError", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
 		mockRepo.On("GetSettings", mock.Anything, "evt1").Return(&MusyawarahSettings{}, nil).Once()
@@ -142,7 +142,7 @@ func TestService_UpdateConfig(t *testing.T) {
 		mockRepo.On("UpdateEvent", mock.Anything, tx, mock.Anything).Return(nil).Once()
 		mockRepo.On("UpdateSettings", mock.Anything, tx, "evt1", mock.Anything).Return(nil).Once()
 		mockRepo.On("UpsertPhase", mock.Anything, tx, "evt1", mock.Anything).Return(nil).Times(3)
-		
+
 		// For GetConfig call at the end
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(evt, nil).Once()
 		mockRepo.On("GetSettings", mock.Anything, "evt1").Return(&MusyawarahSettings{}, nil).Once()
@@ -159,7 +159,7 @@ func TestService_UpdateConfig(t *testing.T) {
 		assert.ErrorIs(t, err, ErrConfigNotFound)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("BeginTxError", func(t *testing.T) {
 		evt := &MusyawarahEvent{ID: "evt1"}
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(evt, nil).Once()
@@ -170,32 +170,32 @@ func TestService_UpdateConfig(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("UpdateEventError", func(t *testing.T) {
 		evt := &MusyawarahEvent{ID: "evt1"}
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(evt, nil).Once()
 		mockRepo.On("GetSettings", mock.Anything, "evt1").Return(&MusyawarahSettings{}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateEvent", mock.Anything, tx, mock.Anything).Return(errors.New("db err")).Once()
 
 		res, err := svc.UpdateConfig(ctx, req)
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("UpdateSettingsError", func(t *testing.T) {
 		evt := &MusyawarahEvent{ID: "evt1"}
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(evt, nil).Once()
 		mockRepo.On("GetSettings", mock.Anything, "evt1").Return(&MusyawarahSettings{}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateEvent", mock.Anything, tx, mock.Anything).Return(nil).Once()
 		mockRepo.On("UpdateSettings", mock.Anything, tx, "evt1", mock.Anything).Return(errors.New("db err")).Once()
 
@@ -203,16 +203,16 @@ func TestService_UpdateConfig(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("UpsertPhaseError", func(t *testing.T) {
 		evt := &MusyawarahEvent{ID: "evt1"}
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(evt, nil).Once()
 		mockRepo.On("GetSettings", mock.Anything, "evt1").Return(&MusyawarahSettings{}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateEvent", mock.Anything, tx, mock.Anything).Return(nil).Once()
 		mockRepo.On("UpdateSettings", mock.Anything, tx, "evt1", mock.Anything).Return(nil).Once()
 		mockRepo.On("UpsertPhase", mock.Anything, tx, "evt1", mock.Anything).Return(errors.New("db err")).Once()
@@ -233,23 +233,23 @@ func TestService_GetSettings(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
 		mockRepo.On("GetSettings", mock.Anything, "evt1").Return(&MusyawarahSettings{}, nil).Once()
-		
+
 		res, err := svc.GetSettings(ctx)
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
 	})
-	
+
 	t.Run("EventNotFound", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return((*MusyawarahEvent)(nil), sql.ErrNoRows).Once()
 		res, err := svc.GetSettings(ctx)
 		assert.ErrorIs(t, err, ErrConfigNotFound)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("SettingsError", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
 		mockRepo.On("GetSettings", mock.Anything, "evt1").Return((*MusyawarahSettings)(nil), errors.New("db err")).Once()
-		
+
 		res, err := svc.GetSettings(ctx)
 		assert.Error(t, err)
 		assert.Nil(t, res)
@@ -265,14 +265,14 @@ func TestService_UpdateSettings(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		(*mockDB).ExpectCommit()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateSettings", mock.Anything, tx, "evt1", mock.Anything).Return(nil).Once()
-		
+
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
 		mockRepo.On("GetSettings", mock.Anything, "evt1").Return(&MusyawarahSettings{}, nil).Once()
 
@@ -280,14 +280,14 @@ func TestService_UpdateSettings(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
 	})
-	
+
 	t.Run("EventNotFound", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return((*MusyawarahEvent)(nil), sql.ErrNoRows).Once()
 		res, err := svc.UpdateSettings(ctx, req)
 		assert.ErrorIs(t, err, ErrConfigNotFound)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("BeginTxError", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
 		mockRepo.On("BeginTx", mock.Anything).Return((*sqlx.Tx)(nil), errors.New("db err")).Once()
@@ -296,14 +296,14 @@ func TestService_UpdateSettings(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("UpdateSettingsError", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateSettings", mock.Anything, tx, "evt1", mock.Anything).Return(errors.New("db err")).Once()
 
 		res, err := svc.UpdateSettings(ctx, req)
@@ -319,30 +319,30 @@ func TestService_GetTimeline(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
-		
+
 		phases := []MusyawarahPhase{
 			{Phase: "REGISTRATION"}, {Phase: "CANDIDATE_REGISTRATION"}, {Phase: "ADMINISTRATIVE_VERIFICATION"},
 			{Phase: "CANDIDATE_VERIFICATION"}, {Phase: "CAMPAIGN"}, {Phase: "COOLING_OFF"},
 			{Phase: "ATTENDANCE_CHECK_IN"}, {Phase: "VOTING"}, {Phase: "RESULT_PUBLICATION"},
 		}
 		mockRepo.On("GetPhases", mock.Anything, "evt1").Return(phases, nil).Once()
-		
+
 		res, err := svc.GetTimeline(ctx)
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
 	})
-	
+
 	t.Run("EventNotFound", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return((*MusyawarahEvent)(nil), sql.ErrNoRows).Once()
 		res, err := svc.GetTimeline(ctx)
 		assert.ErrorIs(t, err, ErrConfigNotFound)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("PhasesError", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
 		mockRepo.On("GetPhases", mock.Anything, "evt1").Return(([]MusyawarahPhase)(nil), errors.New("db err")).Once()
-		
+
 		res, err := svc.GetTimeline(ctx)
 		assert.Error(t, err)
 		assert.Nil(t, res)
@@ -362,14 +362,14 @@ func TestService_UpdateTimeline(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		(*mockDB).ExpectCommit()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpsertPhase", mock.Anything, tx, "evt1", mock.Anything).Return(nil).Times(9)
-		
+
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
 		mockRepo.On("GetPhases", mock.Anything, "evt1").Return([]MusyawarahPhase{}, nil).Once()
 
@@ -377,7 +377,7 @@ func TestService_UpdateTimeline(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
 	})
-	
+
 	t.Run("ValidationError_EndBeforeStart", func(t *testing.T) {
 		invalidReq := &TimelineRequest{
 			Registration: TimelinePhaseDTO{StartAt: &next, EndAt: &now},
@@ -386,24 +386,24 @@ func TestService_UpdateTimeline(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("ValidationError_Overlap", func(t *testing.T) {
 		invalidReq := &TimelineRequest{
-			Registration: TimelinePhaseDTO{EndAt: &next},
+			Registration:          TimelinePhaseDTO{EndAt: &next},
 			CandidateRegistration: TimelinePhaseDTO{StartAt: &now},
 		}
 		res, err := svc.UpdateTimeline(ctx, invalidReq)
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("EventNotFound", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return((*MusyawarahEvent)(nil), sql.ErrNoRows).Once()
 		res, err := svc.UpdateTimeline(ctx, req)
 		assert.ErrorIs(t, err, ErrConfigNotFound)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("BeginTxError", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
 		mockRepo.On("BeginTx", mock.Anything).Return((*sqlx.Tx)(nil), errors.New("db err")).Once()
@@ -412,14 +412,14 @@ func TestService_UpdateTimeline(t *testing.T) {
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("UpsertPhaseError", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(&MusyawarahEvent{ID: "evt1"}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpsertPhase", mock.Anything, tx, "evt1", mock.Anything).Return(errors.New("db err")).Once()
 
 		res, err := svc.UpdateTimeline(ctx, req)
@@ -438,9 +438,9 @@ func TestService_GetMedia(t *testing.T) {
 		banner := "banner.png"
 		cover := "cover.png"
 		evt := &MusyawarahEvent{ID: "evt1", LogoPath: &logo, BannerPath: &banner, CoverPath: &cover}
-		
+
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(evt, nil).Once()
-		
+
 		mockStorage.On("URL", "logo.png").Return("url/logo").Once()
 		mockStorage.On("URL", "banner.png").Return("url/banner").Once()
 		mockStorage.On("URL", "cover.png").Return("url/cover").Once()
@@ -481,19 +481,19 @@ func TestService_UploadMedia(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
 	})
-	
+
 	t.Run("InvalidType", func(t *testing.T) {
 		res, err := svc.UploadMedia(ctx, "invalid", nil, "file.png", "image/png")
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("InvalidMimeType", func(t *testing.T) {
 		res, err := svc.UploadMedia(ctx, "logo", nil, "file.txt", "text/plain")
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("EventNotFound", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return((*MusyawarahEvent)(nil), sql.ErrNoRows).Once()
 		file := bytes.NewReader([]byte("test"))
@@ -501,27 +501,27 @@ func TestService_UploadMedia(t *testing.T) {
 		assert.ErrorIs(t, err, ErrConfigNotFound)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("UploadError", func(t *testing.T) {
 		evt := &MusyawarahEvent{ID: "evt1"}
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(evt, nil).Once()
 		file := bytes.NewReader([]byte("test"))
 		mockStorage.On("Upload", mock.Anything, file, mock.Anything).Return((*storage.FileInfo)(nil), errors.New("up err")).Once()
-		
+
 		res, err := svc.UploadMedia(ctx, "logo", file, "file.png", "image/png")
 		assert.Error(t, err)
 		assert.Nil(t, res)
 	})
-	
+
 	t.Run("UpdateMediaError", func(t *testing.T) {
 		evt := &MusyawarahEvent{ID: "evt1"}
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(evt, nil).Once()
 		file := bytes.NewReader([]byte("test"))
 		mockStorage.On("Upload", mock.Anything, file, mock.Anything).Return(&storage.FileInfo{Path: "new.png"}, nil).Once()
-		
+
 		mockRepo.On("UpdateMedia", mock.Anything, "evt1", "logo", mock.Anything).Return(errors.New("db err")).Once()
 		mockStorage.On("Delete", mock.Anything, "new.png").Return(nil).Once()
-		
+
 		res, err := svc.UploadMedia(ctx, "logo", file, "file.png", "image/png")
 		assert.Error(t, err)
 		assert.Nil(t, res)
@@ -544,7 +544,7 @@ func TestService_DeleteMedia(t *testing.T) {
 		err := svc.DeleteMedia(ctx, "logo")
 		assert.NoError(t, err)
 	})
-	
+
 	t.Run("Success_NoPath", func(t *testing.T) {
 		evt := &MusyawarahEvent{ID: "evt1", LogoPath: nil}
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(evt, nil).Once()
@@ -552,23 +552,23 @@ func TestService_DeleteMedia(t *testing.T) {
 		err := svc.DeleteMedia(ctx, "logo")
 		assert.NoError(t, err)
 	})
-	
+
 	t.Run("InvalidType", func(t *testing.T) {
 		err := svc.DeleteMedia(ctx, "invalid")
 		assert.Error(t, err)
 	})
-	
+
 	t.Run("EventNotFound", func(t *testing.T) {
 		mockRepo.On("GetActiveEvent", mock.Anything).Return((*MusyawarahEvent)(nil), sql.ErrNoRows).Once()
 		err := svc.DeleteMedia(ctx, "logo")
 		assert.ErrorIs(t, err, ErrConfigNotFound)
 	})
-	
+
 	t.Run("UpdateMediaError", func(t *testing.T) {
 		oldLogo := "old.png"
 		evt := &MusyawarahEvent{ID: "evt1", LogoPath: &oldLogo}
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(evt, nil).Once()
-		
+
 		mockRepo.On("UpdateMedia", mock.Anything, "evt1", "logo", (*string)(nil)).Return(errors.New("db err")).Once()
 
 		err := svc.DeleteMedia(ctx, "logo")

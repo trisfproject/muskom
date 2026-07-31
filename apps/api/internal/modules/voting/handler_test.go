@@ -108,7 +108,7 @@ func TestHandler_SubmitVote(t *testing.T) {
 		resp, _ := app.Test(req)
 		assert.Equal(t, 403, resp.StatusCode)
 	})
-	
+
 	t.Run("ServiceError_NotCheckedIn", func(t *testing.T) {
 		reqBody := SubmitVoteRequest{EventID: eID, CandidateID: cID}
 		body, _ := json.Marshal(reqBody)
@@ -121,7 +121,7 @@ func TestHandler_SubmitVote(t *testing.T) {
 		resp, _ := app.Test(req)
 		assert.Equal(t, 403, resp.StatusCode)
 	})
-	
+
 	t.Run("ServiceError_VotingClosed", func(t *testing.T) {
 		reqBody := SubmitVoteRequest{EventID: eID, CandidateID: cID}
 		body, _ := json.Marshal(reqBody)
@@ -134,7 +134,7 @@ func TestHandler_SubmitVote(t *testing.T) {
 		resp, _ := app.Test(req)
 		assert.Equal(t, 403, resp.StatusCode)
 	})
-	
+
 	t.Run("ServiceError_InvalidCandidate", func(t *testing.T) {
 		reqBody := SubmitVoteRequest{EventID: eID, CandidateID: cID}
 		body, _ := json.Marshal(reqBody)
@@ -147,7 +147,7 @@ func TestHandler_SubmitVote(t *testing.T) {
 		resp, _ := app.Test(req)
 		assert.Equal(t, 400, resp.StatusCode)
 	})
-	
+
 	t.Run("ServiceError_Internal", func(t *testing.T) {
 		reqBody := SubmitVoteRequest{EventID: eID, CandidateID: cID}
 		body, _ := json.Marshal(reqBody)
@@ -190,7 +190,7 @@ func TestHandler_GetMyVoteStatus(t *testing.T) {
 		resp, _ := app.Test(req)
 		assert.Equal(t, 400, resp.StatusCode)
 	})
-	
+
 	t.Run("InvalidEventID", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/voting/status?event_id=invalid", nil)
 		req.Header.Set("X-User-ID", uID.String())
@@ -256,7 +256,7 @@ func TestHandler_AdminGetVote(t *testing.T) {
 		resp, _ := app.Test(req)
 		assert.Equal(t, 404, resp.StatusCode)
 	})
-	
+
 	t.Run("InternalError", func(t *testing.T) {
 		mockSvc.On("AdminGetVote", mock.Anything, vID).Return((*AdminVoteResponse)(nil), errors.New("err")).Once()
 
@@ -285,7 +285,7 @@ func TestHandler_AdminGetVoteStatistics(t *testing.T) {
 		resp, _ := app.Test(req)
 		assert.Equal(t, 400, resp.StatusCode)
 	})
-	
+
 	t.Run("InvalidEventID", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/admin/voting/statistics?event_id=invalid", nil)
 		resp, _ := app.Test(req)

@@ -7,6 +7,8 @@ import (
 	"errors"
 	"io"
 	"mime/multipart"
+	"net/http"
+	"path/filepath"
 	"strings"
 
 	"go.uber.org/zap"
@@ -257,6 +259,17 @@ func (s *service) UploadAttachment(ctx context.Context, registrationID string, f
 	}
 
 	// 3. Validate File Type
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	allowedExts := map[string]bool{
+		".pdf":  true,
+		".jpg":  true,
+		".jpeg": true,
+		".png":  true,
+	}
+	if !allowedExts[ext] {
+		return nil, ErrInvalidFileType
+	}
+
 	allowedMimeTypes := map[string]bool{
 		"application/pdf": true,
 		"image/jpeg":      true,
@@ -272,12 +285,12 @@ func (s *service) UploadAttachment(ctx context.Context, registrationID string, f
 	// Sniff first 512 bytes
 	buffer := make([]byte, 512)
 	_, _ = f.Read(buffer)
-	// Reset pointer
+	// Reset pointer for upload later
 	if seeker, ok := f.(io.Seeker); ok {
 		seeker.Seek(0, io.SeekStart)
 	}
 
-	mimeType := file.Header.Get("Content-Type")
+	mimeType := http.DetectContentType(buffer)
 	if !allowedMimeTypes[mimeType] {
 		return nil, ErrInvalidFileType
 	}
@@ -433,9 +446,3 @@ func (s *service) AdminUpdateRegistrationStatus(ctx context.Context, id string, 
 
 	return tx.Commit()
 }
-
-// TODO: MKS-040-003 Implement File Validation Hook
-// func (s *service) ValidateRegistrationFiles(ctx context.Context, files []multipart.FileHeader) error {
-// 	// Implementation for validating documents/files will be here
-// 	return nil
-// }

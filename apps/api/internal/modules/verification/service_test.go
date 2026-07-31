@@ -90,7 +90,7 @@ func TestService_VerifyParticipant(t *testing.T) {
 	t.Run("GetDetailError", func(t *testing.T) {
 		req := &VerifyParticipantRequest{Status: "APPROVED"}
 		mockRepo.On("GetParticipantDetail", mock.Anything, "reg1").Return((*ParticipantDetailResponse)(nil), errors.New("not found")).Once()
-		
+
 		err := svc.VerifyParticipant(ctx, "reg1", req, "u1")
 		assert.Error(t, err)
 	})
@@ -98,7 +98,7 @@ func TestService_VerifyParticipant(t *testing.T) {
 	t.Run("InvalidTransition", func(t *testing.T) {
 		req := &VerifyParticipantRequest{Status: "APPROVED"}
 		mockRepo.On("GetParticipantDetail", mock.Anything, "reg1").Return(&ParticipantDetailResponse{Status: "APPROVED"}, nil).Once()
-		
+
 		err := svc.VerifyParticipant(ctx, "reg1", req, "u1")
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "invalid state transition")
@@ -108,7 +108,7 @@ func TestService_VerifyParticipant(t *testing.T) {
 		req := &VerifyParticipantRequest{Status: "APPROVED"}
 		mockRepo.On("GetParticipantDetail", mock.Anything, "reg1").Return(&ParticipantDetailResponse{Status: "PENDING"}, nil).Once()
 		mockRepo.On("BeginTx", mock.Anything).Return((*sqlx.Tx)(nil), errors.New("tx err")).Once()
-		
+
 		err := svc.VerifyParticipant(ctx, "reg1", req, "u1")
 		assert.Error(t, err)
 	})
@@ -116,12 +116,12 @@ func TestService_VerifyParticipant(t *testing.T) {
 	t.Run("Success_Approved", func(t *testing.T) {
 		req := &VerifyParticipantRequest{Status: "APPROVED"}
 		mockRepo.On("GetParticipantDetail", mock.Anything, "reg1").Return(&ParticipantDetailResponse{Status: "PENDING"}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		(*mockDB).ExpectCommit()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil)).Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_PARTICIPANT", "registrations", "reg1", "").Return(nil).Once()
 
@@ -133,41 +133,41 @@ func TestService_VerifyParticipant(t *testing.T) {
 		reason := "reason"
 		req := &VerifyParticipantRequest{Status: "REJECTED", RejectionReason: &reason}
 		mockRepo.On("GetParticipantDetail", mock.Anything, "reg1").Return(&ParticipantDetailResponse{Status: "PENDING"}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		(*mockDB).ExpectCommit()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "REJECTED", "u1", &reason).Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_PARTICIPANT", "registrations", "reg1", "reason").Return(nil).Once()
 
 		err := svc.VerifyParticipant(ctx, "reg1", req, "u1")
 		assert.NoError(t, err)
 	})
-	
+
 	t.Run("UpdateStatusError", func(t *testing.T) {
 		req := &VerifyParticipantRequest{Status: "APPROVED"}
 		mockRepo.On("GetParticipantDetail", mock.Anything, "reg1").Return(&ParticipantDetailResponse{Status: "PENDING"}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil)).Return(errors.New("db err")).Once()
 
 		err := svc.VerifyParticipant(ctx, "reg1", req, "u1")
 		assert.Error(t, err)
 	})
-	
+
 	t.Run("LogAuditError", func(t *testing.T) {
 		req := &VerifyParticipantRequest{Status: "APPROVED"}
 		mockRepo.On("GetParticipantDetail", mock.Anything, "reg1").Return(&ParticipantDetailResponse{Status: "PENDING"}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil)).Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_PARTICIPANT", "registrations", "reg1", "").Return(errors.New("db err")).Once()
 
@@ -203,7 +203,7 @@ func TestService_VerifyCandidate(t *testing.T) {
 	t.Run("GetDetailError", func(t *testing.T) {
 		req := &VerifyCandidateRequest{Status: "REVIEWING"}
 		mockRepo.On("GetCandidateDetail", mock.Anything, "ca1").Return((*CandidateDetailResponse)(nil), errors.New("not found")).Once()
-		
+
 		err := svc.VerifyCandidate(ctx, "ca1", req, "u1")
 		assert.Error(t, err)
 	})
@@ -211,7 +211,7 @@ func TestService_VerifyCandidate(t *testing.T) {
 	t.Run("InvalidTransition", func(t *testing.T) {
 		req := &VerifyCandidateRequest{Status: "ACCEPTED"}
 		mockRepo.On("GetCandidateDetail", mock.Anything, "ca1").Return(&CandidateDetailResponse{Status: "SUBMITTED"}, nil).Once()
-		
+
 		err := svc.VerifyCandidate(ctx, "ca1", req, "u1")
 		assert.Error(t, err)
 	})
@@ -220,7 +220,7 @@ func TestService_VerifyCandidate(t *testing.T) {
 		req := &VerifyCandidateRequest{Status: "REVIEWING"}
 		mockRepo.On("GetCandidateDetail", mock.Anything, "ca1").Return(&CandidateDetailResponse{Status: "SUBMITTED"}, nil).Once()
 		mockRepo.On("BeginTx", mock.Anything).Return((*sqlx.Tx)(nil), errors.New("tx err")).Once()
-		
+
 		err := svc.VerifyCandidate(ctx, "ca1", req, "u1")
 		assert.Error(t, err)
 	})
@@ -228,12 +228,12 @@ func TestService_VerifyCandidate(t *testing.T) {
 	t.Run("Success_Reviewing", func(t *testing.T) {
 		req := &VerifyCandidateRequest{Status: "REVIEWING"}
 		mockRepo.On("GetCandidateDetail", mock.Anything, "ca1").Return(&CandidateDetailResponse{Status: "SUBMITTED"}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		(*mockDB).ExpectCommit()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateCandidateStatus", mock.Anything, tx, "ca1", "REVIEWING", "u1").Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_CANDIDATE", "candidate_applications", "ca1", "").Return(nil).Once()
 
@@ -245,41 +245,41 @@ func TestService_VerifyCandidate(t *testing.T) {
 		reason := "reason"
 		req := &VerifyCandidateRequest{Status: "REJECTED", Notes: &reason}
 		mockRepo.On("GetCandidateDetail", mock.Anything, "ca1").Return(&CandidateDetailResponse{Status: "REVIEWING"}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		(*mockDB).ExpectCommit()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateCandidateStatus", mock.Anything, tx, "ca1", "REJECTED", "u1").Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_CANDIDATE", "candidate_applications", "ca1", "reason").Return(nil).Once()
 
 		err := svc.VerifyCandidate(ctx, "ca1", req, "u1")
 		assert.NoError(t, err)
 	})
-	
+
 	t.Run("UpdateStatusError", func(t *testing.T) {
 		req := &VerifyCandidateRequest{Status: "REVIEWING"}
 		mockRepo.On("GetCandidateDetail", mock.Anything, "ca1").Return(&CandidateDetailResponse{Status: "SUBMITTED"}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateCandidateStatus", mock.Anything, tx, "ca1", "REVIEWING", "u1").Return(errors.New("db err")).Once()
 
 		err := svc.VerifyCandidate(ctx, "ca1", req, "u1")
 		assert.Error(t, err)
 	})
-	
+
 	t.Run("LogAuditError", func(t *testing.T) {
 		req := &VerifyCandidateRequest{Status: "REVIEWING"}
 		mockRepo.On("GetCandidateDetail", mock.Anything, "ca1").Return(&CandidateDetailResponse{Status: "SUBMITTED"}, nil).Once()
-		
+
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
-		
+
 		mockRepo.On("UpdateCandidateStatus", mock.Anything, tx, "ca1", "REVIEWING", "u1").Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_CANDIDATE", "candidate_applications", "ca1", "").Return(errors.New("db err")).Once()
 

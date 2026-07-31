@@ -108,7 +108,7 @@ func TestService_RegisterCandidate(t *testing.T) {
 	t.Run("RegistrationDetailsFailed", func(t *testing.T) {
 		req := &RegisterCandidateRequest{RegistrationID: "00000000-0000-0000-0000-000000000000", Vision: "v", Mission: "m", WorkProgram: "wp"}
 		mockRepo.On("GetRegistrationDetails", mock.Anything, "00000000-0000-0000-0000-000000000000").Return((*RegistrationDetails)(nil), errors.New("db error")).Once()
-		
+
 		res, err := svc.RegisterCandidate(ctx, req)
 		assert.Error(t, err)
 		assert.Nil(t, res)
@@ -118,7 +118,7 @@ func TestService_RegisterCandidate(t *testing.T) {
 		req := &RegisterCandidateRequest{RegistrationID: "00000000-0000-0000-0000-000000000000", Vision: "v", Mission: "m", WorkProgram: "wp"}
 		details := &RegistrationDetails{RegistrationStatus: "PENDING"}
 		mockRepo.On("GetRegistrationDetails", mock.Anything, "00000000-0000-0000-0000-000000000000").Return(details, nil).Once()
-		
+
 		res, err := svc.RegisterCandidate(ctx, req)
 		assert.ErrorIs(t, err, ErrRegistrationNotApproved)
 		assert.Nil(t, res)
@@ -128,7 +128,7 @@ func TestService_RegisterCandidate(t *testing.T) {
 		req := &RegisterCandidateRequest{RegistrationID: "00000000-0000-0000-0000-000000000000", Vision: "v", Mission: "m", WorkProgram: "wp"}
 		details := &RegistrationDetails{RegistrationStatus: "APPROVED", EventStatus: "COMPLETED"}
 		mockRepo.On("GetRegistrationDetails", mock.Anything, "00000000-0000-0000-0000-000000000000").Return(details, nil).Once()
-		
+
 		res, err := svc.RegisterCandidate(ctx, req)
 		assert.ErrorIs(t, err, ErrEventStatusInvalid)
 		assert.Nil(t, res)
@@ -139,7 +139,7 @@ func TestService_RegisterCandidate(t *testing.T) {
 		details := &RegistrationDetails{RegistrationStatus: "APPROVED", EventStatus: "ONGOING", EventID: "evt1"}
 		mockRepo.On("GetRegistrationDetails", mock.Anything, "00000000-0000-0000-0000-000000000000").Return(details, nil).Once()
 		mockRepo.On("GetEventActivePhase", mock.Anything, "evt1", "candidate_registration").Return(false, nil).Once()
-		
+
 		res, err := svc.RegisterCandidate(ctx, req)
 		assert.ErrorIs(t, err, ErrCandidateRegistrationClosed)
 		assert.Nil(t, res)
@@ -150,14 +150,13 @@ func TestService_RegisterCandidate(t *testing.T) {
 		details := &RegistrationDetails{RegistrationStatus: "APPROVED", EventStatus: "ONGOING", EventID: "evt1"}
 		mockRepo.On("GetRegistrationDetails", mock.Anything, "00000000-0000-0000-0000-000000000000").Return(details, nil).Once()
 		mockRepo.On("GetEventActivePhase", mock.Anything, "evt1", "candidate_registration").Return(true, nil).Once()
-		
+
 		mockRepo.On("CheckExistingApplication", mock.Anything, "00000000-0000-0000-0000-000000000000").Return(true, nil).Once()
-		
+
 		res, err := svc.RegisterCandidate(ctx, req)
 		assert.ErrorIs(t, err, ErrDuplicateApplication)
 		assert.Nil(t, res)
 	})
-
 
 	t.Run("BeginTxFailed", func(t *testing.T) {
 		req := &RegisterCandidateRequest{RegistrationID: "00000000-0000-0000-0000-000000000000", Vision: "v", Mission: "m", WorkProgram: "wp"}
@@ -166,7 +165,7 @@ func TestService_RegisterCandidate(t *testing.T) {
 		mockRepo.On("GetEventActivePhase", mock.Anything, "evt1", "candidate_registration").Return(true, nil).Once()
 		mockRepo.On("CheckExistingApplication", mock.Anything, "00000000-0000-0000-0000-000000000000").Return(false, nil).Once()
 		mockRepo.On("BeginTx", mock.Anything).Return(nil, errors.New("tx err")).Once()
-		
+
 		res, err := svc.RegisterCandidate(ctx, req)
 		assert.Error(t, err)
 		assert.Nil(t, res)
@@ -431,8 +430,6 @@ func TestService_AdminUpdateCandidateStatus(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-
-
 	t.Run("TxFailed_UpdateDetails", func(t *testing.T) {
 		req := &CandidateAdminUpdateRequest{}
 		app := &CandidateApplication{ID: "app1"}
@@ -467,5 +464,3 @@ func TestValidationError_Error(t *testing.T) {
 	err := &ValidationError{Details: "details"}
 	assert.Equal(t, "validation failed", err.Error())
 }
-
-

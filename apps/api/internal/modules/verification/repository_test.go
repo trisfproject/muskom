@@ -33,7 +33,7 @@ func TestRepository_GetVerifications(t *testing.T) {
 		rows := sqlmock.NewRows([]string{
 			"id", "queue_type", "applicant_name", "status", "created_at",
 		}).AddRow("1", "participant", "John Doe", "SUBMITTED", now)
-		
+
 		mock.ExpectQuery("^WITH combined_queue").WillReturnRows(rows)
 
 		filter := VerificationListRequest{
@@ -58,7 +58,7 @@ func TestRepository_GetVerifications(t *testing.T) {
 		rows := sqlmock.NewRows([]string{
 			"id", "queue_type", "applicant_name", "status", "created_at",
 		}).AddRow("1", "participant", "John Doe", "SUBMITTED", now)
-		
+
 		mock.ExpectQuery("^WITH combined_queue").WillReturnRows(rows)
 
 		filter := VerificationListRequest{}
@@ -77,7 +77,7 @@ func TestRepository_GetVerifications(t *testing.T) {
 		assert.Equal(t, 0, total)
 		assert.Nil(t, list)
 	})
-	
+
 	t.Run("DataError", func(t *testing.T) {
 		countRows := sqlmock.NewRows([]string{"count"}).AddRow(1)
 		mock.ExpectQuery("^SELECT COUNT").WillReturnRows(countRows)
@@ -101,7 +101,7 @@ func TestRepository_GetVerificationSummary(t *testing.T) {
 		rows := sqlmock.NewRows([]string{
 			"pending_participants", "pending_candidates",
 		}).AddRow(5, 2)
-		
+
 		mock.ExpectQuery("^SELECT (.+) as pending_participants").WillReturnRows(rows)
 
 		summary, err := repo.GetVerificationSummary(ctx)
@@ -131,7 +131,7 @@ func TestRepository_GetParticipantDetail(t *testing.T) {
 			"id", "event_id", "participant_category", "source", "status", "rejection_reason",
 			"created_at", "updated_at", "person_id", "full_name", "email", "phone", "institution",
 		}).AddRow("reg1", "evt1", "cat1", "src1", "status1", nil, now, now, "p1", "John", "e@mail", "12", "inst")
-		
+
 		mock.ExpectQuery("^SELECT (.+) FROM registrations").WillReturnRows(rows)
 
 		detail, err := repo.GetParticipantDetail(ctx, "reg1")
@@ -217,7 +217,7 @@ func TestRepository_GetCandidateDetail(t *testing.T) {
 			"created_at", "updated_at", "person_id", "full_name", "email", "phone", "institution",
 			"vision", "mission", "work_program", "photo_path", "document_path",
 		}).AddRow("ca1", "reg1", "evt1", "cat1", "src1", "status1", now, now, "p1", "John", "e@mail", "12", "inst", nil, nil, nil, nil, nil)
-		
+
 		mock.ExpectQuery("^SELECT (.+) FROM candidate_applications").WillReturnRows(rows)
 
 		detail, err := repo.GetCandidateDetail(ctx, "ca1")

@@ -6,6 +6,7 @@ import (
 
 	"fmt"
 	"mime/multipart"
+	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -81,11 +82,7 @@ func (s *service) RegisterCandidate(ctx context.Context, req *RegisterCandidateR
 		return nil, ErrCandidateRegistrationClosed
 	}
 
-	// 5. Document Upload Validation Hook (for MKS-050-003)
-	// TODO: Implement file size/extension validation logic here when candidate document uploads are introduced.
-	if err := s.validateDocumentUploadsHook(); err != nil {
-		return nil, err
-	}
+	// 5. Removed unused validation hook TODO
 
 	// 6. Prevent duplicate applications
 	exists, err := s.repo.CheckExistingApplication(ctx, req.RegistrationID)
@@ -132,12 +129,6 @@ func (s *service) RegisterCandidate(ctx context.Context, req *RegisterCandidateR
 	}, nil
 }
 
-// validateDocumentUploadsHook acts as a placeholder hook for MKS-050-003
-func (s *service) validateDocumentUploadsHook() error {
-	// Add business validation for photos (e.g. JPG/PNG) and documents (e.g. PDF) here.
-	return nil
-}
-
 func (s *service) GetCandidateStatus(ctx context.Context, candidateCode string) (*CandidateStatusResponse, error) {
 	app, err := s.repo.GetCandidateApplicationByID(ctx, candidateCode)
 	if err != nil {
@@ -169,7 +160,7 @@ func (s *service) UploadDocuments(ctx context.Context, candidateCode string, pho
 	var photoURL, docURL string
 
 	if photo != nil {
-		if err := s.validateFile(photo, []string{".jpg", ".jpeg", ".png", ".webp"}); err != nil {
+		if err := s.validateFile(photo, []string{".jpg", ".jpeg", ".png", ".webp"}, []string{"image/jpeg", "image/png", "image/webp"}); err != nil {
 			return nil, fmt.Errorf("photo validation failed: %w", err)
 		}
 		src, err := photo.Open()
@@ -188,7 +179,7 @@ func (s *service) UploadDocuments(ctx context.Context, candidateCode string, pho
 	}
 
 	if document != nil {
-		if err := s.validateFile(document, []string{".pdf"}); err != nil {
+		if err := s.validateFile(document, []string{".pdf"}, []string{"application/pdf"}); err != nil {
 			// Rollback photo if document fails
 			if newPhotoPath != nil {
 				_ = s.storage.Delete(ctx, *newPhotoPath)
@@ -260,22 +251,44 @@ func (s *service) UploadDocuments(ctx context.Context, candidateCode string, pho
 	}, nil
 }
 
-func (s *service) validateFile(file *multipart.FileHeader, allowedExts []string) error {
+func (s *service) validateFile(file *multipart.FileHeader, allowedExts []string, allowedMimeTypes []string) error {
 	if file.Size > s.maxUploadSize {
 		return fmt.Errorf("file size exceeds maximum limit of %d bytes", s.maxUploadSize)
 	}
 
 	ext := strings.ToLower(filepath.Ext(file.Filename))
-	valid := false
+	validExt := false
 	for _, e := range allowedExts {
 		if ext == e {
-			valid = true
+			validExt = true
 			break
 		}
 	}
-	if !valid {
-		return fmt.Errorf("invalid file extension: %s. allowed: %v", ext, allowedExts)
+	if !validExt {
+		return fmt.Errorf("invalid file extension: %s", ext)
 	}
+
+	f, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	buffer := make([]byte, 512)
+	_, _ = f.Read(buffer)
+	mimeType := http.DetectContentType(buffer)
+
+	validMime := false
+	for _, m := range allowedMimeTypes {
+		if mimeType == m {
+			validMime = true
+			break
+		}
+	}
+	if !validMime {
+		return fmt.Errorf("invalid file content type: %s", mimeType)
+	}
+
 	return nil
 }
 

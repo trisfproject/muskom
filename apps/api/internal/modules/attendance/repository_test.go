@@ -126,7 +126,7 @@ func TestRepository_CreateAttendance(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, created)
 	})
-	
+
 	t.Run("Error", func(t *testing.T) {
 		mock.ExpectExec("^INSERT INTO attendance").
 			WithArgs("reg1", "op1").
@@ -209,7 +209,7 @@ func TestRepository_ListAttendances(t *testing.T) {
 		assert.Equal(t, 1, total)
 		assert.Len(t, items, 1)
 	})
-	
+
 	t.Run("Success_AbsentFilter", func(t *testing.T) {
 		countRows := sqlmock.NewRows([]string{"count"}).AddRow(1)
 		mock.ExpectQuery("^SELECT COUNT").WillReturnRows(countRows)
@@ -224,7 +224,7 @@ func TestRepository_ListAttendances(t *testing.T) {
 
 		req := AttendanceListRequest{
 			AttendanceStatus: "ABSENT",
-			SortBy: "participant_name",
+			SortBy:           "participant_name",
 		}
 		items, total, err := repo.ListAttendances(ctx, req)
 		assert.NoError(t, err)

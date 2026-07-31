@@ -174,7 +174,7 @@ func TestRepository_LogAudit(t *testing.T) {
 func TestRepository_AttachmentsStubs(t *testing.T) {
 	repo := NewRepository(nil)
 	ctx := context.Background()
-	
+
 	_, err := repo.SaveAttachmentMetadata(ctx, "1", nil)
 	assert.ErrorIs(t, err, ErrSchemaMissing)
 
@@ -197,7 +197,7 @@ func TestRepository_UpdateRegistrationStatus(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mock.ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
-		
+
 		mock.ExpectExec("^UPDATE registrations").
 			WithArgs("APPROVED", sqlmock.AnyArg(), "reg1").
 			WillReturnResult(sqlmock.NewResult(1, 1))
@@ -209,7 +209,7 @@ func TestRepository_UpdateRegistrationStatus(t *testing.T) {
 	t.Run("System", func(t *testing.T) {
 		mock.ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
-		
+
 		mock.ExpectExec("^UPDATE registrations").
 			WithArgs("APPROVED", "reg1").
 			WillReturnResult(sqlmock.NewResult(1, 1))
@@ -285,16 +285,16 @@ func TestRepository_ListRegistrations(t *testing.T) {
 		mock.ExpectQuery("^SELECT r.id, r.event_id").WillReturnRows(rows)
 
 		req := AdminListRegistrationsRequest{
-			Page:  1,
-			Limit: 10,
-			Status: "PENDING",
+			Page:             1,
+			Limit:            10,
+			Status:           "PENDING",
 			RegistrationCode: "reg1",
-			ParticipantName: "John",
-			Email: "john@test.com",
-			Phone: "123",
+			ParticipantName:  "John",
+			Email:            "john@test.com",
+			Phone:            "123",
 			RegistrationDate: "2023-01-01",
-			SortBy: "participant_name",
-			SortOrder: "asc",
+			SortBy:           "participant_name",
+			SortOrder:        "asc",
 		}
 		res, total, err := repo.ListRegistrations(ctx, req)
 		assert.NoError(t, err)
@@ -343,7 +343,7 @@ func TestRepository_CreateRegistration(t *testing.T) {
 			Source:              &source,
 			Status:              "PENDING",
 		}
-		
+
 		mock.ExpectQuery("^INSERT INTO registrations").
 			WithArgs(reg.EventID, reg.PersonID, reg.ParticipantCategory, reg.Source, reg.Status).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "status"}).AddRow("reg1", "PENDING"))

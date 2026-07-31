@@ -155,7 +155,7 @@ func TestHandler_VerifyParticipant(t *testing.T) {
 		resp, _ := app.Test(req)
 		assert.Equal(t, 409, resp.StatusCode)
 	})
-	
+
 	t.Run("InternalError", func(t *testing.T) {
 		reqBody := VerifyParticipantRequest{Status: "APPROVED"}
 		body, _ := json.Marshal(reqBody)
@@ -249,7 +249,7 @@ func TestHandler_VerifyCandidate(t *testing.T) {
 		resp, _ := app.Test(req)
 		assert.Equal(t, 400, resp.StatusCode)
 	})
-	
+
 	t.Run("ValidationError", func(t *testing.T) {
 		reqBody := VerifyCandidateRequest{Status: "REVIEWING"}
 		body, _ := json.Marshal(reqBody)
@@ -260,7 +260,7 @@ func TestHandler_VerifyCandidate(t *testing.T) {
 		resp, _ := app.Test(req)
 		assert.Equal(t, 400, resp.StatusCode)
 	})
-	
+
 	t.Run("Conflict", func(t *testing.T) {
 		reqBody := VerifyCandidateRequest{Status: "REVIEWING"}
 		body, _ := json.Marshal(reqBody)

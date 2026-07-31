@@ -2,6 +2,10 @@ package musyawarah
 
 import (
 	"errors"
+	"io"
+	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -147,7 +151,17 @@ func (h *Handler) UploadMedia(c fiber.Ctx) error {
 	}
 	defer file.Close()
 
-	contentType := fileHeader.Header.Get("Content-Type")
+	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
+	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".webp" {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid file extension", nil)
+	}
+
+	buffer := make([]byte, 512)
+	_, _ = file.Read(buffer)
+	if seeker, ok := file.(io.Seeker); ok {
+		seeker.Seek(0, io.SeekStart)
+	}
+	contentType := http.DetectContentType(buffer)
 
 	res, err := h.service.UploadMedia(c.Context(), mediaType, file, fileHeader.Filename, contentType)
 	if err != nil {

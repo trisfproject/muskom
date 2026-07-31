@@ -132,7 +132,7 @@ func TestHandler_RegisterCandidate(t *testing.T) {
 
 		assert.Equal(t, 403, resp.StatusCode)
 	})
-	
+
 	t.Run("InternalError", func(t *testing.T) {
 		reqBody := RegisterCandidateRequest{RegistrationID: "req1", Vision: "v", Mission: "m", WorkProgram: "w"}
 		body, _ := json.Marshal(reqBody)
@@ -185,7 +185,7 @@ func TestHandler_UploadDocuments(t *testing.T) {
 
 		body := new(bytes.Buffer)
 		writer := multipart.NewWriter(body)
-		
+
 		part, _ := writer.CreateFormFile("photo", "test.jpg")
 		part.Write([]byte("image content"))
 		writer.Close()
@@ -202,7 +202,7 @@ func TestHandler_UploadDocuments(t *testing.T) {
 
 		body := new(bytes.Buffer)
 		writer := multipart.NewWriter(body)
-		
+
 		part, _ := writer.CreateFormFile("photo", "test.jpg")
 		part.Write([]byte("image content"))
 		writer.Close()

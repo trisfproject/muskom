@@ -5,6 +5,12 @@ All notable changes to the MUSKOM project will be documented in this file.
 ## [Unreleased] - 2026-07-27
 
 ### Added
+- **Upload Validation Hardening (BUG-001)**: Strengthened file upload security across `registration`, `candidate`, and `musyawarah` modules.
+  - Implemented robust MIME type sniffing using `http.DetectContentType` to prevent spoofed `Content-Type` headers.
+  - Added strict file extension whitelisting (`.jpg`, `.jpeg`, `.png`, `.webp`, `.pdf`) and validation.
+  - Enforced maximum file size limits directly during processing.
+  - Prevented path traversal vulnerabilities by enforcing clean storage paths natively managed by the application.
+  - Removed outdated placeholder validation hooks and TODOs in service layers.
 - **Sprint 3 Review**: Completed comprehensive review. Verified public registration flow, duplicate prevention, and participant quota validations. Confirmed secure attachment implementation handling database schema discrepancy via interceptor pattern without data corruption. Validated Admin Registration Management status transitions, securing strict authorization bounds and fixing the audit logs (`approved_by`) to ensure precise transactional integrity. Sprint 3 officially concluded and marked as `Completed`.
 - **Admin Registration Management**: Implemented authenticated administrator endpoints (`GET /api/v1/admin/registrations`, `GET /api/v1/admin/registrations/{id}`, `PATCH /api/v1/admin/registrations/{id}/status`). Supported robust multi-parameter filtering, robust SQL-injection safe dynamic querying, structured pagination, and status transitions equipped with automatic Database Transactional Audit Logging using the authenticated user's context.
 - **Registration Confirmation**: Implemented the public status lookup endpoint `GET /api/v1/public/registrations/{registration_code}/confirmation` to allow participants to check their registration status without compromising sensitive data. Added name masking (e.g., `J**n D*e`) and explicit "Next Step" directives based on their current status (`PENDING`, `APPROVED`, `REJECTED`).

@@ -92,7 +92,7 @@ func TestHandler_Logout(t *testing.T) {
 	mockSvc := new(MockService)
 	val := validator.New()
 	h := NewHandler(mockSvc, val)
-	
+
 	// Add mock local data that middleware would inject
 	app.Post("/logout", func(c fiber.Ctx) error {
 		c.Locals("user_id", "usr1")
@@ -127,7 +127,7 @@ func TestHandler_Refresh(t *testing.T) {
 	mockSvc := new(MockService)
 	val := validator.New()
 	h := NewHandler(mockSvc, val)
-	
+
 	app.Post("/refresh", h.Refresh)
 
 	t.Run("Success", func(t *testing.T) {

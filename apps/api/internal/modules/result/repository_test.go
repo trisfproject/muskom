@@ -214,7 +214,7 @@ func TestRepository_GetAuditLogs(t *testing.T) {
 		repo := NewRepository(sqlxDB)
 
 		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM audit_logs").WithArgs(eventID).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
-		
+
 		rows := sqlmock.NewRows([]string{"id", "user_id", "action", "ip_address", "metadata", "created_at"}).
 			AddRow(uuid.New(), uuid.New(), "ACT", "ip", "meta", time.Now())
 		mock.ExpectQuery("^SELECT (.+) FROM audit_logs").WillReturnRows(rows)

@@ -73,6 +73,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 | MKS-070-004 | Infrastructure Health Check API. | Medium | 1d | FND-07 | Sprint 6 | ⏳ Planned |
 | MKS-070-005 | Prometheus/Grafana Monitoring. | Low | 2d | MKS-070-004 | Sprint 6 | ⏳ Planned |
 | MKS-070-006 | Automated DB Backup to S3 via CRON. | High | 2d | FND-02, FND-06 | Sprint 6 | ⏳ Planned |
+| BUG-001 | Upload Validation Hardening (Registration, Candidate, Musyawarah). | Critical | 1d | None | Sprint 7 | ✅ Done |
 
 ---
 
@@ -139,6 +140,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 - MKS-080-003: Election Result Administration (✅ Done)
 - MKS-080-004: Result Finalization (🚫 Blocked - Business Gap)
 - MKS-080-005: Export Results (✅ Done)
+- BUG-001: Upload Validation Hardening (✅ Done)
 - MKS-070-003: Global System Settings
 - MKS-070-004: Infrastructure Health Check API
 - MKS-070-005: Prometheus/Grafana Monitoring
