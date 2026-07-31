@@ -32,8 +32,10 @@ type AttendanceSummary struct {
 // AttendanceService defines the business operations for attendance
 type AttendanceService interface {
 	CheckIn(ctx context.Context, registrationID string, operatorID string) (*AttendanceEvent, error)
+	UndoCheckIn(ctx context.Context, checkInID string, operatorID string) error
+	GetAttendance(ctx context.Context, registrationID string) (*AttendanceEvent, error)
 	GetSummary(ctx context.Context, eventID string) (*AttendanceSummary, error)
-	GetStatus(ctx context.Context, registrationID string) (*AttendanceStatus, error)
+	Search(ctx context.Context, query string, limit, offset int) ([]AttendanceEvent, error)
 }
 
 // AttendanceRepository defines the data access contract

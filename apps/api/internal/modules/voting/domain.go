@@ -39,9 +39,11 @@ type VoteSummary struct {
 
 // VotingService defines the business logic for elections
 type VotingService interface {
+	StartSession(ctx context.Context, eventID string) (*VotingSession, error)
+	StopSession(ctx context.Context, sessionID string) error
 	CastVote(ctx context.Context, sessionID, voterID, candidateID string) (*Ballot, error)
-	GetSessionSummary(ctx context.Context, sessionID string) (*VoteSummary, error)
-	InitializeSession(ctx context.Context, eventID string) (*VotingSession, error)
+	GetSummary(ctx context.Context, sessionID string) (*VoteSummary, error)
+	IsVotingOpen(ctx context.Context, eventID string) (bool, error)
 }
 
 // VotingRepository defines the data access contract

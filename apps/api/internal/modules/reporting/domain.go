@@ -24,6 +24,8 @@ type ReportResult struct {
 
 // ReportingService defines the logic for generating reports
 type ReportingService interface {
-	GenerateAttendanceReport(ctx context.Context, config ReportConfig) (*ReportResult, error)
-	GenerateVotingReport(ctx context.Context, config ReportConfig) (*ReportResult, error)
+	Generate(ctx context.Context, config ReportConfig) (*ReportResult, error)
+	Preview(ctx context.Context, config ReportConfig) ([]byte, error)
+	Download(ctx context.Context, reportID string) ([]byte, error)
+	History(ctx context.Context, eventID string) ([]ReportResult, error)
 }

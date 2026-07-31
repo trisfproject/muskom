@@ -26,8 +26,11 @@ type NotificationTemplate struct {
 
 // NotificationService defines the logic for dispatching messages
 type NotificationService interface {
-	Send(ctx context.Context, payload *NotificationPayload) error
+	Queue(ctx context.Context, payload *NotificationPayload) (string, error)
+	Send(ctx context.Context, id string) error
 	Broadcast(ctx context.Context, templateID string, recipients []string) error
+	Retry(ctx context.Context, id string) error
+	Status(ctx context.Context, id string) (string, error)
 }
 
 // NotificationRepository defines the persistence for logs

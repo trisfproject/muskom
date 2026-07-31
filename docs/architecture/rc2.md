@@ -1,6 +1,7 @@
 # MUSKOM RC2 Architecture
 
 This document defines the architectural boundaries, domains, and abstractions prepared for Release Candidate 2 (RC2).
+*For detailed platform standards, refer to [Platform Foundation](file:///home/langit/Dev/muskom/docs/architecture/platform.md).*
 
 ## Domain Responsibilities
 
