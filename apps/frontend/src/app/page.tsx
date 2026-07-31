@@ -5,7 +5,7 @@ import LandingPageClient from './LandingPageClient';
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const response = await publicApi.get('/admin/musyawarah');
+    const response = await publicApi.get('/public/musyawarah');
     const event: MusyawarahEvent = response.data.data;
     
     if (event.status === 'UPCOMING' || event.status === 'ONGOING') {

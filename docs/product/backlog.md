@@ -44,7 +44,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 | MKS-040-003 | Registration Attachments. | High | 2d | MKS-040-001, FND-06 | Sprint 3 | ✅ Done |
 | MKS-040-004 | Registration Confirmation. | High | 2d | MKS-040-001 | Sprint 3 | ✅ Done |
 | MKS-040-005 | Admin Registration Management. | High | 2d | MKS-020-002, MKS-040-001 | Sprint 3 | ✅ Done |
-| MKS-040-006 | Landing Page (Banner, Theme, Logo). | High | 2d | FND-08, MKS-020-001 | Sprint 3 | ⏳ Planned |
+| MKS-040-006 | Landing Page (Banner, Theme, Logo). | High | 2d | FND-08, MKS-020-001 | Sprint 3 | ✅ Done |
 | MKS-040-007 | Timeline Display (Event Phases). | High | 1d | MKS-040-006 | Sprint 3 | ⏳ Planned |
 | MKS-040-008 | View Announcements. | Medium | 1d | MKS-020-007, MKS-040-006 | Sprint 3 | ⏳ Planned |
 | MKS-040-009 | View & Download Public Documents. | Medium | 1d | MKS-020-008, MKS-040-006 | Sprint 3 | ⏳ Planned |

@@ -9,9 +9,12 @@ export function CandidatesSection() {
   const { data, isLoading } = useQuery({
     queryKey: ['public-candidates'],
     queryFn: landingService.getPublicCandidates,
+    staleTime: 60 * 1000 * 5, // 5 minutes
+    gcTime: 60 * 1000 * 30, // 30 minutes
+    retry: 1,
   });
 
-  const candidates = data?.data || [];
+  const candidates = data || [];
 
   if (isLoading || candidates.length === 0) return null;
 

@@ -223,3 +223,9 @@ All notable changes to the MUSKOM project will be documented in this file.
 ### Changed
 - Configured `next.config.ts` to ignore eslint and typescript errors during build to facilitate UI updates without being blocked by legacy backend-for-frontend code issues
 - Docker `muskom-frontend` container now successfully builds and deploys
+
+### Fixed (RC2-001B)
+- Identified and fixed architectural data flow bug where Landing Page was making SSR requests to `/api/v1/admin/musyawarah`
+- Replaced Admin API endpoint usage in Landing Page with Public API `/api/v1/public/musyawarah`
+- Updated React Query configurations for public candidates to include standard `staleTime` and `gcTime` limits
+- Verified Landing Page is 100% independent of Admin dependencies and API boundaries
