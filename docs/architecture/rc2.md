@@ -30,6 +30,20 @@ This document defines the architectural boundaries, domains, and abstractions pr
 - **Interfaces**:
   - `ReportingService`: Orchestrates PDF generation (`GenerateAttendanceReport`, `GenerateVotingReport`).
 
+## Integration & Automation Platform
+To strictly prevent business domains from leaking into external integrations, all side-effects must be brokered via the `Integration Platform`.
+
+### Event Flow (Pub/Sub)
+1. **Domain Event**: An operation occurs (e.g., Attendance is checked in). The domain constructs an `EventEnvelope` and pushes it to the `EventBus` (e.g., `EventAttendanceCheckedIn`).
+2. **Synchronous Dispatch**: The `SyncBus` immediately spawns a goroutine to execute registered subscribers without blocking the primary HTTP request.
+3. **Future Extension**: The abstract allows pivoting from `SyncBus` to an asynchronous broker (Kafka/Redis) gracefully.
+
+### Automation Pipeline
+The `Automation Engine` bridges the internal PubSub to External Providers through configurable `automation_rules`.
+- **Rule Example**: `WHEN ParticipantApproved THEN Trigger WhatsAppProvider to send approval_msg`.
+- **Integration Providers**: External systems are strictly boxed into the `Provider` contract, preventing global SDK sprawl.
+- **Observability**: Every integration attempt generates an `integration_logs` entry capturing `Status, Duration, Retries, and ErrorMessage` for strict auditing.
+
 ## Realtime Architecture
 
 For RC2, real-time data features (such as live Attendance stats and live Voting progress) use the `useRealtimeSync` hook.
