@@ -27,7 +27,7 @@ func (h *Handler) Get(c fiber.Ctx) error {
 	res, err := h.service.GetConfig(c.Context())
 	if err != nil {
 		if errors.Is(err, ErrConfigNotFound) {
-			return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
+			return response.SendSuccess(c, fiber.StatusOK, "Musyawarah configuration not found", nil, nil)
 		}
 		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
 	}
