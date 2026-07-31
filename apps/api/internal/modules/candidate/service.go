@@ -82,7 +82,7 @@ func (s *service) RegisterCandidate(ctx context.Context, req *RegisterCandidateR
 		return nil, ErrCandidateRegistrationClosed
 	}
 
-	// 5. Removed unused validation hook TODO
+
 
 	// 6. Prevent duplicate applications
 	exists, err := s.repo.CheckExistingApplication(ctx, req.RegistrationID)

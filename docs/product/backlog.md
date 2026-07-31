@@ -116,9 +116,10 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 - MKS-050-002: Candidate Registration Validation (✅ Done)
 - MKS-050-003: Candidate Registration Attachments (✅ Done)
 
-### Pending
+### Completed
 - [x] Landing Page (✅ Done)
-- MKS-020-003: Dashboard Analytics (Participants/Votes)
+- [x] Participant Registration (✅ Done)
+- [x] RC1 Quality Assurance & Release Audit (✅ Done)
 - MKS-050-005: Admin Candidate Management (✅ Done)
 
 ### Sprint 5: Verification & Attendance

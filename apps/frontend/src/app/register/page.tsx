@@ -50,7 +50,7 @@ export default function RegisterPage() {
     );
   }
 
-  // TODO: Future quota check could be implemented here if frontend needs to eagerly block it.
+
   // We rely on backend validation for actual quota enforcement.
 
   return (
