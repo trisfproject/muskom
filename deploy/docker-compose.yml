@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: muskom_password
       POSTGRES_DB: muskom
     ports:
-      - "3307:5432" # Mapped to 3307 on host to avoid Nyx mysql collision on 3306
+      - "5432:5432"
     volumes:
       - muskom_data:/var/lib/postgresql/data
       - ../database/migrations:/docker-entrypoint-initdb.d # Auto-run migrations on init
@@ -23,7 +23,7 @@ services:
     image: redis:7-alpine
     container_name: muskom-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - muskom_redis:/data
     healthcheck:
@@ -46,7 +46,7 @@ services:
       - LOG_LEVEL=debug
       - MAX_UPLOAD_SIZE=5242880
     ports:
-      - "8080:8080" # Mapped to 8080 on host to avoid nyx backend collision on 3100
+      - "3200:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -61,9 +61,20 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
     ports:
-      - "3000:3000" # Mapped to 3000 on host (free on host)
+      - "3201:3000"
     depends_on:
       - api
+
+  nginx:
+    build:
+      context: ../deploy/nginx
+      dockerfile: Dockerfile
+    container_name: muskom-nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+      - frontend
 
 volumes:
   muskom_data:
