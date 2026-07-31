@@ -23,8 +23,14 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Verification Workflow with guarded Reject reasons
   - Read-Only Detail Drawer
   - Server-side Pagination via React Query
+- **Candidate Verification Center**:
+  - Candidate Detail Drawer with CV and Photo previews
+  - Vision, Mission, and Work Program reviews
+  - Manual Candidate registration orchestration
+  - Verification workflow integration
 
 ### Changed
+- Candidate approval workflow centralized.
 - Public application behaviour now controlled by Event configuration.
 - Unified authentication flows across backend handlers.
 - Verification workflow now managed entirely from Admin dashboard.
