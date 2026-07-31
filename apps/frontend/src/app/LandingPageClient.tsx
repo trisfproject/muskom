@@ -2,21 +2,23 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { landingService } from '@/services/landing';
+import { PublicNavbar } from '@/components/layout/PublicNavbar';
 import { HeroSection } from '@/components/landing/HeroSection';
-import { EventInfoSection } from '@/components/landing/EventInfoSection';
+import { AboutSection } from '@/components/landing/AboutSection';
 import { EventSection } from '@/components/landing/EventSection';
+import { CandidatesSection } from '@/components/landing/CandidatesSection';
 import { TimelineSection } from '@/components/landing/TimelineSection';
 import { FAQSection } from '@/components/landing/FAQSection';
 import { Footer } from '@/components/landing/Footer';
 import { LandingLoadingSkeleton } from '@/components/landing/LandingLoadingSkeleton';
 
 export default function LandingPageClient() {
-  const { data: event, isLoading, isError } = useQuery({
+  const { data: event, isLoading } = useQuery({
     queryKey: ['public-musyawarah-event'],
     queryFn: landingService.getPublicEvent,
-    staleTime: 60 * 1000 * 5, // 5 minutes cache
-    gcTime: 60 * 1000 * 30, // 30 minutes garbage collection
-    retry: 1, // Only retry once to avoid spamming the protected endpoint
+    staleTime: 60 * 1000 * 5,
+    gcTime: 60 * 1000 * 30,
+    retry: 1,
   });
 
   if (isLoading) {
@@ -25,43 +27,67 @@ export default function LandingPageClient() {
 
   const activeEvent = event || null;
 
-  // Handle Draft / Cancelled Status
+  // Handle Draft / Cancelled — show maintenance screen WITH navbar
   if (activeEvent?.status === 'DRAFT' || activeEvent?.status === 'CANCELLED') {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">Event Under Maintenance</h2>
-        <p className="text-slate-500 text-center max-w-md">
-          The event portal is currently offline or being updated. Please check back soon.
-        </p>
-      </div>
-    );
-  }
-
-  // Handle Finished
-  if (activeEvent?.status === 'COMPLETED') {
-    return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
-        <h1 className="text-4xl font-extrabold text-slate-900 mb-4">{activeEvent.name}</h1>
-        <p className="text-xl text-slate-500 text-center max-w-xl mb-8">
-          This Musyawarah has successfully concluded. Thank you to all participants, candidates, and organizers for their contribution.
-        </p>
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm text-center">
-          <p className="text-slate-600 mb-4">You can view the final verified results through the public results portal.</p>
-          <a href="/results" className="text-blue-600 hover:underline font-medium">View Final Results &rarr;</a>
+      <div className="min-h-screen bg-slate-50">
+        <PublicNavbar />
+        <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center">
+          <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-6">
+            <span className="text-white font-extrabold text-2xl">M</span>
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-3">Portal Sedang dalam Pemeliharaan</h2>
+          <p className="text-slate-500 max-w-md leading-relaxed">
+            Portal musyawarah sedang dalam pemeliharaan atau persiapan. Silakan kunjungi kembali beberapa saat lagi.
+          </p>
         </div>
       </div>
     );
   }
 
-  // Standard Render
+  // Handle Completed — show results screen WITH all sections
+  if (activeEvent?.status === 'COMPLETED') {
+    return (
+      <div className="min-h-screen">
+        <PublicNavbar />
+        <HeroSection event={activeEvent} />
+        <AboutSection />
+        <CandidatesSection />
+        <TimelineSection event={activeEvent} />
+        <div className="py-16 bg-white text-center">
+          <div className="max-w-2xl mx-auto px-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-6">
+              <span className="text-3xl">🎉</span>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">Musyawarah Telah Selesai</h2>
+            <p className="text-slate-600 mb-8">
+              Terima kasih kepada seluruh peserta, kandidat, dan panitia atas partisipasi yang luar biasa.
+            </p>
+            <a
+              href="/results"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full gradient-primary text-white font-semibold hover:opacity-90 transition-opacity"
+            >
+              Lihat Hasil Pemilihan →
+            </a>
+          </div>
+        </div>
+        <FAQSection />
+        <Footer />
+      </div>
+    );
+  }
+
+  // Standard Render — all sections visible
   return (
-    <>
+    <div className="min-h-screen">
+      <PublicNavbar />
       <HeroSection event={activeEvent} />
-      <EventInfoSection event={activeEvent} />
+      <AboutSection />
       <EventSection event={activeEvent} />
+      <CandidatesSection />
       <TimelineSection event={activeEvent} />
       <FAQSection />
       <Footer />
-    </>
+    </div>
   );
 }

@@ -1,7 +1,5 @@
 import { EventInfo } from '@/types/dashboard';
-import { RefreshCw, CalendarDays, CheckCircle2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { RefreshCw, CalendarDays, CheckCircle2, MapPin } from 'lucide-react';
 
 interface DashboardHeaderProps {
   event: EventInfo | null;
@@ -9,46 +7,62 @@ interface DashboardHeaderProps {
   isRefetching: boolean;
 }
 
+const statusLabels: Record<string, string> = {
+  DRAFT: 'Draft',
+  UPCOMING: 'Akan Datang',
+  ONGOING: 'Sedang Berlangsung',
+  COMPLETED: 'Selesai',
+  CANCELLED: 'Dibatalkan',
+};
+
+const statusStyles: Record<string, string> = {
+  DRAFT: 'bg-slate-100 text-slate-700 border border-slate-200',
+  UPCOMING: 'bg-blue-50 text-blue-700 border border-blue-200',
+  ONGOING: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  COMPLETED: 'bg-purple-50 text-purple-700 border border-purple-200',
+  CANCELLED: 'bg-red-50 text-red-700 border border-red-200',
+};
+
 export function DashboardHeader({ event, onRefresh, isRefetching }: DashboardHeaderProps) {
   if (!event) return null;
 
-  const phaseColors = {
-    DRAFT: 'bg-slate-100 text-slate-800',
-    UPCOMING: 'bg-blue-100 text-blue-800',
-    ONGOING: 'bg-green-100 text-green-800',
-    COMPLETED: 'bg-purple-100 text-purple-800',
-    CANCELLED: 'bg-red-100 text-red-800',
-  };
-
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+    <div className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div className="flex items-center gap-4">
-        <div className="p-3 bg-blue-50 text-blue-600 rounded-full">
-          <CalendarDays className="h-6 w-6" />
+        {/* Icon */}
+        <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0 shadow-sm">
+          <CalendarDays className="h-6 w-6 text-white" />
         </div>
+
+        {/* Info */}
         <div>
-          <h2 className="text-xl font-bold text-slate-900">{event.name}</h2>
-          <div className="flex items-center gap-2 mt-1">
-            <span className={cn("px-2.5 py-0.5 rounded-full text-xs font-semibold", phaseColors[event.status])}>
-              {event.status}
+          <h2 className="text-lg font-bold text-slate-900 leading-tight">{event.name}</h2>
+          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusStyles[event.status] ?? statusStyles.DRAFT}`}>
+              {event.status === 'ONGOING' && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
+              )}
+              {statusLabels[event.status] ?? event.status}
             </span>
             {event.publish_result && (
-              <span className="flex items-center text-xs text-green-600 font-medium">
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-                Results Published
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+                <CheckCircle2 className="h-3 h-3" />
+                Hasil Dipublikasikan
               </span>
             )}
           </div>
         </div>
       </div>
-      <Button 
-        onClick={onRefresh} 
+
+      {/* Refresh */}
+      <button
+        onClick={onRefresh}
         disabled={isRefetching}
-        className="border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-sm py-1.5 px-3"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 hover:border-slate-300 transition-all duration-150 disabled:opacity-50"
       >
-        <RefreshCw className={cn("h-4 w-4 mr-2", isRefetching && "animate-spin")} />
-        Refresh
-      </Button>
+        <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
+        {isRefetching ? 'Memperbarui...' : 'Perbarui'}
+      </button>
     </div>
   );
 }
