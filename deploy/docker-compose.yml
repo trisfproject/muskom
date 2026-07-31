@@ -51,11 +51,21 @@ services:
     depends_on:
       - api
 
+  nginx:
+    build:
+      context: ../deploy/nginx
+      dockerfile: Dockerfile
+    container_name: muskom-nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+      - frontend
+
 volumes:
   muskom_data:
   muskom_redis:
 
 networks:
   default:
-    name: nyx-dashboard-net
-    external: true
+    name: muskom-network
