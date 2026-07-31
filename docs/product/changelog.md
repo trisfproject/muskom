@@ -18,10 +18,16 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Event Phase Control
   - Quota Management
   - Event Preview
+- **Participant Verification Center**:
+  - Debounced Search & Status Filtering
+  - Verification Workflow with guarded Reject reasons
+  - Read-Only Detail Drawer
+  - Server-side Pagination via React Query
 
 ### Changed
 - Public application behaviour now controlled by Event configuration.
 - Unified authentication flows across backend handlers.
+- Verification workflow now managed entirely from Admin dashboard.
 - **Authentication Flow**: Moved authentication state to TanStack Query and React Hook Form (with Zod validation).
 - **Protected Admin Routes**: Blocked unauthenticated access to `/admin/*` automatically redirecting unauthorized visitors to the login portal.
 
