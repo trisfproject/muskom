@@ -28,8 +28,6 @@ export function RegistrationSuccess({ data, event }: RegistrationSuccessProps) {
             {data.registration_code}
           </span>
           <Button 
-            variant="outline" 
-            size="icon"
             className="rounded-full bg-white text-slate-500 hover:text-slate-900"
             onClick={() => navigator.clipboard.writeText(data.registration_code)}
             title="Copy Code"

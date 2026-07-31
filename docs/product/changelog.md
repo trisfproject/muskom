@@ -18,7 +18,12 @@ All notable changes to the MUSKOM project will be documented in this file.
   - Event Phase Control
   - Quota Management
   - Event Preview
-- **Participant Verification Center**:
+- Public Candidate Registration (`/register/candidate`)
+- Candidate Profile Form orchestration
+- Profile Photo Upload handling
+- Document (CV) Upload handling
+- Candidate Registration Success page
+- Public Participant Registration (`/register`)**:
   - Debounced Search & Status Filtering
   - Verification Workflow with guarded Reject reasons
   - Read-Only Detail Drawer

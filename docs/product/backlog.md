@@ -114,7 +114,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 **Status**: ✅ Completed
 - MKS-050-001: Candidate Registration API & Uploads (✅ Done)
 - MKS-050-002: Candidate Registration Validation (✅ Done)
-- MKS-050-003: Candidate Registration Attachments (✅ RC1 Progress: ██████████░ 95%
+- MKS-050-003: Candidate Registration Attachments (✅ Done)
 
 ### Pending
 - [x] Landing Page (✅ Done)
