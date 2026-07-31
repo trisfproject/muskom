@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/trisfproject/muskom/apps/api/internal/modules/attendance"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/candidate"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
@@ -105,6 +106,7 @@ func main() {
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), db, log, val, strg, cfg.MaxUploadSize)
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications"), db, log, val)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance"), db, log, val)
+	audit.SetupAdminRoutes(adminGroup.Group("/audit"), db)
 	voting.SetupAdminRoutes(adminGroup.Group("/votes"), db, log, val)
 	result.SetupAdminRoutes(adminGroup, db, log)
 

@@ -52,3 +52,19 @@ To reduce duplication and enhance maintainability, UI elements have been standar
 
 ## Future API Contracts
 Going forward, all REST responses from these newly defined domains will strictly adhere to the `ApiResponse<T>` contract defined in `apps/frontend/src/types/api.ts`.
+
+## Audit Flow
+The Audit Domain (`apps/api/internal/modules/audit`) provides a centralized, read-only system to track all mutations across MUSKOM RC2. 
+
+### Core Concepts
+1. **Immutability**: Audit logs are completely immutable. The `AuditRepository` intentionally omits `Update` or `Delete` methods.
+2. **Schema Enhancements**: We extended the `audit_logs` table to explicitly store `actor_role` and `reason` alongside `metadata JSONB` for superior indexed querying.
+3. **Decentralized Writes, Centralized Reads**: 
+   - **Writes**: Domains like `Attendance` or `Voting` write to `audit_logs` using their own database transaction (`tx`) to guarantee ACID compliance when mutating state.
+   - **Reads**: The `AuditService` acts as the universal read-layer, providing offset-pagination and filtering across all modules.
+
+### Shared UI Components
+The Audit domain provides reusable Next.js components for frontend developers:
+- `AuditTimeline`: Visualizes a vertical history of events for a specific entity.
+- `AuditTable` & `AuditFilterBar`: Standardized data grids for searching global system activity.
+- `AuditDrawer`: Displays the raw `metadata JSONB` payloads for debugging system events.
