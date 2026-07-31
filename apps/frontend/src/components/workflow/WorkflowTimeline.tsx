@@ -1,4 +1,4 @@
-import { CheckCircle2, Circle, Clock } from "lucide-react";
+import { CheckCircle2, Circle } from "lucide-react";
 
 export interface WorkflowStep {
   state: string;
@@ -21,7 +21,6 @@ export function WorkflowTimeline({ steps, currentState }: WorkflowTimelineProps)
         {steps.map((step, stepIdx) => {
           const isComplete = currentIndex > stepIdx;
           const isCurrent = currentIndex === stepIdx;
-          const isUpcoming = currentIndex < stepIdx;
 
           return (
             <li key={step.state} className={`relative ${stepIdx !== steps.length - 1 ? "pb-10" : ""}`}>

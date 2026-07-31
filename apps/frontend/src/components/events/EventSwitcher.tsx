@@ -1,10 +1,10 @@
 "use client";
 
 import { useCurrentEvent } from "@/providers/event/EventProvider";
-import { ChevronDown, CalendarDays, History } from "lucide-react";
+import { ChevronDown, CalendarDays } from "lucide-react";
 
 export function EventSwitcher() {
-  const { currentEvent, setEventId } = useCurrentEvent();
+  const { currentEvent } = useCurrentEvent();
 
   // In a real implementation, clicking this would open a dropdown populated 
   // with a GET /api/v1/events endpoint.

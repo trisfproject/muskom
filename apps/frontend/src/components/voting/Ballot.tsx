@@ -48,7 +48,10 @@ export function Ballot({ candidates, onVote }: { candidates: Candidate[], onVote
             
             <div className="aspect-[4/3] bg-slate-100 relative">
               {c.photo_url ? (
-                <img src={c.photo_url} alt={c.name} className="w-full h-full object-cover" />
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={c.photo_url} alt={c.name} className="w-full h-full object-cover" />
+                </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-400">
                   No Photo

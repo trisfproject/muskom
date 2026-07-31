@@ -15,7 +15,7 @@ import { useAttendanceSearch, useAttendanceSummary } from "@/services/attendance
 import { PermissionGuard } from "@/components/rbac/PermissionGuard";
 import { UnauthorizedState } from "@/components/rbac/UnauthorizedState";
 import { useCheckIn } from "@/services/attendance/mutations";
-import { AttendanceItem, AttendanceFilters } from "@/services/attendance/types";
+import { AttendanceItem, AttendanceFilters, AttendanceDetail } from "@/services/attendance/types";
 import { Users, UserCheck, UserX, Percent, Search, Eye } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/public-api";
@@ -29,8 +29,7 @@ export default function AttendancePage() {
   });
 
   const [searchValue, setSearchValue] = useState("");
-  const [selectedItem, setSelectedItem] = useState<AttendanceItem | null>(null);
-  const [drawerData, setDrawerData] = useState<any>(null);
+  const [drawerData, setDrawerData] = useState<AttendanceDetail | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isCheckingIn, setIsCheckingIn] = useState<string | null>(null);
 
@@ -65,8 +64,9 @@ export default function AttendancePage() {
     try {
       await checkInMutation.mutateAsync(registrationId);
       toast.success("Participant checked in successfully");
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Check-in failed");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error.response?.data?.message || "Check-in failed");
     } finally {
       setIsCheckingIn(null);
     }
@@ -87,11 +87,13 @@ export default function AttendancePage() {
           checked_in_at: new Date().toISOString(),
           email: "Not available",
           id: "", 
+          created_at: "",
+          updated_at: "",
+          phone: "Not available",
         });
       }
-      setSelectedItem(item);
       setIsDrawerOpen(true);
-    } catch (e) {
+    } catch {
       toast.error("Failed to load details");
     }
   };
@@ -112,11 +114,11 @@ export default function AttendancePage() {
     },
     {
       header: "Verification",
-      accessor: (item: AttendanceItem) => <StatusBadge status={item.verification_status as any} />,
+      accessor: (item: AttendanceItem) => <StatusBadge status={item.verification_status as "APPROVED" | "PENDING" | "REJECTED"} />,
     },
     {
       header: "Attendance",
-      accessor: (item: AttendanceItem) => <StatusBadge status={item.attendance_status as any} />,
+      accessor: (item: AttendanceItem) => <StatusBadge status={item.attendance_status as "PRESENT" | "ABSENT"} />,
     },
     {
       header: "Time",

@@ -34,7 +34,7 @@ export function AuditTimeline({ entries }: AuditTimelineProps) {
                       <span className="font-medium text-slate-900">{entry.actor_id || "System"}</span>
                     </p>
                     {entry.reason && (
-                      <p className="mt-1 text-sm text-slate-600 italic">"{entry.reason}"</p>
+                      <p className="mt-1 text-sm text-slate-600 italic">&quot;{entry.reason}&quot;</p>
                     )}
                   </div>
                   <div className="whitespace-nowrap text-right text-sm text-slate-500">

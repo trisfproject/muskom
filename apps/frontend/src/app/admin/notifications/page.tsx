@@ -32,14 +32,14 @@ export default function NotificationsPage() {
       recipient: "john@example.com",
       channel: "EMAIL",
       status: "PROCESSING",
-      created_at: new Date(Date.now() - 5000).toISOString()
+      created_at: "2026-07-31T10:00:00.000Z"
     },
     {
       id: "job-2",
       recipient: "+6281234567890",
       channel: "WHATSAPP",
       status: "PENDING",
-      created_at: new Date(Date.now() - 1000).toISOString()
+      created_at: "2026-07-31T09:00:00.000Z"
     }
   ];
 
@@ -49,14 +49,14 @@ export default function NotificationsPage() {
       recipient: "jane@example.com",
       channel: "EMAIL",
       status: "SENT",
-      sent_at: new Date(Date.now() - 60000).toISOString()
+      sent_at: "2026-07-31T08:00:00.000Z"
     },
     {
       id: "hist-2",
       recipient: "+6289876543210",
       channel: "WHATSAPP",
       status: "FAILED",
-      sent_at: new Date(Date.now() - 120000).toISOString(),
+      sent_at: "2026-07-31T07:00:00.000Z",
       error_message: "Invalid phone number format."
     }
   ];

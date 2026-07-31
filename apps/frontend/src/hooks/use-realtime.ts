@@ -40,7 +40,7 @@ export function useRealtimeSync<T>({
   useEffect(() => {
     if (!enabled || method === 'polling') return;
 
-    let cleanup: () => void = () => {};
+    const cleanup: () => void = () => {};
 
     if (method === 'sse') {
       // Future implementation:

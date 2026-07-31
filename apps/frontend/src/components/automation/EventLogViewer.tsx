@@ -1,4 +1,4 @@
-import { Search, Filter } from "lucide-react";
+import { Filter } from 'lucide-react';
 
 export function EventLogViewer() {
   const logs = [

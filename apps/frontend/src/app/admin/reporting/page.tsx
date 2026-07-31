@@ -29,14 +29,14 @@ export default function ReportingPage() {
       id: "h-1",
       report_type: "OFFICIAL_RESULT",
       file_format: "PDF",
-      created_at: new Date(Date.now() - 3600000).toISOString(),
+      created_at: "2026-07-31T10:00:00.000Z",
       file_url: "#"
     },
     {
       id: "h-2",
       report_type: "ATTENDANCE_SUMMARY",
       file_format: "CSV",
-      created_at: new Date(Date.now() - 86400000).toISOString(),
+      created_at: "2026-07-30T10:00:00.000Z",
       file_url: "#"
     }
   ];

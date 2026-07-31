@@ -34,8 +34,9 @@ export function AttendanceDetailDrawer({ isOpen, onClose, data }: AttendanceDeta
       toast.success("Check-in undone successfully");
       setIsConfirmOpen(false);
       onClose();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to undo check-in");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error.response?.data?.message || "Failed to undo check-in");
     }
   };
 

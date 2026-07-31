@@ -28,9 +28,9 @@ export default function AdminDashboardPage() {
       pending_notifications: 12
     },
     recent_activity: [
-      { id: "1", action: "Checked In at Booth 1", actor: "Operator Jane", role: "OPERATOR", timestamp: new Date(Date.now() - 60000).toISOString() },
-      { id: "2", action: "Submitted Vote", actor: "Voter 091", role: "PARTICIPANT", timestamp: new Date(Date.now() - 120000).toISOString() },
-      { id: "3", action: "Approved Participant", actor: "Admin Bob", role: "ADMIN", timestamp: new Date(Date.now() - 3600000).toISOString() },
+      { id: "1", action: "Checked In at Booth 1", actor: "Operator Jane", role: "OPERATOR", timestamp: "2026-07-31T09:59:00.000Z" },
+      { id: "2", action: "Submitted Vote", actor: "Voter 091", role: "PARTICIPANT", timestamp: "2026-07-31T09:58:00.000Z" },
+      { id: "3", action: "Approved Participant", actor: "Admin Bob", role: "ADMIN", timestamp: "2026-07-31T09:00:00.000Z" },
     ]
   };
 

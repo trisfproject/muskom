@@ -12,6 +12,11 @@ export interface MusyawarahEvent {
   max_participants?: number;
   publish_result: boolean;
   allow_candidate_registration: boolean;
+  start_date?: string;
+  stats?: {
+    total_participants?: number;
+    total_candidates?: number;
+  };
 
   registration_start?: string;
   registration_end?: string;

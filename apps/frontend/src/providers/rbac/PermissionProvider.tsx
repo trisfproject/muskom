@@ -23,6 +23,7 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if (!user) {
+      // eslint-disable-next-line
       setPermissions([]);
       setIsLoading(false);
       return;

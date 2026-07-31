@@ -1,5 +1,5 @@
 import { EventInfo } from '@/types/dashboard';
-import { RefreshCw, CalendarDays, CheckCircle2, MapPin } from 'lucide-react';
+import { RefreshCw, CalendarDays, CheckCircle2 } from 'lucide-react';
 
 interface DashboardHeaderProps {
   event: EventInfo | null;

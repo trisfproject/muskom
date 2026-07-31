@@ -40,11 +40,13 @@ export function EventProvider({ children }: { children: React.ReactNode }) {
   // Load initial preference from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem("muskom_active_event_id");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (saved) setActiveEventId(saved);
   }, []);
 
   useEffect(() => {
     let isMounted = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true);
 
     // Write to local storage immediately so interceptor picks it up

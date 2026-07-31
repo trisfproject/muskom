@@ -21,6 +21,6 @@ export interface AuditEntry {
   reason?: string;
   ip_address?: string;
   user_agent?: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   created_at: string;
 }
