@@ -13,6 +13,12 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  const eventId = typeof window !== 'undefined' ? localStorage.getItem('muskom_active_event_id') : null;
+  if (eventId) {
+    config.headers['X-Event-ID'] = eventId;
+  }
+  
   return config;
 });
 
