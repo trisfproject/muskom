@@ -1,33 +1,34 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { attendanceService } from './index';
-import { attendanceKeys } from './queries';
-import { CheckInRequest } from '@/types/attendance';
-import { toast } from 'sonner';
+import api from '@/lib/public-api';
 
-export const useCheckInMutation = () => {
+export function useCheckIn() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: CheckInRequest) => attendanceService.checkIn(payload),
-    onSuccess: (data) => {
-      if (data.is_new) {
-        toast.success('Check-in successful', {
-          description: 'Participant has been checked in.',
-        });
-      } else {
-        toast.info('Already checked in', {
-          description: 'This participant was already checked in previously.',
-        });
-      }
-      // Invalidate attendance lists to update real-time
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
-    },
-    onError: (error: unknown) => {
-      const err = error as { response?: { data?: { message?: string } } };
-      const message = err?.response?.data?.message || 'Failed to check in participant';
-      toast.error('Check-in failed', {
-        description: message,
+    mutationFn: async (registrationId: string) => {
+      const res = await api.post('/admin/attendance/check-in', {
+        registration_id: registrationId,
       });
-    }
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
+    },
   });
-};
+}
+
+export function useUndoCheckIn() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ checkInId, notes }: { checkInId: string; notes: string }) => {
+      const res = await api.delete(`/admin/attendance/${checkInId}`, {
+        data: { notes },
+      });
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
+    },
+  });
+}

@@ -63,13 +63,13 @@ func (h *Handler) GetAttendance(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Attendance record retrieved", detail, nil)
 }
 
-func (h *Handler) ListAttendances(c fiber.Ctx) error {
+func (h *Handler) Search(c fiber.Ctx) error {
 	var filter AttendanceListRequest
 	if err := c.Bind().Query(&filter); err != nil {
 		return response.SendError(c, fiber.StatusBadRequest, "Invalid query parameters", nil)
 	}
 
-	items, total, err := h.service.ListAttendances(c.Context(), filter)
+	items, total, err := h.service.Search(c.Context(), filter)
 	if err != nil {
 		var valErr *ValidationError
 		if errors.As(err, &valErr) {
@@ -98,13 +98,26 @@ func (h *Handler) GetAttendanceByID(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Attendance detail retrieved", detail, nil)
 }
 
-func (h *Handler) CorrectAttendance(c fiber.Ctx) error {
+func (h *Handler) GetSummary(c fiber.Ctx) error {
+	eventID := c.Query("event_id")
+	if eventID == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "event_id is required", nil)
+	}
+
+	summary, err := h.service.GetSummary(c.Context(), eventID)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, err.Error(), nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Attendance summary retrieved", summary, nil)
+}
+
+func (h *Handler) UndoCheckIn(c fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {
 		return response.SendError(c, fiber.StatusBadRequest, "Attendance ID is required", nil)
 	}
 
-	var req CorrectAttendanceRequest
+	var req UndoCheckInRequest
 	if err := c.Bind().Body(&req); err != nil {
 		return response.SendError(c, fiber.StatusBadRequest, "Invalid request body", nil)
 	}
@@ -114,16 +127,16 @@ func (h *Handler) CorrectAttendance(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized operator", nil)
 	}
 
-	if err := h.service.CorrectAttendance(c.Context(), id, &req, operatorID); err != nil {
+	if err := h.service.UndoCheckIn(c.Context(), id, operatorID, &req); err != nil {
 		var valErr *ValidationError
 		if errors.As(err, &valErr) {
 			return response.SendError(c, fiber.StatusBadRequest, "Validation error", valErr.Details)
 		}
-		if err.Error() == "attendance correction is not supported by the current database schema" {
-			return response.SendError(c, fiber.StatusConflict, err.Error(), nil)
+		if err.Error() == "check-in not found or already undone" {
+			return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
 		}
 		return response.SendError(c, fiber.StatusInternalServerError, err.Error(), nil)
 	}
 
-	return response.SendSuccess(c, fiber.StatusOK, "Attendance corrected successfully", nil, nil)
+	return response.SendSuccess(c, fiber.StatusOK, "Attendance undone successfully", nil, nil)
 }

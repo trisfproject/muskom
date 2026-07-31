@@ -11,10 +11,11 @@ import (
 
 type Service interface {
 	CheckIn(ctx context.Context, req *CheckInRequest, operatorID string) (*CheckInResponse, error)
+	UndoCheckIn(ctx context.Context, checkInID string, operatorID string, req *UndoCheckInRequest) error
 	GetAttendance(ctx context.Context, registrationID string) (*AttendanceDetailResponse, error)
-	ListAttendances(ctx context.Context, filter AttendanceListRequest) ([]AttendanceItemResponse, int, error)
+	Search(ctx context.Context, filter AttendanceListRequest) ([]AttendanceItemResponse, int, error)
+	GetSummary(ctx context.Context, eventID string) (*AttendanceSummary, error)
 	GetAttendanceByID(ctx context.Context, id string) (*AttendanceDetailResponse, error)
-	CorrectAttendance(ctx context.Context, id string, req *CorrectAttendanceRequest, operatorID string) error
 }
 
 type service struct {
@@ -87,33 +88,43 @@ func (s *service) GetAttendance(ctx context.Context, registrationID string) (*At
 	return s.repo.GetAttendanceDetail(ctx, registrationID)
 }
 
-func (s *service) ListAttendances(ctx context.Context, filter AttendanceListRequest) ([]AttendanceItemResponse, int, error) {
+func (s *service) Search(ctx context.Context, filter AttendanceListRequest) ([]AttendanceItemResponse, int, error) {
 	if errs := s.validator.ValidateStruct(&filter); len(errs) > 0 {
 		return nil, 0, &ValidationError{Details: errs}
 	}
 	return s.repo.ListAttendances(ctx, filter)
 }
 
+func (s *service) GetSummary(ctx context.Context, eventID string) (*AttendanceSummary, error) {
+	if eventID == "" {
+		return nil, errors.New("event ID is required")
+	}
+	return s.repo.GetSummaryByEvent(ctx, eventID)
+}
+
 func (s *service) GetAttendanceByID(ctx context.Context, id string) (*AttendanceDetailResponse, error) {
 	return s.repo.GetAttendanceByID(ctx, id)
 }
 
-func (s *service) CorrectAttendance(ctx context.Context, id string, req *CorrectAttendanceRequest, operatorID string) error {
+func (s *service) UndoCheckIn(ctx context.Context, checkInID string, operatorID string, req *UndoCheckInRequest) error {
 	if errs := s.validator.ValidateStruct(req); len(errs) > 0 {
 		return &ValidationError{Details: errs}
 	}
 
-	// Always reject with a schema limitation error, but log it first
 	tx, err := s.repo.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	// Log the attempt
-	metadata := "Attempted attendance correction with notes: " + req.Notes
-	_ = s.repo.LogAudit(ctx, tx, "attendance", "CORRECT_ATTENDANCE_REJECTED", "attendance", id, metadata)
-	_ = tx.Commit()
+	if err := s.repo.UndoCheckIn(ctx, tx, checkInID, operatorID, req.Notes); err != nil {
+		return err
+	}
 
-	return errors.New("attendance correction is not supported by the current database schema")
+	metadata := "Check-in undone with reason: " + req.Notes
+	if err := s.repo.LogAudit(ctx, tx, "attendance", "UNDO_CHECK_IN", "attendance", checkInID, metadata); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }

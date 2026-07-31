@@ -1,28 +1,62 @@
 import { useQuery } from '@tanstack/react-query';
-import { attendanceService } from './index';
-import { AttendanceListRequest } from '@/types/attendance';
+import api from '@/lib/public-api';
+import { AttendanceItem, AttendanceFilters, AttendanceSummary } from './types';
+import { defaultPollingProvider } from '@/providers/PollingProvider';
+import { useEffect } from 'react';
 
-export const attendanceKeys = {
-  all: ['attendances'] as const,
-  lists: () => [...attendanceKeys.all, 'list'] as const,
-  list: (params: AttendanceListRequest) => [...attendanceKeys.lists(), params] as const,
-  details: () => [...attendanceKeys.all, 'detail'] as const,
-  detail: (id: string) => [...attendanceKeys.details(), id] as const,
-};
+export function useAttendanceSearch(filters: AttendanceFilters) {
+  const queryFn = async () => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        params.append(key, String(value));
+      }
+    });
+    
+    const res = await api.get(`/admin/attendance?${params.toString()}`);
+    return {
+      items: res.data.items as AttendanceItem[],
+      total: res.data.total as number,
+    };
+  };
 
-export const useAttendances = (params: AttendanceListRequest) => {
-  return useQuery({
-    queryKey: attendanceKeys.list(params),
-    queryFn: () => attendanceService.getAttendances(params),
-    staleTime: 1000 * 30, // 30 seconds
+  const query = useQuery({
+    queryKey: ['attendance', 'search', filters],
+    queryFn,
   });
-};
 
-export const useAttendanceDetail = (id: string, enabled = true) => {
-  return useQuery({
-    queryKey: attendanceKeys.detail(id),
-    queryFn: () => attendanceService.getAttendanceDetail(id),
-    enabled: !!id && enabled,
-    staleTime: 1000 * 30, // 30 seconds
+  // Enable Polling via LiveProvider abstraction
+  useEffect(() => {
+    defaultPollingProvider.connect();
+    const unsubscribe = defaultPollingProvider.subscribe('attendance_search', () => {
+      query.refetch();
+    });
+    return () => unsubscribe();
+  }, [query]);
+
+  return query;
+}
+
+export function useAttendanceSummary(eventId?: string) {
+  const queryFn = async () => {
+    if (!eventId) return null;
+    const res = await api.get(`/admin/attendance/summary?event_id=${eventId}`);
+    return res.data as AttendanceSummary;
+  };
+
+  const query = useQuery({
+    queryKey: ['attendance', 'summary', eventId],
+    queryFn,
+    enabled: !!eventId,
   });
-};
+
+  useEffect(() => {
+    defaultPollingProvider.connect();
+    const unsubscribe = defaultPollingProvider.subscribe('attendance_summary', () => {
+      query.refetch();
+    });
+    return () => unsubscribe();
+  }, [query]);
+
+  return query;
+}

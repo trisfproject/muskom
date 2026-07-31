@@ -45,6 +45,6 @@ type AttendanceItemResponse struct {
 	CheckedInAt        *time.Time `json:"checked_in_at,omitempty" db:"checked_in_at"`
 }
 
-type CorrectAttendanceRequest struct {
+type UndoCheckInRequest struct {
 	Notes string `json:"notes" validate:"required"`
 }
