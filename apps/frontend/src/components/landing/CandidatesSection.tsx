@@ -1,136 +1,101 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
+import { landingService } from '@/services/landing';
+import { ArrowRight, Building2, Quote, User } from 'lucide-react';
 import Link from 'next/link';
-import { User, ExternalLink, Hash } from 'lucide-react';
 
-export interface CandidateCard {
-  id: string;
-  number: number;
-  name: string;
-  organization?: string;
-  motto?: string;
-  vision_summary?: string;
-  photo_url?: string;
-}
+export function CandidatesSection() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['public-candidates'],
+    queryFn: landingService.getPublicCandidates,
+  });
 
-interface CandidatesSectionProps {
-  candidates?: CandidateCard[];
-}
+  const candidates = data?.data || [];
 
-function CandidateCardItem({ candidate }: { candidate: CandidateCard }) {
-  return (
-    <div className="group flex flex-col bg-white rounded-2xl border border-slate-100 overflow-hidden hover:border-emerald-200 hover:shadow-xl transition-all duration-300">
-      {/* Photo area */}
-      <div className="relative h-52 bg-gradient-to-br from-emerald-50 to-teal-100 overflow-hidden">
-        {candidate.photo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={candidate.photo_url}
-            alt={candidate.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="w-24 h-24 rounded-full bg-emerald-100 border-4 border-white shadow-md flex items-center justify-center">
-              <User className="w-12 h-12 text-emerald-400" />
-            </div>
-          </div>
-        )}
-        {/* Number badge */}
-        <div className="absolute top-4 left-4 w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shadow-lg">
-          <Hash className="w-3 h-3 mr-0.5" />
-          {candidate.number}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex flex-col flex-1 p-6">
-        <h3 className="text-lg font-bold text-slate-900 mb-1 leading-tight">{candidate.name}</h3>
-
-        {candidate.organization && (
-          <p className="text-sm text-emerald-700 font-medium mb-3 flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-            {candidate.organization}
-          </p>
-        )}
-
-        {candidate.motto && (
-          <blockquote className="text-sm italic text-slate-500 border-l-2 border-emerald-200 pl-3 mb-4 line-clamp-2">
-            &ldquo;{candidate.motto}&rdquo;
-          </blockquote>
-        )}
-
-        {candidate.vision_summary && (
-          <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 mb-4 flex-1">
-            {candidate.vision_summary}
-          </p>
-        )}
-
-        <Link
-          href={`/candidates/${candidate.id}`}
-          className="mt-auto inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border border-emerald-200 text-emerald-700 font-semibold text-sm hover:bg-emerald-50 hover:border-emerald-300 transition-all duration-200"
-        >
-          Lihat Profil Lengkap
-          <ExternalLink className="w-4 h-4" />
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-// Placeholder candidates when no data is available (coming soon state)
-const PLACEHOLDER_CANDIDATES: CandidateCard[] = [
-  { id: '1', number: 1, name: 'Kandidat I', organization: 'Divisi A', motto: 'Bersama membangun komunitas yang lebih kuat', vision_summary: 'Visi dan misi kandidat akan segera diumumkan.' },
-  { id: '2', number: 2, name: 'Kandidat II', organization: 'Divisi B', motto: 'Inovasi untuk komunitas yang lebih baik', vision_summary: 'Visi dan misi kandidat akan segera diumumkan.' },
-  { id: '3', number: 3, name: 'Kandidat III', organization: 'Divisi C', motto: 'Kepemimpinan yang amanah dan transparan', vision_summary: 'Visi dan misi kandidat akan segera diumumkan.' },
-];
-
-export function CandidatesSection({ candidates }: CandidatesSectionProps) {
-  const displayCandidates = (candidates && candidates.length > 0) ? candidates : null;
-  const isPlaceholder = !displayCandidates;
-
-  // Dynamic grid: 1 col for 1, 2 cols for 2, 3 cols for 3+
-  const gridClass =
-    displayCandidates && displayCandidates.length === 1
-      ? 'grid-cols-1 max-w-sm mx-auto'
-      : displayCandidates && displayCandidates.length === 2
-      ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto'
-      : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+  if (isLoading || candidates.length === 0) return null;
 
   return (
-    <section id="kandidat" className="py-24 bg-slate-50 border-t border-slate-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="kandidat" className="py-24 bg-slate-50 relative">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold border border-emerald-100">
-            Calon Ketua
-          </div>
-          <h2 className="heading-xl text-slate-900 mb-4">
-            Kandidat <span className="text-gradient">Ketua Komunitas</span>
+        <div className="text-center mb-20">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+            Kandidat Ketua
           </h2>
-          <p className="text-lg text-slate-600">
-            Kenali para kandidat yang akan memimpin komunitas untuk periode berikutnya.
+          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+            Mengenal lebih dekat para calon pemimpin yang akan membawa arah baru komunitas kita.
           </p>
         </div>
 
-        {isPlaceholder ? (
-          /* Coming soon state */
-          <div className="text-center py-16">
-            <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
-              <User className="w-10 h-10 text-emerald-400" />
+        {/* Candidates Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {candidates.map((candidate) => (
+            <div 
+              key={candidate.id} 
+              className="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-slate-200 transition-all duration-300 overflow-hidden flex flex-col h-full"
+            >
+              {/* Image Area */}
+              <div className="relative aspect-square w-full bg-slate-100 overflow-hidden">
+                {candidate.photo_url ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={candidate.photo_url}
+                    alt={candidate.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
+                    <User size={80} strokeWidth={1} />
+                  </div>
+                )}
+                
+                {/* Number Badge */}
+                <div className="absolute top-4 left-4 w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-xl font-black text-slate-900 shadow-md">
+                  {candidate.number}
+                </div>
+              </div>
+
+              {/* Content Area */}
+              <div className="p-8 flex-1 flex flex-col">
+                <h3 className="text-2xl font-bold text-slate-900 mb-2 leading-tight">
+                  {candidate.name}
+                </h3>
+                
+                <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm mb-6">
+                  <Building2 size={16} />
+                  <span>{candidate.organization || 'Delegasi Mandiri'}</span>
+                </div>
+
+                <div className="relative mb-6">
+                  <Quote size={24} className="absolute -top-2 -left-2 text-slate-100 rotate-180" />
+                  <p className="text-slate-600 font-medium italic relative z-10 text-sm leading-relaxed pl-4 border-l-2 border-emerald-100">
+                    &quot;{candidate.motto || 'Membangun komunitas yang lebih baik bersama-sama.'}&quot;
+                  </p>
+                </div>
+
+                {/* Visi Summary (mocking it if not strictly short) */}
+                <div className="mb-8 flex-1">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Ringkasan Visi</h4>
+                  <p className="text-slate-600 text-sm leading-relaxed line-clamp-3">
+                    {candidate.vision || 'Berkomitmen untuk mewujudkan komunitas yang inklusif, inovatif, dan berdaya saing global melalui kolaborasi aktif seluruh anggota.'}
+                  </p>
+                </div>
+
+                {/* CTA */}
+                <Link 
+                  href={`/candidates/${candidate.id}`}
+                  className="mt-auto flex items-center justify-center gap-2 w-full py-4 bg-slate-50 text-slate-900 font-semibold rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300"
+                >
+                  Lihat Profil Lengkap
+                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
             </div>
-            <h3 className="text-xl font-bold text-slate-700 mb-2">Kandidat Belum Diumumkan</h3>
-            <p className="text-slate-500 max-w-md mx-auto">
-              Daftar kandidat ketua akan diumumkan setelah masa pendaftaran kandidat selesai. Pantau terus portal ini untuk informasi terbaru.
-            </p>
-          </div>
-        ) : (
-          <div className={`grid gap-6 ${gridClass}`}>
-            {displayCandidates!.map((candidate) => (
-              <CandidateCardItem key={candidate.id} candidate={candidate} />
-            ))}
-          </div>
-        )}
+          ))}
+        </div>
+
       </div>
     </section>
   );

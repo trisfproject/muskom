@@ -5,10 +5,10 @@ import { useEffect, useState } from 'react';
 import { Menu, X, Lock } from 'lucide-react';
 
 const navItems = [
-  { label: 'Tentang', href: '#tentang' },
-  { label: 'Kandidat', href: '#kandidat' },
+  { label: 'Beranda', href: '#' },
   { label: 'Timeline', href: '#timeline' },
-  { label: 'FAQ', href: '#faq' },
+  { label: 'Kandidat', href: '#kandidat' },
+  { label: 'Pengumuman', href: '#pengumuman' },
 ];
 
 export function PublicNavbar() {

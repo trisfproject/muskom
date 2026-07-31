@@ -4,11 +4,10 @@ import { useQuery } from '@tanstack/react-query';
 import { landingService } from '@/services/landing';
 import { PublicNavbar } from '@/components/layout/PublicNavbar';
 import { HeroSection } from '@/components/landing/HeroSection';
-import { AboutSection } from '@/components/landing/AboutSection';
-import { EventSection } from '@/components/landing/EventSection';
-import { CandidatesSection } from '@/components/landing/CandidatesSection';
+import { StatsSection } from '@/components/landing/StatsSection';
 import { TimelineSection } from '@/components/landing/TimelineSection';
-import { FAQSection } from '@/components/landing/FAQSection';
+import { CandidatesSection } from '@/components/landing/CandidatesSection';
+import { AnnouncementsSection } from '@/components/landing/AnnouncementsSection';
 import { Footer } from '@/components/landing/Footer';
 import { LandingLoadingSkeleton } from '@/components/landing/LandingLoadingSkeleton';
 
@@ -30,16 +29,23 @@ export default function LandingPageClient() {
   // Handle Draft / Cancelled — show maintenance screen WITH navbar
   if (activeEvent?.status === 'DRAFT' || activeEvent?.status === 'CANCELLED') {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-950">
         <PublicNavbar />
-        <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center">
-          <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-6">
-            <span className="text-white font-extrabold text-2xl">M</span>
+        <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center relative overflow-hidden">
+          {/* Decorative background */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-emerald-500/10 blur-3xl" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-3">Portal Sedang dalam Pemeliharaan</h2>
-          <p className="text-slate-500 max-w-md leading-relaxed">
-            Portal musyawarah sedang dalam pemeliharaan atau persiapan. Silakan kunjungi kembali beberapa saat lagi.
-          </p>
+          
+          <div className="relative z-10">
+            <div className="w-20 h-20 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-8 shadow-2xl">
+              <span className="text-emerald-400 font-extrabold text-3xl">M</span>
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4 tracking-tight">Portal Sedang dalam Pemeliharaan</h2>
+            <p className="text-slate-400 max-w-md leading-relaxed mx-auto text-lg">
+              Sistem pendaftaran dan pemilihan sedang dipersiapkan. Silakan kunjungi kembali beberapa saat lagi.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -48,45 +54,48 @@ export default function LandingPageClient() {
   // Handle Completed — show results screen WITH all sections
   if (activeEvent?.status === 'COMPLETED') {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen font-sans bg-slate-50">
         <PublicNavbar />
         <HeroSection event={activeEvent} />
-        <AboutSection />
-        <CandidatesSection />
+        <StatsSection event={activeEvent} />
         <TimelineSection event={activeEvent} />
-        <div className="py-16 bg-white text-center">
-          <div className="max-w-2xl mx-auto px-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 mb-6">
-              <span className="text-3xl">🎉</span>
+        <CandidatesSection />
+        <AnnouncementsSection />
+        
+        <div className="py-24 bg-white text-center border-t border-slate-100 relative overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[300px] bg-gradient-to-b from-emerald-50 to-transparent pointer-events-none" />
+          
+          <div className="relative z-10 max-w-3xl mx-auto px-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 mb-8 shadow-inner shadow-emerald-200">
+              <span className="text-4xl">🎉</span>
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Musyawarah Telah Selesai</h2>
-            <p className="text-slate-600 mb-8">
-              Terima kasih kepada seluruh peserta, kandidat, dan panitia atas partisipasi yang luar biasa.
+            <h2 className="text-4xl font-extrabold text-slate-900 mb-6 tracking-tight">Musyawarah Telah Selesai</h2>
+            <p className="text-xl text-slate-500 mb-10 leading-relaxed">
+              Terima kasih kepada seluruh peserta, kandidat, dan panitia atas partisipasi yang luar biasa dalam menyukseskan acara ini.
             </p>
             <a
               href="/results"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full gradient-primary text-white font-semibold hover:opacity-90 transition-opacity"
+              className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/30 text-lg"
             >
               Lihat Hasil Pemilihan →
             </a>
           </div>
         </div>
-        <FAQSection />
+        
         <Footer />
       </div>
     );
   }
 
-  // Standard Render — all sections visible
+  // Standard Render — EXACTLY 7 Sections as required
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen font-sans bg-slate-50">
       <PublicNavbar />
       <HeroSection event={activeEvent} />
-      <AboutSection />
-      <EventSection event={activeEvent} />
-      <CandidatesSection />
+      <StatsSection event={activeEvent} />
       <TimelineSection event={activeEvent} />
-      <FAQSection />
+      <CandidatesSection />
+      <AnnouncementsSection />
       <Footer />
     </div>
   );
