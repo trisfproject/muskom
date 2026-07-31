@@ -141,6 +141,8 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 - MKS-080-004: Result Finalization (🚫 Blocked - Business Gap)
 - MKS-080-005: Export Results (✅ Done)
 - BUG-001: Upload Validation Hardening (✅ Done)
+- [x] Admin Authentication & Logout
+- [x] Admin Layout
 - MKS-070-003: Global System Settings
 - MKS-070-004: Infrastructure Health Check API
 - MKS-070-005: Prometheus/Grafana Monitoring

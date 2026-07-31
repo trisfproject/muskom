@@ -7,6 +7,9 @@ All notable changes to the MUSKOM project will be documented in this file.
 ## RC1
 
 ### Added
+- **Reusable Admin Layout**: Implemented `AdminLayout` wrapper encompassing a responsive sidebar, header, and mobile navigation drawer.
+- **Responsive Navigation**: Added fixed desktop sidebar and a slide-out drawer via `MobileSidebar` for mobile/tablet environments.
+- **Admin Context Display**: Configured `Header` to display breadcrumb tracking via `usePathname()` and `UserMenu` to securely expose the logged-in user context and logout action.
 - **Admin Authentication**: Created `/admin/login` page on the frontend (Next.js App Router).
 - **JWT Login**: Stored authentication context seamlessly via `js-cookie` and native Next.js middleware handling.
 - **Protected Admin Routes**: Blocked unauthenticated access to `/admin/*` automatically redirecting unauthorized visitors to the login portal.
