@@ -4,6 +4,16 @@ All notable changes to the MUSKOM project will be documented in this file.
 
 ## [Unreleased] - 2026-07-27
 
+## RC1
+
+### Added
+- **Admin Authentication**: Created `/admin/login` page on the frontend (Next.js App Router).
+- **JWT Login**: Stored authentication context seamlessly via `js-cookie` and native Next.js middleware handling.
+- **Protected Admin Routes**: Blocked unauthenticated access to `/admin/*` automatically redirecting unauthorized visitors to the login portal.
+
+### Changed
+- **Authentication Flow**: Moved authentication state to TanStack Query and React Hook Form (with Zod validation).
+
 ### Added
 - **Upload Validation Hardening (BUG-001)**: Strengthened file upload security across `registration`, `candidate`, and `musyawarah` modules.
   - Implemented robust MIME type sniffing using `http.DetectContentType` to prevent spoofed `Content-Type` headers.

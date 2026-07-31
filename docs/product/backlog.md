@@ -88,7 +88,7 @@ This document serves as the **FROZEN** single source of truth for the MUSKOM (Mu
 - FND-05: Document Engineering Standards
 - FND-07: Backend Bootstrap (Go Fiber API)
 - FND-08: Frontend Bootstrap (Next.js/Vite)
-- MKS-020-002: Admin Authentication & Logout
+- [x] Admin Authentication & Logout
 
 ### Sprint 2: Event Configuration & Content
 **Status**: ✅ Completed
