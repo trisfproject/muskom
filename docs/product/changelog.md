@@ -4,6 +4,17 @@ All notable changes to the MUSKOM project will be documented in this file.
 
 ## [Unreleased] - 2026-07-27
 
+## [Unreleased]
+### Added
+- Complete UI/UX redesign of Landing Page, Admin Dashboard, Login Page, and layout components.
+- Stabilized local Docker deployment environment.
+
+### Fixed
+- Fixed deployment instability by defining explicit project `name: muskom` in docker-compose.
+- Fixed API port documentation in Dockerfile.
+- Fixed container termination by adding `restart: unless-stopped` policies.
+- Fixed Landing Page handling of event state (always visible instead of empty state).
+- Fixed application virtual host routing.
 ## RC1
 
 ### Added

@@ -22,6 +22,6 @@ RUN apk --no-cache add ca-certificates tzdata
 
 COPY --from=builder /app/muskom-api .
 
-EXPOSE 3000
+EXPOSE 8080
 
 CMD ["./muskom-api"]
