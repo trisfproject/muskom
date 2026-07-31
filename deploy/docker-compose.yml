@@ -1,123 +1,70 @@
-x-logging: &default-logging
-  driver: "json-file"
-  options:
-    max-size: "10m"
-    max-file: "3"
+version: '3.8'
 
 services:
-  postgres:
-    container_name: muskom-postgres
-    image: postgres:17-alpine
-    restart: unless-stopped
+  db:
+    image: postgres:15-alpine
+    container_name: muskom-db
     environment:
-      POSTGRES_USER: ${DB_USER:-muskom}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
-      POSTGRES_DB: ${DB_NAME:-muskom}
+      POSTGRES_USER: muskom
+      POSTGRES_PASSWORD: muskom_password
+      POSTGRES_DB: muskom
+    ports:
+      - "3307:5432" # Mapped to 3307 on host to avoid Nyx mysql collision on 3306
     volumes:
-      - muskom-postgres-data:/var/lib/postgresql/data
-    networks:
-      - muskom-network
+      - muskom_data:/var/lib/postgresql/data
+      - ../database/migrations:/docker-entrypoint-initdb.d # Auto-run migrations on init
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-muskom} -d ${DB_NAME:-muskom}"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U muskom -d muskom"]
+      interval: 5s
       timeout: 5s
       retries: 5
-    logging: *default-logging
 
   redis:
-    container_name: muskom-redis
     image: redis:7-alpine
-    restart: unless-stopped
-    command: ["redis-server", "--appendonly", "yes"]
+    container_name: muskom-redis
+    ports:
+      - "6379:6379"
     volumes:
-      - muskom-redis-data:/data
-    networks:
-      - muskom-network
+      - muskom_redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 5
-    logging: *default-logging
 
   api:
-    container_name: muskom-api
-    image: muskom-api:latest
     build:
       context: ../apps/api
       dockerfile: ../../deploy/api/Dockerfile
-    restart: unless-stopped
+    container_name: muskom-api
     environment:
-      - PORT=8080
-      - DATABASE_URL=postgres://${DB_USER:-muskom}:${DB_PASSWORD:-secret}@postgres:5432/${DB_NAME:-muskom}?sslmode=disable
-      - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=${JWT_SECRET:-secret}
-    networks:
-      - muskom-network
+      - DATABASE_URL=postgres://muskom:muskom_password@db:5432/muskom?sslmode=disable
+      - REDIS_URL=redis://redis:6379/0
+      - JWT_SECRET=muskom_rc2_secret_key
+      - JWT_REFRESH_SECRET=muskom_rc2_refresh_secret_key
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000
+      - LOG_LEVEL=debug
+      - MAX_UPLOAD_SIZE=5242880
+    ports:
+      - "8080:8080" # Mapped to 8080 on host to avoid nyx backend collision on 3100
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8080/api/v1/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-    logging: *default-logging
 
   frontend:
-    container_name: muskom-frontend
-    image: muskom-frontend:latest
     build:
       context: ../apps/frontend
       dockerfile: ../../deploy/frontend/Dockerfile
-    restart: unless-stopped
+    container_name: muskom-frontend
     environment:
-      - NODE_ENV=production
-      - API_URL=http://api:8080
-    networks:
-      - muskom-network
-    depends_on:
-      api:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:3000"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-    logging: *default-logging
-
-  nginx:
-    container_name: muskom-nginx
-    image: muskom-nginx:latest
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
-    restart: unless-stopped
+      - NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
     ports:
-      - "${PORT:-8000}:80"
-    networks:
-      - muskom-network
+      - "3000:3000" # Mapped to 3000 on host (free on host)
     depends_on:
-      frontend:
-        condition: service_healthy
-      api:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "nginx", "-t"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    logging: *default-logging
-
-networks:
-  muskom-network:
-    name: muskom-network
-    driver: bridge
+      - api
 
 volumes:
-  muskom-postgres-data:
-    name: muskom-postgres-data
-  muskom-redis-data:
-    name: muskom-redis-data
+  muskom_data:
+  muskom_redis:

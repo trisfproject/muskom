@@ -1,31 +1,27 @@
-# Build Stage
-FROM golang:1.25-alpine AS builder
+FROM golang:alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod ./
-COPY go.sum* ./
+# Copy go modules manifests and download dependencies
+COPY go.mod go.sum ./
 RUN go mod download
 
+# Copy source code
 COPY . .
 
-# Build standard production binary
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o api cmd/server/main.go
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -o muskom-api ./cmd/server/main.go
 
-# Production Stage
+# Production Image
 FROM alpine:3.19
 
 WORKDIR /app
 
-# Add tzdata for timezone support and ca-certificates for secure API calls
+# We need timezone data and ca-certificates for production
 RUN apk --no-cache add ca-certificates tzdata
 
-COPY --from=builder /app/api .
+COPY --from=builder /app/muskom-api .
 
-# Create non-root user for security best practices
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
+EXPOSE 3000
 
-EXPOSE 8080
-
-ENTRYPOINT ["./api"]
+CMD ["./muskom-api"]

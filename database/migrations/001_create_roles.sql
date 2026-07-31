@@ -7,3 +7,12 @@ CREATE TABLE IF NOT EXISTS roles (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT uq_roles_code UNIQUE (code)
 );
+
+INSERT INTO roles (code, name, description) VALUES
+    ('SUPER_ADMIN', 'Super Admin', 'Full system access'),
+    ('ADMIN', 'Admin', 'Administrative access'),
+    ('COMMITTEE', 'Committee', 'Event management access'),
+    ('VERIFIER', 'Verifier', 'Participant and Candidate verification'),
+    ('OPERATOR', 'Operator', 'Frontline operations access'),
+    ('VIEWER', 'Viewer', 'Read-only access')
+ON CONFLICT (code) DO NOTHING;

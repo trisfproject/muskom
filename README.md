@@ -26,7 +26,7 @@ To get the project running locally:
 
 1. Clone the repository.
 2. Copy `.env.example` to `.env`.
-3. Run `make up` to start the Docker containers.
+3. Run `docker compose -f deploy/docker-compose.yml up -d` to start the containers.
 
 ## Development Roadmap
 See `docs/10-roadmap.md` for detailed sprint plannings and feature milestones.

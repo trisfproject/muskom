@@ -1,3 +1,5 @@
+'use client';
+
 import { Ballot, Candidate } from "@/components/voting/Ballot";
 
 export default function PublicVotingPage() {
