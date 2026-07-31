@@ -46,6 +46,8 @@ func TestHandler_AdminEndpoints(t *testing.T) {
 
 	app.Get("/api/v1/admin/events/:eventId/results/overview", handler.AdminGetOverview)
 	app.Get("/api/v1/admin/events/:eventId/results/summary", handler.AdminGetSummary)
+	app.Get("/api/v1/admin/events/:eventId/results/candidates", handler.AdminGetCandidates)
+	app.Get("/api/v1/admin/events/:eventId/results/audit", handler.AdminGetAudit)
 
 	eventID := uuid.New()
 
@@ -122,6 +124,28 @@ func TestHandler_AdminEndpoints(t *testing.T) {
 		mockSvc.On("GetElectionResults", mock.Anything, eventID).Return(res, nil).Once()
 
 		req := httptest.NewRequest(fiber.MethodGet, "/api/v1/admin/events/"+eventID.String()+"/results/export/csv", nil)
+		resp, _ := app.Test(req)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("Candidates Success", func(t *testing.T) {
+		res := &ElectionResultResponse{
+			EventID: eventID,
+		}
+		mockSvc.On("GetElectionResults", mock.Anything, eventID).Return(res, nil).Once()
+
+		req := httptest.NewRequest(fiber.MethodGet, "/api/v1/admin/events/"+eventID.String()+"/results/candidates", nil)
+		resp, _ := app.Test(req)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("Audit Success", func(t *testing.T) {
+		res := &AdminListAuditResponse{
+			Data: []AuditLogResponse{},
+		}
+		mockSvc.On("GetAuditLogs", mock.Anything, eventID, mock.Anything).Return(res, nil).Once()
+
+		req := httptest.NewRequest(fiber.MethodGet, "/api/v1/admin/events/"+eventID.String()+"/results/audit", nil)
 		resp, _ := app.Test(req)
 		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
 	})

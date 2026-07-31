@@ -16,33 +16,33 @@ type VerificationListRequest struct {
 }
 
 type VerificationItemResponse struct {
-	ID            string    `json:"id"`
-	QueueType     string    `json:"queue_type"`
-	ApplicantName string    `json:"applicant_name"`
-	Status        string    `json:"status"`
-	CreatedAt     time.Time `json:"created_at"`
+	ID            string    `json:"id" db:"id"`
+	QueueType     string    `json:"queue_type" db:"queue_type"`
+	ApplicantName string    `json:"applicant_name" db:"applicant_name"`
+	Status        string    `json:"status" db:"status"`
+	CreatedAt     time.Time `json:"created_at" db:"created_at"`
 }
 
 type VerificationSummaryResponse struct {
-	TotalPending        int `json:"total_pending"`
-	PendingParticipants int `json:"pending_participants"`
-	PendingCandidates   int `json:"pending_candidates"`
+	TotalPending        int `json:"total_pending" db:"total_pending"`
+	PendingParticipants int `json:"pending_participants" db:"pending_participants"`
+	PendingCandidates   int `json:"pending_candidates" db:"pending_candidates"`
 }
 
 type ParticipantDetailResponse struct {
-	ID                  string    `json:"id"`
-	EventID             string    `json:"event_id"`
-	ParticipantCategory string    `json:"participant_category"`
-	Source              string    `json:"source"`
-	Status              string    `json:"status"`
-	RejectionReason     *string   `json:"rejection_reason,omitempty"`
-	CreatedAt           time.Time `json:"created_at"`
-	UpdatedAt           time.Time `json:"updated_at"`
-	PersonID            string    `json:"person_id"`
-	FullName            string    `json:"full_name"`
-	Email               string    `json:"email"`
-	Phone               string    `json:"phone"`
-	Institution         string    `json:"institution"`
+	ID                  string    `json:"id" db:"id"`
+	EventID             string    `json:"event_id" db:"event_id"`
+	ParticipantCategory string    `json:"participant_category" db:"participant_category"`
+	Source              string    `json:"source" db:"source"`
+	Status              string    `json:"status" db:"status"`
+	RejectionReason     *string   `json:"rejection_reason,omitempty" db:"rejection_reason"`
+	CreatedAt           time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at" db:"updated_at"`
+	PersonID            string    `json:"person_id" db:"person_id"`
+	FullName            string    `json:"full_name" db:"full_name"`
+	Email               string    `json:"email" db:"email"`
+	Phone               string    `json:"phone" db:"phone"`
+	Institution         string    `json:"institution" db:"institution"`
 }
 
 type VerifyParticipantRequest struct {
@@ -51,24 +51,24 @@ type VerifyParticipantRequest struct {
 }
 
 type CandidateDetailResponse struct {
-	ID                  string    `json:"id"`
-	RegistrationID      string    `json:"registration_id"`
-	EventID             string    `json:"event_id"`
-	ParticipantCategory string    `json:"participant_category"`
-	Source              string    `json:"source"`
-	Status              string    `json:"status"`
-	CreatedAt           time.Time `json:"created_at"`
-	UpdatedAt           time.Time `json:"updated_at"`
-	PersonID            string    `json:"person_id"`
-	FullName            string    `json:"full_name"`
-	Email               string    `json:"email"`
-	Phone               string    `json:"phone"`
-	Institution         string    `json:"institution"`
-	Vision              *string   `json:"vision,omitempty"`
-	Mission             *string   `json:"mission,omitempty"`
-	WorkProgram         *string   `json:"work_program,omitempty"`
-	PhotoPath           *string   `json:"photo_path,omitempty"`
-	DocumentPath        *string   `json:"document_path,omitempty"`
+	ID                  string    `json:"id" db:"id"`
+	RegistrationID      string    `json:"registration_id" db:"registration_id"`
+	EventID             string    `json:"event_id" db:"event_id"`
+	ParticipantCategory string    `json:"participant_category" db:"participant_category"`
+	Source              string    `json:"source" db:"source"`
+	Status              string    `json:"status" db:"status"`
+	CreatedAt           time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at" db:"updated_at"`
+	PersonID            string    `json:"person_id" db:"person_id"`
+	FullName            string    `json:"full_name" db:"full_name"`
+	Email               string    `json:"email" db:"email"`
+	Phone               string    `json:"phone" db:"phone"`
+	Institution         string    `json:"institution" db:"institution"`
+	Vision              *string   `json:"vision,omitempty" db:"vision"`
+	Mission             *string   `json:"mission,omitempty" db:"mission"`
+	WorkProgram         *string   `json:"work_program,omitempty" db:"work_program"`
+	PhotoPath           *string   `json:"photo_path,omitempty" db:"photo_path"`
+	DocumentPath        *string   `json:"document_path,omitempty" db:"document_path"`
 }
 
 type VerifyCandidateRequest struct {

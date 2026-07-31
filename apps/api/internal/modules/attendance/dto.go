@@ -12,16 +12,16 @@ type CheckInResponse struct {
 }
 
 type AttendanceDetailResponse struct {
-	ID             string    `json:"id"`
-	RegistrationID string    `json:"registration_id"`
-	CheckedInAt    time.Time `json:"checked_in_at"`
-	CheckedInBy    *string   `json:"checked_in_by,omitempty"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
-	FullName       string    `json:"full_name"`
-	Email          string    `json:"email"`
-	Phone          string    `json:"phone"`
-	Institution    string    `json:"institution"`
+	ID             string    `json:"id" db:"id"`
+	RegistrationID string    `json:"registration_id" db:"registration_id"`
+	CheckedInAt    time.Time `json:"checked_in_at" db:"checked_in_at"`
+	CheckedInBy    *string   `json:"checked_in_by,omitempty" db:"checked_in_by"`
+	CreatedAt      time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at" db:"updated_at"`
+	FullName       string    `json:"full_name" db:"full_name"`
+	Email          string    `json:"email" db:"email"`
+	Phone          string    `json:"phone" db:"phone"`
+	Institution    string    `json:"institution" db:"institution"`
 }
 
 type AttendanceListRequest struct {
@@ -37,12 +37,12 @@ type AttendanceListRequest struct {
 }
 
 type AttendanceItemResponse struct {
-	RegistrationID     string     `json:"registration_id"`
-	ParticipantName    string     `json:"participant_name"`
-	Institution        string     `json:"institution"`
-	VerificationStatus string     `json:"verification_status"`
-	AttendanceStatus   string     `json:"attendance_status"`
-	CheckedInAt        *time.Time `json:"checked_in_at,omitempty"`
+	RegistrationID     string     `json:"registration_id" db:"registration_id"`
+	ParticipantName    string     `json:"participant_name" db:"participant_name"`
+	Institution        string     `json:"institution" db:"institution"`
+	VerificationStatus string     `json:"verification_status" db:"verification_status"`
+	AttendanceStatus   string     `json:"attendance_status" db:"attendance_status"`
+	CheckedInAt        *time.Time `json:"checked_in_at,omitempty" db:"checked_in_at"`
 }
 
 type CorrectAttendanceRequest struct {

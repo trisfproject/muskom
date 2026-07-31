@@ -30,13 +30,13 @@ type AdminListVotesRequest struct {
 }
 
 type AdminVoteResponse struct {
-	ID              uuid.UUID `json:"id"`
-	EventID         uuid.UUID `json:"event_id"`
-	RegistrationID  uuid.UUID `json:"registration_id"`
-	CandidateID     uuid.UUID `json:"candidate_id"`
-	CreatedAt       time.Time `json:"created_at"`
-	ParticipantName string    `json:"participant_name,omitempty"`
-	CandidateName   string    `json:"candidate_name,omitempty"`
+	ID              uuid.UUID `json:"id" db:"id"`
+	EventID         uuid.UUID `json:"event_id" db:"event_id"`
+	RegistrationID  uuid.UUID `json:"registration_id" db:"registration_id"`
+	CandidateID     uuid.UUID `json:"candidate_id" db:"candidate_id"`
+	CreatedAt       time.Time `json:"created_at" db:"created_at"`
+	ParticipantName string    `json:"participant_name,omitempty" db:"participant_name"`
+	CandidateName   string    `json:"candidate_name,omitempty" db:"candidate_name"`
 }
 
 type AdminListVotesResponse struct {

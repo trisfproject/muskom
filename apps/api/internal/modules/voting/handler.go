@@ -22,7 +22,10 @@ func NewHandler(service Service, val *validator.Validator) *Handler {
 }
 
 func (h *Handler) SubmitVote(c fiber.Ctx) error {
-	userIDStr := c.Locals("user_id").(string)
+	userIDStr, ok := c.Locals("user_id").(string)
+	if !ok {
+		return response.SendError(c, fiber.StatusUnauthorized, "Invalid user context", nil)
+	}
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return response.SendError(c, fiber.StatusUnauthorized, "Invalid user context", nil)
@@ -59,7 +62,10 @@ func (h *Handler) SubmitVote(c fiber.Ctx) error {
 }
 
 func (h *Handler) GetMyVoteStatus(c fiber.Ctx) error {
-	userIDStr := c.Locals("user_id").(string)
+	userIDStr, ok := c.Locals("user_id").(string)
+	if !ok {
+		return response.SendError(c, fiber.StatusUnauthorized, "Invalid user context", nil)
+	}
 	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
 		return response.SendError(c, fiber.StatusUnauthorized, "Invalid user context", nil)

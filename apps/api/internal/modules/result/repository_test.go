@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"time"
 )
 
 func TestRepository_GetElectionResults(t *testing.T) {
@@ -174,5 +175,53 @@ func TestRepository_GetElectionResults(t *testing.T) {
 		assert.Len(t, res.Candidates, 5)
 		assert.Equal(t, 40.0, res.Candidates[0].Percentage)
 		assert.Equal(t, 0.0, res.Candidates[4].Percentage)
+	})
+}
+
+func TestRepository_GetElectionOverview(t *testing.T) {
+	eventID := uuid.New()
+	ctx := context.Background()
+
+	t.Run("Success", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+		assert.NoError(t, err)
+		defer db.Close()
+		sqlxDB := sqlx.NewDb(db, "postgres")
+		repo := NewRepository(sqlxDB)
+
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM registrations").WithArgs(eventID).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(100))
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM attendance").WithArgs(eventID).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(80))
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes").WithArgs(eventID).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(60))
+
+		res, err := repo.GetElectionOverview(ctx, eventID)
+		assert.NoError(t, err)
+		assert.Equal(t, 100, res.TotalEligible)
+		assert.Equal(t, 80, res.TotalCheckedIn)
+		assert.Equal(t, 60, res.TotalVotes)
+		assert.Equal(t, 60.0, res.Participation)
+	})
+}
+
+func TestRepository_GetAuditLogs(t *testing.T) {
+	eventID := uuid.New()
+	ctx := context.Background()
+
+	t.Run("Success", func(t *testing.T) {
+		db, mock, err := sqlmock.New()
+		assert.NoError(t, err)
+		defer db.Close()
+		sqlxDB := sqlx.NewDb(db, "postgres")
+		repo := NewRepository(sqlxDB)
+
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM audit_logs").WithArgs(eventID).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+		
+		rows := sqlmock.NewRows([]string{"id", "user_id", "action", "ip_address", "metadata", "created_at"}).
+			AddRow(uuid.New(), uuid.New(), "ACT", "ip", "meta", time.Now())
+		mock.ExpectQuery("^SELECT (.+) FROM audit_logs").WillReturnRows(rows)
+
+		logs, total, err := repo.GetAuditLogs(ctx, eventID, AdminListAuditRequest{})
+		assert.NoError(t, err)
+		assert.Equal(t, 1, total)
+		assert.Len(t, logs, 1)
 	})
 }

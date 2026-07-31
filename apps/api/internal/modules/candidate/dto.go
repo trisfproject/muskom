@@ -44,34 +44,34 @@ type CandidateAdminListRequest struct {
 }
 
 type CandidateAdminListResponse struct {
-	ID                  string    `json:"id"`
-	CandidateCode       string    `json:"candidate_code"`
-	RegistrationID      string    `json:"registration_id"`
-	Name                string    `json:"name"`
-	ParticipantCategory string    `json:"participant_category"`
-	Status              string    `json:"status"`
-	CreatedAt           time.Time `json:"created_at"`
+	ID                  string    `json:"id" db:"id"`
+	CandidateCode       string    `json:"candidate_code" db:"candidate_code"`
+	RegistrationID      string    `json:"registration_id" db:"registration_id"`
+	Name                string    `json:"name" db:"name"`
+	ParticipantCategory string    `json:"participant_category" db:"participant_category"`
+	Status              string    `json:"status" db:"status"`
+	CreatedAt           time.Time `json:"created_at" db:"created_at"`
 }
 
 type CandidateAdminDetailResponse struct {
 	CandidateAdminListResponse
-	Vision       string                      `json:"vision"`
-	Mission      string                      `json:"mission"`
-	WorkProgram  string                      `json:"work_program"`
-	PhotoURL     string                      `json:"photo_url,omitempty"`
-	DocumentURL  string                      `json:"document_url,omitempty"`
-	ReviewedBy   *string                     `json:"reviewed_by,omitempty"`
-	ReviewedAt   *time.Time                  `json:"reviewed_at,omitempty"`
-	ReviewerName *string                     `json:"reviewer_name,omitempty"`
-	AuditHistory []CandidateAuditLogResponse `json:"audit_history,omitempty"`
+	Vision       string                      `json:"vision" db:"vision"`
+	Mission      string                      `json:"mission" db:"mission"`
+	WorkProgram  string                      `json:"work_program" db:"work_program"`
+	PhotoURL     string                      `json:"photo_url,omitempty" db:"-"`
+	DocumentURL  string                      `json:"document_url,omitempty" db:"-"`
+	ReviewedBy   *string                     `json:"reviewed_by,omitempty" db:"reviewed_by"`
+	ReviewedAt   *time.Time                  `json:"reviewed_at,omitempty" db:"reviewed_at"`
+	ReviewerName *string                     `json:"reviewer_name,omitempty" db:"reviewer_name"`
+	AuditHistory []CandidateAuditLogResponse `json:"audit_history,omitempty" db:"-"`
 }
 
 type CandidateAuditLogResponse struct {
-	ID        string    `json:"id"`
-	Action    string    `json:"action"`
-	Metadata  string    `json:"metadata"`
-	CreatedAt time.Time `json:"created_at"`
-	UserName  *string   `json:"user_name,omitempty"`
+	ID        string    `json:"id" db:"id"`
+	Action    string    `json:"action" db:"action"`
+	Metadata  string    `json:"metadata" db:"metadata"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UserName  *string   `json:"user_name,omitempty" db:"user_name"`
 }
 
 type CandidateUpdateStatusRequest struct {

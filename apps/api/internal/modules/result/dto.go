@@ -35,12 +35,12 @@ type ElectionOverviewResponse struct {
 }
 
 type AuditLogResponse struct {
-	ID        uuid.UUID   `json:"id"`
-	UserID    *uuid.UUID  `json:"user_id,omitempty"`
-	Action    string      `json:"action"`
-	IPAddress string      `json:"ip_address,omitempty"`
-	Metadata  interface{} `json:"metadata,omitempty"`
-	CreatedAt time.Time   `json:"created_at"`
+	ID        uuid.UUID   `json:"id" db:"id"`
+	UserID    *uuid.UUID  `json:"user_id,omitempty" db:"user_id"`
+	Action    string      `json:"action" db:"action"`
+	IPAddress string      `json:"ip_address,omitempty" db:"ip_address"`
+	Metadata  interface{} `json:"metadata,omitempty" db:"metadata"`
+	CreatedAt time.Time   `json:"created_at" db:"created_at"`
 }
 
 type AdminListAuditRequest struct {
