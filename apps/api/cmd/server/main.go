@@ -15,6 +15,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/candidate"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/rbac"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/registration"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/result"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/verification"
@@ -80,6 +81,9 @@ func main() {
 	// 6. Common Utilities
 	val := validator.New()
 
+	// 6.5. RBAC Initialization
+	checker, authSvc := rbac.InitRBAC(db, log)
+
 	// 7. Routes
 	v1 := app.Group("/api/v1")
 	v1.Get("/health", func(c fiber.Ctx) error {
@@ -90,7 +94,12 @@ func main() {
 	})
 
 	// Modules (Public / Dedicated)
-	auth.SetupRoutes(v1.Group("/auth"), db, redisClient, cfg, log, val)
+	authGroup := v1.Group("/auth")
+	auth.SetupRoutes(authGroup, db, redisClient, cfg, log, val)
+	
+	// Protected Auth routes (needs JWT for /me/permissions)
+	rbac.SetupAuthRoutes(authGroup.Group("/", auth.JWTMiddleware(cfg, log)), authSvc)
+	
 	registration.SetupRoutes(v1.Group("/public/registrations"), db, log, val, strg, cfg.MaxUploadSize)
 	candidate.SetupRoutes(v1.Group("/public"), db, log, val, strg, cfg.MaxUploadSize)
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
@@ -106,7 +115,7 @@ func main() {
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), db, log, val, strg, cfg.MaxUploadSize)
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications"), db, log, val)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance"), db, log, val)
-	audit.SetupAdminRoutes(adminGroup.Group("/audit"), db)
+	audit.SetupAdminRoutes(adminGroup.Group("/audit", checker.RequirePermission("audit.view")), db)
 	voting.SetupAdminRoutes(adminGroup.Group("/votes"), db, log, val)
 	result.SetupAdminRoutes(adminGroup, db, log)
 

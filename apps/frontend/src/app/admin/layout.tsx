@@ -1,6 +1,7 @@
 'use client';
 
 import { AuthProvider } from '@/contexts/AuthContext';
+import { PermissionProvider } from '@/providers/rbac/PermissionProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { AdminLayout as MasterLayout } from '@/components/layout/AdminLayout';
 import { usePathname } from 'next/navigation';
@@ -25,9 +26,11 @@ export default function AdminLayout({
   return (
     <QueryProvider>
       <AuthProvider>
-        <MasterLayout>
-          {children}
-        </MasterLayout>
+        <PermissionProvider>
+          <MasterLayout>
+            {children}
+          </MasterLayout>
+        </PermissionProvider>
       </AuthProvider>
     </QueryProvider>
   );

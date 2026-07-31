@@ -12,6 +12,8 @@ import { LoadingSkeleton } from "@/components/shared/LoadingSkeleton";
 import { Pagination } from "@/components/shared/Pagination";
 import { AttendanceDetailDrawer } from "@/components/attendance/AttendanceDetailDrawer";
 import { useAttendanceSearch, useAttendanceSummary } from "@/services/attendance/queries";
+import { PermissionGuard } from "@/components/rbac/PermissionGuard";
+import { UnauthorizedState } from "@/components/rbac/UnauthorizedState";
 import { useCheckIn } from "@/services/attendance/mutations";
 import { AttendanceItem, AttendanceFilters } from "@/services/attendance/types";
 import { Users, UserCheck, UserX, Percent, Search, Eye } from "lucide-react";
@@ -155,73 +157,75 @@ export default function AttendancePage() {
     : 0;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <PageHeader 
-        title="Attendance Management" 
-        description="Monitor participant check-ins and real-time attendance stats" 
-      />
+    <PermissionGuard require="attendance.view" fallback={<UnauthorizedState />}>
+      <div className="p-8 max-w-7xl mx-auto">
+        <PageHeader 
+          title="Attendance Management" 
+          description="Monitor participant check-ins and real-time attendance stats" 
+        />
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        {isSummaryLoading ? (
-          Array.from({ length: 4 }).map((_, i) => <LoadingSkeleton key={i} className="h-32" />)
-        ) : (
-          <>
-            <SummaryCard title="Registered" value={summaryData?.total_participants || 0} icon={<Users />} />
-            <SummaryCard title="Checked In" value={summaryData?.total_present || 0} icon={<UserCheck />} />
-            <SummaryCard title="Not Arrived" value={summaryData?.total_absent || 0} icon={<UserX />} />
-            <SummaryCard title="Attendance Rate" value={`${attendanceRate}%`} icon={<Percent />} />
-          </>
-        )}
-      </div>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {isSummaryLoading ? (
+            Array.from({ length: 4 }).map((_, i) => <LoadingSkeleton key={i} className="h-32" />)
+          ) : (
+            <>
+              <SummaryCard title="Registered" value={summaryData?.total_participants || 0} icon={<Users />} />
+              <SummaryCard title="Checked In" value={summaryData?.total_present || 0} icon={<UserCheck />} />
+              <SummaryCard title="Not Arrived" value={summaryData?.total_absent || 0} icon={<UserX />} />
+              <SummaryCard title="Attendance Rate" value={`${attendanceRate}%`} icon={<Percent />} />
+            </>
+          )}
+        </div>
 
-      <div className="space-y-4">
-        {/* Toolbar */}
-        <DataToolbar
-          searchValue={searchValue}
-          onSearchChange={handleSearchChange}
-          filters={[
-            {
-              id: "attendance_status",
-              value: filters.attendance_status || "",
-              options: [
-                { label: "All Status", value: "" },
-                { label: "Checked In", value: "PRESENT" },
-                { label: "Not Checked In", value: "ABSENT" },
-              ]
+        <div className="space-y-4">
+          {/* Toolbar */}
+          <DataToolbar
+            searchValue={searchValue}
+            onSearchChange={handleSearchChange}
+            filters={[
+              {
+                id: "attendance_status",
+                value: filters.attendance_status || "",
+                options: [
+                  { label: "All Status", value: "" },
+                  { label: "Checked In", value: "PRESENT" },
+                  { label: "Not Checked In", value: "ABSENT" },
+                ]
+              }
+            ]}
+            onFilterChange={handleFilterChange}
+          />
+
+          {/* Data Table */}
+          <DataTable
+            data={searchData?.items || []}
+            columns={columns}
+            keyExtractor={(item) => item.registration_id}
+            isLoading={isSearchLoading}
+            emptyState={
+              <EmptyState 
+                icon={Search} 
+                title="No participants found" 
+                description="Try adjusting your search or filters to find what you're looking for." 
+              />
             }
-          ]}
-          onFilterChange={handleFilterChange}
-        />
+          />
 
-        {/* Data Table */}
-        <DataTable
-          data={searchData?.items || []}
-          columns={columns}
-          keyExtractor={(item) => item.registration_id}
-          isLoading={isSearchLoading}
-          emptyState={
-            <EmptyState 
-              icon={Search} 
-              title="No participants found" 
-              description="Try adjusting your search or filters to find what you're looking for." 
-            />
-          }
-        />
+          {/* Pagination */}
+          <Pagination
+            currentPage={filters.page || 1}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+        </div>
 
-        {/* Pagination */}
-        <Pagination
-          currentPage={filters.page || 1}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
+        <AttendanceDetailDrawer
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+          data={drawerData}
         />
       </div>
-
-      <AttendanceDetailDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        data={drawerData}
-      />
-    </div>
+    </PermissionGuard>
   );
 }

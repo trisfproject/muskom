@@ -10,6 +10,8 @@ import { AuditFilter, AuditEntry } from "@/services/audit/types";
 import { AuditFilterBar } from "@/components/audit/AuditFilterBar";
 import { AuditTable } from "@/components/audit/AuditTable";
 import { AuditDrawer } from "@/components/audit/AuditDrawer";
+import { PermissionGuard } from "@/components/rbac/PermissionGuard";
+import { UnauthorizedState } from "@/components/rbac/UnauthorizedState";
 
 export default function AuditPage() {
   const [filters, setFilters] = useState<AuditFilter>({
@@ -49,45 +51,47 @@ export default function AuditPage() {
   const totalPages = data ? Math.ceil(data.total / (filters.limit || 20)) : 0;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
-      <PageHeader 
-        title="Audit & Activity Logs" 
-        description="Immutable system-wide activity tracking across all domains." 
-      />
-
-      <div className="space-y-4">
-        <AuditFilterBar 
-          filters={filters} 
-          onFilterChange={handleFilterChange} 
-          onSearchChange={handleSearchChange} 
+    <PermissionGuard require="audit.view" fallback={<UnauthorizedState title="Access Denied" description="You must be an Administrator or Committee member to view the global Audit Logs." />}>
+      <div className="p-8 max-w-7xl mx-auto space-y-6">
+        <PageHeader 
+          title="Audit & Activity Logs" 
+          description="Immutable system-wide activity tracking across all domains." 
         />
 
-        {data?.items && data.items.length === 0 && !isLoading ? (
-          <EmptyState 
-            icon={Activity} 
-            title="No audit logs found" 
-            description="Adjust your search filters to find historical records." 
+        <div className="space-y-4">
+          <AuditFilterBar 
+            filters={filters} 
+            onFilterChange={handleFilterChange} 
+            onSearchChange={handleSearchChange} 
           />
-        ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <AuditTable data={data?.items || []} isLoading={isLoading} onView={handleView} />
-          </div>
-        )}
 
-        {totalPages > 1 && (
-          <Pagination
-            currentPage={filters.page || 1}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        )}
+          {data?.items && data.items.length === 0 && !isLoading ? (
+            <EmptyState 
+              icon={Activity} 
+              title="No audit logs found" 
+              description="Adjust your search filters to find historical records." 
+            />
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+              <AuditTable data={data?.items || []} isLoading={isLoading} onView={handleView} />
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={filters.page || 1}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
+        </div>
+
+        <AuditDrawer 
+          isOpen={isDrawerOpen} 
+          onClose={() => setIsDrawerOpen(false)} 
+          data={selectedEntry} 
+        />
       </div>
-
-      <AuditDrawer 
-        isOpen={isDrawerOpen} 
-        onClose={() => setIsDrawerOpen(false)} 
-        data={selectedEntry} 
-      />
-    </div>
+    </PermissionGuard>
   );
 }

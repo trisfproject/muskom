@@ -2,6 +2,28 @@
 
 This document formalizes the platform guidelines and standards expected for all future domains.
 
+## Identity & Access Management (RBAC)
+RC2 enforces a strict Role-Based Access Control (RBAC) model managed by the `AuthorizationService`.
+
+### Role Definitions
+1. **SUPER_ADMIN**: Absolute system control (bypasses all specific permission checks).
+2. **ADMIN**: Platform configuration and overall event management.
+3. **COMMITTEE**: Can manage specific event domains (Attendance, Voting) and view reports.
+4. **VERIFIER**: Dedicated to verifying and approving participants/candidates.
+5. **OPERATOR**: Frontline workers restricted to specific actions like checking in attendees or casting votes.
+6. **VIEWER**: Read-only access to specific dashboards.
+
+### Authorization Flow
+1. **JWT Decode**: The `auth.JWTMiddleware` decodes the user's `role` code and injects it into fiber context (`c.Locals("role")`).
+2. **RBAC Intercept**: The `rbac.PermissionChecker` middleware (`RequirePermission`) intercepts the route.
+3. **Cache Lookup**: It queries the `AuthorizationService`, which holds an O(1) in-memory map of `RoleCode -> []Permission`.
+4. **Resolution**: If authorized, it calls `Next()`. If unauthorized, it writes an `UNAUTHORIZED_ACCESS` event to the `audit_logs` and returns `403 Forbidden`.
+
+### Frontend Integration
+The frontend utilizes the `PermissionProvider` which fetches `GET /api/v1/auth/me/permissions` on login.
+- **`<PermissionGuard require="module.action">`**: Wraps UI components. If the user lacks the permission, the component vanishes.
+- **`<UnauthorizedState>`**: A standard 403 page displayed when a user manually navigates to a forbidden route.
+
 ## Domain Contracts
 
 Each domain in the backend must strictly expose a unified Service Interface containing all business operations to prevent logic leakage into Handlers or Repositories.
