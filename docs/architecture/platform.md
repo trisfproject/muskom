@@ -24,6 +24,22 @@ The frontend utilizes the `PermissionProvider` which fetches `GET /api/v1/auth/m
 - **`<PermissionGuard require="module.action">`**: Wraps UI components. If the user lacks the permission, the component vanishes.
 - **`<UnauthorizedState>`**: A standard 403 page displayed when a user manually navigates to a forbidden route.
 
+## Workflow & State Machine
+RC2 standardizes entity lifecycles (Events, Participants, Candidates, Voting Sessions) through a unified Go State Machine (`apps/api/platform/workflow`).
+
+### The Engine Strategy
+We have eliminated hardcoded DB `CHECK` constraints on status strings and inline business-logic checks (`if status == "DRAFT"`). Instead, domains define a `workflow.Definition` containing an array of `workflow.Transition` paths.
+The engine (`StateMachine`) is responsible for:
+1. **Validating Path**: Is it possible to go from `State A` -> `State B` via `Event E`?
+2. **Validating RBAC**: Does the actor have the required `Permission` for this exact transition?
+3. **Validating Business Rules**: Does the `TransitionValidator` closure return an error? (e.g. "Cannot start Voting if Candidate count < 2").
+
+### Frontend Integration
+The frontend utilizes shared components in `src/components/workflow/` to visually represent state uniformly.
+- **`<StateBadge state="PUBLISHED" />`**: Automatically maps standardized state names to semantic colors (e.g. Green for APPROVED, Orange for CLOSED) and icons.
+- **`<TransitionButton>`**: A smart UI action button that internally integrates with `<PermissionGuard>` to hide itself if the user is unprivileged.
+- **`<WorkflowTimeline>`**: A visual, stepper-like interface indicating historical progression and future required states for an entity.
+
 ## Domain Contracts
 
 Each domain in the backend must strictly expose a unified Service Interface containing all business operations to prevent logic leakage into Handlers or Repositories.
