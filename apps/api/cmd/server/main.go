@@ -24,6 +24,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/verification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/voting"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/system/configuration"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
@@ -98,6 +99,9 @@ func main() {
 			"status":  "ok",
 		}, nil)
 	})
+
+	// Register System Configuration Routes
+	configuration.RegisterRoutes(v1, db, redisClient, val, log)
 
 	// Modules (Public / Dedicated)
 	authGroup := v1.Group("/auth")
