@@ -98,7 +98,7 @@ function CountdownTimer({ targetDate, label }: { targetDate?: string; label: str
   return (
     <div>
       <div className="flex items-center gap-1.5 mb-3">
-        <Clock className="w-3.5 h-3.5 text-emerald-500" />
+        <Clock className="w-3.5 h-3.5 text-blue-600" />
         <span className="text-[11px] font-bold pg-faint uppercase tracking-widest">{label}</span>
       </div>
       <div className="grid grid-cols-4 gap-2.5">
@@ -161,7 +161,7 @@ function EventInfoCard() {
   return (
     <div className="pg-card rounded-[2rem] p-8 lg:p-10 space-y-7 shadow-2xl backdrop-blur-xl relative overflow-hidden">
       {/* Subtle background glow for premium feel inside the card */}
-      <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 blur-[60px] pointer-events-none rounded-full" />
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/10 blur-[60px] pointer-events-none rounded-full" />
       
       {/* Status header */}
       <div className="flex flex-col gap-1.5 pb-1 relative z-10">
@@ -224,9 +224,6 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
         <div className="container-landing flex items-center justify-between gap-4">
           {/* Brand */}
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/25 group-hover:scale-105 transition-transform duration-300">
-              <span className="text-slate-950 font-black text-sm">M</span>
-            </div>
             <span className="text-lg font-black tracking-tight pg-text">MUSKOM</span>
           </Link>
 
@@ -297,7 +294,7 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
               {theme === "dark" ? <><Sun className="w-4 h-4" />Tema Terang</> : <><Moon className="w-4 h-4" />Tema Gelap</>}
             </button>
             <Link href="/admin/login" onClick={() => setOpen(false)}
-              className="flex items-center justify-center gap-2 w-full py-3 px-5 bg-emerald-500 text-slate-950 rounded-xl font-bold text-sm hover:bg-emerald-400 transition-colors">
+              className="ghost-btn flex items-center justify-center gap-2 w-full py-3 px-5 rounded-xl font-bold text-sm">
               <Lock className="w-4 h-4" />
               Portal Admin
             </Link>
@@ -320,28 +317,28 @@ function Hero({ event }: { event: MusyawarahEvent | null }) {
     <section className="relative min-h-screen flex flex-col justify-center overflow-hidden pg-bg">
       {/* Background ambience */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-1/4 -left-1/4 w-3/4 h-3/4 rounded-full bg-emerald-500/6 blur-[130px]" />
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full bg-emerald-600/5 blur-[100px]" />
+        <div className="absolute -top-1/4 -left-1/4 w-3/4 h-3/4 rounded-full bg-blue-600/6 blur-[130px]" />
+        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full bg-blue-700/5 blur-[100px]" />
       </div>
       <div className="dot-grid absolute inset-0 pointer-events-none" />
 
       <div className="container-landing relative z-10 pt-32 pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-20 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16 items-center">
 
           {/* ── LEFT: Text content ── */}
-          <div className="flex flex-col items-start">
+          <div className="flex flex-col items-start lg:col-span-7">
             <FadeUp delay={0}>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-semibold tracking-widest uppercase">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full bg-blue-600/10 border border-blue-600/20 text-blue-600 text-xs font-semibold tracking-widest uppercase">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500" />
                 </span>
                 Portal Resmi Musyawarah
               </div>
             </FadeUp>
 
             <FadeUp delay={0.1}>
-              <h1 className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black tracking-tight leading-[1.05] mb-6">
+              <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-[5.5rem] font-black tracking-tight leading-[1.05] mb-6">
                 <span className="text-gradient">{name}</span>
               </h1>
             </FadeUp>
@@ -356,7 +353,7 @@ function Hero({ event }: { event: MusyawarahEvent | null }) {
               <div className="flex flex-col sm:flex-row items-start gap-3">
                 {isActive && (
                   <Link href="/register"
-                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-emerald-500 text-slate-950 font-bold rounded-full text-sm hover:bg-emerald-400 shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5 transition-all duration-200">
+                    className="inline-flex items-center gap-2 px-7 py-3.5 bg-blue-600 text-slate-950 font-bold rounded-full text-sm hover:bg-blue-500 shadow-lg shadow-blue-600/20 hover:-translate-y-0.5 transition-all duration-200">
                     Daftar Sekarang <ArrowRight className="w-4 h-4" />
                   </Link>
                 )}
@@ -369,7 +366,7 @@ function Hero({ event }: { event: MusyawarahEvent | null }) {
           </div>
 
           {/* ── RIGHT: Event info card ── */}
-          <SlideInRight delay={0.25}>
+          <SlideInRight delay={0.25} className="lg:col-span-5 w-full">
             <EventInfoCard />
           </SlideInRight>
         </div>
@@ -405,7 +402,7 @@ function phaseStatus(start?: string, end?: string): "past" | "active" | "upcomin
 
 const phaseCfg = {
   past:     { dot: "bg-slate-600",                badge: "pg-surface pg-faint border pg-border",                  label: "Selesai"        },
-  active:   { dot: "bg-emerald-400 ring-4 ring-emerald-400/20", badge: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20", label: "Berlangsung"   },
+  active:   { dot: "bg-blue-500 ring-4 ring-blue-500/20", badge: "bg-blue-600/10 text-blue-600 border border-blue-600/20", label: "Berlangsung"   },
   upcoming: { dot: "pg-surface border-2 pg-border",             badge: "pg-surface pg-faint border pg-border",                  label: "Akan Datang"   },
 }
 
@@ -420,7 +417,7 @@ function Timeline({ event }: { event: MusyawarahEvent | null }) {
     <section id="timeline" className="pg-bg border-t pg-border">
       <div className="container-landing py-24 lg:py-32">
         <SlideUp>
-          <p className="text-emerald-500 text-xs font-semibold tracking-widest uppercase mb-3">Agenda</p>
+          <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Agenda</p>
           <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-4">Timeline Musyawarah</h2>
           <p className="pg-muted max-w-lg text-lg leading-relaxed mb-14">
             Seluruh rangkaian acara tersusun untuk memastikan proses yang adil, transparan, dan dapat diikuti semua anggota.
@@ -472,10 +469,10 @@ function CandidatePreview() {
 
   return (
     <section id="kandidat" className="pg-bg border-t pg-border relative overflow-hidden">
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-[60vw] h-[60vw] rounded-full bg-emerald-500/4 blur-[120px] pointer-events-none" />
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-[60vw] h-[60vw] rounded-full bg-blue-600/4 blur-[120px] pointer-events-none" />
       <div className="container-landing relative z-10 py-24 lg:py-32">
         <SlideUp>
-          <p className="text-emerald-500 text-xs font-semibold tracking-widest uppercase mb-3">Kandidat Resmi</p>
+          <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Kandidat Resmi</p>
           <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-4">Mengenal Calon Pemimpin</h2>
           <p className="pg-muted max-w-lg text-lg leading-relaxed mb-14">
             Setiap kandidat telah melalui proses verifikasi resmi. Pelajari visi dan misi mereka sebelum memberikan suara.
@@ -502,7 +499,7 @@ function CandidatePreview() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {candidates.map((c, i) => (
               <SlideUp key={c.id ?? i} delay={i * 0.07}>
-                <article className="group pg-card-i rounded-2xl overflow-hidden hover:border-emerald-500/20">
+                <article className="group pg-card-i rounded-2xl overflow-hidden hover:border-blue-600/20">
                   <div className="relative h-52 pg-surface flex items-center justify-center overflow-hidden">
                     {c.photo_path ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -517,7 +514,7 @@ function CandidatePreview() {
                   </div>
                   <div className="p-5">
                     <h3 className="text-base font-bold pg-text mb-0.5">{c.name ?? "—"}</h3>
-                    {c.title && <p className="text-sm font-medium text-emerald-500 mb-3">{c.title}</p>}
+                    {c.title && <p className="text-sm font-medium text-blue-600 mb-3">{c.title}</p>}
                     {c.vision && <p className="text-sm pg-muted line-clamp-3 leading-relaxed">{c.vision}</p>}
                   </div>
                 </article>
@@ -535,19 +532,19 @@ function CandidatePreview() {
 // ─────────────────────────────────────────────────────────────
 const announcements = [
   {
-    id: 1, category: "Penting", badgeVariant: "emerald" as const,
+    id: 1, category: "Penting", badgeVariant: "blue" as const,
     title: "Pendaftaran Peserta Resmi Dibuka",
     excerpt: "Seluruh anggota komunitas kini dapat mendaftarkan diri melalui portal ini untuk mendapatkan hak suara pada musyawarah.",
     date: "Agu 2026",
   },
   {
-    id: 2, category: "Informasi", badgeVariant: "sky" as const,
+    id: 2, category: "Informasi", badgeVariant: "default" as const,
     title: "Tata Tertib Musyawarah Telah Diterbitkan",
     excerpt: "Dokumen pedoman pelaksanaan dan tata cara pemilihan kini tersedia untuk diunduh oleh seluruh peserta yang telah terdaftar.",
     date: "Agu 2026",
   },
   {
-    id: 3, category: "Agenda", badgeVariant: "violet" as const,
+    id: 3, category: "Agenda", badgeVariant: "default" as const,
     title: "Jadwal Verifikasi Berkas Kandidat",
     excerpt: "Proses verifikasi berkas calon pemimpin dilaksanakan secara terbuka dan disiarkan melalui kanal komunikasi resmi komunitas.",
     date: "Agu 2026",
@@ -560,7 +557,7 @@ function Announcement() {
       <div className="container-landing py-24 lg:py-32">
         <SlideUp className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
           <div>
-            <p className="text-emerald-500 text-xs font-semibold tracking-widest uppercase mb-3">Informasi Terkini</p>
+            <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Informasi Terkini</p>
             <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-3">Pengumuman Resmi</h2>
             <p className="pg-muted max-w-lg text-lg leading-relaxed">
               Tetap terhubung dan dapatkan informasi terbaru seputar pelaksanaan musyawarah dari panitia resmi.
@@ -579,9 +576,9 @@ function Announcement() {
                   <Badge variant={a.badgeVariant}>{a.category}</Badge>
                   <span className="text-xs pg-faint font-mono">{a.date}</span>
                 </div>
-                <h3 className="text-base font-bold pg-text leading-snug mb-3 group-hover:text-emerald-500 transition-colors duration-200 flex-1">{a.title}</h3>
+                <h3 className="text-base font-bold pg-text leading-snug mb-3 group-hover:text-blue-600 transition-colors duration-200 flex-1">{a.title}</h3>
                 <p className="text-sm pg-muted leading-relaxed mb-5">{a.excerpt}</p>
-                <div className="flex items-center gap-1 text-xs font-semibold pg-faint group-hover:text-emerald-500 transition-colors duration-200">
+                <div className="flex items-center gap-1 text-xs font-semibold pg-faint group-hover:text-blue-600 transition-colors duration-200">
                   Baca selengkapnya
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
                 </div>
@@ -600,14 +597,11 @@ function Announcement() {
 function Footer() {
   return (
     <footer className="pg-bg border-t pg-border relative">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-px bg-gradient-to-r from-transparent via-blue-600/40 to-transparent" />
       <div className="container-landing py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
-                <span className="text-slate-950 font-black text-sm">M</span>
-              </div>
               <span className="text-base font-black pg-text">MUSKOM</span>
             </div>
             <p className="text-sm pg-muted leading-relaxed max-w-xs">
@@ -634,7 +628,7 @@ function Footer() {
           </div>
           <div>
             <h4 className="text-xs font-semibold pg-text uppercase tracking-wider mb-5">Akses</h4>
-            <Link href="/admin/login" className="text-sm pg-muted hover:text-emerald-500 transition-colors">
+            <Link href="/admin/login" className="text-sm pg-muted hover:text-blue-600 transition-colors">
               Portal Administrator →
             </Link>
           </div>
@@ -685,10 +679,7 @@ export default function LandingPage() {
     return (
       <div className="min-h-screen pg-bg flex items-center justify-center" data-theme={theme}>
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-            <span className="text-emerald-500 font-black text-lg">M</span>
-          </div>
-          <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     )
@@ -701,9 +692,6 @@ export default function LandingPage() {
       <div className="min-h-screen pg-bg flex flex-col" data-theme={theme}>
         <Header theme={theme} toggleTheme={toggleTheme} />
         <div className="flex-1 flex flex-col items-center justify-center px-5 text-center">
-          <div className="w-16 h-16 rounded-2xl pg-card flex items-center justify-center mb-6">
-            <span className="text-emerald-500 font-black text-2xl">M</span>
-          </div>
           <h1 className="text-2xl font-black pg-text mb-3 tracking-tight">Portal Dalam Pemeliharaan</h1>
           <p className="pg-muted max-w-sm leading-relaxed">Sistem sedang dipersiapkan. Silakan kunjungi kembali beberapa saat lagi.</p>
         </div>

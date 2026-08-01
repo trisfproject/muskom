@@ -96,8 +96,8 @@
   }
 
   ::selection {
-    background: rgb(16 185 129 / 0.25);
-    color: #6ee7b7;
+    background: rgb(37 99 235 / 0.25); /* blue-600 */
+    color: #93c5fd; /* blue-300 */
   }
 }
 
@@ -193,7 +193,7 @@
 
   /* ── Gradient text ── */
   .text-gradient {
-    background: linear-gradient(135deg, var(--c-text) 0%, #a7f3d0 45%, #34d399 100%);
+    background: linear-gradient(135deg, var(--c-text) 0%, #93c5fd 45%, #2563eb 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
