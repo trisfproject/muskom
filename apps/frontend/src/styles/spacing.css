@@ -1,0 +1,37 @@
+@layer utilities {
+  .p-4 { padding: var(--space-4); }
+  .p-8 { padding: var(--space-8); }
+  .p-12 { padding: var(--space-12); }
+  .p-16 { padding: var(--space-16); }
+  .p-20 { padding: var(--space-20); }
+  .p-24 { padding: var(--space-24); }
+  .p-32 { padding: var(--space-32); }
+  .p-40 { padding: var(--space-40); }
+  .p-48 { padding: var(--space-48); }
+  .p-64 { padding: var(--space-64); }
+  .p-80 { padding: var(--space-80); }
+
+  .m-4 { margin: var(--space-4); }
+  .m-8 { margin: var(--space-8); }
+  .m-12 { margin: var(--space-12); }
+  .m-16 { margin: var(--space-16); }
+  .m-20 { margin: var(--space-20); }
+  .m-24 { margin: var(--space-24); }
+  .m-32 { margin: var(--space-32); }
+  .m-40 { margin: var(--space-40); }
+  .m-48 { margin: var(--space-48); }
+  .m-64 { margin: var(--space-64); }
+  .m-80 { margin: var(--space-80); }
+
+  .gap-4 { gap: var(--space-4); }
+  .gap-8 { gap: var(--space-8); }
+  .gap-12 { gap: var(--space-12); }
+  .gap-16 { gap: var(--space-16); }
+  .gap-20 { gap: var(--space-20); }
+  .gap-24 { gap: var(--space-24); }
+  .gap-32 { gap: var(--space-32); }
+  .gap-40 { gap: var(--space-40); }
+  .gap-48 { gap: var(--space-48); }
+  .gap-64 { gap: var(--space-64); }
+  .gap-80 { gap: var(--space-80); }
+}

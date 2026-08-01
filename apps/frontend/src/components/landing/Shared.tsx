@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion"
 import { Clock, UserCircle2, CalendarDays } from "lucide-react"
 import { startTransition, useEffect, useState } from "react"
+import { Card } from "@/components/ui/surfaces"
 
 // ─────────────────────────────────────────────────────────────
 // MOTION HELPERS
@@ -37,74 +38,7 @@ export function SlideUp({ children, delay = 0, className }: { children: React.Re
 }
 
 // ─────────────────────────────────────────────────────────────
-// COUNTDOWN TIMER (Task 3 — Hero card)
-// ─────────────────────────────────────────────────────────────
-export function CountdownTimer({ targetDate, label }: { targetDate?: string; label: string }) {
-  const [t, setT] = useState({ d: 0, h: 0, m: 0, s: 0 })
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    startTransition(() => setMounted(true))
-    if (!targetDate) return
-    const target = new Date(targetDate).getTime()
-
-    const calc = () => {
-      const diff = target - Date.now()
-      if (diff <= 0) { setT({ d: 0, h: 0, m: 0, s: 0 }); return }
-      setT({
-        d: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        h: Math.floor((diff / (1000 * 60 * 60)) % 24),
-        m: Math.floor((diff / 1000 / 60) % 60),
-        s: Math.floor((diff / 1000) % 60),
-      })
-    }
-    calc()
-    const id = setInterval(calc, 1000)
-    return () => clearInterval(id)
-  }, [targetDate])
-
-  const units = [
-    { v: mounted ? t.d : 0, l: "Hari" },
-    { v: mounted ? t.h : 0, l: "Jam" },
-    { v: mounted ? t.m : 0, l: "Mnt" },
-    { v: mounted ? t.s : 0, l: "Dtk" },
-  ]
-
-  return (
-    <div>
-      <div className="flex items-center gap-1.5 mb-3">
-        <Clock className="w-3.5 h-3.5 text-blue-600" />
-        <span className="text-[11px] font-bold pg-faint uppercase tracking-widest">{label}</span>
-      </div>
-      <div className="grid grid-cols-4 gap-3">
-        {units.map((u) => (
-          <div
-            key={u.l}
-            className="flex flex-col items-center py-3 px-2 rounded-[1rem] shadow-[0_4px_16px_-4px_rgba(0,0,0,0.05)] border relative overflow-hidden"
-            style={{ backgroundColor: "var(--c-surface-up)", borderColor: "var(--c-border)" }}
-          >
-            <div className="h-6 flex items-center justify-center overflow-hidden">
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.span
-                  key={u.v}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
-                  className="text-[20px] font-black pg-text tabular-nums leading-none tracking-tight block"
-                >
-                  {String(u.v).padStart(2, "0")}
-                </motion.span>
-              </AnimatePresence>
-            </div>
-            <span className="text-[10px] font-bold pg-muted mt-2 uppercase tracking-widest">{u.l}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
+// (CountdownTimer moved to ui/countdown-card.tsx)
 // ─────────────────────────────────────────────────────────────
 // UNIFIED EMPTY STATE
 // ─────────────────────────────────────────────────────────────
@@ -119,12 +53,12 @@ export function EmptyState({
 }) {
   const Icon = icon === "user" ? UserCircle2 : CalendarDays
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center pg-card-i rounded-[1.25rem] max-w-md mx-auto">
-      <div className="w-14 h-14 rounded-2xl bg-blue-600/5 border border-blue-600/10 flex items-center justify-center mb-4">
-        <Icon className="w-6 h-6 text-blue-600/60" />
+    <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-surface-secondary border border-light rounded-2xl max-w-md mx-auto">
+      <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
+        <Icon className="w-6 h-6 text-primary" />
       </div>
-      <h3 className="text-base font-bold pg-text mb-2">{title}</h3>
-      <p className="pg-muted max-w-xs text-sm leading-relaxed">{description}</p>
+      <h3 className="text-base font-bold text-base mb-2">{title}</h3>
+      <p className="text-muted max-w-xs text-sm leading-relaxed">{description}</p>
     </div>
   )
 }
@@ -133,20 +67,20 @@ export function EmptyState({
 // SKELETON LOADERS
 // ─────────────────────────────────────────────────────────────
 export function SkeletonPulse({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-slate-200/60 dark:bg-slate-800/60 ${className}`} />
+  return <div className={`animate-pulse rounded-lg bg-surface-secondary ${className}`} />
 }
 
 export function TimelineSkeleton() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="pg-card p-6 flex items-start gap-4">
+        <Card key={i} className="p-6 flex items-start gap-4">
           <SkeletonPulse className="w-4 h-4 rounded-full mt-1 shrink-0" />
           <div className="flex-1 space-y-2">
             <SkeletonPulse className="h-5 w-1/3" />
             <SkeletonPulse className="h-4 w-2/3" />
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   )
@@ -156,12 +90,12 @@ export function AnnouncementSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
       {[1, 2].map((i) => (
-        <div key={i} className="pg-card p-6 lg:p-8 space-y-4">
+        <Card key={i} className="p-6 lg:p-8 space-y-4">
           <SkeletonPulse className="h-5 w-24" />
           <SkeletonPulse className="h-6 w-3/4" />
           <SkeletonPulse className="h-4 w-full" />
           <SkeletonPulse className="h-4 w-5/6" />
-        </div>
+        </Card>
       ))}
     </div>
   )
@@ -171,7 +105,7 @@ export function CandidateSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="pg-card p-6 lg:p-8 space-y-4">
+        <Card key={i} className="p-6 lg:p-8 space-y-4">
           <div className="flex items-center gap-4">
             <SkeletonPulse className="w-16 h-16 rounded-full shrink-0" />
             <div className="space-y-2 flex-1">
@@ -181,7 +115,7 @@ export function CandidateSkeleton() {
           </div>
           <SkeletonPulse className="h-4 w-full" />
           <SkeletonPulse className="h-4 w-4/5" />
-        </div>
+        </Card>
       ))}
     </div>
   )
@@ -195,12 +129,12 @@ export function InfoRow({
 }: { icon: React.ComponentType<{ className?: string }>; label: string; value?: string; children?: React.ReactNode }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="w-8 h-8 rounded-lg pg-surface border pg-border flex items-center justify-center shrink-0 mt-0.5">
-        <Icon className="w-4 h-4 pg-muted" />
+      <div className="w-8 h-8 rounded-lg bg-surface border border-light flex items-center justify-center shrink-0 mt-0.5">
+        <Icon className="w-4 h-4 text-muted" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-xs pg-faint mb-0.5">{label}</div>
-        {children ?? <div className="text-sm font-semibold pg-text">{value ?? "—"}</div>}
+        <div className="text-xs text-muted mb-0.5">{label}</div>
+        {children ?? <div className="text-sm font-semibold text-base">{value ?? "—"}</div>}
       </div>
     </div>
   )

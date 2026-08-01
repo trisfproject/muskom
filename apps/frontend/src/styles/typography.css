@@ -1,0 +1,62 @@
+@layer utilities {
+  .text-display {
+    font-family: var(--font-sans);
+    font-size: 3.75rem; /* 60px */
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+  }
+  
+  .text-heading {
+    font-family: var(--font-sans);
+    font-size: 2.25rem; /* 36px */
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+  
+  .text-title {
+    font-family: var(--font-sans);
+    font-size: 1.5rem; /* 24px */
+    line-height: 1.33;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  
+  .text-body {
+    font-family: var(--font-sans);
+    font-size: 1rem; /* 16px */
+    line-height: 1.5;
+    font-weight: 400;
+  }
+  
+  .text-caption {
+    font-family: var(--font-sans);
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.5;
+    font-weight: 400;
+  }
+  
+  .text-badge {
+    font-family: var(--font-sans);
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.5;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .text-button {
+    font-family: var(--font-sans);
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.25;
+    font-weight: 600;
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--color-text-primary) 0%, #93c5fd 50%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}

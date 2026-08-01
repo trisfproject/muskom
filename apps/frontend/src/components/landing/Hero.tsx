@@ -3,7 +3,11 @@
 import { HomeResponse } from "@/types/landing"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
-import { FadeUp, CountdownTimer } from "@/components/landing/Shared"
+import { FadeUp } from "@/components/landing/Shared"
+import { CountdownCard } from "@/components/ui/countdown-card"
+import { Container } from "@/components/ui/layout"
+import { Card } from "@/components/ui/surfaces"
+import { Button } from "@/components/ui/button"
 
 // Hero — 100vh premium technology conference atmosphere
 // Theme & content completely configured via Website CMS
@@ -19,26 +23,15 @@ export function Hero({ data }: { data: HomeResponse | null }) {
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
-
       {/* ── Atmospheric layers (bottom to top) ── */}
-
-      {/* Layer 2: Aurora Gradient */}
-      <div className="absolute inset-0 hero-aurora pointer-events-none" />
-
-      {/* Layer 3: Blueprint Grid */}
-      <div className="absolute inset-0 hero-blueprint pointer-events-none" />
-
-      {/* Layer 4: Connection Network */}
-      <div className="absolute inset-0 hero-network pointer-events-none" />
-
-      {/* Layer 5: Premium Noise */}
-      <div className="absolute inset-0 hero-noise pointer-events-none" />
-
-      {/* Hero Lighting */}
-      <div className="absolute inset-0 hero-lighting pointer-events-none" />
+      <div className="absolute inset-0 bg-aurora pointer-events-none" />
+      <div className="absolute inset-0 bg-blueprint pointer-events-none" />
+      <div className="absolute inset-0 bg-network pointer-events-none" />
+      <div className="absolute inset-0 bg-noise pointer-events-none" />
+      <div className="absolute inset-0 bg-glow pointer-events-none" />
 
       {/* ── Content ── */}
-      <div className="container-landing relative z-10 py-36 lg:py-0">
+      <Container className="relative z-10 py-36 lg:py-0">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-12 items-center">
 
           {/* Left column */}
@@ -53,14 +46,14 @@ export function Hero({ data }: { data: HomeResponse | null }) {
 
             {/* 2. Heading */}
             <FadeUp delay={0.15}>
-              <h1 className="text-4xl sm:text-5xl lg:text-[64px] font-black pg-text tracking-tight leading-[1.07] mb-6">
+              <h1 className="text-display text-base tracking-tight mb-6">
                 {title}
               </h1>
             </FadeUp>
 
             {/* 3. Description */}
             <FadeUp delay={0.25}>
-              <p className="text-lg sm:text-xl pg-muted leading-relaxed max-w-xl font-medium">
+              <p className="text-title text-muted leading-relaxed max-w-xl">
                 {description}
               </p>
             </FadeUp>
@@ -72,22 +65,27 @@ export function Hero({ data }: { data: HomeResponse | null }) {
                   if (!cta || !cta.open) return null
                   const isPrimary = cta.style === "primary" || !cta.style
                   return isPrimary ? (
-                    <Link
+                    <Button
                       key={cta.url}
-                      href={cta.url}
-                      className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-blue-600 text-white font-bold text-sm hover:bg-blue-500 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                      style={{ boxShadow: "0 4px 20px -4px rgba(37,99,235,0.45), inset 0 1px 0 rgba(255,255,255,0.15)" }}
+                      asChild
+                      variant="primary"
+                      size="lg"
                     >
-                      {cta.label} <ArrowRight className="w-4 h-4" />
-                    </Link>
+                      <Link href={cta.url}>
+                        {cta.label} <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </Button>
                   ) : (
-                    <Link
+                    <Button
                       key={cta.url}
-                      href={cta.url}
-                      className="pill-btn inline-flex items-center gap-2 px-7 py-3.5 font-semibold text-sm"
+                      asChild
+                      variant="secondary"
+                      size="lg"
                     >
-                      {cta.label}
-                    </Link>
+                      <Link href={cta.url}>
+                        {cta.label}
+                      </Link>
+                    </Button>
                   )
                 })}
               </div>
@@ -103,7 +101,7 @@ export function Hero({ data }: { data: HomeResponse | null }) {
           </div>
 
         </div>
-      </div>
+      </Container>
     </section>
   )
 }
@@ -115,48 +113,44 @@ function PhaseCard({ data }: { data: HomeResponse | null }) {
   const countdownLabel = data?.countdown?.label || "Tahapan Berakhir"
 
   return (
-    <div
-      className="relative overflow-hidden rounded-[1.25rem]"
+    <Card
+      className="relative overflow-hidden rounded-2xl p-7 lg:p-8 border-light shadow-md"
       style={{
-        padding: "1.75rem 2rem",
-        background: "linear-gradient(180deg, var(--c-surface) 0%, var(--c-bg-glass) 100%)",
-        border: "1px solid var(--c-border)",
-        boxShadow: "0 8px 32px -12px var(--c-shadow-sm), inset 0 1px 0 rgba(255,255,255,0.05)",
+        background: "linear-gradient(180deg, var(--color-surface) 0%, var(--color-bg) 100%)",
       }}
     >
       {/* Card inner atmosphere — top-right glow */}
       <div
-        className="absolute pointer-events-none"
+        className="absolute pointer-events-none bg-glow"
         style={{
           top: "-40px", right: "-40px",
           width: "200px", height: "180px",
           borderRadius: "50%",
-          background: "radial-gradient(ellipse at top right, rgba(37,99,235,0.08) 0%, transparent 70%)",
           filter: "blur(30px)",
         }}
       />
       {/* Card inner mesh */}
-      <div className="absolute inset-0 tech-dots opacity-20 pointer-events-none" />
+      <div className="absolute inset-0 bg-network opacity-20 pointer-events-none" />
 
       {/* Active phase indicator */}
       <div className="flex items-center gap-2.5 mb-4 relative z-10">
         <div className="relative w-2 h-2 shrink-0">
-          <div className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-50" />
-          <div className="relative rounded-full w-full h-full bg-blue-600" />
+          <div className="absolute inset-0 rounded-full bg-info animate-ping opacity-50" />
+          <div className="relative rounded-full w-full h-full bg-info" />
         </div>
-        <span className="text-[11px] font-bold pg-faint uppercase tracking-[0.14em]">Fase Aktif</span>
+        <span className="text-badge text-muted tracking-widest">Fase Aktif</span>
       </div>
 
-      <p className="text-lg font-bold pg-text leading-snug mb-8 relative z-10">
+      <p className="text-title font-bold text-base leading-snug mb-8 relative z-10">
         {phaseName}
       </p>
 
       {/* Countdown */}
       {countdownTarget && (
         <div className="relative z-10">
-          <CountdownTimer targetDate={countdownTarget} label={countdownLabel} />
+          <CountdownCard targetDate={countdownTarget} label={countdownLabel} />
         </div>
       )}
-    </div>
+    </Card>
   )
 }

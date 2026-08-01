@@ -4,15 +4,15 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 disabled:pointer-events-none disabled:opacity-40 shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-button transition-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] disabled:pointer-events-none disabled:opacity-40 shrink-0",
   {
     variants: {
       variant: {
-        primary: "bg-emerald-500 text-slate-950 hover:bg-emerald-400 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-400/30 hover:-translate-y-px",
-        secondary: "bg-slate-800 text-white hover:bg-slate-700 border border-white/8 hover:-translate-y-px",
-        ghost: "text-slate-400 hover:text-white hover:bg-white/6",
-        outline: "border border-white/12 text-white/80 hover:text-white hover:border-white/25 hover:bg-white/5",
-        danger: "bg-red-500/12 text-red-400 hover:bg-red-500/20 border border-red-500/20",
+        primary: "bg-primary text-[var(--color-bg)] hover:bg-primary-hover shadow-glow hover:-translate-y-px",
+        secondary: "bg-surface text-base hover:bg-surface-secondary border border-light hover:-translate-y-px",
+        ghost: "text-muted hover:text-base hover:bg-surface",
+        outline: "border border-light text-muted hover:text-base hover:border-base hover:bg-surface",
+        danger: "bg-[var(--color-danger)] text-[var(--color-bg)] hover:opacity-90 border border-[var(--color-danger)]",
       },
       size: {
         sm: "h-8 px-4 text-xs",

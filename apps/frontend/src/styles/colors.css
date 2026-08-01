@@ -1,0 +1,31 @@
+@layer utilities {
+  .text-primary { color: var(--color-primary); }
+  .text-primary-hover { color: var(--color-primary-hover); }
+  .text-primary-active { color: var(--color-primary-active); }
+  
+  .bg-primary { background-color: var(--color-primary); }
+  .bg-primary-hover { background-color: var(--color-primary-hover); }
+  .bg-primary-active { background-color: var(--color-primary-active); }
+
+  .bg-base { background-color: var(--color-bg); }
+  .bg-surface { background-color: var(--color-surface); }
+  .bg-surface-secondary { background-color: var(--color-surface-secondary); }
+
+  .border-base { border-color: var(--color-border); }
+  .border-light { border-color: var(--color-border-light); }
+
+  .text-base { color: var(--color-text-primary); }
+  .text-muted { color: var(--color-text-secondary); }
+
+  .text-success { color: var(--color-success); }
+  .bg-success { background-color: var(--color-success); }
+  
+  .text-warning { color: var(--color-warning); }
+  .bg-warning { background-color: var(--color-warning); }
+  
+  .text-danger { color: var(--color-danger); }
+  .bg-danger { background-color: var(--color-danger); }
+  
+  .text-info { color: var(--color-info); }
+  .bg-info { background-color: var(--color-info); }
+}
