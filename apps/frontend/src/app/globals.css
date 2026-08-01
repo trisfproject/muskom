@@ -7,6 +7,11 @@
   :root {
     /* ── DARK (default) ── */
     --c-bg:            #020617;
+    --c-bg-paper:      #0f172a;
+    --c-bg-white:      #020617;
+    --c-bg-blue:       #081229;
+    --c-bg-neutral:    #0b1120;
+    
     --c-bg-alt:        #0f172a;
     --c-bg-glass:      rgba(2, 6, 23, 0.75);
     --c-surface:       rgba(255, 255, 255, 0.025);
@@ -28,9 +33,14 @@
   @media (prefers-color-scheme: light) {
     :root:not([data-theme="dark"]) {
       --c-bg:            #fafaf9;
+      --c-bg-paper:      #fafaf9;
+      --c-bg-white:      #ffffff;
+      --c-bg-blue:       #f0f9ff;
+      --c-bg-neutral:    #f8fafc;
+      
       --c-bg-alt:        #fdfdfc;
-      --c-bg-glass:      rgba(250, 250, 249, 0.75);
-      --c-surface:       #fcfcfb;
+      --c-bg-glass:      rgba(255, 255, 255, 0.85);
+      --c-surface:       #ffffff;
       --c-surface-up:    #fefefd;
       --c-border:        rgba(15, 23, 42, 0.06);
       --c-border-up:     rgba(15, 23, 42, 0.12);
@@ -47,6 +57,11 @@
   /* ── Manual overrides ── */
   [data-theme="dark"] {
     --c-bg:            #020617;
+    --c-bg-paper:      #0f172a;
+    --c-bg-white:      #020617;
+    --c-bg-blue:       #081229;
+    --c-bg-neutral:    #0b1120;
+    
     --c-bg-alt:        #0f172a;
     --c-bg-glass:      rgba(2, 6, 23, 0.75);
     --c-surface:       rgba(255, 255, 255, 0.025);
@@ -64,9 +79,14 @@
 
   [data-theme="light"] {
     --c-bg:            #fafaf9;
+    --c-bg-paper:      #fafaf9;
+    --c-bg-white:      #ffffff;
+    --c-bg-blue:       #f0f9ff;
+    --c-bg-neutral:    #f8fafc;
+    
     --c-bg-alt:        #fdfdfc;
-    --c-bg-glass:      rgba(250, 250, 249, 0.75);
-    --c-surface:       #fcfcfb;
+    --c-bg-glass:      rgba(255, 255, 255, 0.85);
+    --c-surface:       #ffffff;
     --c-surface-up:    #fefefd;
     --c-border:        rgba(15, 23, 42, 0.06);
     --c-border-up:     rgba(15, 23, 42, 0.12);
@@ -122,6 +142,11 @@
   }
 
   /* ── Theme-aware semantic classes ── */
+  .pg-bg-paper { background-color: var(--c-bg-paper); }
+  .pg-bg-white { background-color: var(--c-bg-white); }
+  .pg-bg-blue  { background-color: var(--c-bg-blue); }
+  .pg-bg-neutral { background-color: var(--c-bg-neutral); }
+  
   .pg-bg       { background-color: var(--c-bg); }
   .pg-surface  { background-color: var(--c-bg-alt); }
   .pg-text     { color: var(--c-text); }
@@ -130,31 +155,33 @@
   .pg-border   { border-color: var(--c-border); }
   .pg-border-up { border-color: var(--c-border-up); }
 
-  /* ── Card ── */
+  /* ── Card (Task 5: Unified Elevation) ── */
   .pg-card {
     background: var(--c-surface);
     border: 1px solid var(--c-border);
+    border-radius: 1.5rem;
     box-shadow: 0 4px 24px -4px var(--c-shadow-md), 0 1px 3px var(--c-shadow-sm);
   }
 
-  /* ── Interactive card (hover lift + glow) ── */
+  /* ── Interactive card (Task 6: Micro Interaction hover lift 2px, 200ms) ── */
   .pg-card-i {
     background: var(--c-surface);
     border: 1px solid var(--c-border);
+    border-radius: 1.5rem;
     box-shadow: 0 4px 24px -4px var(--c-shadow-md), 0 1px 3px var(--c-shadow-sm);
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-                box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-                border-color 0.4s ease,
-                background 0.4s ease;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.2s ease,
+                background 0.2s ease;
   }
   .pg-card-i:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 28px 50px -12px var(--c-shadow-lg), 0 8px 24px var(--c-shadow-md);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px -8px var(--c-shadow-lg), 0 4px 12px var(--c-shadow-md);
     border-color: var(--c-border-up);
     background: var(--c-surface-up);
   }
 
-  /* ── Header glass (scrolled) ── */
+  /* ── Header glass ── */
   .header-glass {
     background: var(--c-bg-glass);
     backdrop-filter: blur(24px);
@@ -166,26 +193,44 @@
   /* ── Ghost button/link ── */
   .ghost-btn {
     color: var(--c-text-muted);
-    border: 1px solid var(--c-border);
+    border: 1px solid transparent;
     transition: all 0.2s ease;
   }
   .ghost-btn:hover {
     color: var(--c-text);
-    border-color: var(--c-border-up);
     background: var(--c-surface);
+  }
+
+  /* ── Pill Button (Task 7: Navigation pills) ── */
+  .pill-btn {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    color: var(--c-text);
+    border-radius: 9999px;
+    box-shadow: 0 2px 8px -2px var(--c-shadow-sm);
+    transition: all 0.2s ease;
+  }
+  .pill-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px -4px var(--c-shadow-md);
+    border-color: var(--c-border-up);
+    background: var(--c-surface-up);
   }
 
   /* ── Nav link ── */
   .nav-link {
     color: var(--c-text-muted);
-    transition: color 0.2s ease, background 0.2s ease;
+    transition: all 0.2s ease;
   }
-  .nav-link:hover {
+  .nav-link:hover, .nav-link.active {
     color: var(--c-text);
     background: var(--c-surface);
+    border-radius: 9999px;
+    box-shadow: 0 2px 8px -2px var(--c-shadow-sm);
+    border: 1px solid var(--c-border);
   }
 
-  /* ── Dot grid (theme-aware) ── */
+  /* ── Dot grid ── */
   .dot-grid {
     background-image: radial-gradient(circle, var(--c-dot) 1px, transparent 1px);
     background-size: 32px 32px;

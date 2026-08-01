@@ -140,7 +140,7 @@ function EventInfoCard({ event, currentPhase }: { event: PublicEventDTO | null, 
   const venue = event?.location || "TBD";
 
   return (
-    <div className="pg-card rounded-[2rem] p-8 lg:p-10 space-y-7 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+    <div className="pg-card p-8 lg:p-10 space-y-7 backdrop-blur-xl relative overflow-hidden">
       {/* Subtle background glow for premium feel inside the card */}
       <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/10 blur-[60px] pointer-events-none rounded-full" />
       
@@ -224,7 +224,7 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
             <button
               id="theme-toggle"
               onClick={toggleTheme}
-              className="ghost-btn w-9 h-9 flex items-center justify-center rounded-full"
+              className="pill-btn w-9 h-9 flex items-center justify-center"
               aria-label={theme === "dark" ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
             >
               {theme === "dark"
@@ -233,7 +233,7 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
             </button>
 
             <Link href="/admin/login"
-              className="ghost-btn hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold">
+              className="pill-btn hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold">
               <Lock className="w-3.5 h-3.5" />
               Portal Admin
             </Link>
@@ -271,11 +271,11 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
           </div>
           <div className="p-4 border-t pg-border space-y-2">
             <button onClick={() => { toggleTheme(); setOpen(false) }}
-              className="ghost-btn flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-semibold">
+              className="pill-btn flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold">
               {theme === "dark" ? <><Sun className="w-4 h-4" />Tema Terang</> : <><Moon className="w-4 h-4" />Tema Gelap</>}
             </button>
             <Link href="/admin/login" onClick={() => setOpen(false)}
-              className="ghost-btn flex items-center justify-center gap-2 w-full py-3 px-5 rounded-xl font-bold text-sm">
+              className="pill-btn flex items-center justify-center gap-2 w-full py-3 px-5 font-bold text-sm">
               <Lock className="w-4 h-4" />
               Portal Admin
             </Link>
@@ -295,7 +295,7 @@ function Hero({ event, currentPhase }: { event: PublicEventDTO | null, currentPh
   const isActive = event?.status === "UPCOMING" || event?.status === "ONGOING"
 
   return (
-    <section className="relative min-h-screen flex flex-col justify-center overflow-hidden pg-bg">
+    <section className="relative min-h-screen flex flex-col justify-center overflow-hidden pg-bg-paper">
       {/* Background ambience */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-1/4 -left-1/4 w-3/4 h-3/4 rounded-full bg-blue-600/6 blur-[130px]" />
@@ -319,7 +319,7 @@ function Hero({ event, currentPhase }: { event: PublicEventDTO | null, currentPh
             </FadeUp>
 
             <FadeUp delay={0.1}>
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-[5.5rem] font-black tracking-tight leading-[1.05] mb-6">
+              <h1 className="text-balance text-5xl sm:text-6xl lg:text-7xl xl:text-[5.5rem] font-black tracking-tight leading-[1.05] mb-6">
                 <span className="text-gradient">{name}</span>
               </h1>
             </FadeUp>
@@ -339,7 +339,7 @@ function Hero({ event, currentPhase }: { event: PublicEventDTO | null, currentPh
                   </Link>
                 )}
                 <a href="#timeline"
-                  className="ghost-btn inline-flex items-center gap-2 px-7 py-3.5 font-medium rounded-full text-sm">
+                  className="pill-btn inline-flex items-center gap-2 px-7 py-3.5 font-semibold text-sm">
                   Lihat Jadwal
                 </a>
               </div>
@@ -382,16 +382,16 @@ function phaseStatus(start?: string, end?: string): "past" | "active" | "upcomin
 }
 
 const phaseCfg = {
-  past:     { dot: "bg-slate-600",                badge: "pg-surface pg-faint border pg-border",                  label: "Selesai"        },
-  active:   { dot: "bg-blue-500 ring-4 ring-blue-500/20", badge: "bg-blue-600/10 text-blue-600 border border-blue-600/20", label: "Berlangsung"   },
-  upcoming: { dot: "pg-surface border-2 pg-border",             badge: "pg-surface pg-faint border pg-border",                  label: "Akan Datang"   },
+  past:     { dot: "bg-emerald-500",                badge: "emerald" as const,                  label: "Selesai"        },
+  active:   { dot: "bg-cyan-500 ring-4 ring-cyan-500/20", badge: "cyan" as const, label: "Berlangsung"   },
+  upcoming: { dot: "bg-slate-300",             badge: "default" as const,                  label: "Akan Datang"   },
 }
 
 function Timeline({ timelines }: { timelines: PublicTimelineDTO[] }) {
   if (!timelines || timelines.length === 0) return null;
 
   return (
-    <section id="timeline" className="pg-bg border-t pg-border">
+    <section id="timeline" className="pg-bg-white border-t pg-border">
       <div className="container-landing py-24 lg:py-32">
         <SlideUp>
           <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Agenda</p>
@@ -407,14 +407,14 @@ function Timeline({ timelines }: { timelines: PublicTimelineDTO[] }) {
             const cfg = phaseCfg[status]
             return (
               <SlideUp key={phase.id} delay={i * 0.1}>
-                <div className="flex gap-6 p-6 lg:p-8 rounded-2xl pg-card hover:pg-border-up transition-colors">
+                <div className="flex gap-6 p-6 lg:p-8 pg-card-i transition-colors">
                   <div className="flex flex-col items-center pt-1 shrink-0">
                     <div className={`w-3 h-3 rounded-full shrink-0 ${cfg.dot}`} />
                     {i < timelines.length - 1 && <div className="w-px flex-1 bg-current opacity-10 mt-2" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${cfg.badge}`}>{cfg.label}</span>
+                      <Badge variant={cfg.badge}>{cfg.label}</Badge>
                       <span className="text-xs font-mono pg-faint">{fmt(phase.start_date)} — {fmt(phase.end_date)}</span>
                     </div>
                     <h3 className="text-lg font-bold pg-text mb-1.5">{phase.title}</h3>
@@ -436,7 +436,7 @@ function Timeline({ timelines }: { timelines: PublicTimelineDTO[] }) {
 function CandidatePreview({ candidates, loading }: { candidates: PublicCandidateDTO[], loading: boolean }) {
 
   return (
-    <section id="kandidat" className="pg-bg border-t pg-border relative overflow-hidden">
+    <section id="kandidat" className="pg-bg-blue border-t pg-border relative overflow-hidden">
       <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-[60vw] h-[60vw] rounded-full bg-blue-600/4 blur-[120px] pointer-events-none" />
       <div className="container-landing relative z-10 py-24 lg:py-32">
         <SlideUp>
@@ -467,7 +467,7 @@ function CandidatePreview({ candidates, loading }: { candidates: PublicCandidate
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {candidates.map((c, i) => (
               <SlideUp key={c.id ?? i} delay={i * 0.07}>
-                <article className="group pg-card-i rounded-2xl overflow-hidden hover:border-blue-600/20">
+                <article className="group pg-card-i overflow-hidden">
                   <div className="relative h-52 pg-surface flex items-center justify-center overflow-hidden">
                     {c.photo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -506,7 +506,7 @@ function fmtDate(d?: string) {
 function Announcement({ announcements }: { announcements: PublicAnnouncementDTO[] }) {
   if (!announcements || announcements.length === 0) return null;
   return (
-    <section id="pengumuman" className="pg-bg border-t pg-border">
+    <section id="pengumuman" className="pg-bg-white border-t pg-border">
       <div className="container-landing py-24 lg:py-32">
         <SlideUp className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
           <div>
@@ -524,9 +524,9 @@ function Announcement({ announcements }: { announcements: PublicAnnouncementDTO[
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {announcements.map((a, i) => (
             <SlideUp key={a.id} delay={i * 0.1}>
-              <article className="group pg-card-i rounded-2xl p-6 flex flex-col h-full cursor-pointer">
+              <article className="group pg-card-i p-6 flex flex-col h-full cursor-pointer">
                 <div className="flex items-center justify-between mb-5">
-                  <Badge variant="default">Pengumuman</Badge>
+                  <Badge variant={['blue', 'violet', 'amber', 'rose'][i % 4] as any}>Pengumuman</Badge>
                   <span className="text-xs pg-faint font-mono">{fmtDate(a.published_at || a.created_at)}</span>
                 </div>
                 <h3 className="text-base font-bold pg-text leading-snug mb-3 group-hover:text-blue-600 transition-colors duration-200 flex-1">{a.title}</h3>
@@ -549,7 +549,7 @@ function Announcement({ announcements }: { announcements: PublicAnnouncementDTO[
 // ─────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer className="pg-bg border-t pg-border relative">
+    <footer className="pg-bg-neutral border-t pg-border relative">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-px bg-gradient-to-r from-transparent via-blue-600/40 to-transparent" />
       <div className="container-landing py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
