@@ -1,12 +1,12 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { startTransition, useEffect, useState } from "react"
+import { startTransition, useEffect, useState, useMemo } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import {
   Menu, X, Lock, CalendarDays, MapPin, ArrowRight, ChevronDown,
-  Users, UserCheck, Activity, UserCircle2, ArrowUpRight,
+  UserCircle2, ArrowUpRight,
   Sun, Moon, Clock,
 } from "lucide-react"
 import { landingService } from "@/services/landing"
@@ -97,15 +97,15 @@ function CountdownTimer({ targetDate, label }: { targetDate?: string; label: str
 
   return (
     <div>
-      <div className="flex items-center gap-1.5 mb-2.5">
-        <Clock className="w-3 h-3 pg-faint" />
-        <span className="text-xs font-semibold pg-faint uppercase tracking-wider">{label}</span>
+      <div className="flex items-center gap-1.5 mb-3">
+        <Clock className="w-3.5 h-3.5 text-emerald-500" />
+        <span className="text-[11px] font-bold pg-faint uppercase tracking-widest">{label}</span>
       </div>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-2.5">
         {units.map((u) => (
-          <div key={u.l} className="flex flex-col items-center p-2.5 rounded-xl pg-surface border pg-border">
-            <span className="text-lg font-black pg-text tabular-nums leading-none">{String(u.v).padStart(2, "0")}</span>
-            <span className="text-xs pg-faint mt-1">{u.l}</span>
+          <div key={u.l} className="flex flex-col items-center py-3 px-2 rounded-2xl pg-surface border pg-border shadow-sm">
+            <span className="text-xl font-black pg-text tabular-nums leading-none tracking-tight">{String(u.v).padStart(2, "0")}</span>
+            <span className="text-[10px] font-semibold pg-muted mt-1.5 uppercase tracking-wider">{u.l}</span>
           </div>
         ))}
       </div>
@@ -135,77 +135,55 @@ function InfoRow({
 // ─────────────────────────────────────────────────────────────
 // EVENT INFO CARD (Task 3 — Hero right column)
 // ─────────────────────────────────────────────────────────────
-const EVENT_STATUS: Record<string, { label: string; variant: "emerald" | "sky" | "amber" | "red" | "default" }> = {
-  UPCOMING:  { label: "Akan Datang",       variant: "sky"     },
-  ONGOING:   { label: "Sedang Berlangsung", variant: "emerald" },
-  COMPLETED: { label: "Telah Selesai",      variant: "default" },
-  DRAFT:     { label: "Dalam Persiapan",    variant: "amber"   },
-  CANCELLED: { label: "Dibatalkan",         variant: "red"     },
-}
+const MUSKOM_PHASES = [
+  { id: 1, name: "Sidang Mandat", endDate: "2026-07-18T23:59:59+07:00" },
+  { id: 2, name: "Penjaringan Aspirasi", endDate: "2026-07-25T23:59:59+07:00" },
+  { id: 3, name: "Penjaringan Bakal Calon", endDate: "2026-08-08T23:59:59+07:00" },
+  { id: 4, name: "Verifikasi Administrasi", endDate: "2026-08-09T23:59:59+07:00" },
+  { id: 5, name: "Penetapan Calon Ketua Umum", endDate: "2026-08-12T23:59:59+07:00" },
+  { id: 6, name: "Masa Kampanye", endDate: "2026-08-26T23:59:59+07:00" },
+  { id: 7, name: "Masa Tenang", endDate: "2026-08-28T23:59:59+07:00" },
+  { id: 8, name: "Musyawarah & Pemilihan", endDate: "2026-08-29T10:00:00+07:00" }
+]
 
-function EventInfoCard({ event }: { event: MusyawarahEvent | null }) {
-  const status = event?.status ? EVENT_STATUS[event.status] : null
-
-  const countdownDate = event?.status === "UPCOMING" ? event?.start_date
-    : event?.status === "ONGOING" ? event?.voting_end : undefined
-  const countdownLabel = event?.status === "UPCOMING" ? "Dimulai dalam" : "Voting berakhir dalam"
-
+function EventInfoCard() {
   const [now, setNow] = useState(() => Date.now())
+  
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 30000)
+    const id = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(id)
   }, [])
-  const regStart = event?.registration_start ? new Date(event.registration_start).getTime() : null
-  const regEnd   = event?.registration_end   ? new Date(event.registration_end).getTime()   : null
 
-  const regStatus = (() => {
-    if (!event) return null
-    if (regEnd && now > regEnd) return { label: "Ditutup",         variant: "red"     as const }
-    if (!event.allow_candidate_registration)
-                                return { label: "Belum Dibuka",    variant: "sky"     as const }
-    if (regStart && now < regStart) return { label: "Belum Dimulai", variant: "amber"   as const }
-    if (regStart && regEnd && now >= regStart && now <= regEnd)
-                                return { label: "Sedang Dibuka",   variant: "emerald" as const }
-    return null
-  })()
-
-  const startDate = event?.start_date
-    ? new Date(event.start_date).toLocaleDateString("id-ID", {
-        weekday: "long", day: "numeric", month: "long", year: "numeric",
-      })
-    : "Belum Ditentukan"
+  const currentPhase = useMemo(() => {
+    return MUSKOM_PHASES.find(p => now < new Date(p.endDate).getTime()) || MUSKOM_PHASES[MUSKOM_PHASES.length - 1]
+  }, [now])
 
   return (
-    <div className="pg-card rounded-2xl p-6 lg:p-8 space-y-5 shadow-2xl">
+    <div className="pg-card rounded-[2rem] p-8 lg:p-10 space-y-7 shadow-2xl backdrop-blur-xl relative overflow-hidden">
+      {/* Subtle background glow for premium feel inside the card */}
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 blur-[60px] pointer-events-none rounded-full" />
+      
       {/* Status header */}
-      <div className="flex items-center justify-between pb-1">
-        <span className="text-xs font-semibold pg-faint uppercase tracking-widest">
-          Informasi Event
+      <div className="flex flex-col gap-1.5 pb-1 relative z-10">
+        <span className="text-[11px] font-bold pg-faint uppercase tracking-widest">
+          Fase Saat Ini
         </span>
-        {status && <Badge variant={status.variant}>{status.label}</Badge>}
+        <h3 className="text-xl lg:text-2xl font-black pg-text tracking-tight">
+          {currentPhase.name}
+        </h3>
       </div>
 
       {/* Countdown */}
-      {countdownDate && (
-        <>
-          <CountdownTimer targetDate={countdownDate} label={countdownLabel} />
-          <div className="border-t pg-border" />
-        </>
-      )}
+      <div className="relative z-10">
+        <CountdownTimer targetDate={currentPhase.endDate} label={`Menuju Batas Waktu Fase`} />
+      </div>
+
+      <div className="border-t pg-border relative z-10" />
 
       {/* Info rows */}
-      <div className="space-y-4">
-        <InfoRow icon={CalendarDays} label="Tanggal Pelaksanaan" value={startDate} />
-        <InfoRow icon={MapPin}       label="Lokasi"               value={event?.location ?? "Akan Diumumkan"} />
-        {regStatus && (
-          <InfoRow icon={Users} label="Status Pendaftaran">
-            <Badge variant={regStatus.variant} className="mt-0.5">{regStatus.label}</Badge>
-          </InfoRow>
-        )}
-        {event?.max_participants && (
-          <InfoRow icon={UserCheck} label="Kapasitas Peserta"
-            value={event.max_participants.toLocaleString("id-ID") + " orang"} />
-        )}
+      <div className="space-y-4 pt-1 relative z-10">
+        <InfoRow icon={CalendarDays} label="Puncak Musyawarah" value="29 Agustus 2026 • 10:00 WIB" />
+        <InfoRow icon={MapPin}       label="Lokasi Utama"      value="Kawana Golf Residence Jababeka" />
       </div>
     </div>
   )
@@ -392,7 +370,7 @@ function Hero({ event }: { event: MusyawarahEvent | null }) {
 
           {/* ── RIGHT: Event info card ── */}
           <SlideInRight delay={0.25}>
-            <EventInfoCard event={event} />
+            <EventInfoCard />
           </SlideInRight>
         </div>
       </div>
@@ -403,75 +381,6 @@ function Hero({ event }: { event: MusyawarahEvent | null }) {
         <span>Scroll</span>
         <ChevronDown className="w-3.5 h-3.5 animate-bounce" />
       </motion.div>
-    </section>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────
-// STATISTICS (Task 4 — elevated cards)
-// ─────────────────────────────────────────────────────────────
-const STATUS_LABEL: Record<string, string> = {
-  UPCOMING:  "Segera Dimulai",
-  ONGOING:   "Sedang Berlangsung",
-  COMPLETED: "Telah Selesai",
-  DRAFT:     "Dalam Persiapan",
-  CANCELLED: "Dibatalkan",
-}
-
-function Statistics({ event }: { event: MusyawarahEvent | null }) {
-  const stats = [
-    {
-      value:   event?.stats?.total_participants?.toLocaleString("id-ID") ?? "—",
-      label:   "Peserta Terdaftar",
-      desc:    "Anggota komunitas yang telah memiliki hak suara penuh dalam musyawarah.",
-      icon:    Users,
-      color:   "text-emerald-500",
-      bg:      "bg-emerald-500/10",
-      accent:  "hover:shadow-emerald-500/10",
-    },
-    {
-      value:   event?.stats?.total_candidates?.toLocaleString("id-ID") ?? "—",
-      label:   "Kandidat Resmi",
-      desc:    "Calon pemimpin yang telah lulus proses verifikasi dan validasi panitia.",
-      icon:    UserCheck,
-      color:   "text-sky-500",
-      bg:      "bg-sky-500/10",
-      accent:  "hover:shadow-sky-500/10",
-    },
-    {
-      value:   event?.status ? STATUS_LABEL[event.status] ?? "—" : "—",
-      label:   "Status Portal",
-      desc:    "Fase dan kondisi pelaksanaan musyawarah yang sedang berjalan saat ini.",
-      icon:    Activity,
-      color:   "text-violet-500",
-      bg:      "bg-violet-500/10",
-      accent:  "hover:shadow-violet-500/10",
-    },
-  ]
-
-  return (
-    <section className="pg-bg border-t pg-border relative">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
-      <div className="container-landing py-20 lg:py-24">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {stats.map((s, i) => (
-            <SlideUp key={s.label} delay={i * 0.1}>
-              <div className={`group pg-card-i rounded-2xl p-7 lg:p-9 cursor-default hover:shadow-2xl ${s.accent}`}>
-                {/* Icon */}
-                <div className={`w-12 h-12 rounded-2xl ${s.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                  <s.icon className={`w-6 h-6 ${s.color}`} />
-                </div>
-                {/* Value */}
-                <div className="text-4xl font-black pg-text tracking-tight mb-1.5 leading-none">{s.value}</div>
-                {/* Label */}
-                <div className="text-base font-bold pg-text mb-2.5">{s.label}</div>
-                {/* Description */}
-                <div className="text-sm pg-muted leading-relaxed">{s.desc}</div>
-              </div>
-            </SlideUp>
-          ))}
-        </div>
-      </div>
     </section>
   )
 }
@@ -807,7 +716,6 @@ export default function LandingPage() {
       <Header theme={theme} toggleTheme={toggleTheme} />
       <main>
         <Hero event={ev} />
-        <Statistics event={ev} />
         <Timeline event={ev} />
         <CandidatePreview />
         <Announcement />
