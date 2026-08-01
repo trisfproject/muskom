@@ -84,11 +84,11 @@ export function CountdownTimer({ targetDate, label }: { targetDate?: string; lab
         <Clock className="w-3.5 h-3.5 text-blue-600" />
         <span className="text-[11px] font-bold pg-faint uppercase tracking-widest">{label}</span>
       </div>
-      <div className="grid grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-4 gap-3">
         {units.map((u) => (
-          <div key={u.l} className="flex flex-col items-center py-3 px-2 rounded-2xl pg-surface border pg-border shadow-sm">
-            <span className="text-xl font-black pg-text tabular-nums leading-none tracking-tight">{String(u.v).padStart(2, "0")}</span>
-            <span className="text-[10px] font-semibold pg-muted mt-1.5 uppercase tracking-wider">{u.l}</span>
+          <div key={u.l} className="flex flex-col items-center py-3.5 px-2 rounded-[1rem] shadow-[0_4px_16px_-4px_rgba(0,0,0,0.05)] border" style={{ backgroundColor: "var(--c-surface-up)", borderColor: "var(--c-border)" }}>
+            <span className="text-[22px] font-black pg-text tabular-nums leading-none tracking-tight">{String(u.v).padStart(2, "0")}</span>
+            <span className="text-[10px] font-bold pg-muted mt-2 uppercase tracking-widest">{u.l}</span>
           </div>
         ))}
       </div>

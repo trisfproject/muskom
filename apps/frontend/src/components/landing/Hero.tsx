@@ -21,53 +21,20 @@ export function Hero({ data }: { data: HomeResponse | null }) {
 
       {/* ── Atmospheric layers (bottom to top) ── */}
 
-      {/* 1. Premium mesh gradient — 4 glow sources */}
-      <div className="absolute inset-0 hero-mesh pointer-events-none" />
+      {/* Layer 2: Aurora Gradient */}
+      <div className="absolute inset-0 hero-aurora pointer-events-none" />
 
-      {/* 2. Tech blueprint grid — blueprint/innovation texture at ~3% */}
-      <div className="absolute inset-0 tech-grid opacity-75 pointer-events-none" />
+      {/* Layer 3: Blueprint Grid */}
+      <div className="absolute inset-0 hero-blueprint pointer-events-none" />
 
-      {/* 3. Central mega-glow — depth anchor */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          top: "50%", left: "50%",
-          width: "1200px", height: "900px",
-          transform: "translate(-50%, -50%)",
-          background: "radial-gradient(ellipse at center, rgba(37,99,235,0.07) 0%, transparent 65%)",
-          filter: "blur(60px)",
-        }}
-      />
+      {/* Layer 4: Connection Network */}
+      <div className="absolute inset-0 hero-network pointer-events-none" />
 
-      {/* 4. Top-right sky-blue accent (premium lighting) */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          top: "-120px", right: "-80px",
-          width: "700px", height: "600px",
-          borderRadius: "50%",
-          background: "radial-gradient(ellipse at top right, rgba(56,189,248,0.07) 0%, transparent 65%)",
-          filter: "blur(80px)",
-        }}
-      />
+      {/* Layer 5: Premium Noise */}
+      <div className="absolute inset-0 hero-noise pointer-events-none" />
 
-      {/* 5. Bottom-left depth glow */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          bottom: "-80px", left: "-60px",
-          width: "500px", height: "400px",
-          borderRadius: "50%",
-          background: "radial-gradient(ellipse at bottom left, rgba(37,99,235,0.06) 0%, transparent 65%)",
-          filter: "blur(70px)",
-        }}
-      />
-
-      {/* 6. Top edge hairline — conference stage effect */}
-      <div
-        className="absolute top-0 left-0 right-0 h-px pointer-events-none"
-        style={{ background: "linear-gradient(to right, transparent, rgba(37,99,235,0.35) 40%, rgba(56,189,248,0.2) 60%, transparent)" }}
-      />
+      {/* Hero Lighting */}
+      <div className="absolute inset-0 hero-lighting pointer-events-none" />
 
       {/* ── Content ── */}
       <div className="container-landing relative z-10 py-36 lg:py-0">
@@ -77,8 +44,8 @@ export function Hero({ data }: { data: HomeResponse | null }) {
           <div className="lg:col-span-7">
             <FadeUp>
               {/* Official identity pill */}
-              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-blue-600/20 bg-blue-600/6 text-[11px] font-bold text-blue-500 uppercase tracking-[0.16em] mb-8">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-sky-400/5 text-[11px] font-bold text-blue-600 uppercase tracking-[0.16em] mb-8 shadow-[0_0_12px_rgba(37,99,235,0.1)]">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
                 Together We Shape the Future
               </div>
 
@@ -140,7 +107,15 @@ function PhaseCard({ data }: { data: HomeResponse | null }) {
   const countdownLabel = data?.countdown?.label || "Tersisa"
 
   return (
-    <div className="pg-card relative overflow-hidden" style={{ padding: "1.75rem 2rem" }}>
+    <div
+      className="relative overflow-hidden rounded-[1.25rem]"
+      style={{
+        padding: "1.75rem 2rem",
+        background: "linear-gradient(180deg, var(--c-surface) 0%, var(--c-bg-glass) 100%)",
+        border: "1px solid var(--c-border)",
+        boxShadow: "0 8px 32px -12px var(--c-shadow-sm), inset 0 1px 0 rgba(255,255,255,0.05)",
+      }}
+    >
       {/* Card inner atmosphere — top-right glow */}
       <div
         className="absolute pointer-events-none"
@@ -148,12 +123,12 @@ function PhaseCard({ data }: { data: HomeResponse | null }) {
           top: "-40px", right: "-40px",
           width: "200px", height: "180px",
           borderRadius: "50%",
-          background: "radial-gradient(ellipse at top right, rgba(37,99,235,0.14) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse at top right, rgba(37,99,235,0.08) 0%, transparent 70%)",
           filter: "blur(30px)",
         }}
       />
       {/* Card inner mesh */}
-      <div className="absolute inset-0 tech-dots opacity-40 pointer-events-none rounded-[1.25rem]" />
+      <div className="absolute inset-0 tech-dots opacity-20 pointer-events-none" />
 
       {/* Active phase indicator */}
       <div className="flex items-center gap-2.5 mb-4 relative z-10">
