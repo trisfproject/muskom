@@ -4,15 +4,12 @@ import { Menu, X, Sun, Moon, Lock } from "lucide-react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 
-// HEADER (Task 2 — theme toggle)
-// ─────────────────────────────────────────────────────────────
+// Nav: Beranda, Timeline, Kandidat, Pengumuman — per ADR 0006 (no FAQ, no Bantuan)
 const navItems = [
   { label: "Beranda",     href: "#"           },
   { label: "Timeline",   href: "#timeline"   },
   { label: "Kandidat",   href: "#kandidat"   },
   { label: "Pengumuman", href: "#pengumuman" },
-  { label: "FAQ",        href: "#faq"        },
-  { label: "Bantuan",    href: "#bantuan"    },
 ]
 
 export function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: () => void }) {

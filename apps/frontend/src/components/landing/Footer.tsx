@@ -1,69 +1,79 @@
 import { HomeResponse } from "@/types/landing"
-import Link from "next/link"
-import { Mail, Phone } from "lucide-react"
+import { Mail, MessageCircle, MapPin } from "lucide-react"
 
-// Footer: Navigation, Contact, Copyright only — per ADR 0006
-// Permanently removed: Legal/Privacy, Social Media, Admin Access
-const navItems = [
-  { label: "Beranda",     href: "#"           },
-  { label: "Timeline",   href: "#timeline"   },
-  { label: "Kandidat",   href: "#kandidat"   },
-  { label: "Pengumuman", href: "#pengumuman" },
-]
-
+// Footer: two-area layout — per BUILD-001.2 & ADR 0006
+// Left: brand + description + contact
+// Right: copyright
+// Removed permanently: Navigation column, Legal, Social Media, Admin Access
 export function Footer({ data }: { data: HomeResponse | null }) {
   const footer = data?.footer;
   if (!footer) return null;
 
   return (
-    <footer className="pg-bg-neutral border-t pg-border relative">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-px bg-gradient-to-r from-transparent via-blue-600/40 to-transparent" />
-      <div className="container-landing py-14">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+    <footer className="border-t pg-border relative">
+      {/* Subtle top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-600/20 to-transparent" />
 
-          {/* Brand */}
-          <div>
-            <div className="flex items-center gap-2.5 mb-4">
-              <span className="text-base font-black pg-text">MUSKOM</span>
+      <div className="container-landing py-16 lg:py-20">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-12 lg:gap-24">
+
+          {/* Left — Brand + Contact */}
+          <div className="max-w-md">
+            {/* Wordmark */}
+            <div className="mb-5">
+              <span className="text-xl font-black tracking-tight pg-text">MUSKOM</span>
             </div>
-            <p className="text-sm pg-muted leading-relaxed max-w-xs">
-              Portal resmi Musyawarah KOMITKABE 2026. Transparan, aman, dan dapat diandalkan oleh seluruh anggota.
+
+            <p className="text-sm pg-muted leading-relaxed mb-8">
+              Portal resmi Musyawarah KOMITKABE. Membangun proses pemilihan yang transparan, profesional, dan dapat dipercaya oleh seluruh anggota komunitas.
             </p>
-          </div>
 
-          {/* Navigation */}
-          <div>
-            <h4 className="text-xs font-semibold pg-text uppercase tracking-wider mb-5">Navigasi</h4>
-            <ul className="space-y-3">
-              {navItems.map((n) => (
-                <li key={n.label}>
-                  <Link href={n.href} className="text-sm pg-muted hover:pg-text transition-colors">{n.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h4 className="text-xs font-semibold pg-text uppercase tracking-wider mb-5">Kontak</h4>
+            {/* Contact */}
             <div className="space-y-3">
-              <a href={`mailto:${footer.email}`} className="flex items-center gap-2.5 text-sm pg-muted hover:text-blue-600 transition-colors">
-                <Mail className="w-4 h-4 shrink-0" />
-                {footer.email}
+              <h4 className="text-[11px] font-bold pg-faint uppercase tracking-widest mb-4">Kontak Panitia</h4>
+              <a
+                href={`mailto:${footer.email}`}
+                className="flex items-center gap-3 group"
+              >
+                <div className="w-7 h-7 rounded-lg pg-surface border pg-border flex items-center justify-center shrink-0">
+                  <Mail className="w-3.5 h-3.5 pg-faint" />
+                </div>
+                <span className="text-sm pg-muted group-hover:text-blue-600 transition-colors">{footer.email}</span>
               </a>
-              <a href={footer.whatsapp_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 text-sm pg-muted hover:text-emerald-600 transition-colors">
-                <Phone className="w-4 h-4 shrink-0" />
-                {footer.whatsapp}
+              <a
+                href={footer.whatsapp_url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3 group"
+              >
+                <div className="w-7 h-7 rounded-lg pg-surface border pg-border flex items-center justify-center shrink-0">
+                  <MessageCircle className="w-3.5 h-3.5 pg-faint" />
+                </div>
+                <span className="text-sm pg-muted group-hover:text-emerald-600 transition-colors">{footer.whatsapp}</span>
               </a>
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-lg pg-surface border pg-border flex items-center justify-center shrink-0 mt-0.5">
+                  <MapPin className="w-3.5 h-3.5 pg-faint" />
+                </div>
+                <span className="text-sm pg-muted leading-relaxed">{footer.address}</span>
+              </div>
             </div>
           </div>
 
-        </div>
+          {/* Right — Copyright */}
+          <div className="lg:text-right">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border pg-border pg-surface mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <span className="text-[11px] font-semibold pg-faint uppercase tracking-widest">Official Portal</span>
+            </div>
+            <p className="text-sm pg-muted leading-relaxed">
+              © {new Date().getFullYear()} MUSKOM.
+              <br />
+              Seluruh hak cipta dilindungi.
+            </p>
+            <p className="text-xs pg-faint mt-2 opacity-50">{footer.tagline}</p>
+          </div>
 
-        {/* Bottom bar */}
-        <div className="border-t pg-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs pg-faint">&copy; {new Date().getFullYear()} {footer.copyright}</p>
-          <p className="text-xs pg-faint opacity-60">{footer.tagline}</p>
         </div>
       </div>
     </footer>
