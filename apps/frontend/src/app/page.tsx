@@ -142,7 +142,7 @@ function EventInfoCard({ event, currentPhase, loading }: { event: PublicEventDTO
           Fase Saat Ini
         </span>
         <h3 className="text-xl lg:text-2xl font-black pg-text tracking-tight">
-          {loading ? "Memuat..." : (currentPhase?.name || "Belum Ada Jadwal")}
+          {loading ? "Memuat..." : (currentPhase?.name || "Fase Persiapan")}
         </h3>
       </div>
 
@@ -291,8 +291,8 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
 // HERO (Task 3 — two-column layout)
 // ─────────────────────────────────────────────────────────────
 function Hero({ event, currentPhase, loading }: { event: PublicEventDTO | null, currentPhase: PublicCurrentPhaseDTO | null, loading: boolean }) {
-  const name = event?.name ?? "Menunggu Jadwal"
-  const themeStr = event?.theme ?? "Informasi pelaksanaan musyawarah akan segera dipublikasikan."
+  const name = event?.name ?? "Musyawarah Komunitas"
+  const themeStr = event?.theme ?? "Selamat datang di Portal Resmi Musyawarah. Platform terpadu untuk mewujudkan pemilihan yang transparan, aman, dan dapat diandalkan oleh seluruh anggota."
   const isActive = event?.status === "UPCOMING" || event?.status === "ONGOING"
 
   return (
@@ -419,9 +419,9 @@ function Timeline({ timelines, loading }: { timelines: PublicTimelineDTO[], load
         {!loading && (!timelines || timelines.length === 0) && (
           <div className="flex flex-col items-center py-16 text-center pg-card-i rounded-2xl">
             <CalendarDays className="w-12 h-12 pg-faint mb-4" />
-            <h3 className="text-lg font-bold pg-text mb-2">Agenda Belum Tersedia</h3>
+            <h3 className="text-lg font-bold pg-text mb-2">Rangkaian Agenda</h3>
             <p className="pg-muted max-w-sm text-sm leading-relaxed">
-              Detail rangkaian agenda dan timeline musyawarah akan segera dipublikasikan di sini.
+              Jadwal resmi pelaksanaan musyawarah sedang disusun secara komprehensif oleh panitia pelaksana.
             </p>
           </div>
         )}
@@ -485,8 +485,8 @@ function CandidatePreview({ candidates, loading }: { candidates: PublicCandidate
             <div className="w-16 h-16 rounded-2xl pg-card flex items-center justify-center mb-5">
               <UserCircle2 className="w-8 h-8 pg-faint" />
             </div>
-            <h3 className="text-lg font-bold pg-text mb-2">Belum Ada Kandidat</h3>
-            <p className="pg-muted max-w-xs text-sm leading-relaxed">Daftar kandidat akan dipublikasikan setelah proses verifikasi selesai.</p>
+            <h3 className="text-lg font-bold pg-text mb-2">Verifikasi Kandidat</h3>
+            <p className="pg-muted max-w-xs text-sm leading-relaxed">Proses seleksi administratif dan verifikasi calon pemimpin sedang berlangsung.</p>
           </div>
         )}
 
@@ -560,8 +560,8 @@ function Announcement({ announcements, loading }: { announcements: PublicAnnounc
             <div className="w-16 h-16 rounded-2xl pg-card flex items-center justify-center mb-5">
               <CalendarDays className="w-8 h-8 pg-faint" />
             </div>
-            <h3 className="text-lg font-bold pg-text mb-2">Belum Ada Pengumuman</h3>
-            <p className="pg-muted max-w-sm text-sm leading-relaxed">Belum ada pengumuman resmi yang dipublikasikan saat ini.</p>
+            <h3 className="text-lg font-bold pg-text mb-2">Pusat Informasi</h3>
+            <p className="pg-muted max-w-sm text-sm leading-relaxed">Seluruh instruksi, tata tertib, dan pengumuman resmi akan didistribusikan melalui portal ini.</p>
           </div>
         )}
 
