@@ -10,7 +10,7 @@ import {
   Sun, Moon, Clock,
 } from "lucide-react"
 import { landingService } from "@/services/landing"
-import { MusyawarahEvent } from "@/types/event"
+import { HomeResponse, PublicEventDTO, PublicCurrentPhaseDTO, PublicTimelineDTO, PublicAnnouncementDTO, PublicCandidateDTO } from "@/types/landing"
 import { Badge } from "@/components/ui/badge"
 
 // ─────────────────────────────────────────────────────────────
@@ -135,28 +135,9 @@ function InfoRow({
 // ─────────────────────────────────────────────────────────────
 // EVENT INFO CARD (Task 3 — Hero right column)
 // ─────────────────────────────────────────────────────────────
-const MUSKOM_PHASES = [
-  { id: 1, name: "Sidang Mandat", endDate: "2026-07-18T23:59:59+07:00" },
-  { id: 2, name: "Penjaringan Aspirasi", endDate: "2026-07-25T23:59:59+07:00" },
-  { id: 3, name: "Penjaringan Bakal Calon", endDate: "2026-08-08T23:59:59+07:00" },
-  { id: 4, name: "Verifikasi Administrasi", endDate: "2026-08-09T23:59:59+07:00" },
-  { id: 5, name: "Penetapan Calon Ketua Umum", endDate: "2026-08-12T23:59:59+07:00" },
-  { id: 6, name: "Masa Kampanye", endDate: "2026-08-26T23:59:59+07:00" },
-  { id: 7, name: "Masa Tenang", endDate: "2026-08-28T23:59:59+07:00" },
-  { id: 8, name: "Musyawarah & Pemilihan", endDate: "2026-08-29T10:00:00+07:00" }
-]
-
-function EventInfoCard() {
-  const [now, setNow] = useState(() => Date.now())
-  
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(id)
-  }, [])
-
-  const currentPhase = useMemo(() => {
-    return MUSKOM_PHASES.find(p => now < new Date(p.endDate).getTime()) || MUSKOM_PHASES[MUSKOM_PHASES.length - 1]
-  }, [now])
+function EventInfoCard({ event, currentPhase }: { event: PublicEventDTO | null, currentPhase: PublicCurrentPhaseDTO | null }) {
+  const peakDateStr = event?.event_date ? new Date(event.event_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " WIB" : "TBD";
+  const venue = event?.location || "TBD";
 
   return (
     <div className="pg-card rounded-[2rem] p-8 lg:p-10 space-y-7 shadow-2xl backdrop-blur-xl relative overflow-hidden">
@@ -169,21 +150,21 @@ function EventInfoCard() {
           Fase Saat Ini
         </span>
         <h3 className="text-xl lg:text-2xl font-black pg-text tracking-tight">
-          {currentPhase.name}
+          {currentPhase?.name || "Belum Ada Jadwal"}
         </h3>
       </div>
 
       {/* Countdown */}
       <div className="relative z-10">
-        <CountdownTimer targetDate={currentPhase.endDate} label={`Menuju Batas Waktu Fase`} />
+        <CountdownTimer targetDate={currentPhase?.end_date} label={`Menuju Batas Waktu Fase`} />
       </div>
 
       <div className="border-t pg-border relative z-10" />
 
       {/* Info rows */}
       <div className="space-y-4 pt-1 relative z-10">
-        <InfoRow icon={CalendarDays} label="Puncak Musyawarah" value="29 Agustus 2026 • 10:00 WIB" />
-        <InfoRow icon={MapPin}       label="Lokasi Utama"      value="Kawana Golf Residence Jababeka" />
+        <InfoRow icon={CalendarDays} label="Puncak Musyawarah" value={peakDateStr} />
+        <InfoRow icon={MapPin}       label="Lokasi Utama"      value={venue} />
       </div>
     </div>
   )
@@ -308,7 +289,7 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
 // ─────────────────────────────────────────────────────────────
 // HERO (Task 3 — two-column layout)
 // ─────────────────────────────────────────────────────────────
-function Hero({ event }: { event: MusyawarahEvent | null }) {
+function Hero({ event, currentPhase }: { event: PublicEventDTO | null, currentPhase: PublicCurrentPhaseDTO | null }) {
   const name = event?.name ?? "Musyawarah KOMITKABE"
   const themeStr = event?.theme ?? "Membangun Komunitas Berdaulat, Transparan & Progresif"
   const isActive = event?.status === "UPCOMING" || event?.status === "ONGOING"
@@ -367,7 +348,7 @@ function Hero({ event }: { event: MusyawarahEvent | null }) {
 
           {/* ── RIGHT: Event info card ── */}
           <SlideInRight delay={0.25} className="lg:col-span-5 w-full">
-            <EventInfoCard />
+            <EventInfoCard event={event} currentPhase={currentPhase} />
           </SlideInRight>
         </div>
       </div>
@@ -406,12 +387,8 @@ const phaseCfg = {
   upcoming: { dot: "pg-surface border-2 pg-border",             badge: "pg-surface pg-faint border pg-border",                  label: "Akan Datang"   },
 }
 
-function Timeline({ event }: { event: MusyawarahEvent | null }) {
-  const phases = [
-    { key: "reg",  label: "Pendaftaran Peserta",  start: event?.registration_start,          end: event?.registration_end,          desc: "Pendaftaran resmi bagi anggota komunitas untuk memperoleh hak suara dalam musyawarah."        },
-    { key: "cand", label: "Pendaftaran Kandidat", start: event?.candidate_registration_start, end: event?.candidate_registration_end, desc: "Penerimaan dan verifikasi berkas calon pemimpin komunitas periode berikutnya."                 },
-    { key: "vote", label: "Pemilihan",            start: event?.voting_start,                end: event?.voting_end,                desc: "Pemungutan suara secara elektronik oleh seluruh peserta yang telah terverifikasi."              },
-  ]
+function Timeline({ timelines }: { timelines: PublicTimelineDTO[] }) {
+  if (!timelines || timelines.length === 0) return null;
 
   return (
     <section id="timeline" className="pg-bg border-t pg-border">
@@ -425,23 +402,23 @@ function Timeline({ event }: { event: MusyawarahEvent | null }) {
         </SlideUp>
 
         <div className="space-y-4">
-          {phases.map((phase, i) => {
-            const status = phaseStatus(phase.start, phase.end)
+          {timelines.map((phase, i) => {
+            const status = phaseStatus(phase.start_date, phase.end_date)
             const cfg = phaseCfg[status]
             return (
-              <SlideUp key={phase.key} delay={i * 0.1}>
+              <SlideUp key={phase.id} delay={i * 0.1}>
                 <div className="flex gap-6 p-6 lg:p-8 rounded-2xl pg-card hover:pg-border-up transition-colors">
                   <div className="flex flex-col items-center pt-1 shrink-0">
                     <div className={`w-3 h-3 rounded-full shrink-0 ${cfg.dot}`} />
-                    {i < phases.length - 1 && <div className="w-px flex-1 bg-current opacity-10 mt-2" />}
+                    {i < timelines.length - 1 && <div className="w-px flex-1 bg-current opacity-10 mt-2" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${cfg.badge}`}>{cfg.label}</span>
-                      <span className="text-xs font-mono pg-faint">{fmt(phase.start)} — {fmt(phase.end)}</span>
+                      <span className="text-xs font-mono pg-faint">{fmt(phase.start_date)} — {fmt(phase.end_date)}</span>
                     </div>
-                    <h3 className="text-lg font-bold pg-text mb-1.5">{phase.label}</h3>
-                    <p className="text-sm pg-muted leading-relaxed">{phase.desc}</p>
+                    <h3 className="text-lg font-bold pg-text mb-1.5">{phase.title}</h3>
+                    <p className="text-sm pg-muted leading-relaxed">{phase.description}</p>
                   </div>
                 </div>
               </SlideUp>
@@ -456,16 +433,7 @@ function Timeline({ event }: { event: MusyawarahEvent | null }) {
 // ─────────────────────────────────────────────────────────────
 // CANDIDATE PREVIEW
 // ─────────────────────────────────────────────────────────────
-function CandidatePreview() {
-  const [candidates, setCandidates] = useState<CandidateData[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    landingService.getPublicCandidates()
-      .then((r) => setCandidates(r as CandidateData[]))
-      .catch(() => setCandidates([]))
-      .finally(() => setLoading(false))
-  }, [])
+function CandidatePreview({ candidates, loading }: { candidates: PublicCandidateDTO[], loading: boolean }) {
 
   return (
     <section id="kandidat" className="pg-bg border-t pg-border relative overflow-hidden">
@@ -501,9 +469,9 @@ function CandidatePreview() {
               <SlideUp key={c.id ?? i} delay={i * 0.07}>
                 <article className="group pg-card-i rounded-2xl overflow-hidden hover:border-blue-600/20">
                   <div className="relative h-52 pg-surface flex items-center justify-center overflow-hidden">
-                    {c.photo_path ? (
+                    {c.photo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={c.photo_path} alt={c.name ?? "Kandidat"}
+                      <img src={c.photo_url} alt={c.name ?? "Kandidat"}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
                       <UserCircle2 className="w-20 h-20 pg-faint" />
@@ -530,28 +498,13 @@ function CandidatePreview() {
 // ─────────────────────────────────────────────────────────────
 // ANNOUNCEMENT
 // ─────────────────────────────────────────────────────────────
-const announcements = [
-  {
-    id: 1, category: "Penting", badgeVariant: "blue" as const,
-    title: "Pendaftaran Peserta Resmi Dibuka",
-    excerpt: "Seluruh anggota komunitas kini dapat mendaftarkan diri melalui portal ini untuk mendapatkan hak suara pada musyawarah.",
-    date: "Agu 2026",
-  },
-  {
-    id: 2, category: "Informasi", badgeVariant: "default" as const,
-    title: "Tata Tertib Musyawarah Telah Diterbitkan",
-    excerpt: "Dokumen pedoman pelaksanaan dan tata cara pemilihan kini tersedia untuk diunduh oleh seluruh peserta yang telah terdaftar.",
-    date: "Agu 2026",
-  },
-  {
-    id: 3, category: "Agenda", badgeVariant: "default" as const,
-    title: "Jadwal Verifikasi Berkas Kandidat",
-    excerpt: "Proses verifikasi berkas calon pemimpin dilaksanakan secara terbuka dan disiarkan melalui kanal komunikasi resmi komunitas.",
-    date: "Agu 2026",
-  },
-]
+function fmtDate(d?: string) {
+  if (!d) return "Baru saja";
+  return new Date(d).toLocaleDateString("id-ID", { month: "short", year: "numeric", day: "numeric" });
+}
 
-function Announcement() {
+function Announcement({ announcements }: { announcements: PublicAnnouncementDTO[] }) {
+  if (!announcements || announcements.length === 0) return null;
   return (
     <section id="pengumuman" className="pg-bg border-t pg-border">
       <div className="container-landing py-24 lg:py-32">
@@ -573,11 +526,11 @@ function Announcement() {
             <SlideUp key={a.id} delay={i * 0.1}>
               <article className="group pg-card-i rounded-2xl p-6 flex flex-col h-full cursor-pointer">
                 <div className="flex items-center justify-between mb-5">
-                  <Badge variant={a.badgeVariant}>{a.category}</Badge>
-                  <span className="text-xs pg-faint font-mono">{a.date}</span>
+                  <Badge variant="default">Pengumuman</Badge>
+                  <span className="text-xs pg-faint font-mono">{fmtDate(a.published_at || a.created_at)}</span>
                 </div>
                 <h3 className="text-base font-bold pg-text leading-snug mb-3 group-hover:text-blue-600 transition-colors duration-200 flex-1">{a.title}</h3>
-                <p className="text-sm pg-muted leading-relaxed mb-5">{a.excerpt}</p>
+                <p className="text-sm pg-muted leading-relaxed mb-5 line-clamp-3">{a.content}</p>
                 <div className="flex items-center gap-1 text-xs font-semibold pg-faint group-hover:text-blue-600 transition-colors duration-200">
                   Baca selengkapnya
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
@@ -668,9 +621,9 @@ export default function LandingPage() {
     localStorage.setItem("muskom-theme", next)
   }
 
-  const { data: event, isLoading } = useQuery({
-    queryKey: ["public-event"],
-    queryFn: landingService.getPublicEvent,
+  const { data: homeData, isLoading } = useQuery({
+    queryKey: ["public-home"],
+    queryFn: landingService.getPublicHome,
     staleTime: 5 * 60 * 1000,
     retry: 1,
   })
@@ -685,7 +638,12 @@ export default function LandingPage() {
     )
   }
 
-  const ev = event ?? null
+  const ev = homeData?.event ?? null
+  const currentPhase = homeData?.currentPhase ?? null
+  const timelines = homeData?.timeline ?? []
+  const announcements = homeData?.announcements ?? []
+  const candidates = homeData?.candidates ?? []
+  const settings = homeData?.settings ?? null
 
   if (ev?.status === "DRAFT" || ev?.status === "CANCELLED") {
     return (
@@ -703,10 +661,10 @@ export default function LandingPage() {
     <div className="min-h-screen pg-bg" data-theme={theme}>
       <Header theme={theme} toggleTheme={toggleTheme} />
       <main>
-        <Hero event={ev} />
-        <Timeline event={ev} />
-        <CandidatePreview />
-        <Announcement />
+        <Hero event={ev} currentPhase={currentPhase} />
+        {settings?.show_timeline && <Timeline timelines={timelines} />}
+        {settings?.show_candidate_list && <CandidatePreview candidates={candidates} loading={false} />}
+        {settings?.show_announcements && <Announcement announcements={announcements} />}
       </main>
       <Footer />
     </div>

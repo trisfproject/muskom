@@ -1,27 +1,15 @@
 import publicApi from '@/lib/public-api';
-import { MusyawarahEvent } from '@/types/event';
+import { HomeResponse } from '@/types/landing';
 
 export const landingService = {
-  async getPublicEvent(): Promise<MusyawarahEvent | null> {
+  async getPublicHome(): Promise<HomeResponse | null> {
     try {
-      const response = await publicApi.get('/public/musyawarah');
+      const response = await publicApi.get('/public/home');
       return response.data.data;
     } catch (error: unknown) {
       const err = error as { response?: { status?: number } };
       if (err.response?.status === 401 || err.response?.status === 404 || err.response?.status === 403) {
         return null;
-      }
-      throw error;
-    }
-  },
-  async getPublicCandidates(): Promise<unknown[]> {
-    try {
-      const response = await publicApi.get('/public/candidates');
-      return response.data.data || [];
-    } catch (error: unknown) {
-      const err = error as { response?: { status?: number } };
-      if (err.response?.status === 401 || err.response?.status === 404 || err.response?.status === 403) {
-        return [];
       }
       throw error;
     }
