@@ -3,7 +3,7 @@ package public
 import "time"
 
 type HomeResponse struct {
-	Event         EventDTO          `json:"event"`
+	Event         *EventDTO         `json:"event"`
 	Settings      SettingsDTO       `json:"settings"`
 	Timeline      []TimelineDTO     `json:"timeline"`
 	CurrentPhase  CurrentPhaseDTO   `json:"currentPhase"`

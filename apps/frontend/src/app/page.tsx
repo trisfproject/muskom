@@ -135,7 +135,7 @@ function InfoRow({
 // ─────────────────────────────────────────────────────────────
 // EVENT INFO CARD (Task 3 — Hero right column)
 // ─────────────────────────────────────────────────────────────
-function EventInfoCard({ event, currentPhase }: { event: PublicEventDTO | null, currentPhase: PublicCurrentPhaseDTO | null }) {
+function EventInfoCard({ event, currentPhase, loading }: { event: PublicEventDTO | null, currentPhase: PublicCurrentPhaseDTO | null, loading: boolean }) {
   const peakDateStr = event?.event_date ? new Date(event.event_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) + " WIB" : "TBD";
   const venue = event?.location || "TBD";
 
@@ -150,7 +150,7 @@ function EventInfoCard({ event, currentPhase }: { event: PublicEventDTO | null, 
           Fase Saat Ini
         </span>
         <h3 className="text-xl lg:text-2xl font-black pg-text tracking-tight">
-          {currentPhase?.name || "Belum Ada Jadwal"}
+          {loading ? "Memuat..." : (currentPhase?.name || "Belum Ada Jadwal")}
         </h3>
       </div>
 
@@ -289,9 +289,9 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
 // ─────────────────────────────────────────────────────────────
 // HERO (Task 3 — two-column layout)
 // ─────────────────────────────────────────────────────────────
-function Hero({ event, currentPhase }: { event: PublicEventDTO | null, currentPhase: PublicCurrentPhaseDTO | null }) {
-  const name = event?.name ?? "Musyawarah KOMITKABE"
-  const themeStr = event?.theme ?? "Membangun Komunitas Berdaulat, Transparan & Progresif"
+function Hero({ event, currentPhase, loading }: { event: PublicEventDTO | null, currentPhase: PublicCurrentPhaseDTO | null, loading: boolean }) {
+  const name = event?.name ?? "Menunggu Jadwal"
+  const themeStr = event?.theme ?? "Informasi pelaksanaan musyawarah akan segera dipublikasikan."
   const isActive = event?.status === "UPCOMING" || event?.status === "ONGOING"
 
   return (
@@ -348,7 +348,7 @@ function Hero({ event, currentPhase }: { event: PublicEventDTO | null, currentPh
 
           {/* ── RIGHT: Event info card ── */}
           <SlideInRight delay={0.25} className="lg:col-span-5 w-full">
-            <EventInfoCard event={event} currentPhase={currentPhase} />
+            <EventInfoCard event={event} currentPhase={currentPhase} loading={loading} />
           </SlideInRight>
         </div>
       </div>
@@ -387,8 +387,7 @@ const phaseCfg = {
   upcoming: { dot: "bg-slate-300",             badge: "default" as const,                  label: "Akan Datang"   },
 }
 
-function Timeline({ timelines }: { timelines: PublicTimelineDTO[] }) {
-  if (!timelines || timelines.length === 0) return null;
+function Timeline({ timelines, loading }: { timelines: PublicTimelineDTO[], loading: boolean }) {
 
   return (
     <section id="timeline" className="pg-bg-white border-t pg-border">
@@ -401,30 +400,57 @@ function Timeline({ timelines }: { timelines: PublicTimelineDTO[] }) {
           </p>
         </SlideUp>
 
-        <div className="space-y-4">
-          {timelines.map((phase, i) => {
-            const status = phaseStatus(phase.start_date, phase.end_date)
-            const cfg = phaseCfg[status]
-            return (
-              <SlideUp key={phase.id} delay={i * 0.1}>
-                <div className="flex gap-6 p-6 lg:p-8 pg-card-i transition-colors">
-                  <div className="flex flex-col items-center pt-1 shrink-0">
-                    <div className={`w-3 h-3 rounded-full shrink-0 ${cfg.dot}`} />
-                    {i < timelines.length - 1 && <div className="w-px flex-1 bg-current opacity-10 mt-2" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <Badge variant={cfg.badge}>{cfg.label}</Badge>
-                      <span className="text-xs font-mono pg-faint">{fmt(phase.start_date)} — {fmt(phase.end_date)}</span>
-                    </div>
-                    <h3 className="text-lg font-bold pg-text mb-1.5">{phase.title}</h3>
-                    <p className="text-sm pg-muted leading-relaxed">{phase.description}</p>
-                  </div>
+        {loading && (
+          <div className="space-y-4">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="flex gap-6 p-6 lg:p-8 pg-card-i animate-pulse">
+                <div className="w-3 h-3 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0 mt-1" />
+                <div className="flex-1 space-y-3">
+                  <div className="w-24 h-5 rounded bg-slate-200 dark:bg-slate-800" />
+                  <div className="w-1/2 h-6 rounded bg-slate-200 dark:bg-slate-800" />
+                  <div className="w-3/4 h-4 rounded bg-slate-200 dark:bg-slate-800" />
                 </div>
-              </SlideUp>
-            )
-          })}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && (!timelines || timelines.length === 0) && (
+          <div className="flex flex-col items-center py-16 text-center pg-card-i rounded-2xl">
+            <CalendarDays className="w-12 h-12 pg-faint mb-4" />
+            <h3 className="text-lg font-bold pg-text mb-2">Agenda Belum Tersedia</h3>
+            <p className="pg-muted max-w-sm text-sm leading-relaxed">
+              Detail rangkaian agenda dan timeline musyawarah akan segera dipublikasikan di sini.
+            </p>
+          </div>
+        )}
+
+        {!loading && timelines && timelines.length > 0 && (
+          <div className="space-y-4">
+            {timelines.map((phase, i) => {
+              const status = phaseStatus(phase.start_date, phase.end_date)
+              const cfg = phaseCfg[status]
+              return (
+                <SlideUp key={phase.id} delay={i * 0.1}>
+                  <div className="flex gap-6 p-6 lg:p-8 pg-card-i transition-colors">
+                    <div className="flex flex-col items-center pt-1 shrink-0">
+                      <div className={`w-3 h-3 rounded-full shrink-0 ${cfg.dot}`} />
+                      {i < timelines.length - 1 && <div className="w-px flex-1 bg-current opacity-10 mt-2" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-3">
+                        <Badge variant={cfg.badge}>{cfg.label}</Badge>
+                        <span className="text-xs font-mono pg-faint">{fmt(phase.start_date)} — {fmt(phase.end_date)}</span>
+                      </div>
+                      <h3 className="text-lg font-bold pg-text mb-1.5">{phase.title}</h3>
+                      <p className="text-sm pg-muted leading-relaxed">{phase.description}</p>
+                    </div>
+                  </div>
+                </SlideUp>
+              )
+            })}
+          </div>
+        )}
       </div>
     </section>
   )
@@ -503,8 +529,7 @@ function fmtDate(d?: string) {
   return new Date(d).toLocaleDateString("id-ID", { month: "short", year: "numeric", day: "numeric" });
 }
 
-function Announcement({ announcements }: { announcements: PublicAnnouncementDTO[] }) {
-  if (!announcements || announcements.length === 0) return null;
+function Announcement({ announcements, loading }: { announcements: PublicAnnouncementDTO[], loading: boolean }) {
   return (
     <section id="pengumuman" className="pg-bg-white border-t pg-border">
       <div className="container-landing py-24 lg:py-32">
@@ -521,24 +546,44 @@ function Announcement({ announcements }: { announcements: PublicAnnouncementDTO[
           </button>
         </SlideUp>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {announcements.map((a, i) => (
-            <SlideUp key={a.id} delay={i * 0.1}>
-              <article className="group pg-card-i p-6 flex flex-col h-full cursor-pointer">
-                <div className="flex items-center justify-between mb-5">
-                  <Badge variant={['blue', 'violet', 'amber', 'rose'][i % 4] as "default" | "blue" | "violet" | "amber" | "rose" | "emerald" | "cyan" | null | undefined}>Pengumuman</Badge>
-                  <span className="text-xs pg-faint font-mono">{fmtDate(a.published_at || a.created_at)}</span>
-                </div>
-                <h3 className="text-base font-bold pg-text leading-snug mb-3 group-hover:text-blue-600 transition-colors duration-200 flex-1">{a.title}</h3>
-                <p className="text-sm pg-muted leading-relaxed mb-5 line-clamp-3">{a.content}</p>
-                <div className="flex items-center gap-1 text-xs font-semibold pg-faint group-hover:text-blue-600 transition-colors duration-200">
-                  Baca selengkapnya
-                  <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
-                </div>
-              </article>
-            </SlideUp>
-          ))}
-        </div>
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="h-48 rounded-2xl pg-surface animate-pulse" />
+            ))}
+          </div>
+        )}
+
+        {!loading && (!announcements || announcements.length === 0) && (
+          <div className="flex flex-col items-center py-16 text-center pg-card-i rounded-2xl w-full">
+            <div className="w-16 h-16 rounded-2xl pg-card flex items-center justify-center mb-5">
+              <CalendarDays className="w-8 h-8 pg-faint" />
+            </div>
+            <h3 className="text-lg font-bold pg-text mb-2">Belum Ada Pengumuman</h3>
+            <p className="pg-muted max-w-sm text-sm leading-relaxed">Belum ada pengumuman resmi yang dipublikasikan saat ini.</p>
+          </div>
+        )}
+
+        {!loading && announcements && announcements.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {announcements.map((a, i) => (
+              <SlideUp key={a.id} delay={i * 0.1}>
+                <article className="group pg-card-i p-6 flex flex-col h-full cursor-pointer">
+                  <div className="flex items-center justify-between mb-5">
+                    <Badge variant={['blue', 'violet', 'amber', 'rose'][i % 4] as "default" | "blue" | "violet" | "amber" | "rose" | "emerald" | "cyan" | null | undefined}>Pengumuman</Badge>
+                    <span className="text-xs pg-faint font-mono">{fmtDate(a.published_at || a.created_at)}</span>
+                  </div>
+                  <h3 className="text-base font-bold pg-text leading-snug mb-3 group-hover:text-blue-600 transition-colors duration-200 flex-1">{a.title}</h3>
+                  <p className="text-sm pg-muted leading-relaxed mb-5 line-clamp-3">{a.content}</p>
+                  <div className="flex items-center gap-1 text-xs font-semibold pg-faint group-hover:text-blue-600 transition-colors duration-200">
+                    Baca selengkapnya
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
+                  </div>
+                </article>
+              </SlideUp>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )
@@ -628,43 +673,20 @@ export default function LandingPage() {
     retry: 1,
   })
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen pg-bg flex items-center justify-center" data-theme={theme}>
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-        </div>
-      </div>
-    )
-  }
-
   const ev = homeData?.event ?? null
   const currentPhase = homeData?.currentPhase ?? null
   const timelines = homeData?.timeline ?? []
   const announcements = homeData?.announcements ?? []
   const candidates = homeData?.candidates ?? []
-  const settings = homeData?.settings ?? null
-
-  if (ev?.status === "DRAFT" || ev?.status === "CANCELLED") {
-    return (
-      <div className="min-h-screen pg-bg flex flex-col" data-theme={theme}>
-        <Header theme={theme} toggleTheme={toggleTheme} />
-        <div className="flex-1 flex flex-col items-center justify-center px-5 text-center">
-          <h1 className="text-2xl font-black pg-text mb-3 tracking-tight">Portal Dalam Pemeliharaan</h1>
-          <p className="pg-muted max-w-sm leading-relaxed">Sistem sedang dipersiapkan. Silakan kunjungi kembali beberapa saat lagi.</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-screen pg-bg" data-theme={theme}>
       <Header theme={theme} toggleTheme={toggleTheme} />
       <main>
-        <Hero event={ev} currentPhase={currentPhase} />
-        {settings?.show_timeline && <Timeline timelines={timelines} />}
-        {settings?.show_candidate_list && <CandidatePreview candidates={candidates} loading={false} />}
-        {settings?.show_announcements && <Announcement announcements={announcements} />}
+        <Hero event={ev} currentPhase={currentPhase} loading={isLoading} />
+        <Timeline timelines={timelines} loading={isLoading} />
+        <CandidatePreview candidates={candidates} loading={isLoading} />
+        <Announcement announcements={announcements} loading={isLoading} />
       </main>
       <Footer />
     </div>

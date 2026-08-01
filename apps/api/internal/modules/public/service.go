@@ -29,7 +29,15 @@ func (s *service) GetPublicHome(ctx context.Context) (*HomeResponse, error) {
 	event, err := s.repo.GetActiveEvent(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("no active event found")
+			// HOTFIX: Return 200 OK with empty data instead of error
+			return &HomeResponse{
+				Event:         nil,
+				Settings:      SettingsDTO{},
+				Timeline:      []TimelineDTO{},
+				CurrentPhase:  CurrentPhaseDTO{Name: "Belum Ada Jadwal", IsActive: false},
+				Announcements: []AnnouncementDTO{},
+				Candidates:    []CandidateDTO{},
+			}, nil
 		}
 		s.logger.Error("Failed to fetch active event", zap.Error(err))
 		return nil, err
@@ -165,7 +173,7 @@ func (s *service) GetPublicHome(ctx context.Context) (*HomeResponse, error) {
 	}
 
 	return &HomeResponse{
-		Event: EventDTO{
+		Event: &EventDTO{
 			Name:      event.Name,
 			Theme:     event.Theme,
 			Location:  event.Location,
