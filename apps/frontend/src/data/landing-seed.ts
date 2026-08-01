@@ -27,17 +27,19 @@ export const landingSeed: HomeResponse = {
     target_date: "2026-08-08T23:59:59Z",
     label: "Penjaringan Ditutup",
   },
-  // Two independent registration CTAs — gated by backend timeline phase
+  // Two independent registration CTAs — visual priority set by backend per active phase (ADR 0006)
   cta: {
-    participant_registration: {
-      label: "Daftar Peserta",
-      url: "/register",
-      open: true, // Participant registration is open
-    },
     candidate_registration: {
       label: "Daftar Calon Ketua Umum",
-      url: "/register/candidate",
-      open: true, // Candidate registration open during Penjaringan phase
+      url: "/register/candidate", // TODO Increment 4: Candidate Registration Module
+      open: true,
+      style: "primary" as const, // Primary during Penjaringan phase
+    },
+    participant_registration: {
+      label: "Daftar Peserta Musyawarah",
+      url: "/register",
+      open: true,
+      style: "outline" as const,
     },
   },
   timeline: [

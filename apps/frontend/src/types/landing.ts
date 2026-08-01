@@ -3,6 +3,7 @@ export interface PublicRegistrationCTA {
   label: string;
   url: string;
   open: boolean; // set by backend based on active timeline phase — frontend never calculates this
+  style?: "primary" | "outline"; // visual priority set by backend per active phase
 }
 
 export interface PublicEventDTO {
