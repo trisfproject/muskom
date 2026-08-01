@@ -246,14 +246,47 @@
      CARDS — floating, elegant elevation
      ═══════════════════════════════════════════ */
 
+  /* ── Buttons with micro-interactions ── */
+  .pill-btn {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    color: var(--c-text);
+    border-radius: 9999px;
+    transition:
+      transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.2s ease,
+      background 0.2s ease,
+      color 0.2s ease;
+  }
+  .pill-btn:hover {
+    border-color: var(--c-border-up);
+    background: var(--c-surface-up);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px -2px var(--c-shadow-sm);
+  }
+  .pill-btn:active {
+    transform: scale(0.98) translateY(0);
+    box-shadow: 0 1px 2px var(--c-shadow-sm);
+  }
+  .pill-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--c-bg), 0 0 0 4px #2563eb;
+  }
+
+  .nav-link {
+    color: var(--c-text-muted);
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+  .nav-link:hover {
+    color: var(--c-text);
+    background: var(--c-surface-up);
+  }
+
   .pg-card {
     background: var(--c-surface);
     border: 1px solid var(--c-border);
     border-radius: 1.25rem;
-    box-shadow:
-      0 1px 2px var(--c-shadow-sm),
-      0 4px 12px -4px var(--c-shadow-sm),
-      inset 0 1px 0 rgba(255, 255, 255, 0.04);
   }
 
   .pg-card-i {
@@ -265,10 +298,10 @@
       0 4px 12px -4px var(--c-shadow-sm),
       inset 0 1px 0 rgba(255, 255, 255, 0.04);
     transition:
-      transform     0.25s cubic-bezier(0.16, 1, 0.3, 1),
-      box-shadow    0.25s cubic-bezier(0.16, 1, 0.3, 1),
-      border-color  0.25s ease,
-      background    0.25s ease;
+      transform     0.2s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow    0.2s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color  0.2s ease,
+      background    0.2s ease;
   }
   .pg-card-i:hover {
     transform: translateY(-2px);
@@ -278,6 +311,22 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.08);
     border-color: var(--c-border-up);
     background: var(--c-surface-up);
+  }
+  .pg-card-i:active {
+    transform: translateY(0);
+    box-shadow:
+      0 2px 4px var(--c-shadow-sm),
+      0 4px 12px -4px var(--c-shadow-sm);
+  }
+
+  /* Accessibility: Respect prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   /* ── Header glass — ultra refined ── */

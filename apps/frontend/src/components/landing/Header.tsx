@@ -14,12 +14,29 @@ const navItems = [
 
 export function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: () => void }) {
   const [scrolled, setScrolled] = useState(false)
+  const [activeSection, setActiveSection] = useState("#")
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 24)
-    window.addEventListener("scroll", fn, { passive: true })
-    return () => window.removeEventListener("scroll", fn)
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 24)
+
+      const sections = ["pengumuman", "kandidat", "timeline"]
+      const scrollPosition = window.scrollY + 200
+
+      let current = "#"
+      for (const section of sections) {
+        const el = document.getElementById(section)
+        if (el && el.offsetTop <= scrollPosition) {
+          current = `#${section}`
+          break
+        }
+      }
+      setActiveSection(current)
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   useEffect(() => {
@@ -30,7 +47,7 @@ export function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggle
   return (
     <>
       <header
-        className={`fixed top-0 inset-x-0 z-40 transition-all duration-500 ${
+        className={`fixed top-0 inset-x-0 z-40 transition-all duration-300 ${
           scrolled ? "header-glass py-3" : "bg-transparent py-5"
         }`}
       >
@@ -41,13 +58,23 @@ export function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggle
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-0.5 flex-1 justify-center">
-            {navItems.map((item) => (
-              <Link key={item.label} href={item.href}
-                className="nav-link px-4 py-2 rounded-full text-sm font-medium">
-                {item.label}
-              </Link>
-            ))}
+          <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
+            {navItems.map((item) => {
+              const isActive = activeSection === item.href
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                    isActive
+                      ? "text-blue-600 bg-blue-600/10 font-semibold"
+                      : "nav-link"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
           </nav>
 
           {/* Right actions */}

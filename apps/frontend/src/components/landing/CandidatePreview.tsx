@@ -1,9 +1,9 @@
 import { HomeResponse } from "@/types/landing"
-import { ArrowRight, UserCircle2 } from "lucide-react"
-import { SlideUp } from "@/components/landing/Shared"
+import { ArrowRight } from "lucide-react"
+import { SlideUp, EmptyState, CandidateSkeleton } from "@/components/landing/Shared"
 
 export function CandidatePreview({ data }: { data: HomeResponse | null }) {
-  const candidates = data?.candidates || [];
+  const candidates = data?.candidates;
   return (
     // Section rhythm: soft blue tint
     <section id="kandidat" className="pg-section-alt relative overflow-hidden">
@@ -27,17 +27,19 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
           </div>
         </SlideUp>
 
-        {candidates.length === 0 && (
-          <div className="flex flex-col items-center py-20 text-center">
-            <div className="w-16 h-16 rounded-2xl pg-card flex items-center justify-center mb-5">
-              <UserCircle2 className="w-8 h-8 pg-faint" />
-            </div>
-            <h3 className="text-lg font-bold pg-text mb-2">Verifikasi Kandidat</h3>
-            <p className="pg-muted max-w-xs text-sm leading-relaxed">Calon Ketua Umum akan dipublikasikan setelah proses verifikasi administrasi selesai.</p>
-          </div>
+        {/* Loading state */}
+        {!data && <CandidateSkeleton />}
+
+        {/* Empty state */}
+        {data && (!candidates || candidates.length === 0) && (
+          <EmptyState
+            icon="user"
+            title="Verifikasi Kandidat"
+            description="Calon Ketua Umum akan dipublikasikan setelah proses verifikasi administrasi selesai."
+          />
         )}
 
-        {candidates.length > 0 && (
+        {candidates && candidates.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {candidates.map((c, i) => (
               <SlideUp key={c.id} delay={i * 0.1}>

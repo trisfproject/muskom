@@ -1,10 +1,10 @@
 import { HomeResponse } from "@/types/landing"
 import { Badge } from "@/components/ui/badge"
-import { CalendarDays } from "lucide-react"
-import { SlideUp } from "@/components/landing/Shared"
+import { Sparkles } from "lucide-react"
+import { SlideUp, EmptyState, AnnouncementSkeleton } from "@/components/landing/Shared"
 
 export function Announcement({ data }: { data: HomeResponse | null }) {
-  const announcements = data?.announcements || [];
+  const announcements = data?.announcements;
   return (
     // Section rhythm: pure white
     <section id="pengumuman" className="pg-section relative">
@@ -18,30 +18,46 @@ export function Announcement({ data }: { data: HomeResponse | null }) {
           </p>
         </SlideUp>
 
-        {(!announcements || announcements.length === 0) && (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto rounded-2xl pg-card flex items-center justify-center mb-5">
-              <CalendarDays className="w-8 h-8 pg-faint" />
-            </div>
-            <h3 className="text-lg font-bold pg-text mb-2">Pusat Informasi</h3>
-            <p className="pg-muted text-sm max-w-sm mx-auto">Belum ada pengumuman yang diterbitkan saat ini.</p>
-          </div>
+        {/* Loading state */}
+        {!data && <AnnouncementSkeleton />}
+
+        {/* Empty state */}
+        {data && (!announcements || announcements.length === 0) && (
+          <EmptyState
+            icon="calendar"
+            title="Pusat Informasi"
+            description="Belum ada pengumuman yang diterbitkan saat ini."
+          />
         )}
 
         {announcements && announcements.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-            {announcements.map((a, i) => (
-              <SlideUp key={a.id} delay={i * 0.1}>
-                <a href={`/announcement/${a.id}`} className="block group pg-card-i p-6 lg:p-8 hover:-translate-y-1 transition-transform">
-                  <div className="flex items-center justify-between gap-4 mb-4">
-                    <Badge variant="blue">Pengumuman</Badge>
-                    <span className="text-xs font-mono pg-faint">{a.published_at ? new Date(a.published_at).toLocaleDateString("id-ID") : ""}</span>
-                  </div>
-                  <h3 className="text-lg font-bold pg-text mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">{a.title}</h3>
-                  <p className="text-sm pg-muted line-clamp-3 leading-relaxed">{a.content}</p>
-                </a>
-              </SlideUp>
-            ))}
+            {announcements.map((a, i) => {
+              const isLatest = i === 0;
+              return (
+                <SlideUp key={a.id} delay={i * 0.1}>
+                  <a
+                    href={`/announcement/${a.id}`}
+                    className={`block group pg-card-i p-6 lg:p-8 relative overflow-hidden ${
+                      isLatest ? "border-blue-500/30" : ""
+                    }`}
+                  >
+                    {isLatest && (
+                      <div className="absolute top-0 right-0 px-3 py-1 bg-blue-600 text-[10px] font-bold text-white rounded-bl-xl tracking-wider uppercase flex items-center gap-1">
+                        <Sparkles className="w-2.5 h-2.5" />
+                        Terbaru
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between gap-4 mb-4">
+                      <Badge variant={isLatest ? "blue" : "default"}>Pengumuman</Badge>
+                      <span className="text-xs font-mono pg-faint">{a.published_at ? new Date(a.published_at).toLocaleDateString("id-ID") : ""}</span>
+                    </div>
+                    <h3 className="text-lg font-bold pg-text mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">{a.title}</h3>
+                    <p className="text-sm pg-muted line-clamp-3 leading-relaxed">{a.content}</p>
+                  </a>
+                </SlideUp>
+              )
+            })}
           </div>
         )}
       </div>

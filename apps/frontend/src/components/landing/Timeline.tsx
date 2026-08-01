@@ -1,7 +1,6 @@
 import { HomeResponse } from "@/types/landing"
 import { Badge } from "@/components/ui/badge"
-import { CalendarDays } from "lucide-react"
-import { SlideUp } from "@/components/landing/Shared"
+import { SlideUp, EmptyState, TimelineSkeleton } from "@/components/landing/Shared"
 
 // Timeline — visual journey showing progress
 // Color hierarchy (approved):
@@ -25,7 +24,7 @@ function connectorClass(current: string, next: string): string {
 }
 
 export function Timeline({ data }: { data: HomeResponse | null }) {
-  const timelines = data?.timeline || [];
+  const timelines = data?.timeline;
 
   return (
     // Section rhythm: pure white — contrasts with surrounding blue-tint sections
@@ -49,15 +48,16 @@ export function Timeline({ data }: { data: HomeResponse | null }) {
           </p>
         </SlideUp>
 
+        {/* Loading state */}
+        {!data && <TimelineSkeleton />}
+
         {/* Empty state */}
-        {(!timelines || timelines.length === 0) && (
-          <div className="flex flex-col items-center py-16 text-center pg-card-i rounded-[1.25rem] max-w-md mx-auto">
-            <CalendarDays className="w-10 h-10 pg-faint mb-4" />
-            <h3 className="text-base font-bold pg-text mb-2">Rangkaian Agenda</h3>
-            <p className="pg-muted max-w-xs text-sm leading-relaxed">
-              Jadwal resmi pelaksanaan musyawarah belum tersedia.
-            </p>
-          </div>
+        {data && (!timelines || timelines.length === 0) && (
+          <EmptyState
+            icon="calendar"
+            title="Rangkaian Agenda"
+            description="Jadwal resmi pelaksanaan musyawarah belum tersedia."
+          />
         )}
 
         {/* Journey list */}

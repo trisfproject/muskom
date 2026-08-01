@@ -42,24 +42,30 @@ export function Hero({ data }: { data: HomeResponse | null }) {
 
           {/* Left column */}
           <div className="lg:col-span-7">
-            <FadeUp>
-              {/* Official identity pill */}
+            {/* 1. Official identity pill */}
+            <FadeUp delay={0.05}>
               <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-sky-400/5 text-[11px] font-bold text-blue-600 uppercase tracking-[0.16em] mb-8 shadow-[0_0_12px_rgba(37,99,235,0.1)]">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
                 Together We Shape the Future
               </div>
+            </FadeUp>
 
+            {/* 2. Heading */}
+            <FadeUp delay={0.15}>
               <h1 className="text-4xl sm:text-5xl lg:text-[64px] font-black pg-text tracking-tight leading-[1.07] mb-6">
                 {name}
               </h1>
+            </FadeUp>
 
+            {/* 3. Description */}
+            <FadeUp delay={0.25}>
               <p className="text-lg sm:text-xl pg-muted leading-relaxed max-w-xl font-medium">
                 {themeStr}
               </p>
             </FadeUp>
 
-            {/* CTAs — driven by backend style field */}
-            <FadeUp delay={0.18}>
+            {/* 4. CTAs — driven by backend style field */}
+            <FadeUp delay={0.35}>
               <div className="flex flex-col sm:flex-row items-start gap-3 mt-10">
                 {ctaList.map((cta) => {
                   if (!cta || !cta.open) return null
@@ -68,7 +74,7 @@ export function Hero({ data }: { data: HomeResponse | null }) {
                     <Link
                       key={cta.url}
                       href={cta.url}
-                      className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-blue-600 text-white font-bold text-sm hover:bg-blue-500 transition-all duration-200 hover:-translate-y-0.5"
+                      className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-blue-600 text-white font-bold text-sm hover:bg-blue-500 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                       style={{ boxShadow: "0 4px 20px -4px rgba(37,99,235,0.45), inset 0 1px 0 rgba(255,255,255,0.15)" }}
                     >
                       {cta.label} <ArrowRight className="w-4 h-4" />
@@ -89,7 +95,8 @@ export function Hero({ data }: { data: HomeResponse | null }) {
 
           {/* Right column — Phase card */}
           <div className="lg:col-span-5">
-            <FadeUp delay={0.3}>
+            {/* 5. Current Phase Card */}
+            <FadeUp delay={0.45}>
               <PhaseCard data={data} />
             </FadeUp>
           </div>

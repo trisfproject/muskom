@@ -1,45 +1,38 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { Clock } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Clock, UserCircle2, CalendarDays } from "lucide-react"
 import { startTransition, useEffect, useState } from "react"
 
 // ─────────────────────────────────────────────────────────────
 // MOTION HELPERS
 // ─────────────────────────────────────────────────────────────
-const ease = [0.25, 0.4, 0.25, 1] as const
+const ease = [0.16, 1, 0.3, 1] as const
 
 export function FadeUp({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.65, delay, ease }}
+      transition={{ duration: 0.4, delay, ease }}
       className={className}
-    >{children}</motion.div>
+    >
+      {children}
+    </motion.div>
   )
 }
 
 export function SlideUp({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.55, delay, ease }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.45, delay, ease }}
       className={className}
-    >{children}</motion.div>
-  )
-}
-
-export function SlideInRight({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: 36 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.75, delay, ease }}
-      className={className}
-    >{children}</motion.div>
+    >
+      {children}
+    </motion.div>
   )
 }
 
@@ -59,23 +52,22 @@ export function CountdownTimer({ targetDate, label }: { targetDate?: string; lab
       const diff = target - Date.now()
       if (diff <= 0) { setT({ d: 0, h: 0, m: 0, s: 0 }); return }
       setT({
-        d: Math.floor(diff / 86400000),
-        h: Math.floor((diff % 86400000) / 3600000),
-        m: Math.floor((diff % 3600000) / 60000),
-        s: Math.floor((diff % 60000) / 1000),
+        d: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        h: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        m: Math.floor((diff / 1000 / 60) % 60),
+        s: Math.floor((diff / 1000) % 60),
       })
     }
-
-    const id = setInterval(calc, 1000)
     calc()
+    const id = setInterval(calc, 1000)
     return () => clearInterval(id)
   }, [targetDate])
 
-  if (!targetDate || !mounted) return null
-
   const units = [
-    { v: t.d, l: "Hari" }, { v: t.h, l: "Jam" },
-    { v: t.m, l: "Menit" }, { v: t.s, l: "Detik" },
+    { v: mounted ? t.d : 0, l: "Hari" },
+    { v: mounted ? t.h : 0, l: "Jam" },
+    { v: mounted ? t.m : 0, l: "Mnt" },
+    { v: mounted ? t.s : 0, l: "Dtk" },
   ]
 
   return (
@@ -86,12 +78,111 @@ export function CountdownTimer({ targetDate, label }: { targetDate?: string; lab
       </div>
       <div className="grid grid-cols-4 gap-3">
         {units.map((u) => (
-          <div key={u.l} className="flex flex-col items-center py-3.5 px-2 rounded-[1rem] shadow-[0_4px_16px_-4px_rgba(0,0,0,0.05)] border" style={{ backgroundColor: "var(--c-surface-up)", borderColor: "var(--c-border)" }}>
-            <span className="text-[22px] font-black pg-text tabular-nums leading-none tracking-tight">{String(u.v).padStart(2, "0")}</span>
+          <div
+            key={u.l}
+            className="flex flex-col items-center py-3 px-2 rounded-[1rem] shadow-[0_4px_16px_-4px_rgba(0,0,0,0.05)] border relative overflow-hidden"
+            style={{ backgroundColor: "var(--c-surface-up)", borderColor: "var(--c-border)" }}
+          >
+            <div className="h-6 flex items-center justify-center overflow-hidden">
+              <AnimatePresence mode="popLayout" initial={false}>
+                <motion.span
+                  key={u.v}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className="text-[20px] font-black pg-text tabular-nums leading-none tracking-tight block"
+                >
+                  {String(u.v).padStart(2, "0")}
+                </motion.span>
+              </AnimatePresence>
+            </div>
             <span className="text-[10px] font-bold pg-muted mt-2 uppercase tracking-widest">{u.l}</span>
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// UNIFIED EMPTY STATE
+// ─────────────────────────────────────────────────────────────
+export function EmptyState({
+  icon = "calendar",
+  title,
+  description,
+}: {
+  icon?: "calendar" | "user"
+  title: string
+  description: string
+}) {
+  const Icon = icon === "user" ? UserCircle2 : CalendarDays
+  return (
+    <div className="flex flex-col items-center justify-center py-16 px-4 text-center pg-card-i rounded-[1.25rem] max-w-md mx-auto">
+      <div className="w-14 h-14 rounded-2xl bg-blue-600/5 border border-blue-600/10 flex items-center justify-center mb-4">
+        <Icon className="w-6 h-6 text-blue-600/60" />
+      </div>
+      <h3 className="text-base font-bold pg-text mb-2">{title}</h3>
+      <p className="pg-muted max-w-xs text-sm leading-relaxed">{description}</p>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// SKELETON LOADERS
+// ─────────────────────────────────────────────────────────────
+export function SkeletonPulse({ className }: { className?: string }) {
+  return <div className={`animate-pulse rounded-lg bg-slate-200/60 dark:bg-slate-800/60 ${className}`} />
+}
+
+export function TimelineSkeleton() {
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="pg-card p-6 flex items-start gap-4">
+          <SkeletonPulse className="w-4 h-4 rounded-full mt-1 shrink-0" />
+          <div className="flex-1 space-y-2">
+            <SkeletonPulse className="h-5 w-1/3" />
+            <SkeletonPulse className="h-4 w-2/3" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function AnnouncementSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+      {[1, 2].map((i) => (
+        <div key={i} className="pg-card p-6 lg:p-8 space-y-4">
+          <SkeletonPulse className="h-5 w-24" />
+          <SkeletonPulse className="h-6 w-3/4" />
+          <SkeletonPulse className="h-4 w-full" />
+          <SkeletonPulse className="h-4 w-5/6" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function CandidateSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="pg-card p-6 lg:p-8 space-y-4">
+          <div className="flex items-center gap-4">
+            <SkeletonPulse className="w-16 h-16 rounded-full shrink-0" />
+            <div className="space-y-2 flex-1">
+              <SkeletonPulse className="h-5 w-3/4" />
+              <SkeletonPulse className="h-4 w-1/2" />
+            </div>
+          </div>
+          <SkeletonPulse className="h-4 w-full" />
+          <SkeletonPulse className="h-4 w-4/5" />
+        </div>
+      ))}
     </div>
   )
 }
