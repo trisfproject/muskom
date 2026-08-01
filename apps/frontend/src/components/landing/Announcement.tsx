@@ -6,8 +6,9 @@ import { SlideUp } from "@/components/landing/Shared"
 export function Announcement({ data }: { data: HomeResponse | null }) {
   const announcements = data?.announcements || [];
   return (
-    // Section rhythm: soft blue tint alternates with white
-    <section id="pengumuman" className="pg-section-alt border-t pg-border">
+    // Section rhythm: pure white
+    <section id="pengumuman" className="pg-section relative">
+      <div className="section-divider" />
       <div className="container-landing py-24 lg:py-32">
         <SlideUp className="text-center max-w-2xl mx-auto mb-16 lg:mb-24">
           <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Informasi</p>
