@@ -1,3 +1,10 @@
+// Registration CTA — two independent workflows, gated by backend timeline
+export interface PublicRegistrationCTA {
+  label: string;
+  url: string;
+  open: boolean; // set by backend based on active timeline phase — frontend never calculates this
+}
+
 export interface PublicEventDTO {
   name: string;
   theme?: string;
@@ -48,16 +55,14 @@ export interface PublicCandidateDTO {
   photo_url?: string;
 }
 
-export interface PublicFaqDTO {
-  question: string;
-  answer: string;
-}
-
+// CTA: two independent registration workflows — Participant and Candidate
 export interface PublicCtaDTO {
-  primary?: { label: string; url: string; style?: string };
-  secondary?: { label: string; url: string; style?: string };
+  participant_registration?: PublicRegistrationCTA;
+  candidate_registration?: PublicRegistrationCTA;
 }
 
+// Footer: minimal — navigation, contact, copyright only
+// Legal, Social Media, and Admin Access are permanently removed (ADR 0006)
 export interface PublicFooterDTO {
   email: string;
   whatsapp: string;
@@ -65,8 +70,6 @@ export interface PublicFooterDTO {
   address: string;
   copyright: string;
   tagline: string;
-  links: Array<{ label: string; url: string }>;
-  socials: Array<{ platform: string; url: string }>;
 }
 
 export interface HomeResponse {
@@ -77,7 +80,6 @@ export interface HomeResponse {
   countdown?: { target_date: string; label?: string };
   announcements: PublicAnnouncementDTO[];
   candidates: PublicCandidateDTO[];
-  faq: PublicFaqDTO[];
   cta: PublicCtaDTO;
   footer: PublicFooterDTO;
 }
