@@ -1,35 +1,58 @@
-// Registration CTA — two independent workflows, gated by backend timeline
+// ============================================================================
+// Public Landing Types & DTOs
+// ============================================================================
+
+export interface WebsiteGeneralDTO {
+  site_name: string;
+  tagline: string;
+  theme: string;
+  primary_color: string;
+  secondary_color: string;
+  default_light_theme: boolean;
+  default_dark_theme: boolean;
+  registration_enabled: boolean;
+  maintenance_mode: boolean;
+  seo_title: string;
+  seo_description: string;
+  seo_image_url: string;
+  favicon_url: string;
+}
+
+export interface WebsiteHeroDTO {
+  hero_badge: string;
+  hero_title: string;
+  hero_description: string;
+  primary_cta_label: string;
+  primary_cta_url: string;
+  primary_cta_enabled: boolean;
+  secondary_cta_label: string;
+  secondary_cta_url: string;
+  secondary_cta_enabled: boolean;
+  background_mode: string;
+  hero_status: string;
+  is_published: boolean;
+}
+
 export interface PublicRegistrationCTA {
   label: string;
   url: string;
   open: boolean; // set by backend based on active timeline phase — frontend never calculates this
-  style?: "primary" | "outline"; // visual priority set by backend per active phase
+  style: "primary" | "outline"; // visual priority set by backend per active phase
 }
 
-export interface PublicEventDTO {
-  name: string;
-  theme?: string;
-  location?: string;
-  mapsUrl?: string;
-  event_date?: string;
-  event_time?: string;
-  status: string;
-}
-
-export interface PublicSettingsDTO {
-  registration_approval_mode: string;
-  show_candidate_list: boolean;
-  show_timeline: boolean;
-  show_announcements: boolean;
+export interface PublicCtaDTO {
+  candidate_registration?: PublicRegistrationCTA;
+  participant_registration?: PublicRegistrationCTA;
 }
 
 export interface PublicTimelineDTO {
   id: string;
   title: string;
   description?: string;
-  date?: string;
   start_date: string;
   end_date: string;
+  display_order?: number;
+  registration_type?: string;
   status: "past" | "active" | "upcoming";
 }
 
@@ -42,9 +65,22 @@ export interface PublicCurrentPhaseDTO {
 export interface PublicAnnouncementDTO {
   id: string;
   title: string;
+  slug: string;
+  category: string;
+  summary: string;
   content: string;
+  thumbnail_url?: string;
+  is_pinned: boolean;
   published_at?: string;
   created_at: string;
+}
+
+export interface WebsiteCandidateCMSDTO {
+  section_title: string;
+  section_description: string;
+  registration_status: string;
+  empty_state_message: string;
+  publication_message: string;
 }
 
 export interface PublicCandidateDTO {
@@ -56,31 +92,38 @@ export interface PublicCandidateDTO {
   photo_url?: string;
 }
 
-// CTA: two independent registration workflows — Participant and Candidate
-export interface PublicCtaDTO {
-  participant_registration?: PublicRegistrationCTA;
-  candidate_registration?: PublicRegistrationCTA;
-}
-
-// Footer: minimal — navigation, contact, copyright only
-// Legal, Social Media, and Admin Access are permanently removed (ADR 0006)
-export interface PublicFooterDTO {
-  email: string;
-  whatsapp: string;
-  whatsapp_url: string;
-  address: string;
+export interface WebsiteFooterDTO {
+  organization_name: string;
+  description: string;
   copyright: string;
+  official_badge: string;
   tagline: string;
 }
 
 export interface HomeResponse {
-  event: PublicEventDTO;
-  settings: PublicSettingsDTO;
-  timeline: PublicTimelineDTO[];
+  general: WebsiteGeneralDTO;
+  hero: WebsiteHeroDTO;
   currentPhase: PublicCurrentPhaseDTO;
   countdown?: { target_date: string; label?: string };
-  announcements: PublicAnnouncementDTO[];
-  candidates: PublicCandidateDTO[];
   cta: PublicCtaDTO;
-  footer: PublicFooterDTO;
+  timeline: PublicTimelineDTO[];
+  announcements: PublicAnnouncementDTO[];
+  candidate_cms: WebsiteCandidateCMSDTO;
+  candidates: PublicCandidateDTO[];
+  footer: WebsiteFooterDTO;
 }
+
+// Backward compatibility helper if needed
+export type PublicEventDTO = {
+  name: string;
+  theme?: string;
+  location?: string;
+  event_date?: string;
+  status: string;
+};
+export type PublicSettingsDTO = {
+  registration_approval_mode: string;
+  show_candidate_list: boolean;
+  show_timeline: boolean;
+  show_announcements: boolean;
+};

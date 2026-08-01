@@ -6,10 +6,11 @@ import Link from "next/link"
 import { FadeUp, CountdownTimer } from "@/components/landing/Shared"
 
 // Hero — 100vh premium technology conference atmosphere
-// Theme: "Together We Shape the Future"
+// Theme & content completely configured via Website CMS
 export function Hero({ data }: { data: HomeResponse | null }) {
-  const name = data?.event?.name ?? "Portal Resmi Musyawarah"
-  const themeStr = data?.event?.theme ?? ""
+  const badge = data?.hero?.hero_badge || "Together We Shape the Future"
+  const title = data?.hero?.hero_title || "Musyawarah Terpadu"
+  const description = data?.hero?.hero_description || "Platform pemilihan resmi KOMITKABE 2026. Membangun proses kepemimpinan yang transparan, terpercaya, dan akuntabel."
 
   const ctaList = [
     data?.cta?.candidate_registration,
@@ -46,21 +47,21 @@ export function Hero({ data }: { data: HomeResponse | null }) {
             <FadeUp delay={0.05}>
               <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-sky-400/5 text-[11px] font-bold text-blue-600 uppercase tracking-[0.16em] mb-8 shadow-[0_0_12px_rgba(37,99,235,0.1)]">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
-                Together We Shape the Future
+                {badge}
               </div>
             </FadeUp>
 
             {/* 2. Heading */}
             <FadeUp delay={0.15}>
               <h1 className="text-4xl sm:text-5xl lg:text-[64px] font-black pg-text tracking-tight leading-[1.07] mb-6">
-                {name}
+                {title}
               </h1>
             </FadeUp>
 
             {/* 3. Description */}
             <FadeUp delay={0.25}>
               <p className="text-lg sm:text-xl pg-muted leading-relaxed max-w-xl font-medium">
-                {themeStr}
+                {description}
               </p>
             </FadeUp>
 
@@ -111,7 +112,7 @@ export function Hero({ data }: { data: HomeResponse | null }) {
 function PhaseCard({ data }: { data: HomeResponse | null }) {
   const phaseName = data?.currentPhase?.name || "Persiapan"
   const countdownTarget = data?.countdown?.target_date
-  const countdownLabel = data?.countdown?.label || "Tersisa"
+  const countdownLabel = data?.countdown?.label || "Tahapan Berakhir"
 
   return (
     <div

@@ -1,9 +1,15 @@
 import { HomeResponse } from "@/types/landing"
 
 // Footer: dark navy — section rhythm closes the page with depth
-// Minimal two-area layout: left (brand), right (copyright) — per BUILD-001.6
+// Fully powered by Website CMS
 export function Footer({ data }: { data: HomeResponse | null }) {
   if (!data) return null;
+
+  const orgName = data.footer?.organization_name || "MUSKOM";
+  const desc = data.footer?.description || "Portal resmi Musyawarah KOMITKABE.\nMembangun proses pemilihan yang transparan, profesional, dan dapat dipercaya oleh seluruh anggota komunitas.";
+  const copyright = data.footer?.copyright || `© ${new Date().getFullYear()} MUSKOM. Seluruh hak cipta dilindungi.`;
+  const badge = data.footer?.official_badge || "OFFICIAL PORTAL";
+  const tagline = data.footer?.tagline || "Dibangun untuk kemajuan bersama.";
 
   return (
     <footer className="pg-section-navy border-t border-white/5 relative">
@@ -15,11 +21,10 @@ export function Footer({ data }: { data: HomeResponse | null }) {
           {/* Left — Brand */}
           <div className="max-w-md">
             <div className="mb-6">
-              <span className="text-2xl font-black tracking-tight text-slate-100">MUSKOM</span>
+              <span className="text-2xl font-black tracking-tight text-slate-100">{orgName}</span>
             </div>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Portal resmi Musyawarah KOMITKABE.<br />
-              Membangun proses pemilihan yang transparan, profesional, dan dapat dipercaya oleh seluruh anggota komunitas.
+            <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-line">
+              {desc}
             </p>
           </div>
 
@@ -27,15 +32,16 @@ export function Footer({ data }: { data: HomeResponse | null }) {
           <div className="md:text-right">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Official Portal</span>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{badge}</span>
             </div>
-            <p className="text-sm text-slate-400 leading-relaxed mb-2">
-              © {new Date().getFullYear()} MUSKOM.<br />
-              Seluruh hak cipta dilindungi.
+            <p className="text-sm text-slate-400 leading-relaxed mb-2 whitespace-pre-line">
+              {copyright}
             </p>
-            <p className="text-xs text-slate-500 italic">
-              &quot;Dibangun untuk kemajuan bersama.&quot;
-            </p>
+            {tagline && (
+              <p className="text-xs text-slate-500 italic">
+                &quot;{tagline}&quot;
+              </p>
+            )}
           </div>
 
         </div>

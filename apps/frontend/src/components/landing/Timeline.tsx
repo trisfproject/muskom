@@ -7,7 +7,6 @@ import { SlideUp, EmptyState, TimelineSkeleton } from "@/components/landing/Shar
 //   past     → Emerald   (completed milestones)
 //   active   → Azure Blue (current focal point)
 //   upcoming → Sky Blue  (future milestones)
-//   default  → Slate     (not yet scheduled)
 const phaseCfg = {
   past:     { dot: "timeline-dot-past",     badge: "emerald" as const, label: "Selesai"     },
   active:   { dot: "timeline-dot-active",   badge: "blue"    as const, label: "Berlangsung" },
@@ -21,6 +20,25 @@ function connectorClass(current: string, next: string): string {
   if (current === "active")                          return "tl-connector-active-to-next"
   if (current === "upcoming")                        return "tl-connector-upcoming"
   return "tl-connector-default"
+}
+
+function formatDateRange(startDateStr: string, endDateStr: string): string {
+  try {
+    const s = new Date(startDateStr);
+    const e = new Date(endDateStr);
+    if (isNaN(s.getTime()) || isNaN(e.getTime())) return "";
+
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    if (s.toDateString() === e.toDateString()) {
+      return `${s.getDate()} ${months[s.getMonth()]} ${s.getFullYear()}`;
+    }
+    if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()) {
+      return `${s.getDate()}–${e.getDate()} ${months[s.getMonth()]} ${s.getFullYear()}`;
+    }
+    return `${s.getDate()} ${months[s.getMonth()]} – ${e.getDate()} ${months[e.getMonth()]} ${e.getFullYear()}`;
+  } catch {
+    return "";
+  }
 }
 
 export function Timeline({ data }: { data: HomeResponse | null }) {
@@ -67,8 +85,10 @@ export function Timeline({ data }: { data: HomeResponse | null }) {
               const status = phase.status as keyof typeof phaseCfg;
               const cfg = phaseCfg[status] ?? phaseCfg.upcoming;
               const isActive = status === "active";
-              const nextStatus = timelines[i + 1]?.status ?? "default";
+              const nextStatus = timelines[i + 1]?.status ?? "upcoming";
               const connClass = connectorClass(status, nextStatus);
+              const formattedDate = formatDateRange(phase.start_date, phase.end_date);
+              const orderIndex = phase.display_order ? String(phase.display_order).padStart(2, '0') : String(i + 1).padStart(2, '0');
 
               return (
                 <SlideUp key={phase.id} delay={i * 0.07}>
@@ -93,12 +113,12 @@ export function Timeline({ data }: { data: HomeResponse | null }) {
                     }`}>
                       <div className="flex flex-wrap items-center gap-2 mb-2.5">
                         <Badge variant={cfg.badge}>{cfg.label}</Badge>
-                        {phase.date && (
-                          <span className="text-xs pg-faint font-medium">{phase.date}</span>
+                        {formattedDate && (
+                          <span className="text-xs pg-faint font-medium">{formattedDate}</span>
                         )}
                       </div>
                       <h3 className={`text-base font-bold leading-snug ${isActive ? "text-blue-600" : "pg-text"}`}>
-                        <span className="pg-faint font-medium mr-2 text-sm">{phase.id}.</span>
+                        <span className="pg-faint font-medium mr-2 text-sm">{orderIndex}.</span>
                         {phase.title}
                       </h3>
                       {phase.description && (

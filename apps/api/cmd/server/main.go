@@ -17,13 +17,13 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/dashboard"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
-	"github.com/trisfproject/muskom/apps/api/internal/modules/public"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/rbac"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/registration"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/reporting"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/result"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/verification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/voting"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
@@ -110,7 +110,7 @@ func main() {
 	candidate.SetupRoutes(v1.Group("/public"), db, log, val, strg, cfg.MaxUploadSize)
 	musyawarah.SetupPublicRoutes(v1.Group("/public/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
-	public.SetupRoutes(v1.Group("/public"), db, strg, log)
+	website.SetupPublicRoutes(v1.Group("/public"), db, strg, val, log)
 
 	// Protected Participant Routes
 	participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
@@ -119,6 +119,7 @@ func main() {
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
 	dashboard.SetupAdminRoutes(adminGroup.Group("/dashboard"), db, log)
+	website.SetupAdminRoutes(adminGroup.Group("/website"), db, strg, val, log)
 	musyawarah.SetupRoutes(adminGroup.Group("/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 	registration.SetupAdminRoutes(adminGroup.Group("/registrations"), db, log, val, strg, cfg.MaxUploadSize)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), db, log, val, strg, cfg.MaxUploadSize)

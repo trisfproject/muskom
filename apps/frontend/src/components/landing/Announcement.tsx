@@ -33,11 +33,13 @@ export function Announcement({ data }: { data: HomeResponse | null }) {
         {announcements && announcements.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {announcements.map((a, i) => {
-              const isLatest = i === 0;
+              const isLatest = a.is_pinned || i === 0;
+              const dateStr = a.published_at || a.created_at;
+              const formattedDate = dateStr ? new Date(dateStr).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "";
+
               return (
                 <SlideUp key={a.id} delay={i * 0.1}>
-                  <a
-                    href={`/announcement/${a.id}`}
+                  <div
                     className={`block group pg-card-i p-6 lg:p-8 relative overflow-hidden ${
                       isLatest ? "border-blue-500/30" : ""
                     }`}
@@ -49,12 +51,12 @@ export function Announcement({ data }: { data: HomeResponse | null }) {
                       </div>
                     )}
                     <div className="flex items-center justify-between gap-4 mb-4">
-                      <Badge variant={isLatest ? "blue" : "default"}>Pengumuman</Badge>
-                      <span className="text-xs font-mono pg-faint">{a.published_at ? new Date(a.published_at).toLocaleDateString("id-ID") : ""}</span>
+                      <Badge variant={isLatest ? "blue" : "default"}>{a.category || "Pengumuman"}</Badge>
+                      <span className="text-xs font-mono pg-faint">{formattedDate}</span>
                     </div>
                     <h3 className="text-lg font-bold pg-text mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">{a.title}</h3>
-                    <p className="text-sm pg-muted line-clamp-3 leading-relaxed">{a.content}</p>
-                  </a>
+                    <p className="text-sm pg-muted line-clamp-3 leading-relaxed">{a.summary || a.content}</p>
+                  </div>
                 </SlideUp>
               )
             })}

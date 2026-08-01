@@ -4,6 +4,10 @@ import { SlideUp, EmptyState, CandidateSkeleton } from "@/components/landing/Sha
 
 export function CandidatePreview({ data }: { data: HomeResponse | null }) {
   const candidates = data?.candidates;
+  const sectionTitle = data?.candidate_cms?.section_title || "Bursa Calon Ketua";
+  const sectionDesc = data?.candidate_cms?.section_description || "Mengenal lebih dekat visi dan misi calon pemimpin yang akan membawa perubahan untuk komunitas.";
+  const emptyMsg = data?.candidate_cms?.empty_state_message || "Calon Ketua Umum akan dipublikasikan setelah proses verifikasi administrasi selesai.";
+
   return (
     // Section rhythm: soft blue tint
     <section id="kandidat" className="pg-section-alt relative overflow-hidden">
@@ -14,9 +18,9 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
         <SlideUp className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 lg:mb-24">
           <div className="max-w-2xl">
             <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Kandidat</p>
-            <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-4">Bursa Calon Ketua</h2>
+            <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-4">{sectionTitle}</h2>
             <p className="pg-muted text-lg leading-relaxed">
-              Mengenal lebih dekat visi dan misi calon pemimpin yang akan membawa perubahan untuk komunitas.
+              {sectionDesc}
             </p>
           </div>
           <div className="shrink-0">
@@ -35,7 +39,7 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
           <EmptyState
             icon="user"
             title="Verifikasi Kandidat"
-            description="Calon Ketua Umum akan dipublikasikan setelah proses verifikasi administrasi selesai."
+            description={emptyMsg}
           />
         )}
 
