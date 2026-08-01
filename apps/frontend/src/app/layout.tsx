@@ -44,6 +44,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="id" className={inter.variable} suppressHydrationWarning>
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "MUSKOM",
+              url: "https://muskom.id",
+              logo: "https://muskom.id/icon.svg",
+              description: "Portal resmi musyawarah komunitas."
+            }),
+          }}
+        />
         <AuthProvider>
           <QueryProvider>
             {children}
