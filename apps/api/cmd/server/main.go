@@ -110,7 +110,7 @@ func main() {
 	candidate.SetupRoutes(v1.Group("/public"), db, log, val, strg, cfg.MaxUploadSize)
 	musyawarah.SetupPublicRoutes(v1.Group("/public/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
-	website.SetupPublicRoutes(v1.Group("/public"), db, strg, val, log)
+	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
 
 	// Protected Participant Routes
 	participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
@@ -119,7 +119,7 @@ func main() {
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
 	dashboard.SetupAdminRoutes(adminGroup.Group("/dashboard"), db, log)
-	website.SetupAdminRoutes(adminGroup.Group("/website"), db, strg, val, log)
+	website.SetupAdminRoutes(adminGroup.Group("/website"), db, redisClient, strg, val, log)
 	musyawarah.SetupRoutes(adminGroup.Group("/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 	registration.SetupAdminRoutes(adminGroup.Group("/registrations"), db, log, val, strg, cfg.MaxUploadSize)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), db, log, val, strg, cfg.MaxUploadSize)

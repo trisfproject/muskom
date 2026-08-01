@@ -186,7 +186,9 @@ func TestGetPublicHome(t *testing.T) {
 	}
 
 	logger := zap.NewNop()
-	svc := NewService(repo, nil, logger)
+	mapper := NewMapper(nil)
+	validator := NewValidator()
+	svc := NewService(repo, nil, mapper, validator, logger)
 
 	res, err := svc.GetPublicHome(context.Background())
 	assert.NoError(t, err)

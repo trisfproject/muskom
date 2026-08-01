@@ -3,15 +3,19 @@ package website
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
+	"github.com/redis/go-redis/v9"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"go.uber.org/zap"
 )
 
 // SetupPublicRoutes registers endpoints for public landing page consumers.
-func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, strg storage.Storage, val *validator.Validator, log *zap.Logger) {
+func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, redisClient *redis.Client, strg storage.Storage, val *validator.Validator, log *zap.Logger) {
 	repo := NewRepository(db)
-	svc := NewService(repo, strg, log)
+	cache := NewRedisCache(redisClient, log)
+	mapper := NewMapper(strg)
+	v := NewValidator()
+	svc := NewService(repo, cache, mapper, v, log)
 	handler := NewHandler(svc, val)
 
 	router.Get("/home", handler.GetPublicHome)
@@ -22,9 +26,12 @@ func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, strg storage.Storage, v
 }
 
 // SetupAdminRoutes registers CRUD endpoints for Admin Website CMS.
-func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, strg storage.Storage, val *validator.Validator, log *zap.Logger) {
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, redisClient *redis.Client, strg storage.Storage, val *validator.Validator, log *zap.Logger) {
 	repo := NewRepository(db)
-	svc := NewService(repo, strg, log)
+	cache := NewRedisCache(redisClient, log)
+	mapper := NewMapper(strg)
+	v := NewValidator()
+	svc := NewService(repo, cache, mapper, v, log)
 	handler := NewHandler(svc, val)
 
 	// General

@@ -3,20 +3,26 @@ package website
 import "time"
 
 // ============================================================================
-// Public Responses
+// Public Responses (Domain -> Public Wire DTOs)
 // ============================================================================
 
 type PublicHomeResponse struct {
-	General       WebsiteGeneralDTO      `json:"general"`
-	Hero          WebsiteHeroDTO         `json:"hero"`
-	CurrentPhase  PublicCurrentPhaseDTO  `json:"currentPhase"`
-	Countdown     *PublicCountdownDTO    `json:"countdown,omitempty"`
-	CTA           PublicCtaDTO           `json:"cta"`
-	Timeline      []PublicTimelineDTO    `json:"timeline"`
-	Announcements []PublicAnnouncementDTO `json:"announcements"`
-	CandidateCMS  WebsiteCandidateCMSDTO `json:"candidate_cms"`
-	Candidates    []PublicCandidateDTO   `json:"candidates"`
-	Footer        WebsiteFooterDTO       `json:"footer"`
+	Hero          WebsiteHeroDTO            `json:"hero"`
+	CurrentPhase  PublicCurrentPhaseDTO     `json:"currentPhase"`
+	CTA           PublicCtaDTO              `json:"cta"`
+	Countdown     *PublicCountdownDTO       `json:"countdown,omitempty"`
+	Timeline      []PublicTimelineDTO       `json:"timeline"`
+	Announcements []PublicAnnouncementDTO   `json:"announcements"`
+	Candidate     PublicCandidateSectionDTO `json:"candidate"`
+	Footer        WebsiteFooterDTO          `json:"footer"`
+	Navigation    []PublicNavigationItemDTO `json:"navigation"`
+	Metadata      PublicMetadataDTO         `json:"metadata"`
+	FeatureFlags  PublicFeatureFlagsDTO     `json:"feature_flags"`
+
+	// Backward compatibility aliases
+	General      WebsiteGeneralDTO      `json:"general"`
+	CandidateCMS WebsiteCandidateCMSDTO `json:"candidate_cms"`
+	Candidates   []PublicCandidateDTO   `json:"candidates"`
 }
 
 type WebsiteGeneralDTO struct {
@@ -105,6 +111,15 @@ type WebsiteCandidateCMSDTO struct {
 	PublicationMessage string `json:"publication_message"`
 }
 
+type PublicCandidateSectionDTO struct {
+	SectionTitle       string               `json:"section_title"`
+	SectionDescription string               `json:"section_description"`
+	RegistrationStatus string               `json:"registration_status"`
+	EmptyStateMessage  string               `json:"empty_state_message"`
+	PublicationMessage string               `json:"publication_message"`
+	Items              []PublicCandidateDTO `json:"items"`
+}
+
 type PublicCandidateDTO struct {
 	ID             string  `json:"id"`
 	SequenceNumber *int    `json:"sequence_number"`
@@ -120,6 +135,28 @@ type WebsiteFooterDTO struct {
 	Copyright        string `json:"copyright"`
 	OfficialBadge    string `json:"official_badge"`
 	Tagline          string `json:"tagline"`
+}
+
+type PublicNavigationItemDTO struct {
+	Label      string `json:"label"`
+	Href       string `json:"href"`
+	IsExternal bool   `json:"is_external"`
+}
+
+type PublicMetadataDTO struct {
+	SiteName       string `json:"site_name"`
+	Tagline        string `json:"tagline"`
+	SEOTitle       string `json:"seo_title"`
+	SEODescription string `json:"seo_description"`
+	SEOImageURL    string `json:"seo_image_url"`
+	FaviconURL     string `json:"favicon_url"`
+}
+
+type PublicFeatureFlagsDTO struct {
+	RegistrationEnabled bool `json:"registration_enabled"`
+	MaintenanceMode     bool `json:"maintenance_mode"`
+	DefaultLightTheme   bool `json:"default_light_theme"`
+	DefaultDarkTheme    bool `json:"default_dark_theme"`
 }
 
 // ============================================================================

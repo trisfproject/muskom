@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"go.uber.org/zap"
 )
 
@@ -49,16 +48,20 @@ type Service interface {
 }
 
 type service struct {
-	repo   Repository
-	strg   storage.Storage
-	logger *zap.Logger
+	repo      Repository
+	cache     Cache
+	mapper    *Mapper
+	validator *Validator
+	logger    *zap.Logger
 }
 
-func NewService(repo Repository, strg storage.Storage, logger *zap.Logger) Service {
+func NewService(repo Repository, cache Cache, mapper *Mapper, validator *Validator, logger *zap.Logger) Service {
 	return &service{
-		repo:   repo,
-		strg:   strg,
-		logger: logger,
+		repo:      repo,
+		cache:     cache,
+		mapper:    mapper,
+		validator: validator,
+		logger:    logger,
 	}
 }
 
@@ -67,32 +70,36 @@ func NewService(repo Repository, strg storage.Storage, logger *zap.Logger) Servi
 // ----------------------------------------------------------------------------
 
 func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error) {
-	general, err := s.repo.GetGeneral(ctx)
-	if err != nil {
-		s.logger.Error("Failed to fetch general settings", zap.Error(err))
-		return nil, err
+	start := time.Now()
+
+	// 1. Check Cache
+	if s.cache != nil {
+		cached, err := s.cache.GetPublicHome(ctx)
+		if err == nil && cached != nil {
+			s.logger.Info("Website Engine public home aggregation",
+				zap.String("cache_status", "HIT"),
+				zap.Duration("duration_ms", time.Since(start)),
+			)
+			return cached, nil
+		}
 	}
 
-	hero, err := s.repo.GetHero(ctx)
-	if err != nil {
-		s.logger.Error("Failed to fetch hero settings", zap.Error(err))
-		return nil, err
-	}
+	// 2. Fetch all raw entities from DB
+	general, _ := s.repo.GetGeneral(ctx)
+	hero, _ := s.repo.GetHero(ctx)
+	phases, _ := s.repo.GetTimelinePhases(ctx, true)
+	announcements, _ := s.repo.GetAnnouncements(ctx, true)
+	candSettings, _ := s.repo.GetCandidateSettings(ctx)
+	candidates, _ := s.repo.GetCandidates(ctx)
+	footer, _ := s.repo.GetFooter(ctx)
 
-	phases, err := s.repo.GetTimelinePhases(ctx, true)
-	if err != nil {
-		s.logger.Error("Failed to fetch timeline phases", zap.Error(err))
-		return nil, err
-	}
-
-	// Timeline Engine: Determine current phase, countdown, and timeline statuses
+	// 3. Current Phase & Countdown Engine
 	now := time.Now().UTC()
 	var currentPhase PublicCurrentPhaseDTO
 	var countdown *PublicCountdownDTO
 	var activePhase *WebsiteTimelinePhase
 	var nextPhase *WebsiteTimelinePhase
 
-	// 1. Check for manual current_indicator
 	for i := range phases {
 		if phases[i].CurrentIndicator {
 			activePhase = &phases[i]
@@ -103,7 +110,6 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 		}
 	}
 
-	// 2. If no manual override, calculate by date
 	if activePhase == nil {
 		for i := range phases {
 			p := &phases[i]
@@ -119,7 +125,6 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 		}
 	}
 
-	// 3. Build currentPhase and countdown DTOs
 	if activePhase != nil {
 		endDateCopy := activePhase.EndDate
 		currentPhase = PublicCurrentPhaseDTO{
@@ -150,189 +155,115 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 			EndDate:  &endDateCopy,
 			IsActive: false,
 		}
-		countdown = nil
 	} else {
 		currentPhase = PublicCurrentPhaseDTO{
 			Name:     "Belum Ada Jadwal",
-			EndDate:  nil,
 			IsActive: false,
 		}
-		countdown = nil
 	}
 
-	// 4. Determine CTA Priority (Backend decides, frontend only renders)
-	var regType string = "NONE"
+	var activePhaseID *string
+	if activePhase != nil {
+		activePhaseID = &activePhase.ID
+	}
+
+	// 4. CTA Priority Engine
+	regEnabled := true
+	heroPrimaryEnabled := true
+	heroSecondaryEnabled := true
+	primaryLabel := "Daftar Calon Ketua Umum"
+	primaryURL := "/register/candidate"
+	secondaryLabel := "Daftar Peserta Musyawarah"
+	secondaryURL := "/register"
+
+	if general != nil {
+		regEnabled = general.RegistrationEnabled
+	}
+	if hero != nil {
+		heroPrimaryEnabled = hero.PrimaryCTAEnabled
+		heroSecondaryEnabled = hero.SecondaryCTAEnabled
+		primaryLabel = hero.PrimaryCTALabel
+		primaryURL = hero.PrimaryCTAURL
+		secondaryLabel = hero.SecondaryCTALabel
+		secondaryURL = hero.SecondaryCTAURL
+	}
+
+	regType := "NONE"
 	if activePhase != nil {
 		regType = activePhase.RegistrationType
 	}
 
-	var candStyle = "outline"
-	var partStyle = "outline"
-	var candOpen = general.RegistrationEnabled && hero.PrimaryCTAEnabled
-	var partOpen = general.RegistrationEnabled && hero.SecondaryCTAEnabled
+	candStyle, partStyle := "outline", "outline"
+	candOpen := regEnabled && heroPrimaryEnabled
+	partOpen := regEnabled && heroSecondaryEnabled
 
 	switch regType {
 	case "CANDIDATE":
 		candStyle = "primary"
-		partStyle = "outline"
 	case "PARTICIPANT":
-		candStyle = "outline"
 		partStyle = "primary"
 	case "BOTH":
-		candStyle = "primary"
-		partStyle = "primary"
+		candStyle, partStyle = "primary", "primary"
 	default:
-		// When NONE, keep primary CTA matching Hero configuration
 		candStyle = "primary"
-		partStyle = "outline"
 	}
 
 	cta := PublicCtaDTO{
 		CandidateRegistration: &PublicRegistrationCTA{
-			Label: hero.PrimaryCTALabel,
-			URL:   hero.PrimaryCTAURL,
+			Label: primaryLabel,
+			URL:   primaryURL,
 			Open:  candOpen,
 			Style: candStyle,
 		},
 		ParticipantRegistration: &PublicRegistrationCTA{
-			Label: hero.SecondaryCTALabel,
-			URL:   hero.SecondaryCTAURL,
+			Label: secondaryLabel,
+			URL:   secondaryURL,
 			Open:  partOpen,
 			Style: partStyle,
 		},
 	}
 
-	// 5. Timeline DTOs
-	timelineDTOs := make([]PublicTimelineDTO, len(phases))
-	for i, p := range phases {
-		status := "upcoming"
-		if activePhase != nil && p.ID == activePhase.ID {
-			status = "active"
-		} else if now.After(p.EndDate) {
-			status = "past"
-		}
+	// 5. Map DTOs
+	genDTO, metaDTO, flagsDTO, navDTO := s.mapper.MapGeneral(general)
+	heroDTO := s.mapper.MapHero(hero)
+	timelineDTO := s.mapper.MapTimelinePhases(phases, activePhaseID)
+	announcementsDTO := s.mapper.MapAnnouncements(announcements)
+	candCMS, candList, candSection := s.mapper.MapCandidates(candSettings, candidates)
+	footerDTO := s.mapper.MapFooter(footer)
 
-		timelineDTOs[i] = PublicTimelineDTO{
-			ID:               p.ID,
-			Title:            p.Title,
-			Description:      p.Description,
-			StartDate:        p.StartDate,
-			EndDate:          p.EndDate,
-			DisplayOrder:     p.DisplayOrder,
-			RegistrationType: p.RegistrationType,
-			Status:           status,
-		}
-	}
-
-	// 6. Announcements
-	announcements, err := s.repo.GetAnnouncements(ctx, true)
-	if err != nil {
-		s.logger.Error("Failed to fetch announcements", zap.Error(err))
-		return nil, err
-	}
-	announcementDTOs := make([]PublicAnnouncementDTO, 0, len(announcements))
-	for _, a := range announcements {
-		announcementDTOs = append(announcementDTOs, PublicAnnouncementDTO{
-			ID:           a.ID,
-			Title:        a.Title,
-			Slug:         a.Slug,
-			Category:     a.Category,
-			Summary:      a.Summary,
-			Content:      a.Content,
-			ThumbnailURL: a.ThumbnailURL,
-			IsPinned:     a.IsPinned,
-			PublishedAt:  a.PublishedAt,
-			CreatedAt:    a.CreatedAt,
-		})
-	}
-
-	// 7. Candidate Settings & Candidates
-	candSettings, err := s.repo.GetCandidateSettings(ctx)
-	if err != nil {
-		s.logger.Error("Failed to fetch candidate settings", zap.Error(err))
-		return nil, err
-	}
-
-	candidates, err := s.repo.GetCandidates(ctx)
-	if err != nil {
-		s.logger.Error("Failed to fetch candidates", zap.Error(err))
-		return nil, err
-	}
-	candidateDTOs := make([]PublicCandidateDTO, len(candidates))
-	for i, c := range candidates {
-		var photoURL *string
-		if c.PhotoPath != nil && s.strg != nil {
-			url := s.strg.URL(*c.PhotoPath)
-			photoURL = &url
-		}
-		candidateDTOs[i] = PublicCandidateDTO{
-			ID:             c.ID,
-			SequenceNumber: c.SequenceNumber,
-			Name:           c.Name,
-			Title:          c.Title,
-			Vision:         c.Vision,
-			PhotoURL:       photoURL,
-		}
-	}
-
-	// 8. Footer Settings
-	footer, err := s.repo.GetFooter(ctx)
-	if err != nil {
-		s.logger.Error("Failed to fetch footer settings", zap.Error(err))
-		return nil, err
-	}
-
-	return &PublicHomeResponse{
-		General: WebsiteGeneralDTO{
-			SiteName:            general.SiteName,
-			Tagline:             general.Tagline,
-			Theme:               general.Theme,
-			PrimaryColor:        general.PrimaryColor,
-			SecondaryColor:      general.SecondaryColor,
-			DefaultLightTheme:   general.DefaultLightTheme,
-			DefaultDarkTheme:    general.DefaultDarkTheme,
-			RegistrationEnabled: general.RegistrationEnabled,
-			MaintenanceMode:     general.MaintenanceMode,
-			SEOTitle:            general.SEOTitle,
-			SEODescription:      general.SEODescription,
-			SEOImageURL:         general.SEOImageURL,
-			FaviconURL:          general.FaviconURL,
-		},
-		Hero: WebsiteHeroDTO{
-			HeroBadge:           hero.HeroBadge,
-			HeroTitle:           hero.HeroTitle,
-			HeroDescription:     hero.HeroDescription,
-			PrimaryCTALabel:     hero.PrimaryCTALabel,
-			PrimaryCTAURL:       hero.PrimaryCTAURL,
-			PrimaryCTAEnabled:   hero.PrimaryCTAEnabled,
-			SecondaryCTALabel:   hero.SecondaryCTALabel,
-			SecondaryCTAURL:     hero.SecondaryCTAURL,
-			SecondaryCTAEnabled: hero.SecondaryCTAEnabled,
-			BackgroundMode:      hero.BackgroundMode,
-			HeroStatus:          hero.HeroStatus,
-			IsPublished:         hero.IsPublished,
-		},
+	resp := &PublicHomeResponse{
+		Hero:          heroDTO,
 		CurrentPhase:  currentPhase,
-		Countdown:     countdown,
 		CTA:           cta,
-		Timeline:      timelineDTOs,
-		Announcements: announcementDTOs,
-		CandidateCMS: WebsiteCandidateCMSDTO{
-			SectionTitle:       candSettings.SectionTitle,
-			SectionDescription: candSettings.SectionDescription,
-			RegistrationStatus: candSettings.RegistrationStatus,
-			EmptyStateMessage:  candSettings.EmptyStateMessage,
-			PublicationMessage: candSettings.PublicationMessage,
-		},
-		Candidates: candidateDTOs,
-		Footer: WebsiteFooterDTO{
-			OrganizationName: footer.OrganizationName,
-			Description:      footer.Description,
-			Copyright:        footer.Copyright,
-			OfficialBadge:    footer.OfficialBadge,
-			Tagline:          footer.Tagline,
-		},
-	}, nil
+		Countdown:     countdown,
+		Timeline:      timelineDTO,
+		Announcements: announcementsDTO,
+		Candidate:     candSection,
+		Footer:        footerDTO,
+		Navigation:    navDTO,
+		Metadata:      metaDTO,
+		FeatureFlags:  flagsDTO,
+		// Aliases
+		General:      genDTO,
+		CandidateCMS: candCMS,
+		Candidates:   candList,
+	}
+
+	// 6. Set Cache
+	if s.cache != nil {
+		if err := s.cache.SetPublicHome(ctx, resp, 0); err != nil {
+			s.logger.Warn("Failed to cache public home", zap.Error(err))
+		}
+	}
+
+	s.logger.Info("Website Engine public home aggregation",
+		zap.String("cache_status", "MISS"),
+		zap.Duration("duration_ms", time.Since(start)),
+		zap.Int("phases_count", len(phases)),
+		zap.Int("announcements_count", len(announcements)),
+	)
+
+	return resp, nil
 }
 
 func (s *service) GetPublicTimeline(ctx context.Context) ([]PublicTimelineDTO, error) {
@@ -447,7 +378,11 @@ func (s *service) UpdateAdminGeneral(ctx context.Context, req *UpdateGeneralRequ
 		SEOImageURL:         req.SEOImageURL,
 		FaviconURL:          req.FaviconURL,
 	}
-	return s.repo.UpdateGeneral(ctx, entity)
+	res, err := s.repo.UpdateGeneral(ctx, entity)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventGeneralUpdated)
+	}
+	return res, err
 }
 
 func (s *service) GetAdminHero(ctx context.Context) (*WebsiteHeroSettings, error) {
@@ -469,7 +404,11 @@ func (s *service) UpdateAdminHero(ctx context.Context, req *UpdateHeroRequest) (
 		HeroStatus:          req.HeroStatus,
 		IsPublished:         req.IsPublished,
 	}
-	return s.repo.UpdateHero(ctx, entity)
+	res, err := s.repo.UpdateHero(ctx, entity)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventHeroUpdated)
+	}
+	return res, err
 }
 
 func (s *service) GetAdminTimeline(ctx context.Context) ([]WebsiteTimelinePhase, error) {
@@ -491,7 +430,11 @@ func (s *service) CreateAdminTimeline(ctx context.Context, req *CreateTimelinePh
 		CurrentIndicator: req.CurrentIndicator,
 		IsPublished:      req.IsPublished,
 	}
-	return s.repo.CreateTimelinePhase(ctx, entity)
+	res, err := s.repo.CreateTimelinePhase(ctx, entity)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
+	}
+	return res, err
 }
 
 func (s *service) UpdateAdminTimeline(ctx context.Context, id string, req *UpdateTimelinePhaseRequest) (*WebsiteTimelinePhase, error) {
@@ -506,15 +449,27 @@ func (s *service) UpdateAdminTimeline(ctx context.Context, id string, req *Updat
 		CurrentIndicator: req.CurrentIndicator,
 		IsPublished:      req.IsPublished,
 	}
-	return s.repo.UpdateTimelinePhase(ctx, entity)
+	res, err := s.repo.UpdateTimelinePhase(ctx, entity)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
+	}
+	return res, err
 }
 
 func (s *service) DeleteAdminTimeline(ctx context.Context, id string) error {
-	return s.repo.DeleteTimelinePhase(ctx, id)
+	err := s.repo.DeleteTimelinePhase(ctx, id)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
+	}
+	return err
 }
 
 func (s *service) ReorderAdminTimeline(ctx context.Context, req *ReorderTimelinePhasesRequest) error {
-	return s.repo.ReorderTimelinePhases(ctx, req.Items)
+	err := s.repo.ReorderTimelinePhases(ctx, req.Items)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
+	}
+	return err
 }
 
 func (s *service) GetAdminAnnouncements(ctx context.Context) ([]WebsiteAnnouncement, error) {
@@ -541,7 +496,11 @@ func (s *service) CreateAdminAnnouncement(ctx context.Context, req *CreateAnnoun
 		IsPublished:  req.IsPublished,
 		PublishedAt:  pubAt,
 	}
-	return s.repo.CreateAnnouncement(ctx, entity)
+	res, err := s.repo.CreateAnnouncement(ctx, entity)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventAnnouncementUpdated)
+	}
+	return res, err
 }
 
 func (s *service) UpdateAdminAnnouncement(ctx context.Context, id string, req *UpdateAnnouncementRequest) (*WebsiteAnnouncement, error) {
@@ -561,11 +520,19 @@ func (s *service) UpdateAdminAnnouncement(ctx context.Context, id string, req *U
 		IsPublished:  req.IsPublished,
 		PublishedAt:  pubAt,
 	}
-	return s.repo.UpdateAnnouncement(ctx, entity)
+	res, err := s.repo.UpdateAnnouncement(ctx, entity)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventAnnouncementUpdated)
+	}
+	return res, err
 }
 
 func (s *service) DeleteAdminAnnouncement(ctx context.Context, id string) error {
-	return s.repo.DeleteAnnouncement(ctx, id)
+	err := s.repo.DeleteAnnouncement(ctx, id)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventAnnouncementUpdated)
+	}
+	return err
 }
 
 func (s *service) GetAdminCandidateSettings(ctx context.Context) (*WebsiteCandidateSettings, error) {
@@ -580,7 +547,11 @@ func (s *service) UpdateAdminCandidateSettings(ctx context.Context, req *UpdateC
 		EmptyStateMessage:  req.EmptyStateMessage,
 		PublicationMessage: req.PublicationMessage,
 	}
-	return s.repo.UpdateCandidateSettings(ctx, entity)
+	res, err := s.repo.UpdateCandidateSettings(ctx, entity)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventCandidateUpdated)
+	}
+	return res, err
 }
 
 func (s *service) GetAdminFooter(ctx context.Context) (*WebsiteFooterSettings, error) {
@@ -595,5 +566,9 @@ func (s *service) UpdateAdminFooter(ctx context.Context, req *UpdateFooterReques
 		OfficialBadge:    req.OfficialBadge,
 		Tagline:          req.Tagline,
 	}
-	return s.repo.UpdateFooter(ctx, entity)
+	res, err := s.repo.UpdateFooter(ctx, entity)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventFooterUpdated)
+	}
+	return res, err
 }
