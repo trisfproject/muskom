@@ -9,7 +9,7 @@ import {
   UserCircle2, ArrowUpRight, Sun, Moon, Clock, Mail, Phone,
 } from "lucide-react"
 import { landingService } from "@/services/landing"
-import { PublicEventDTO, PublicCurrentPhaseDTO, PublicTimelineDTO, PublicAnnouncementDTO, PublicCandidateDTO } from "@/types/landing"
+import { HomeResponse } from "@/types/landing"
 import { Badge } from "@/components/ui/badge"
 
 // ─────────────────────────────────────────────────────────────
@@ -126,38 +126,35 @@ function InfoRow({
 // ─────────────────────────────────────────────────────────────
 // EVENT INFO CARD (Task 3 — Hero right column)
 // ─────────────────────────────────────────────────────────────
-function EventInfoCard({ event, currentPhase, loading }: { event: PublicEventDTO | null, currentPhase: PublicCurrentPhaseDTO | null, loading: boolean }) {
-  const peakDateStr = event?.event_date ? new Date(event.event_date).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "TBD";
-  const peakTimeStr = event?.event_date ? new Date(event.event_date).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) + " WIB" : "TBD";
-  const venue = event?.location || "TBD";
+function EventInfoCard({ data, loading }: { data: HomeResponse | null, loading: boolean }) {
+  const peakDateStr = data?.event?.event_date ?? "TBD";
+  const peakTimeStr = data?.event?.event_time ?? "TBD";
+  const venue = data?.event?.location ?? "TBD";
+  const countdownTarget = data?.countdown?.target_date;
 
   return (
-    <div className="pg-card p-8 lg:p-10 space-y-7 backdrop-blur-xl relative overflow-hidden">
-      {/* Subtle background glow for premium feel inside the card */}
-      <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/10 blur-[60px] pointer-events-none rounded-full" />
+    <div className="pg-card p-6 lg:p-8 relative overflow-hidden backdrop-blur-xl">
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/20 blur-[50px] rounded-full pointer-events-none" />
       
-      {/* Status header */}
-      <div className="flex flex-col gap-1.5 pb-1 relative z-10">
-        <span className="text-[11px] font-bold pg-faint uppercase tracking-widest">
-          Fase Saat Ini
-        </span>
-        <h3 className="text-xl lg:text-2xl font-black pg-text tracking-tight">
-          {loading ? "Memuat..." : (currentPhase?.name || "Fase Persiapan")}
-        </h3>
+      {/* Current Phase indicator */}
+      <div className="flex items-center justify-between mb-8 pb-6 border-b pg-border relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="relative flex items-center justify-center w-3 h-3">
+            <div className="absolute inset-0 rounded-full bg-blue-500 animate-ping opacity-75" />
+            <div className="relative rounded-full w-2 h-2 bg-blue-600" />
+          </div>
+          <span className="text-sm font-bold tracking-wide pg-text uppercase">
+            {loading ? "Memuat..." : (data?.currentPhase?.name || "Persiapan")}
+          </span>
+        </div>
+        {countdownTarget && <CountdownTimer targetDate={countdownTarget} label={data?.countdown?.label || "Tersisa"} />}
       </div>
-
-      {/* Countdown */}
-      <div className="relative z-10">
-        <CountdownTimer targetDate={currentPhase?.end_date} label={`Menuju Batas Waktu Fase`} />
-      </div>
-
-      <div className="border-t pg-border relative z-10" />
 
       {/* Info rows */}
       <div className="space-y-4 pt-1 relative z-10">
         <InfoRow icon={CalendarDays} label="Tanggal Acara" value={peakDateStr} />
         <InfoRow icon={Clock} label="Waktu Acara" value={peakTimeStr} />
-        <InfoRow icon={MapPin}       label="Lokasi Utama"      value={venue} />
+        <InfoRow icon={MapPin} label="Lokasi Utama" value={venue} />
       </div>
     </div>
   )
@@ -293,80 +290,61 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
 // ─────────────────────────────────────────────────────────────
 // HERO (Task 3 — two-column layout)
 // ─────────────────────────────────────────────────────────────
-function Hero({ event, currentPhase, loading }: { event: PublicEventDTO | null, currentPhase: PublicCurrentPhaseDTO | null, loading: boolean }) {
-  const name = "Musyawarah KOMITKABE 2026"
-  const themeStr = event?.theme ?? "Selamat datang di Portal Resmi Musyawarah. Platform terpadu untuk mewujudkan pemilihan yang transparan, aman, dan dapat diandalkan oleh seluruh anggota."
-  const isActive = event?.status === "UPCOMING" || event?.status === "ONGOING"
+function Hero({ data, loading }: { data: HomeResponse | null, loading: boolean }) {
+  const name = data?.event?.name ?? ""
+  const themeStr = data?.event?.theme ?? ""
+  const isActive = data?.event?.status === "UPCOMING" || data?.event?.status === "ONGOING"
+  
+  const ctaPrimary = data?.cta?.primary
+  const ctaSecondary = data?.cta?.secondary
 
   return (
-    <section className="relative min-h-screen flex flex-col justify-center overflow-hidden pg-bg-paper">
-      {/* Background ambience */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-1/4 -left-1/4 w-3/4 h-3/4 rounded-full bg-blue-600/6 blur-[130px]" />
-        <div className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full bg-blue-700/5 blur-[100px]" />
-      </div>
-      <div className="dot-grid absolute inset-0 pointer-events-none" />
-
-      <div className="container-landing relative z-10 pt-32 pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16 items-center">
-
-          {/* ── LEFT: Text content ── */}
-          <div className="flex flex-col items-start lg:col-span-7">
-            <FadeUp delay={0}>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full bg-blue-600/10 border border-blue-600/20 text-blue-600 text-xs font-semibold tracking-widest uppercase">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500" />
-                </span>
-                Portal Resmi Musyawarah
-              </div>
-            </FadeUp>
-
-            <FadeUp delay={0.1}>
-              <h1 className="text-balance text-5xl sm:text-6xl lg:text-7xl xl:text-[5.5rem] font-black tracking-tight leading-[1.05] mb-6">
-                <span className="text-gradient">{name}</span>
+    <section className="relative pt-32 lg:pt-48 pb-20 lg:pb-32 overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none" />
+      <div className="container-landing relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          
+          {/* Left Column (Copy) */}
+          <div className="lg:col-span-7 space-y-8">
+            <FadeUp>
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black pg-text tracking-tight mb-6 leading-[1.1]">
+                {loading ? "Portal Resmi Musyawarah" : name}
               </h1>
-            </FadeUp>
-
-            <FadeUp delay={0.2}>
-              <p className="text-lg pg-muted leading-relaxed mb-10 max-w-lg">
-                {themeStr}
+              <p className="text-lg sm:text-xl pg-muted leading-relaxed max-w-2xl font-medium">
+                {loading ? "Memuat informasi..." : themeStr}
               </p>
             </FadeUp>
 
-            <FadeUp delay={0.35}>
+            <FadeUp delay={0.2}>
               <div className="flex flex-col sm:flex-row items-start gap-3">
-                {isActive && (
-                  <Link href="/register"
+                {isActive && ctaPrimary && (
+                  <Link href={ctaPrimary.url}
                     className="inline-flex items-center gap-2 px-7 py-3.5 bg-blue-600 text-slate-950 font-bold rounded-full text-sm hover:bg-blue-500 shadow-lg shadow-blue-600/20 hover:-translate-y-0.5 transition-all duration-200">
-                    Daftar Peserta <ArrowRight className="w-4 h-4" />
+                    {ctaPrimary.label} <ArrowRight className="w-4 h-4" />
                   </Link>
                 )}
-                <a href="#panduan"
-                  className="pill-btn inline-flex items-center gap-2 px-7 py-3.5 font-semibold text-sm">
-                  Panduan Peserta
-                </a>
+                {ctaSecondary && (
+                  <a href={ctaSecondary.url}
+                    className="pill-btn inline-flex items-center gap-2 px-7 py-3.5 font-semibold text-sm">
+                    {ctaSecondary.label}
+                  </a>
+                )}
               </div>
             </FadeUp>
           </div>
 
-          {/* ── RIGHT: Event info card ── */}
-          <SlideInRight delay={0.25} className="lg:col-span-5 w-full">
-            <EventInfoCard event={event} currentPhase={currentPhase} loading={loading} />
-          </SlideInRight>
+          {/* Right Column (Info Card) */}
+          <div className="lg:col-span-5 lg:pl-10">
+            <FadeUp delay={0.4}>
+              <EventInfoCard data={data} loading={loading} />
+            </FadeUp>
+          </div>
+
         </div>
       </div>
-
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5, duration: 0.8 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 pg-faint text-xs font-medium tracking-widest uppercase">
-        <span>Scroll</span>
-        <ChevronDown className="w-3.5 h-3.5 animate-bounce" />
-      </motion.div>
     </section>
   )
 }
-
 // ─────────────────────────────────────────────────────────────
 // TIMELINE
 // ─────────────────────────────────────────────────────────────
@@ -375,92 +353,41 @@ function fmt(d?: string) {
   return new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
 }
 
-function phaseStatus(start?: string, end?: string): "past" | "active" | "upcoming" {
-  if (!start) return "upcoming"
-  const now = Date.now()
-  const s = new Date(start).getTime()
-  const e = end ? new Date(end).getTime() : s
-  if (now > e) return "past"
-  if (now >= s) return "active"
-  return "upcoming"
-}
-
-const OFFICIAL_TIMELINE = [
-  { id: "01", title: "Sidang Mandat", date: "18 Juli 2026", start: "2026-07-18T00:00:00Z", end: "2026-07-18T23:59:59Z" },
-  { id: "02", title: "Penjaringan Aspirasi", date: "19–25 Juli 2026", start: "2026-07-19T00:00:00Z", end: "2026-07-25T23:59:59Z" },
-  { id: "03", title: "Penjaringan Bakal Calon Ketua Umum", date: "26 Juli – 8 Agustus 2026", start: "2026-07-26T00:00:00Z", end: "2026-08-08T23:59:59Z" },
-  { id: "04", title: "Verifikasi Administrasi", date: "9 Agustus 2026", start: "2026-08-09T00:00:00Z", end: "2026-08-09T23:59:59Z" },
-  { id: "05", title: "Penetapan Calon Ketua Umum", date: "12 Agustus 2026", start: "2026-08-12T00:00:00Z", end: "2026-08-12T23:59:59Z" },
-  { id: "06", title: "Masa Kampanye", date: "13–26 Agustus 2026", start: "2026-08-13T00:00:00Z", end: "2026-08-26T23:59:59Z" },
-  { id: "07", title: "Masa Tenang", date: "26–28 Agustus 2026", start: "2026-08-26T00:00:00Z", end: "2026-08-28T23:59:59Z" },
-  { id: "08", title: "Musyawarah", date: "29 Agustus 2026", start: "2026-08-29T00:00:00Z", end: "2026-08-29T23:59:59Z" },
-]
-
 const phaseCfg = {
   past:     { dot: "bg-emerald-500",                badge: "emerald" as const,                  label: "Selesai"        },
   active:   { dot: "bg-cyan-500 ring-4 ring-cyan-500/20", badge: "cyan" as const, label: "Berlangsung"   },
   upcoming: { dot: "bg-slate-300",             badge: "default" as const,                  label: "Akan Datang"   },
 }
 
-function Timeline({ timelines, loading }: { timelines: PublicTimelineDTO[], loading: boolean }) {
-
+function Timeline({ data }: { data: HomeResponse | null }) {
+  const timelines = data?.timeline || [];
+  
   return (
-    <section id="timeline" className="pg-bg-white border-t pg-border">
+    <section id="timeline" className="pg-bg-paper border-t pg-border">
       <div className="container-landing py-24 lg:py-32">
-        <SlideUp>
-          <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Agenda</p>
-          <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-4">Timeline Musyawarah</h2>
-          <p className="pg-muted max-w-lg text-lg leading-relaxed mb-14">
-            Seluruh rangkaian acara tersusun untuk memastikan proses yang adil, transparan, dan dapat diikuti semua anggota.
+        <SlideUp className="text-center max-w-2xl mx-auto mb-16 lg:mb-24">
+          <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Linimasa</p>
+          <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-4">Agenda Resmi</h2>
+          <p className="pg-muted text-lg leading-relaxed">
+            Tahapan dan jadwal pelaksanaan musyawarah dari persiapan hingga penetapan.
           </p>
         </SlideUp>
 
-        {loading && (
-          <div className="space-y-4">
-            {[0, 1, 2].map(i => (
-              <div key={i} className="flex gap-6 p-6 lg:p-8 pg-card-i animate-pulse">
-                <div className="w-3 h-3 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0 mt-1" />
-                <div className="flex-1 space-y-3">
-                  <div className="w-24 h-5 rounded bg-slate-200 dark:bg-slate-800" />
-                  <div className="w-1/2 h-6 rounded bg-slate-200 dark:bg-slate-800" />
-                  <div className="w-3/4 h-4 rounded bg-slate-200 dark:bg-slate-800" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
         {(!timelines || timelines.length === 0) && (
-          <div className="space-y-4">
-            {OFFICIAL_TIMELINE.map((phase, i) => {
-              const status = phaseStatus(phase.start, phase.end)
-              const cfg = phaseCfg[status]
-              return (
-                <SlideUp key={phase.id} delay={i * 0.1}>
-                  <div className={`flex gap-6 p-6 lg:p-8 pg-card-i transition-colors ${status === "active" ? "ring-2 ring-blue-600/30" : ""}`}>
-                    <div className="flex flex-col items-center pt-1 shrink-0">
-                      <div className={`w-3 h-3 rounded-full shrink-0 ${cfg.dot}`} />
-                      {i < OFFICIAL_TIMELINE.length - 1 && <div className="w-px flex-1 bg-current opacity-10 mt-2" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <Badge variant={cfg.badge}>{cfg.label}</Badge>
-                        <span className="text-xs font-mono pg-faint">{phase.date}</span>
-                      </div>
-                      <h3 className="text-lg font-bold pg-text mb-1.5">{phase.id}. {phase.title}</h3>
-                    </div>
-                  </div>
-                </SlideUp>
-              )
-            })}
+          <div className="flex flex-col items-center py-16 text-center pg-card-i rounded-2xl">
+            <CalendarDays className="w-12 h-12 pg-faint mb-4" />
+            <h3 className="text-lg font-bold pg-text mb-2">Rangkaian Agenda</h3>
+            <p className="pg-muted max-w-sm text-sm leading-relaxed">
+              Jadwal resmi pelaksanaan musyawarah belum tersedia.
+            </p>
           </div>
         )}
 
         {timelines && timelines.length > 0 && (
           <div className="space-y-4">
             {timelines.map((phase, i) => {
-              const status = phaseStatus(phase.start_date, phase.end_date)
-              const cfg = phaseCfg[status]
+              const status = phase.status;
+              const cfg = phaseCfg[status];
               return (
                 <SlideUp key={phase.id} delay={i * 0.1}>
                   <div className={`flex gap-6 p-6 lg:p-8 pg-card-i transition-colors ${status === "active" ? "ring-2 ring-blue-600/30" : ""}`}>
@@ -471,10 +398,9 @@ function Timeline({ timelines, loading }: { timelines: PublicTimelineDTO[], load
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-3">
                         <Badge variant={cfg.badge}>{cfg.label}</Badge>
-                        <span className="text-xs font-mono pg-faint">{fmt(phase.start_date)} — {fmt(phase.end_date)}</span>
+                        <span className="text-xs font-mono pg-faint">{phase.start_date ? new Date(phase.start_date).toLocaleDateString("id-ID") : ""}</span>
                       </div>
-                      <h3 className="text-lg font-bold pg-text mb-1.5">{phase.title}</h3>
-                      <p className="text-sm pg-muted leading-relaxed">{phase.description}</p>
+                      <h3 className="text-lg font-bold pg-text mb-1.5">{phase.id}. {phase.title}</h3>
                     </div>
                   </div>
                 </SlideUp>
@@ -486,31 +412,33 @@ function Timeline({ timelines, loading }: { timelines: PublicTimelineDTO[], load
     </section>
   )
 }
-
 // ─────────────────────────────────────────────────────────────
 // CANDIDATE PREVIEW
 // ─────────────────────────────────────────────────────────────
-function CandidatePreview({ candidates, loading }: { candidates: PublicCandidateDTO[], loading: boolean }) {
-
+function CandidatePreview({ data }: { data: HomeResponse | null }) {
+  const candidates = data?.candidates || [];
   return (
-    <section id="kandidat" className="pg-bg-blue border-t pg-border relative overflow-hidden">
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-[60vw] h-[60vw] rounded-full bg-blue-600/4 blur-[120px] pointer-events-none" />
-      <div className="container-landing relative z-10 py-24 lg:py-32">
-        <SlideUp>
-          <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Kandidat Resmi</p>
-          <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-4">Mengenal Calon Pemimpin</h2>
-          <p className="pg-muted max-w-lg text-lg leading-relaxed mb-14">
-            Setiap kandidat telah melalui proses verifikasi resmi. Pelajari visi dan misi mereka sebelum memberikan suara.
-          </p>
+    <section id="kandidat" className="border-t pg-border relative overflow-hidden">
+      <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/5 blur-[100px] rounded-full pointer-events-none" />
+      <div className="container-landing py-24 lg:py-32 relative z-10">
+        
+        <SlideUp className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 lg:mb-24">
+          <div className="max-w-2xl">
+            <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Kandidat</p>
+            <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-4">Bursa Calon Ketua</h2>
+            <p className="pg-muted text-lg leading-relaxed">
+              Mengenal lebih dekat visi dan misi calon pemimpin yang akan membawa perubahan untuk komunitas.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <a href="#" className="pill-btn inline-flex items-center gap-2 px-6 py-3 font-semibold text-sm group">
+              Lihat Profil Lengkap
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </a>
+          </div>
         </SlideUp>
 
-        {loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[0, 1, 2].map((i) => <div key={i} className="h-64 rounded-2xl pg-surface animate-pulse" />)}
-          </div>
-        )}
-
-        {!loading && candidates.length === 0 && (
+        {candidates.length === 0 && (
           <div className="flex flex-col items-center py-20 text-center">
             <div className="w-16 h-16 rounded-2xl pg-card flex items-center justify-center mb-5">
               <UserCircle2 className="w-8 h-8 pg-faint" />
@@ -520,29 +448,25 @@ function CandidatePreview({ candidates, loading }: { candidates: PublicCandidate
           </div>
         )}
 
-        {!loading && candidates.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {candidates.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {candidates.map((c, i) => (
-              <SlideUp key={c.id ?? i} delay={i * 0.07}>
-                <article className="group pg-card-i overflow-hidden">
-                  <div className="relative h-52 pg-surface flex items-center justify-center overflow-hidden">
-                    {c.photo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={c.photo_url} alt={c.name ?? "Kandidat"}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <UserCircle2 className="w-20 h-20 pg-faint" />
-                    )}
-                    <div className="absolute top-3 left-3 pg-card backdrop-blur-sm rounded-full px-2.5 py-1 text-xs font-bold pg-text">
-                      No. {c.sequence_number ?? i + 1}
+              <SlideUp key={c.id} delay={i * 0.1}>
+                <div className="group pg-card-i p-6 lg:p-8 flex flex-col h-full hover:shadow-2xl transition-all duration-300">
+                  <div className="flex items-center gap-5 mb-6">
+                    <div className="w-16 h-16 rounded-full bg-blue-600/10 flex items-center justify-center shrink-0 border border-blue-600/20 text-blue-600 font-black text-xl">
+                      {c.sequence_number ?? "?"}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold pg-text group-hover:text-blue-600 transition-colors">{c.name}</h3>
+                      <p className="text-sm pg-faint">{c.title}</p>
                     </div>
                   </div>
-                  <div className="p-5">
-                    <h3 className="text-base font-bold pg-text mb-0.5">{c.name ?? "—"}</h3>
-                    {c.title && <p className="text-sm font-medium text-blue-600 mb-3">{c.title}</p>}
-                    {c.vision && <p className="text-sm pg-muted line-clamp-3 leading-relaxed">{c.vision}</p>}
+                  <div className="flex-1">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider pg-text mb-3">Visi Utama</h4>
+                    <p className="text-sm pg-muted leading-relaxed line-clamp-4">{c.vision}</p>
                   </div>
-                </article>
+                </div>
               </SlideUp>
             ))}
           </div>
@@ -551,7 +475,6 @@ function CandidatePreview({ candidates, loading }: { candidates: PublicCandidate
     </section>
   )
 }
-
 // ─────────────────────────────────────────────────────────────
 // ANNOUNCEMENT
 // ─────────────────────────────────────────────────────────────
@@ -560,57 +483,41 @@ function fmtDate(d?: string) {
   return new Date(d).toLocaleDateString("id-ID", { month: "short", year: "numeric", day: "numeric" });
 }
 
-function Announcement({ announcements, loading }: { announcements: PublicAnnouncementDTO[], loading: boolean }) {
+function Announcement({ data }: { data: HomeResponse | null }) {
+  const announcements = data?.announcements || [];
   return (
-    <section id="pengumuman" className="pg-bg-white border-t pg-border">
+    <section id="pengumuman" className="pg-bg-paper border-t pg-border">
       <div className="container-landing py-24 lg:py-32">
-        <SlideUp className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
-          <div>
-            <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Informasi Terkini</p>
-            <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-3">Pengumuman Resmi</h2>
-            <p className="pg-muted max-w-lg text-lg leading-relaxed">
-              Tetap terhubung dan dapatkan informasi terbaru seputar pelaksanaan musyawarah dari panitia resmi.
-            </p>
-          </div>
-          <button className="shrink-0 inline-flex items-center gap-1 text-sm font-semibold pg-faint hover:pg-text transition-colors">
-            Lihat semua <ArrowUpRight className="w-3.5 h-3.5" />
-          </button>
+        <SlideUp className="text-center max-w-2xl mx-auto mb-16 lg:mb-24">
+          <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Informasi</p>
+          <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-4">Pusat Informasi</h2>
+          <p className="pg-muted text-lg leading-relaxed">
+            Pembaruan terbaru, pengumuman resmi, dan dokumen penting terkait pelaksanaan musyawarah.
+          </p>
         </SlideUp>
 
-        {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {[0, 1, 2].map(i => (
-              <div key={i} className="h-48 rounded-2xl pg-surface animate-pulse" />
-            ))}
-          </div>
-        )}
-
-        {!loading && (!announcements || announcements.length === 0) && (
-          <div className="flex flex-col items-center py-16 text-center pg-card-i rounded-2xl w-full">
-            <div className="w-16 h-16 rounded-2xl pg-card flex items-center justify-center mb-5">
+        {(!announcements || announcements.length === 0) && (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto rounded-2xl pg-card flex items-center justify-center mb-5">
               <CalendarDays className="w-8 h-8 pg-faint" />
             </div>
             <h3 className="text-lg font-bold pg-text mb-2">Pusat Informasi</h3>
-            <p className="pg-muted max-w-sm text-sm leading-relaxed">Seluruh instruksi, tata tertib, dan pengumuman resmi akan didistribusikan melalui portal ini.</p>
+            <p className="pg-muted text-sm max-w-sm mx-auto">Belum ada pengumuman yang diterbitkan saat ini.</p>
           </div>
         )}
 
-        {!loading && announcements && announcements.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {announcements && announcements.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             {announcements.map((a, i) => (
               <SlideUp key={a.id} delay={i * 0.1}>
-                <article className="group pg-card-i p-6 flex flex-col h-full cursor-pointer">
-                  <div className="flex items-center justify-between mb-5">
-                    <Badge variant={['blue', 'violet', 'amber', 'rose'][i % 4] as "default" | "blue" | "violet" | "amber" | "rose" | "emerald" | "cyan" | null | undefined}>Pengumuman</Badge>
-                    <span className="text-xs pg-faint font-mono">{fmtDate(a.published_at || a.created_at)}</span>
+                <a href={`/announcement/${a.id}`} className="block group pg-card-i p-6 lg:p-8 hover:-translate-y-1 transition-transform">
+                  <div className="flex items-center justify-between gap-4 mb-4">
+                    <Badge variant="blue">Pengumuman</Badge>
+                    <span className="text-xs font-mono pg-faint">{a.published_at ? new Date(a.published_at).toLocaleDateString("id-ID") : ""}</span>
                   </div>
-                  <h3 className="text-base font-bold pg-text leading-snug mb-3 group-hover:text-blue-600 transition-colors duration-200 flex-1">{a.title}</h3>
-                  <p className="text-sm pg-muted leading-relaxed mb-5 line-clamp-3">{a.content}</p>
-                  <div className="flex items-center gap-1 text-xs font-semibold pg-faint group-hover:text-blue-600 transition-colors duration-200">
-                    Baca selengkapnya
-                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
-                  </div>
-                </article>
+                  <h3 className="text-lg font-bold pg-text mb-3 group-hover:text-blue-600 transition-colors line-clamp-2">{a.title}</h3>
+                  <p className="text-sm pg-muted line-clamp-3 leading-relaxed">{a.content}</p>
+                </a>
               </SlideUp>
             ))}
           </div>
@@ -619,18 +526,12 @@ function Announcement({ announcements, loading }: { announcements: PublicAnnounc
     </section>
   )
 }
-
 // ─────────────────────────────────────────────────────────────
 // FAQ
 // ─────────────────────────────────────────────────────────────
-function FAQ() {
-  const faqs = [
-    { q: "Apa itu Musyawarah KOMITKABE?", a: "Musyawarah KOMITKABE adalah forum kekuasaan tertinggi dalam pengambilan keputusan organisasi, yang dilaksanakan untuk memilih Ketua Umum dan menetapkan garis besar haluan organisasi." },
-    { q: "Siapa yang dapat mengikuti?", a: "Seluruh anggota yang telah terdaftar, terverifikasi, dan mendapatkan mandat resmi dari komisariat atau cabang masing-masing sesuai ketentuan AD/ART." },
-    { q: "Bagaimana cara registrasi peserta?", a: "Peserta dapat melakukan pendaftaran melalui portal ini pada menu 'Daftar Peserta'. Pastikan menyiapkan dokumen persyaratan dan surat mandat dalam bentuk digital (PDF)." },
-    { q: "Kapan pemilihan dilakukan?", a: "Pemilihan Ketua Umum akan dilaksanakan pada puncak acara musyawarah, yang dijadwalkan pada 29 Agustus 2026." },
-    { q: "Dimana lokasi kegiatan?", a: "Lokasi kegiatan utama akan dilaksanakan di Jakarta. Detail alamat lengkap dan panduan akses akan diumumkan pada masa tenang." }
-  ]
+function FAQ({ data }: { data: HomeResponse | null }) {
+  const faqs = data?.faq || [];
+  if (!faqs.length) return null;
 
   return (
     <section id="faq" className="pg-bg-paper border-t pg-border">
@@ -646,13 +547,13 @@ function FAQ() {
             <SlideUp key={i} delay={i * 0.1}>
               <details className="group pg-card-i rounded-2xl [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex items-center justify-between cursor-pointer p-6 font-bold pg-text">
-                  {faq.q}
+                  {faq.question}
                   <span className="transition group-open:-rotate-180">
                     <ChevronDown className="w-5 h-5 pg-faint" />
                   </span>
                 </summary>
                 <div className="px-6 pb-6 pt-0 text-sm pg-muted leading-relaxed">
-                  {faq.a}
+                  {faq.answer}
                 </div>
               </details>
             </SlideUp>
@@ -662,11 +563,13 @@ function FAQ() {
     </section>
   )
 }
-
 // ─────────────────────────────────────────────────────────────
 // CONTACT
 // ─────────────────────────────────────────────────────────────
-function Contact() {
+function Contact({ data }: { data: HomeResponse | null }) {
+  const footer = data?.footer;
+  if (!footer) return null;
+
   return (
     <section id="bantuan" className="pg-bg-blue border-t pg-border relative overflow-hidden">
       <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-[50vw] h-[50vw] rounded-full bg-blue-600/5 blur-[100px] pointer-events-none" />
@@ -686,7 +589,7 @@ function Contact() {
                 </div>
                 <div>
                   <h3 className="font-bold pg-text mb-1">Email Resmi</h3>
-                  <a href="mailto:panitia@muskom.id" className="text-sm pg-muted hover:text-blue-600 transition-colors">panitia@muskom.id</a>
+                  <a href={`mailto:${footer.email}`} className="text-sm pg-muted hover:text-blue-600 transition-colors">{footer.email}</a>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -695,7 +598,7 @@ function Contact() {
                 </div>
                 <div>
                   <h3 className="font-bold pg-text mb-1">WhatsApp Center</h3>
-                  <a href="https://wa.me/6281234567890" target="_blank" rel="noreferrer" className="text-sm pg-muted hover:text-emerald-600 transition-colors">+62 812-3456-7890</a>
+                  <a href={footer.whatsapp_url} target="_blank" rel="noreferrer" className="text-sm pg-muted hover:text-emerald-600 transition-colors">{footer.whatsapp}</a>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -704,10 +607,12 @@ function Contact() {
                 </div>
                 <div>
                   <h3 className="font-bold pg-text mb-1">Lokasi Sekretariat</h3>
-                  <p className="text-sm pg-muted mb-2">Gedung Pusat Komunitas, Lt 3. Jakarta Selatan.</p>
-                  <a href="https://maps.google.com" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 hover:text-rose-500">
-                    Buka di Google Maps <ArrowUpRight className="w-3.5 h-3.5" />
-                  </a>
+                  <p className="text-sm pg-muted mb-2">{footer.address}</p>
+                  {data?.event?.mapsUrl && (
+                    <a href={data.event.mapsUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 hover:text-rose-500">
+                      Buka di Google Maps <ArrowUpRight className="w-3.5 h-3.5" />
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
@@ -720,7 +625,7 @@ function Contact() {
               </div>
               <h3 className="text-xl font-bold pg-text">Butuh Bantuan Cepat?</h3>
               <p className="text-sm pg-muted leading-relaxed">Tim layanan bantuan kami bersiaga pada jam kerja (09:00 - 17:00 WIB).</p>
-              <a href="https://wa.me/6281234567890" target="_blank" rel="noreferrer" className="pill-btn w-full inline-flex justify-center items-center gap-2 px-6 py-4 font-bold text-sm bg-blue-600 text-slate-950 hover:bg-blue-500 border-transparent">
+              <a href={footer.whatsapp_url} target="_blank" rel="noreferrer" className="pill-btn w-full inline-flex justify-center items-center gap-2 px-6 py-4 font-bold text-sm bg-blue-600 text-slate-950 hover:bg-blue-500 border-transparent">
                 Hubungi via WhatsApp
               </a>
             </div>
@@ -730,11 +635,13 @@ function Contact() {
     </section>
   )
 }
-
 // ─────────────────────────────────────────────────────────────
 // FOOTER
 // ─────────────────────────────────────────────────────────────
-function Footer() {
+function Footer({ data }: { data: HomeResponse | null }) {
+  const footer = data?.footer;
+  if (!footer) return null;
+
   return (
     <footer className="pg-bg-neutral border-t pg-border relative">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-px bg-gradient-to-r from-transparent via-blue-600/40 to-transparent" />
@@ -748,14 +655,12 @@ function Footer() {
               Portal resmi Musyawarah KOMITKABE 2026. Transparan, aman, dan dapat diandalkan oleh seluruh anggota.
             </p>
             <div className="flex items-center gap-4 mt-6">
-              <a href="#" className="w-8 h-8 rounded-full pg-surface border pg-border flex items-center justify-center pg-muted hover:text-blue-600 transition-colors">
-                <span className="sr-only">Twitter</span>
-                <div className="w-3.5 h-3.5 bg-current" style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)" }} />
-              </a>
-              <a href="#" className="w-8 h-8 rounded-full pg-surface border pg-border flex items-center justify-center pg-muted hover:text-blue-600 transition-colors">
-                <span className="sr-only">Instagram</span>
-                <div className="w-3.5 h-3.5 bg-current rounded-sm" />
-              </a>
+              {footer.socials.map((s, i) => (
+                <a key={i} href={s.url} title={s.platform} className="w-8 h-8 rounded-full pg-surface border pg-border flex items-center justify-center pg-muted hover:text-blue-600 transition-colors">
+                  <span className="sr-only">{s.platform}</span>
+                  <div className="w-3.5 h-3.5 bg-current" style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)" }} />
+                </a>
+              ))}
             </div>
           </div>
           <div>
@@ -771,8 +676,8 @@ function Footer() {
           <div>
             <h4 className="text-xs font-semibold pg-text uppercase tracking-wider mb-5">Legal</h4>
             <ul className="space-y-3">
-              {["Syarat & Ketentuan", "Kebijakan Privasi", "Panduan Peserta"].map((l) => (
-                <li key={l}><a href="#" className="text-sm pg-muted hover:pg-text transition-colors">{l}</a></li>
+              {footer.links.map((l, i) => (
+                <li key={i}><a href={l.url} className="text-sm pg-muted hover:pg-text transition-colors">{l.label}</a></li>
               ))}
             </ul>
           </div>
@@ -784,14 +689,13 @@ function Footer() {
           </div>
         </div>
         <div className="border-t pg-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs pg-faint">&copy; {new Date().getFullYear()} Panitia Pelaksana MUSKOM. Hak Cipta Dilindungi.</p>
-          <p className="text-xs" style={{ color: "var(--c-text-faint)", opacity: 0.5 }}>Dibangun untuk kemajuan bersama.</p>
+          <p className="text-xs pg-faint">&copy; {new Date().getFullYear()} {footer.copyright}</p>
+          <p className="text-xs" style={{ color: "var(--c-text-faint)", opacity: 0.5 }}>{footer.tagline}</p>
         </div>
       </div>
     </footer>
   )
 }
-
 // ─────────────────────────────────────────────────────────────
 // ROOT — manages theme + data
 // ─────────────────────────────────────────────────────────────
@@ -825,24 +729,18 @@ export default function LandingPage() {
     retry: 1,
   })
 
-  const ev = homeData?.event ?? null
-  const currentPhase = homeData?.currentPhase ?? null
-  const timelines = homeData?.timeline ?? []
-  const announcements = homeData?.announcements ?? []
-  const candidates = homeData?.candidates ?? []
-
   return (
     <div className="min-h-screen pg-bg" data-theme={theme}>
       <Header theme={theme} toggleTheme={toggleTheme} />
       <main>
-        <Hero event={ev} currentPhase={currentPhase} loading={isLoading} />
-        <Timeline timelines={timelines} loading={isLoading} />
-        <CandidatePreview candidates={candidates} loading={isLoading} />
-        <Announcement announcements={announcements} loading={isLoading} />
-        <FAQ />
-        <Contact />
+        <Hero data={homeData ?? null} loading={isLoading} />
+        <Timeline data={homeData ?? null} />
+        <CandidatePreview data={homeData ?? null} />
+        <Announcement data={homeData ?? null} />
+        <FAQ data={homeData ?? null} />
+        <Contact data={homeData ?? null} />
       </main>
-      <Footer />
+      <Footer data={homeData ?? null} />
     </div>
   )
 }
