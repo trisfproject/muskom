@@ -136,11 +136,24 @@ func (r *repository) FindOrCreatePerson(ctx context.Context, tx *sqlx.Tx, p *Per
 
 func (r *repository) CreateRegistration(ctx context.Context, tx *sqlx.Tx, reg *Registration) error {
 	query := `
-		INSERT INTO registrations (event_id, person_id, participant_category, source, status, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-		RETURNING id, status
+		INSERT INTO registrations (
+			event_id, person_id, participant_category, source, status, 
+			registration_number, qr_token, region, community, special_notes,
+			created_at, updated_at
+		)
+		VALUES (
+			$1, $2, $3, $4, $5, 
+			'MUSKOM-2026-' || LPAD(nextval('registration_number_seq')::text, 6, '0'), 
+			$6, $7, $8, $9,
+			NOW(), NOW()
+		)
+		RETURNING id, status, registration_number
 	`
-	return tx.QueryRowContext(ctx, query, reg.EventID, reg.PersonID, reg.ParticipantCategory, reg.Source, reg.Status).Scan(&reg.ID, &reg.Status)
+	return tx.QueryRowContext(
+		ctx, query, 
+		reg.EventID, reg.PersonID, reg.ParticipantCategory, reg.Source, reg.Status,
+		reg.QrToken, reg.Region, reg.Community, reg.SpecialNotes,
+	).Scan(&reg.ID, &reg.Status, &reg.RegistrationNumber)
 }
 
 func (r *repository) LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error {

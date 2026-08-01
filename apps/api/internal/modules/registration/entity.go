@@ -23,6 +23,11 @@ type Registration struct {
 	ApprovedBy          *string    `db:"approved_by"`
 	ApprovedAt          *time.Time `db:"approved_at"`
 	RejectionReason     *string    `db:"rejection_reason"`
+	RegistrationNumber  *string    `db:"registration_number"`
+	QrToken             *string    `db:"qr_token"`
+	Region              *string    `db:"region"`
+	Community           *string    `db:"community"`
+	SpecialNotes        *string    `db:"special_notes"`
 	CreatedAt           time.Time  `db:"created_at"`
 	UpdatedAt           time.Time  `db:"updated_at"`
 }

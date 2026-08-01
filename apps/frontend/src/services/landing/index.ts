@@ -13,5 +13,9 @@ export const landingService = {
       }
       throw error;
     }
+  },
+  async registerParticipant(data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const response = await publicApi.post('/public/register', data);
+    return response.data.data;
   }
 };

@@ -7,11 +7,16 @@ type PublicRegistrationRequest struct {
 	Company             *string `json:"company" validate:"omitempty,max=255"`
 	JobTitle            *string `json:"job_title" validate:"omitempty,max=255"`
 	ParticipantCategory string  `json:"participant_category" validate:"required,max=100"`
+	Region              *string `json:"region" validate:"omitempty,max=255"`
+	Community           *string `json:"community" validate:"omitempty,max=255"`
+	SpecialNotes        *string `json:"special_notes" validate:"omitempty"`
 }
 
 type PublicRegistrationResponse struct {
-	RegistrationCode string `json:"registration_code"`
-	Status           string `json:"status"`
+	RegistrationCode   string  `json:"registration_code"`
+	RegistrationNumber *string `json:"registration_number"`
+	QrToken            *string `json:"qr_token"`
+	Status             string  `json:"status"`
 }
 
 type RegistrationStatusResponse struct {

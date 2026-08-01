@@ -37,7 +37,7 @@ func (h *Handler) Register(c fiber.Ctx) error {
 		case errors.Is(err, ErrAlreadyRegistered) || errors.Is(err, ErrPhoneRegistered):
 			return response.SendError(c, fiber.StatusConflict, err.Error(), nil)
 		default:
-			return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+			return response.SendError(c, fiber.StatusInternalServerError, err.Error(), nil)
 		}
 	}
 

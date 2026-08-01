@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { startTransition, useEffect, useState, useMemo } from "react"
+import { startTransition, useEffect, useState, useMemo, Suspense } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import {
@@ -526,7 +526,7 @@ function Announcement({ announcements }: { announcements: PublicAnnouncementDTO[
             <SlideUp key={a.id} delay={i * 0.1}>
               <article className="group pg-card-i p-6 flex flex-col h-full cursor-pointer">
                 <div className="flex items-center justify-between mb-5">
-                  <Badge variant={['blue', 'violet', 'amber', 'rose'][i % 4] as any}>Pengumuman</Badge>
+                  <Badge variant={['blue', 'violet', 'amber', 'rose'][i % 4] as "default" | "blue" | "violet" | "amber" | "rose" | "emerald" | "cyan" | null | undefined}>Pengumuman</Badge>
                   <span className="text-xs pg-faint font-mono">{fmtDate(a.published_at || a.created_at)}</span>
                 </div>
                 <h3 className="text-base font-bold pg-text leading-snug mb-3 group-hover:text-blue-600 transition-colors duration-200 flex-1">{a.title}</h3>

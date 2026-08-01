@@ -2,7 +2,9 @@ package registration
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
@@ -151,6 +153,10 @@ func (s *service) RegisterParticipant(ctx context.Context, req *PublicRegistrati
 		status = "APPROVED"
 	}
 
+	qrBytes := make([]byte, 16)
+	_, _ = rand.Read(qrBytes)
+	qrToken := hex.EncodeToString(qrBytes)
+
 	source := "PUBLIC_WEB"
 	reg := &Registration{
 		EventID:             evt.EventID,
@@ -158,6 +164,10 @@ func (s *service) RegisterParticipant(ctx context.Context, req *PublicRegistrati
 		ParticipantCategory: &req.ParticipantCategory,
 		Source:              &source,
 		Status:              status,
+		QrToken:             &qrToken,
+		Region:              req.Region,
+		Community:           req.Community,
+		SpecialNotes:        req.SpecialNotes,
 	}
 
 	if err := s.repo.CreateRegistration(ctx, tx, reg); err != nil {
@@ -180,8 +190,10 @@ func (s *service) RegisterParticipant(ctx context.Context, req *PublicRegistrati
 	}
 
 	return &PublicRegistrationResponse{
-		RegistrationCode: reg.ID,
-		Status:           reg.Status,
+		RegistrationCode:   reg.ID,
+		RegistrationNumber: reg.RegistrationNumber,
+		QrToken:            reg.QrToken,
+		Status:             reg.Status,
 	}, nil
 }
 
