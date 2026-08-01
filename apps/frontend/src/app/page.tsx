@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { startTransition, useEffect, useState, useMemo, Suspense } from "react"
+import { startTransition, useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import {
@@ -10,16 +10,8 @@ import {
   Sun, Moon, Clock,
 } from "lucide-react"
 import { landingService } from "@/services/landing"
-import { HomeResponse, PublicEventDTO, PublicCurrentPhaseDTO, PublicTimelineDTO, PublicAnnouncementDTO, PublicCandidateDTO } from "@/types/landing"
+import { PublicEventDTO, PublicCurrentPhaseDTO, PublicTimelineDTO, PublicAnnouncementDTO, PublicCandidateDTO } from "@/types/landing"
 import { Badge } from "@/components/ui/badge"
-
-// ─────────────────────────────────────────────────────────────
-// TYPES
-// ─────────────────────────────────────────────────────────────
-interface CandidateData {
-  id?: string; name?: string; title?: string
-  photo_path?: string; sequence_number?: number; vision?: string
-}
 
 // ─────────────────────────────────────────────────────────────
 // MOTION HELPERS
@@ -226,6 +218,7 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
               onClick={toggleTheme}
               className="pill-btn w-9 h-9 flex items-center justify-center"
               aria-label={theme === "dark" ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
+              suppressHydrationWarning
             >
               {theme === "dark"
                 ? <Sun  className="w-4 h-4" />
@@ -239,7 +232,10 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
             </Link>
 
             <button onClick={() => setOpen(true)}
-              className="ghost-btn md:hidden w-9 h-9 flex items-center justify-center rounded-full">
+              className="ghost-btn md:hidden w-9 h-9 flex items-center justify-center rounded-full"
+              aria-label="Buka menu navigasi"
+              aria-expanded={open}
+            >
               <Menu className="w-4.5 h-4.5" />
             </button>
           </div>
@@ -257,7 +253,9 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
           <div className="flex items-center justify-between px-5 h-16 border-b pg-border">
             <span className="font-bold pg-text">Menu</span>
             <button onClick={() => setOpen(false)}
-              className="w-8 h-8 flex items-center justify-center rounded-full pg-muted hover:pg-text transition-colors">
+              className="w-8 h-8 flex items-center justify-center rounded-full pg-muted hover:pg-text transition-colors"
+              aria-label="Tutup menu navigasi"
+            >
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -271,7 +269,10 @@ function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: 
           </div>
           <div className="p-4 border-t pg-border space-y-2">
             <button onClick={() => { toggleTheme(); setOpen(false) }}
-              className="pill-btn flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold">
+              className="pill-btn flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold"
+              aria-label={theme === "dark" ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
+              suppressHydrationWarning
+            >
               {theme === "dark" ? <><Sun className="w-4 h-4" />Tema Terang</> : <><Moon className="w-4 h-4" />Tema Gelap</>}
             </button>
             <Link href="/admin/login" onClick={() => setOpen(false)}

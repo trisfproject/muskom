@@ -17,6 +17,21 @@ export const metadata: Metadata = {
   keywords: ["musyawarah", "komunitas", "pemilihan", "portal resmi"],
   authors: [{ name: "MUSKOM" }],
   robots: "index, follow",
+  openGraph: {
+    title: "MUSKOM — Portal Musyawarah Komunitas",
+    description: "Platform resmi musyawarah komunitas. Transparan, aman, dan dapat diandalkan oleh seluruh anggota.",
+    url: "https://muskom.id",
+    siteName: "MUSKOM",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+    locale: "id_ID",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MUSKOM — Portal Musyawarah Komunitas",
+    description: "Platform resmi musyawarah komunitas. Transparan, aman, dan dapat diandalkan oleh seluruh anggota.",
+    images: ["/og-image.jpg"],
+  },
 }
 
 export const viewport: Viewport = {
@@ -27,7 +42,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className={inter.variable}>
+    <html lang="id" className={inter.variable} suppressHydrationWarning>
       <body>
         <AuthProvider>
           <QueryProvider>
