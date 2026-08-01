@@ -5,10 +5,19 @@ import { landingSeed } from '@/data/landing-seed';
 export const landingService = {
   async getPublicHome(): Promise<HomeResponse | null> {
     try {
-      const response = await publicApi.get('/public/home');
-      return response.data.data;
+      // Use native fetch to leverage Next.js Data Cache in Server Components
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+      const res = await fetch(`${baseUrl}/public/home`, {
+        next: { revalidate: 60 } // ISR Cache: 60 seconds
+      });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to fetch: ${res.status}`);
+      }
+      
+      const json = await res.json();
+      return json.data;
     } catch (error: unknown) {
-      // Fallback to CMS-ready seed data if API is unavailable or returns 404
       console.warn("API unavailable, falling back to seed data:", error);
       return landingSeed;
     }
