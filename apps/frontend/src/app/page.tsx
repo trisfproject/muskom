@@ -8,7 +8,7 @@ import { Footer } from "@/components/landing/Footer"
 
 // Allowed sections per ADR 0006: Navbar, Hero, Timeline, Candidates, Announcements, Footer
 // FAQ and Contact/Help are permanently removed
-export const revalidate = 60
+export const dynamic = 'force-dynamic';
 
 export default async function LandingPage() {
   const homeData = await landingService.getPublicHome()
@@ -16,7 +16,7 @@ export default async function LandingPage() {
   let config: any = null;
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
-    const res = await fetch(`${apiUrl}/system/config`, { next: { revalidate: 60 } });
+    const res = await fetch(`${apiUrl}/system/config`, { cache: 'no-store' });
     if (res.ok) {
       const json = await res.json();
       config = json.data;

@@ -158,7 +158,7 @@ export default function AdminWebsiteTimelinePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold pg-text tracking-tight">Website — Timeline & Agenda</h1>
+          <h1 className="text-2xl font-bold pg-text tracking-tight">Musyawarah — Timeline & Agenda</h1>
           <p className="text-sm pg-muted mt-1">
             Kelola tahapan agenda musyawarah, tanggal pelaksanaan, dan kontrol fase aktif otomatis.
           </p>

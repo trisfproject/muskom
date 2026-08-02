@@ -13,7 +13,7 @@ export function Hero({ data }: { data: HomeResponse | null }) {
   const identity = config?.website_identity;
   
   const badge = data?.hero?.hero_badge || "Together We Shape the Future";
-  const title = data?.event?.name || identity?.community_name || "Musyawarah Komunitas";
+  const title = data?.hero?.hero_title || identity?.community_name || "Musyawarah Komunitas";
   const description = data?.hero?.hero_description || identity?.website_description || "Platform pemilihan resmi. Membangun proses kepemimpinan yang transparan, terpercaya, dan akuntabel.";
 
   let ctaList = [

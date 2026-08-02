@@ -42,7 +42,7 @@ export function AdminSidebar() {
 
   const navItems = [
     {
-      title: "Overview",
+      title: "Dashboard",
       items: [
         { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, exact: true },
       ],
@@ -50,40 +50,38 @@ export function AdminSidebar() {
     {
       title: "Musyawarah",
       items: [
-        { label: "Semua Musyawarah", href: "/admin/musyawarah", icon: List, exact: true },
-        { label: "General", href: "/admin/musyawarah/general", icon: Sliders, exact: false },
-        { label: "Location", href: "/admin/musyawarah/location", icon: Sparkles, exact: false },
-        { label: "Timeline", href: "/admin/musyawarah/timeline", icon: Calendar, exact: false },
-        { label: "Publication", href: "/admin/musyawarah/publication", icon: Megaphone, exact: false },
-        { label: "Archive", href: "/admin/musyawarah/archive", icon: UserCheck, exact: false },
+        { label: "General", href: "/admin/website/general", icon: Sliders, exact: false },
+        { label: "Lokasi", href: "/admin/musyawarah/location", icon: Sparkles, exact: false },
+        { label: "Timeline", href: "/admin/website/timeline", icon: Calendar, exact: false },
+        { label: "Publikasi", href: "/admin/musyawarah/publication", icon: Megaphone, exact: false },
+        { label: "Arsip", href: "/admin/musyawarah/archive", icon: UserCheck, exact: false },
       ],
     },
     {
-      title: "Website CMS",
+      title: "Website",
       items: [
-        { label: "General", href: "/admin/website/general", icon: Sliders },
         { label: "Hero", href: "/admin/website/hero", icon: Sparkles },
-        { label: "Timeline", href: "/admin/website/timeline", icon: Calendar },
-        { label: "Pengumuman", href: "/admin/website/announcements", icon: Megaphone },
         { label: "Bursa Calon", href: "/admin/website/candidate", icon: UserCheck },
         { label: "Pusat Informasi", href: "/admin/website/information", icon: Sparkles },
         { label: "Footer", href: "/admin/website/footer", icon: PanelBottom },
       ],
     },
     {
-      title: "Registrations",
+      title: "Registrasi",
       items: [
-        { label: "Data Peserta", href: "/admin/registrations", icon: UserCheck, exact: false },
+        { label: "Bakal Calon", href: "#coming-soon-candidate", icon: UserCheck, comingSoon: true },
+        { label: "Peserta", href: "/admin/registrations", icon: UserCheck, exact: false },
+        { label: "Verifikasi", href: "#coming-soon-verification", icon: UserCheck, comingSoon: true },
       ],
     },
     {
-      title: "System & Security",
+      title: "System",
       items: [
-        { label: "Pengguna & Hak Akses", href: "/admin/users", icon: UserCheck, exact: false },
+        { label: "Pengguna", href: "/admin/users", icon: UserCheck, exact: false },
         { label: "Audit Log", href: "/admin/audit", icon: LayoutDashboard, exact: false },
       ],
     },
-  ] as { title: string; items: { label: string; href: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean }[] }[];
+  ] as { title: string; items: { label: string; href: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean; comingSoon?: boolean }[] }[];
 
   return (
     <aside className="w-64 pg-bg border-r pg-border pg-muted flex flex-col h-screen sticky top-0 shrink-0 select-none">
@@ -124,18 +122,27 @@ export function AdminSidebar() {
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={item.comingSoon ? "#" : item.href}
+                    onClick={(e) => item.comingSoon && e.preventDefault()}
                     className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                      isActive
+                      item.comingSoon
+                        ? "opacity-50 cursor-not-allowed text-slate-500"
+                        : isActive
                         ? "pg-primary text-white font-semibold shadow-sm shadow-primary/20"
                         : "text-slate-600 dark:text-slate-300 hover:pg-text hover:pg-surface-elevated"
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-500 dark:text-slate-400 group-hover:pg-text"}`} />
+                      <Icon className={`w-4 h-4 ${isActive && !item.comingSoon ? "text-white" : "text-slate-500 dark:text-slate-400 group-hover:pg-text"}`} />
                       <span>{item.label}</span>
                     </div>
-                    {isActive && <ChevronRight className="w-3.5 h-3.5 opacity-80" />}
+                    {item.comingSoon ? (
+                      <span className="text-[9px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded">
+                        Segera
+                      </span>
+                    ) : isActive ? (
+                      <ChevronRight className="w-3.5 h-3.5 opacity-80" />
+                    ) : null}
                   </Link>
                 );
               })}

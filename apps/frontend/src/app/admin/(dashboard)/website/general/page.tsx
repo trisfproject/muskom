@@ -63,7 +63,7 @@ export default function AdminWebsiteGeneralPage() {
   return (
     <div className="p-8 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold pg-text tracking-tight">General Configuration</h1>
+        <h1 className="text-2xl font-bold pg-text tracking-tight">Musyawarah — General Configuration</h1>
         <p className="text-sm pg-muted mt-1">
           Pusat konfigurasi identitas, publikasi, pendaftaran, dan kontak MUSKOM.
         </p>

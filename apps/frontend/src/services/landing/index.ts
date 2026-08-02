@@ -10,7 +10,7 @@ export const landingService = {
         ? process.env.INTERNAL_API_URL || 'http://api:8080/api/v1'
         : process.env.NEXT_PUBLIC_API_URL || '/api/v1';
       const res = await fetch(`${baseUrl}/public/home`, {
-        next: { revalidate: 60 } // ISR Cache: 60 seconds
+        cache: 'no-store'
       });
       
       if (!res.ok) {
@@ -25,6 +25,11 @@ export const landingService = {
       
       const mappedData: HomeResponse = {
         ...landingSeed, // fallback for static CMS parts
+        hero: apiData?.hero || landingSeed.hero,
+        footer: apiData?.footer || landingSeed.footer,
+        metadata: apiData?.metadata || landingSeed.metadata,
+        feature_flags: apiData?.feature_flags || landingSeed.feature_flags,
+        countdown: apiData?.countdown || landingSeed.countdown,
         currentPhase: {
           name: apiData?.currentPhase?.name || landingSeed.currentPhase.name,
           end_date: apiData?.currentPhase?.end_date,
