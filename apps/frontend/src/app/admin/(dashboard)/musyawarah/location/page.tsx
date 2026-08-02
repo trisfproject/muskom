@@ -2,33 +2,37 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { eventService } from "@/services/event";
-import { MusyawarahEvent, UpdateEventPayload } from "@/types/event";
+import { musyawarahAdminService } from "@/services/admin/musyawarah";
+import { Musyawarah, UpdateMusyawarahPayload } from "@/types/musyawarah";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function LocationPage() {
-  const [event, setEvent] = useState<MusyawarahEvent | null>(null);
+  const [event, setEvent] = useState<Musyawarah | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const fetchEvent = async () => {
+  const fetchActiveEvent = async () => {
     try {
-      const data = await eventService.getEvent();
-      setEvent(data);
+      const events = await musyawarahAdminService.list();
+      const active = events.find(e => e.is_active) || events[0];
+      if (active) {
+        const fullEvent = await musyawarahAdminService.getById(active.id);
+        setEvent(fullEvent);
+      }
     } catch (error) {
-      toast.error("Gagal mengambil konfigurasi");
+      toast.error("Gagal mengambil konfigurasi lokasi");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchEvent();
+    fetchActiveEvent();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (!event) return;
     setEvent({ ...event, [e.target.name]: e.target.value });
   };
@@ -37,29 +41,24 @@ export default function LocationPage() {
     if (!event) return;
     setSaving(true);
     try {
-      const payload: UpdateEventPayload = {
+      const payload: UpdateMusyawarahPayload = {
         name: event.name,
         slug: event.slug,
         theme: event.theme,
-        tagline: event.tagline,
         description: event.description,
-        year: event.year ? Number(event.year) : undefined,
-        start_date: event.start_date,
-        end_date: event.end_date,
-        timezone: event.timezone,
-        venue: event.venue,
+        period_start: event.period_start,
+        period_end: event.period_end,
+        event_date: event.event_date,
+        registration_open: event.registration_open,
+        registration_close: event.registration_close,
+        candidate_registration_open: event.candidate_registration_open,
+        candidate_registration_close: event.candidate_registration_close,
+        location_name: event.location_name,
         address: event.address,
         google_maps_url: event.google_maps_url,
-        city: event.city,
-        province: event.province,
-        meeting_type: event.meeting_type,
-        location: event.location,
         status: event.status,
-        max_participants: event.max_participants,
-        publish_result: event.publish_result,
-        allow_candidate_registration: event.allow_candidate_registration
       };
-      await eventService.updateEvent(payload);
+      await musyawarahAdminService.update(event.id, payload);
       toast.success("Konfigurasi lokasi berhasil disimpan");
     } catch (error) {
       toast.error("Gagal menyimpan konfigurasi");
@@ -69,47 +68,24 @@ export default function LocationPage() {
   };
 
   if (loading) return <div className="p-8 pg-muted">Memuat...</div>;
-  if (!event) return <div className="p-8 pg-muted">Konfigurasi tidak ditemukan</div>;
+  if (!event) return <div className="p-8 pg-muted">Musyawarah aktif tidak ditemukan. Silakan buat di menu General.</div>;
 
   return (
     <div className="space-y-6">
       <SectionHeader 
         title="Location Configuration" 
-        description="Pengaturan lokasi dan alamat acara Musyawarah."
+        description={`Pengaturan lokasi dan alamat untuk: ${event.name}`}
       />
 
       <div className="pg-surface border pg-border rounded-xl p-6 space-y-6 max-w-2xl">
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Tipe Pertemuan</label>
-            <select 
-              name="meeting_type" 
-              value={event.meeting_type || 'OFFLINE'} 
-              onChange={handleChange}
-              className="flex h-10 w-full rounded-md border pg-border bg-[var(--color-bg)] px-3 py-2 text-sm text-slate-200 placeholder:pg-muted focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="OFFLINE">Offline</option>
-              <option value="ONLINE">Online</option>
-              <option value="HYBRID">Hybrid</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Nama Tempat (Venue)</label>
-            <Input name="venue" value={event.venue || ''} onChange={handleChange} placeholder="Gedung Serbaguna..." />
+            <label className="block text-sm font-medium text-slate-300 mb-1">Nama Lokasi/Gedung</label>
+            <Input name="location_name" value={event.location_name || ''} onChange={handleChange} placeholder="Gedung Serbaguna..." />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Alamat Lengkap</label>
             <Textarea name="address" value={event.address || ''} onChange={handleChange} placeholder="Jl. Sudirman No 1..." className="min-h-[80px]" />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Kota</label>
-              <Input name="city" value={event.city || ''} onChange={handleChange} placeholder="Jakarta Pusat" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Provinsi</label>
-              <Input name="province" value={event.province || ''} onChange={handleChange} placeholder="DKI Jakarta" />
-            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Google Maps URL</label>

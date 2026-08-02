@@ -27,8 +27,6 @@ export const landingService = {
         ...landingSeed, // fallback for static CMS parts
         hero: apiData?.hero || landingSeed.hero,
         footer: apiData?.footer || landingSeed.footer,
-        metadata: apiData?.metadata || landingSeed.metadata,
-        feature_flags: apiData?.feature_flags || landingSeed.feature_flags,
         countdown: apiData?.countdown || landingSeed.countdown,
         currentPhase: {
           name: apiData?.currentPhase?.name || landingSeed.currentPhase.name,
