@@ -62,22 +62,22 @@ export function CountdownCard({
 
   return (
     <div>
-      <div className="flex items-center gap-1.5 mb-5">
+      <div className="flex items-center gap-1.5 mb-3 md:mb-5">
         <Clock className="w-3.5 h-3.5 text-blue-500/70 dark:text-blue-400/70" />
         <span className="text-[11px] font-bold text-slate-400/80 dark:text-slate-500 uppercase tracking-widest">
           {label}
         </span>
       </div>
-      <div className="grid grid-cols-4 gap-2 md:gap-4">
+      <div className="grid grid-cols-4 gap-1.5 md:gap-4">
         {units.map((u) => (
           <div
             key={u.l}
-            className="flex flex-col items-center justify-center py-3 md:py-6 px-1 md:px-2 rounded-2xl bg-white/40 dark:bg-slate-800/40 border border-white/50 dark:border-slate-700/30 shadow-sm relative overflow-hidden transition-all group backdrop-blur-sm"
+            className="flex flex-col items-center justify-center py-2 md:py-6 px-1 md:px-2 rounded-xl md:rounded-2xl bg-white/40 dark:bg-slate-800/40 border border-white/50 dark:border-slate-700/30 shadow-sm relative overflow-hidden transition-all group backdrop-blur-sm"
           >
             {/* Subtle top inner sheen */}
             <div className="absolute top-0 left-0 right-0 h-px bg-white/60 dark:bg-white/10" />
 
-            <div className="h-6 md:h-8 flex items-center justify-center overflow-hidden">
+            <div className="h-5 md:h-8 flex items-center justify-center overflow-hidden">
               <AnimatePresence mode="popLayout" initial={false}>
                 <motion.span
                   key={u.v}
@@ -85,13 +85,13 @@ export function CountdownCard({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white tabular-nums leading-none tracking-tight block drop-shadow-sm"
+                  className="text-xl md:text-4xl font-black text-slate-900 dark:text-white tabular-nums leading-none tracking-tight block drop-shadow-sm"
                 >
                   {String(u.v).padStart(2, "0")}
                 </motion.span>
               </AnimatePresence>
             </div>
-            <span className="text-[9px] md:text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1.5 md:mt-2.5 uppercase tracking-[0.2em]">
+            <span className="text-[8px] md:text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1 md:mt-2.5 uppercase tracking-[0.15em]">
               {u.l}
             </span>
           </div>

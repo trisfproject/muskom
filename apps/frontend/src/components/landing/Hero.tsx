@@ -119,12 +119,12 @@ function IntegratedPhaseCard({ data }: { data: HomeResponse | null }) {
       />
 
       {/* Main Glass Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/40 dark:border-slate-800/40 p-7 md:p-10 lg:p-12 shadow-2xl shadow-blue-900/5 transition-all hover:shadow-blue-500/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+      <div className="relative overflow-hidden rounded-3xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/40 dark:border-slate-800/40 p-5 md:p-10 lg:p-12 shadow-2xl shadow-blue-900/5 transition-all hover:shadow-blue-500/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
         {/* Top Highlight Sheen */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white dark:via-blue-400/50 to-transparent opacity-90" />
 
         {/* Phase Header Badge */}
-        <div className="flex items-center justify-between mb-6 md:mb-8">
+        <div className="flex items-center justify-between mb-4 md:mb-8">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold tracking-widest uppercase shadow-sm">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -140,13 +140,13 @@ function IntegratedPhaseCard({ data }: { data: HomeResponse | null }) {
         </div>
 
         {/* Phase Title */}
-        <h3 className="text-xl md:text-2xl lg:text-[26px] font-black text-slate-900 dark:text-white leading-snug mb-8 md:mb-10 drop-shadow-sm">
+        <h3 className="text-lg md:text-2xl lg:text-[26px] font-black text-slate-900 dark:text-white leading-snug mb-5 md:mb-10 drop-shadow-sm">
           {phaseName}
         </h3>
 
         {/* Countdown Integration */}
         {countdownTarget && (
-          <div className="pt-8 md:pt-10 pb-2 border-t border-slate-200/50 dark:border-slate-700/50 relative">
+          <div className="pt-5 md:pt-10 pb-1 md:pb-2 border-t border-slate-200/50 dark:border-slate-700/50 relative">
             {/* Subtle glow on separator */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
             <CountdownCard targetDate={countdownTarget} label={countdownLabel} />
