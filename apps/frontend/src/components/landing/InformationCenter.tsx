@@ -138,7 +138,7 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
               </span>
             </div>
             
-            <div className="bg-white/60 dark:bg-slate-900/50 backdrop-blur-2xl border border-white/60 dark:border-slate-800/60 rounded-2xl p-3 shadow-sm transition-all duration-300">
+            <div className="bg-white/50 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/40 dark:border-slate-700/30 rounded-2xl p-4 sm:p-5 shadow-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-300">
               {loadingPages ? (
                 <div className="p-8 text-center text-slate-500">
                   <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
@@ -186,8 +186,8 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
       {/* Interactive Announcement Reader Modal */}
       {selectedAnnouncement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div 
-            className="relative w-full max-w-2xl max-h-[85vh] bg-white/90 dark:bg-slate-900/90 backdrop-blur-3xl rounded-3xl border border-white/60 dark:border-slate-700/60 shadow-2xl overflow-hidden flex flex-col"
+          <div
+            className="relative w-full max-w-2xl max-h-[85vh] bg-white/80 dark:bg-slate-900/80 backdrop-blur-3xl rounded-3xl border border-white/50 dark:border-slate-700/40 shadow-2xl overflow-hidden flex flex-col shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}

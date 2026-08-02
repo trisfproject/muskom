@@ -57,12 +57,12 @@ export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
 
         <div
           className={cn(
-            "flex-1 p-5 sm:p-7 rounded-3xl transition-all duration-300 relative overflow-hidden backdrop-blur-xl border hover:shadow-xl hover:-translate-y-1",
+            "flex-1 p-6 sm:p-8 rounded-3xl transition-all duration-300 relative overflow-hidden backdrop-blur-xl border hover:shadow-xl hover:-translate-y-1",
             status === "active"
-              ? "bg-white/90 dark:bg-slate-900/90 border-primary shadow-glow hover:shadow-blue-500/15"
+              ? "bg-white/80 dark:bg-slate-900/80 border-primary/40 shadow-glow shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] hover:shadow-blue-500/15"
               : status === "past"
-              ? "bg-white/60 dark:bg-slate-900/50 border-white/60 dark:border-slate-800/60 hover:border-blue-200/50"
-              : "bg-white/40 dark:bg-slate-900/30 border-white/40 dark:border-slate-800/40 opacity-90"
+              ? "bg-white/50 dark:bg-slate-900/40 border-white/50 dark:border-slate-700/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] hover:border-blue-200/50"
+              : "bg-white/30 dark:bg-slate-900/20 border-white/30 dark:border-slate-700/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3)] opacity-90"
           )}
         >
           {/* Active Phase Background Accent Glow */}

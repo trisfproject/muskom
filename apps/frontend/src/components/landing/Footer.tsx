@@ -32,7 +32,7 @@ export function Footer({ data }: { data: HomeResponse | null }) {
   ];
 
   return (
-    <footer className="relative bg-white/40 dark:bg-slate-950/40 backdrop-blur-3xl border-t border-white/60 dark:border-slate-800/60 overflow-hidden transition-colors mt-auto">
+    <footer className="relative bg-white/30 dark:bg-slate-950/30 backdrop-blur-3xl border-t border-white/30 dark:border-slate-800/40 overflow-hidden transition-colors mt-auto shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
       {/* ── Top Atmospheric Accent Line ── */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
 

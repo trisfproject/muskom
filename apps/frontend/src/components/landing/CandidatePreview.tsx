@@ -46,7 +46,7 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {candidates.map((c, i) => (
               <SlideUp key={c.id} delay={i * 0.1}>
-                <div className="group bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/50 dark:border-slate-800/50 p-6 lg:p-8 rounded-3xl flex flex-col h-full hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300">
+                <div className="group bg-white/60 dark:bg-slate-900/50 backdrop-blur-xl border border-white/40 dark:border-slate-700/30 p-8 lg:p-10 rounded-3xl flex flex-col h-full hover:shadow-xl hover:shadow-blue-500/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] hover:-translate-y-1 transition-all duration-300">
                   <div className="flex items-center gap-5 mb-6">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-blue-600/20 text-primary font-black text-xl">
                       {c.sequence_number ?? "?"}

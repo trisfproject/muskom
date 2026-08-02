@@ -55,8 +55,8 @@ export function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggle
           <div
             className={`pointer-events-auto flex items-center justify-between gap-4 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full transition-all duration-300 backdrop-blur-xl border ${
               scrolled
-                ? "bg-surface/90 border-light shadow-md"
-                : "bg-surface/75 border-light/80 shadow-xs"
+                ? "bg-white/70 dark:bg-slate-900/70 border-white/50 dark:border-slate-700/30 shadow-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
+                : "bg-white/30 dark:bg-slate-900/30 border-white/30 dark:border-slate-700/20 shadow-xs"
             }`}
           >
             {/* Brand */}
