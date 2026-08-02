@@ -3,14 +3,30 @@ package audit
 import (
 	"context"
 	"errors"
+
+	"go.uber.org/zap"
 )
 
 type service struct {
 	repo AuditRepository
+	log  *zap.Logger
 }
 
-func NewService(repo AuditRepository) AuditService {
-	return &service{repo: repo}
+func NewService(repo AuditRepository, log *zap.Logger) AuditService {
+	return &service{repo: repo, log: log}
+}
+
+func (s *service) LogActivityAsync(ctx context.Context, entry AuditEntry) {
+	// Execute in a background goroutine so it doesn't block
+	go func(auditEntry AuditEntry) {
+		bgCtx := context.Background()
+		err := s.repo.Insert(bgCtx, auditEntry)
+		if err != nil {
+			if s.log != nil {
+				s.log.Error("Failed to write audit log", zap.Error(err), zap.String("module", string(auditEntry.Module)), zap.String("action", string(auditEntry.Action)))
+			}
+		}
+	}(entry)
 }
 
 // In RC2, we only allow access if operator is authenticated. Real authorization checks (e.g. Super Admin)

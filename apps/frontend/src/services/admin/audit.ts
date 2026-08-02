@@ -10,6 +10,9 @@ export interface AuditLog {
   actor_role: string | null;
   reason: string | null;
   metadata: any | null;
+  previous_value: any | null;
+  new_value: any | null;
+  correlation_id: string | null;
   ip_address: string | null;
   user_agent: string | null;
   created_at: string;

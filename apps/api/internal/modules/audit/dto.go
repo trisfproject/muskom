@@ -22,9 +22,12 @@ type AuditDetailResponse struct {
 	Action    string      `json:"action"`
 	ActorID   *string     `json:"actor_id,omitempty"`
 	ActorRole *string     `json:"actor_role,omitempty"`
-	Reason    *string     `json:"reason,omitempty"`
-	IPAddress *string     `json:"ip_address,omitempty"`
-	UserAgent *string     `json:"user_agent,omitempty"`
-	Metadata  interface{} `json:"metadata,omitempty"`
+	Reason        *string     `json:"reason,omitempty"`
+	IPAddress     *string     `json:"ip_address,omitempty"`
+	UserAgent     *string     `json:"user_agent,omitempty"`
+	Metadata      interface{} `json:"metadata,omitempty"`
+	PreviousValue interface{} `json:"previous_value,omitempty"`
+	NewValue      interface{} `json:"new_value,omitempty"`
+	CorrelationID *string     `json:"correlation_id,omitempty"`
 	CreatedAt time.Time   `json:"created_at"`
 }

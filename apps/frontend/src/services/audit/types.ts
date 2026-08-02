@@ -22,5 +22,8 @@ export interface AuditEntry {
   ip_address?: string;
   user_agent?: string;
   metadata?: Record<string, unknown>;
+  previous_value?: Record<string, unknown>;
+  new_value?: Record<string, unknown>;
+  correlation_id?: string;
   created_at: string;
 }

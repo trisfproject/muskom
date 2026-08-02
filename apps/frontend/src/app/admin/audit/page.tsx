@@ -76,12 +76,23 @@ export default function AuditPage() {
     }
   ];
 
+  const handleExport = () => {
+    window.location.href = `/api/v1/admin/audit/export?format=csv`;
+  };
+
   return (
     <div className="space-y-6">
       <SectionHeader 
         title="Audit Log" 
         description="Pantau seluruh aktivitas yang terjadi di dalam sistem MUSKOM."
-      />
+      >
+        <button
+          onClick={handleExport}
+          className="inline-flex items-center px-4 py-2 text-sm font-medium bg-slate-800 text-white rounded-md hover:bg-slate-700 transition-colors border border-slate-700"
+        >
+          Export CSV
+        </button>
+      </SectionHeader>
 
       <DataTable 
         data={logs}

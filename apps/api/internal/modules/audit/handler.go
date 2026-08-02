@@ -55,8 +55,11 @@ func (h *Handler) Search(c fiber.Ctx) error {
 			Reason:    item.Reason,
 			IPAddress: item.IPAddress,
 			UserAgent: item.UserAgent,
-			Metadata:  item.Metadata,
-			CreatedAt: item.CreatedAt,
+			Metadata:      item.Metadata,
+			PreviousValue: item.PreviousValue,
+			NewValue:      item.NewValue,
+			CorrelationID: item.CorrelationID,
+			CreatedAt:     item.CreatedAt,
 		})
 	}
 	
@@ -97,9 +100,68 @@ func (h *Handler) GetByID(c fiber.Ctx) error {
 		Reason:    item.Reason,
 		IPAddress: item.IPAddress,
 		UserAgent: item.UserAgent,
-		Metadata:  item.Metadata,
-		CreatedAt: item.CreatedAt,
+		Metadata:      item.Metadata,
+		PreviousValue: item.PreviousValue,
+		NewValue:      item.NewValue,
+		CorrelationID: item.CorrelationID,
+		CreatedAt:     item.CreatedAt,
 	}
 
 	return response.SendSuccess(c, fiber.StatusOK, "Audit log retrieved", res, nil)
+}
+
+func (h *Handler) Export(c fiber.Ctx) error {
+	var req AuditListRequest
+	if err := c.Bind().Query(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid query parameters", nil)
+	}
+
+	filter := AuditFilter{
+		Page:      1,
+		Limit:     10000, // Large limit for export
+		Module:    req.Module,
+		Action:    req.Action,
+		Entity:    req.Entity,
+		EntityID:  req.EntityID,
+		ActorID:   req.ActorID,
+		StartDate: req.StartDate,
+		EndDate:   req.EndDate,
+	}
+
+	operatorID, ok := c.Locals("user_id").(string)
+	if !ok || operatorID == "" {
+		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized access", nil)
+	}
+
+	items, _, err := h.service.Search(c.Context(), filter, operatorID)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, err.Error(), nil)
+	}
+
+	format := c.Query("format", "json")
+	if format == "csv" {
+		// Basic CSV Generation
+		c.Set("Content-Type", "text/csv")
+		c.Set("Content-Disposition", "attachment; filename=audit_export.csv")
+		
+		csvData := "ID,Module,Entity,EntityID,Action,ActorID,ActorRole,CreatedAt\n"
+		for _, item := range items {
+			csvData += item.ID + "," + string(item.Module) + "," + item.Entity + "," + item.EntityID + "," + string(item.Action) + ","
+			if item.ActorID != nil {
+				csvData += *item.ActorID + ","
+			} else {
+				csvData += ","
+			}
+			if item.ActorRole != nil {
+				csvData += *item.ActorRole + ","
+			} else {
+				csvData += ","
+			}
+			csvData += item.CreatedAt.String() + "\n"
+		}
+		
+		return c.SendString(csvData)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Exported successfully", items, nil)
 }

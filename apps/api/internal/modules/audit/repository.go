@@ -15,6 +15,15 @@ func NewRepository(db *sqlx.DB) AuditRepository {
 	return &repository{db: db}
 }
 
+func (r *repository) Insert(ctx context.Context, entry AuditEntry) error {
+	query := `
+		INSERT INTO audit_logs (module, entity, entity_id, action, user_id, actor_role, reason, ip_address, user_agent, metadata, previous_value, new_value, correlation_id)
+		VALUES (:module, :entity, :entity_id, :action, :actor_id, :actor_role, :reason, :ip_address, :user_agent, :metadata, :previous_value, :new_value, :correlation_id)
+	`
+	_, err := r.db.NamedExecContext(ctx, query, entry)
+	return err
+}
+
 func (r *repository) Search(ctx context.Context, filter AuditFilter) ([]AuditEntry, int, error) {
 	page := filter.Page
 	if page < 1 {
@@ -79,7 +88,7 @@ func (r *repository) Search(ctx context.Context, filter AuditFilter) ([]AuditEnt
 	}
 
 	query := fmt.Sprintf(`
-		SELECT id, module, action, entity, entity_id, user_id, actor_role, reason, ip_address, user_agent, metadata, created_at
+		SELECT id, module, action, entity, entity_id, user_id, actor_role, reason, ip_address, user_agent, metadata, previous_value, new_value, correlation_id, created_at
 		FROM audit_logs
 		%s
 		ORDER BY created_at DESC
@@ -102,7 +111,7 @@ func (r *repository) Search(ctx context.Context, filter AuditFilter) ([]AuditEnt
 
 func (r *repository) GetByID(ctx context.Context, id string) (*AuditEntry, error) {
 	query := `
-		SELECT id, module, action, entity, entity_id, user_id, actor_role, reason, ip_address, user_agent, metadata, created_at
+		SELECT id, module, action, entity, entity_id, user_id, actor_role, reason, ip_address, user_agent, metadata, previous_value, new_value, correlation_id, created_at
 		FROM audit_logs
 		WHERE id = $1
 	`
