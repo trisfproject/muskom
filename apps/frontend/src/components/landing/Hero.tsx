@@ -1,14 +1,14 @@
 "use client";
 
 import { HomeResponse } from "@/types/landing";
-import { ArrowRight, Sparkles, Clock, Calendar } from "lucide-react";
+import { ArrowRight, Calendar } from "lucide-react";
 import Link from "next/link";
-import { ConnectionNetwork } from "@/components/landing/ConnectionNetwork";
 import { CountdownCard } from "@/components/ui/countdown-card";
+import { SlideUp } from "@/components/landing/Shared";
 
 export function Hero({ data }: { data: HomeResponse | null }) {
   const badge = data?.hero?.hero_badge || "Together We Shape the Future";
-  const title = data?.hero?.hero_title || "Musyawarah Terpadu";
+  const title = "Musyawarah KOMITKABE 2026";
   const description =
     data?.hero?.hero_description ||
     "Platform pemilihan resmi KOMITKABE 2026. Membangun proses kepemimpinan yang transparan, terpercaya, dan akuntabel.";
@@ -19,85 +19,87 @@ export function Hero({ data }: { data: HomeResponse | null }) {
   ].filter(Boolean);
 
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-28 pb-16 lg:pt-32 lg:pb-24">
-      {/* ── 6-Layer Atmospheric Background ── */}
-      {/* Layer 1: Pure White Base (Inherited from body) */}
-
-      {/* Layer 2: Large Soft Aurora (Azure, Sky, Soft Cyan) */}
-      <div className="absolute inset-0 bg-aurora pointer-events-none" />
-
-      {/* Layer 3: Subtle Blueprint Grid */}
-      <div className="absolute inset-0 bg-blueprint pointer-events-none" />
-
-      {/* Layer 4: Connection Network (SVG based, nodes converging toward Hero area) */}
-      <ConnectionNetwork />
-
-      {/* Layer 5: Morning Sunlight Glow behind Hero Area */}
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-36 pb-20 lg:pt-48 lg:pb-32">
+      {/* ── Specific Hero Lighting (Overlays on top of Global Atmosphere) ── */}
+      {/* Reduced haze ambient glow */}
       <div
-        className="absolute top-1/3 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[500px] pointer-events-none bg-hero-glow opacity-80"
-        style={{ filter: "blur(90px)" }}
+        className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] pointer-events-none bg-hero-glow opacity-40 mix-blend-screen dark:mix-blend-lighten"
+        style={{ filter: "blur(60px)" }}
       />
-
-      {/* Layer 6: Subtle Texture */}
-      <div className="absolute inset-0 bg-noise pointer-events-none" />
+      {/* Subtle radial light specifically behind the headline */}
+      <div 
+        className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-sky-300/10 dark:bg-sky-400/5 rounded-full pointer-events-none"
+        style={{ filter: "blur(80px)" }}
+      />
 
       {/* ── Hero Main Content ── */}
       <div className="container-landing relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left Column: Hero Content */}
-          <div className="lg:col-span-7">
-            {/* 1. Official Identity Pill */}
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-blue-500/20 bg-blue-50/80 dark:bg-blue-950/40 backdrop-blur-md text-xs font-bold text-blue-600 dark:text-blue-400 tracking-wide mb-8 shadow-xs">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600 dark:bg-blue-400" />
-              </span>
-              <span>{badge}</span>
-            </div>
+          <div className="lg:col-span-6 relative z-10">
+            <SlideUp delay={0.1}>
+              {/* 1. Official Identity Pill */}
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-blue-500/20 bg-blue-50/80 dark:bg-blue-950/40 backdrop-blur-md text-xs font-bold text-blue-600 dark:text-blue-400 tracking-wide mb-8 shadow-xs hover:shadow-sm hover:border-blue-500/30 transition-all cursor-default">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600 dark:bg-blue-400" />
+                </span>
+                <span>{badge}</span>
+              </div>
+            </SlideUp>
 
-            {/* 2. Headline with Morning Light Diffusion */}
-            <div className="relative mb-6">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.12]">
-                {title}
-              </h1>
-            </div>
+            <SlideUp delay={0.2}>
+              {/* 2. Headline with Premium Gradient */}
+              <div className="relative mb-6">
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.1] bg-clip-text text-transparent bg-gradient-to-br from-slate-900 via-slate-800 to-slate-500 dark:from-white dark:via-slate-200 dark:to-slate-400 drop-shadow-sm">
+                  {title}
+                </h1>
+              </div>
+            </SlideUp>
 
-            {/* 3. Description */}
-            <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl mb-10">
-              {description}
-            </p>
+            <SlideUp delay={0.3}>
+              {/* 3. Description */}
+              <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl mb-10 font-medium">
+                {description}
+              </p>
+            </SlideUp>
 
-            {/* 4. Action CTAs */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-              {ctaList.map((cta) => {
-                if (!cta || !cta.open) return null;
-                const isPrimary = cta.style === "primary" || !cta.style;
+            <SlideUp delay={0.4}>
+              {/* 4. Action CTAs */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                {ctaList.map((cta) => {
+                  if (!cta || !cta.open) return null;
+                  const isPrimary = cta.style === "primary" || !cta.style;
 
-                return isPrimary ? (
-                  <Link
-                    key={cta.url}
-                    href={cta.url}
-                    className="group inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white font-semibold text-sm shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
-                  >
-                    <span>{cta.label}</span>
-                    <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
-                  </Link>
-                ) : (
-                  <Link
-                    key={cta.url}
-                    href={cta.url}
-                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-white/95 dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-sm shadow-xs hover:shadow-sm hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
-                  >
-                    <span>{cta.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
+                  return isPrimary ? (
+                    <Link
+                      key={cta.url}
+                      href={cta.url}
+                      className="group relative inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-blue-600 via-blue-500 to-sky-500 hover:from-blue-700 hover:via-blue-600 hover:to-sky-600 text-white font-bold text-sm shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                      <span className="relative z-10">{cta.label}</span>
+                      <ArrowRight className="relative z-10 w-4 h-4 transition-transform duration-300 group-hover:translate-x-1.5" />
+                    </Link>
+                  ) : (
+                    <Link
+                      key={cta.url}
+                      href={cta.url}
+                      className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-md hover:bg-white/90 dark:hover:bg-slate-800/90 border border-white/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-200 font-bold text-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+                    >
+                      <span>{cta.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </SlideUp>
           </div>
 
           {/* Right Column: Rebuilt Integrated Phase Card */}
-          <div className="lg:col-span-5">
-            <IntegratedPhaseCard data={data} />
+          <div className="lg:col-span-5 lg:col-start-8">
+            <SlideUp delay={0.5}>
+              <IntegratedPhaseCard data={data} />
+            </SlideUp>
           </div>
         </div>
       </div>
@@ -113,20 +115,20 @@ function IntegratedPhaseCard({ data }: { data: HomeResponse | null }) {
 
   return (
     <div className="relative animate-float-subtle">
-      {/* Ambient Backlight for the Card */}
+      {/* Ambient Backlight for the Card (Increased depth) */}
       <div
-        className="absolute -inset-2 rounded-3xl bg-gradient-to-tr from-blue-500/20 via-sky-400/10 to-transparent pointer-events-none opacity-70"
-        style={{ filter: "blur(24px)" }}
+        className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-blue-500/30 via-sky-400/20 to-transparent pointer-events-none opacity-80 mix-blend-multiply dark:mix-blend-screen"
+        style={{ filter: "blur(32px)" }}
       />
 
       {/* Main Glass Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-white/85 dark:bg-slate-900/85 backdrop-blur-2xl border border-slate-200/80 dark:border-slate-800/80 p-7 sm:p-8 shadow-xl shadow-blue-500/5 transition-all">
+      <div className="relative overflow-hidden rounded-3xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-3xl border border-white/40 dark:border-slate-800/40 p-8 sm:p-10 shadow-2xl shadow-blue-900/5 transition-all hover:shadow-blue-500/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
         {/* Top Highlight Sheen */}
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white dark:via-blue-400/50 to-transparent opacity-90" />
 
         {/* Phase Header Badge */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold tracking-widest uppercase">
+        <div className="flex items-center justify-between mb-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold tracking-widest uppercase shadow-sm">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
@@ -134,20 +136,22 @@ function IntegratedPhaseCard({ data }: { data: HomeResponse | null }) {
             <span>FASE AKTIF</span>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             <Calendar className="w-3.5 h-3.5" />
             <span>MUSKOM 2026</span>
           </div>
         </div>
 
         {/* Phase Title */}
-        <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-snug mb-6">
+        <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight mb-8 drop-shadow-sm">
           {phaseName}
         </h3>
 
         {/* Countdown Integration */}
         {countdownTarget && (
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="pt-6 border-t border-slate-200/50 dark:border-slate-700/50 relative">
+            {/* Subtle glow on separator */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
             <CountdownCard targetDate={countdownTarget} label={countdownLabel} />
           </div>
         )}

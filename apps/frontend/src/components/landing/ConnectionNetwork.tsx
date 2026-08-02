@@ -6,7 +6,7 @@ export function ConnectionNetwork() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
       <svg
-        className="w-full h-full object-cover opacity-65 dark:opacity-40 transition-opacity"
+        className="w-full h-full object-cover opacity-85 dark:opacity-60 transition-opacity"
         viewBox="0 0 1440 900"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
