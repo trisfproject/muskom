@@ -148,7 +148,7 @@ export default function AdminWebsiteTimelinePage() {
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -165,7 +165,7 @@ export default function AdminWebsiteTimelinePage() {
         </div>
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-colors shadow-lg shadow-blue-600/30 shrink-0"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm transition-colors shadow-lg shadow-[var(--color-primary)]/30 shrink-0"
         >
           <Plus className="w-4 h-4" />
           Tambah Tahapan
@@ -176,7 +176,7 @@ export default function AdminWebsiteTimelinePage() {
         <div
           className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm ${
             message.type === "success"
-              ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+              ? "bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-primary"
               : "bg-rose-500/10 border border-rose-500/20 text-rose-400"
           }`}
         >
@@ -192,7 +192,7 @@ export default function AdminWebsiteTimelinePage() {
       {/* Phases List */}
       <div className="space-y-3">
         {phases.length === 0 ? (
-          <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl">
+          <div className="p-12 text-center bg-slate-900 border border-[var(--color-border)] rounded-2xl">
             <Calendar className="w-10 h-10 text-slate-600 mx-auto mb-3" />
             <p className="text-slate-400 text-sm font-medium">Belum ada tahapan timeline</p>
             <p className="text-slate-600 text-xs mt-1">Klik tombol &quot;Tambah Tahapan&quot; di atas untuk membuat jadwal.</p>
@@ -201,7 +201,7 @@ export default function AdminWebsiteTimelinePage() {
           phases.map((phase, idx) => (
             <div
               key={phase.id || idx}
-              className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-700 transition-colors"
+              className="bg-slate-900 border border-[var(--color-border)] rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-700 transition-colors"
             >
               <div className="flex items-start gap-4">
                 {/* Order Index */}
@@ -213,12 +213,12 @@ export default function AdminWebsiteTimelinePage() {
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <h3 className="font-bold text-white text-base">{phase.title}</h3>
                     {phase.current_indicator && (
-                      <span className="px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[10px] font-bold uppercase tracking-wider">
+                      <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-primary text-[10px] font-bold uppercase tracking-wider">
                         Fase Aktif
                       </span>
                     )}
                     {phase.registration_type !== "NONE" && (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                      <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-primary text-[10px] font-bold uppercase tracking-wider">
                         Reg: {phase.registration_type}
                       </span>
                     )}
@@ -277,8 +277,8 @@ export default function AdminWebsiteTimelinePage() {
       {/* Modal Dialog */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-            <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+          <div className="bg-slate-900 border border-[var(--color-border)] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div className="p-5 border-b border-[var(--color-border)] flex items-center justify-between">
               <h2 className="text-base font-bold text-white">
                 {editingPhase ? "Edit Tahapan Timeline" : "Tambah Tahapan Timeline"}
               </h2>
@@ -297,7 +297,7 @@ export default function AdminWebsiteTimelinePage() {
                   type="text"
                   value={formState.title}
                   onChange={(e) => setFormState({ ...formState, title: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
                   required
                 />
               </div>
@@ -308,7 +308,7 @@ export default function AdminWebsiteTimelinePage() {
                   rows={2}
                   value={formState.description}
                   onChange={(e) => setFormState({ ...formState, description: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
+                  className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] resize-none"
                 />
               </div>
 
@@ -319,7 +319,7 @@ export default function AdminWebsiteTimelinePage() {
                     type="datetime-local"
                     value={formState.start_date}
                     onChange={(e) => setFormState({ ...formState, start_date: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[var(--color-primary)]"
                     required
                   />
                 </div>
@@ -329,7 +329,7 @@ export default function AdminWebsiteTimelinePage() {
                     type="datetime-local"
                     value={formState.end_date}
                     onChange={(e) => setFormState({ ...formState, end_date: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[var(--color-primary)]"
                     required
                   />
                 </div>
@@ -345,7 +345,7 @@ export default function AdminWebsiteTimelinePage() {
                       registration_type: e.target.value as "NONE" | "PARTICIPANT" | "CANDIDATE" | "BOTH",
                     })
                   }
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
                 >
                   <option value="NONE">Tidak Ada (NONE)</option>
                   <option value="CANDIDATE">Penjaringan Calon (CANDIDATE)</option>
@@ -355,7 +355,7 @@ export default function AdminWebsiteTimelinePage() {
               </div>
 
               <div className="space-y-2 pt-2">
-                <label className="flex items-center gap-3 p-3 bg-slate-950/60 border border-slate-800 rounded-xl cursor-pointer">
+                <label className="flex items-center gap-3 p-3 bg-[var(--color-bg)]/60 border border-[var(--color-border)] rounded-xl cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formState.current_indicator}
@@ -368,7 +368,7 @@ export default function AdminWebsiteTimelinePage() {
                   </div>
                 </label>
 
-                <label className="flex items-center gap-3 p-3 bg-slate-950/60 border border-slate-800 rounded-xl cursor-pointer">
+                <label className="flex items-center gap-3 p-3 bg-[var(--color-bg)]/60 border border-[var(--color-border)] rounded-xl cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formState.is_published}
@@ -382,7 +382,7 @@ export default function AdminWebsiteTimelinePage() {
                 </label>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
@@ -393,7 +393,7 @@ export default function AdminWebsiteTimelinePage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold transition-colors"
+                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-xs font-semibold transition-colors"
                 >
                   {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                   Simpan

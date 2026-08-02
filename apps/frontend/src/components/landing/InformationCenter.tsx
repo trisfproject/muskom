@@ -98,7 +98,7 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
             <div className="bg-[#141824]/80 backdrop-blur-md border border-white/[0.05] rounded-2xl overflow-hidden shadow-2xl">
               {loadingPages ? (
                 <div className="p-8 text-center text-slate-500">
-                  <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                  <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
                   <p className="text-sm">Memuat dokumen...</p>
                 </div>
               ) : pages.length === 0 ? (
@@ -116,8 +116,8 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
                           className="flex items-center justify-between p-5 hover:bg-white/[0.02] transition-colors group"
                         >
                           <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 group-hover:bg-blue-500/20 group-hover:border-blue-500/40 transition-all">
-                              <FileText className="w-5 h-5 text-blue-400 group-hover:text-blue-300" />
+                            <div className="w-10 h-10 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center border border-[var(--color-primary)]/20 group-hover:bg-primary-hover/20 group-hover:border-[var(--color-primary)]/40 transition-all">
+                              <FileText className="w-5 h-5 text-primary group-hover:text-primary-hover" />
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">
@@ -126,7 +126,7 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
                               <p className="text-xs text-slate-500 mt-0.5">Lihat dokumen &rarr;</p>
                             </div>
                           </div>
-                          <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-blue-400 transition-colors transform group-hover:translate-x-1" />
+                          <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors transform group-hover:translate-x-1" />
                         </Link>
                       </li>
                     </SlideUp>

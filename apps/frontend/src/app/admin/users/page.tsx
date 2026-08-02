@@ -56,7 +56,7 @@ export default function UsersPage() {
       key: "role_name",
       header: "Role",
       render: (row) => (
-        <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+        <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-medium bg-[var(--color-primary)]/10 text-primary border border-[var(--color-primary)]/20">
           {row.role_name}
         </span>
       )

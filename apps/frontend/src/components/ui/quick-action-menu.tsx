@@ -41,15 +41,15 @@ export function QuickActionMenu({ items }: QuickActionMenuProps) {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-48 rounded-md bg-slate-900 border border-slate-800 shadow-lg shadow-black/50 z-50 py-1">
+        <div className="absolute right-0 mt-1 w-48 rounded-md bg-slate-900 border border-[var(--color-border)] shadow-lg shadow-black/50 z-50 py-1">
           {items.map((item, idx) => {
             const Icon = item.icon;
             
             let colorClass = "text-slate-300 hover:text-white hover:bg-slate-800";
             if (item.variant === "danger") {
-              colorClass = "text-rose-400 hover:text-rose-300 hover:bg-rose-500/10";
+              colorClass = "text-[var(--color-danger)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10";
             } else if (item.variant === "success") {
-              colorClass = "text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10";
+              colorClass = "text-[var(--color-success)] hover:text-[var(--color-success)] hover:bg-[var(--color-success)]/10";
             }
 
             return (

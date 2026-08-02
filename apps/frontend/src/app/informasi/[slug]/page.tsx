@@ -69,7 +69,7 @@ export default async function InformationPageDetail({ params }: Props) {
 
           {/* Page Header */}
           <div className="mb-12 border-b border-white/[0.05] pb-12">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide uppercase mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-primary text-xs font-semibold tracking-wide uppercase mb-6">
               <FileText className="w-3.5 h-3.5" />
               Dokumen Resmi
             </div>

@@ -78,7 +78,7 @@ export default function GeneralPage() {
         description="Pengaturan informasi dasar Musyawarah aktif."
       />
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6 max-w-2xl">
+      <div className="bg-slate-900 border border-[var(--color-border)] rounded-xl p-6 space-y-6 max-w-2xl">
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Nama Musyawarah <span className="text-rose-500">*</span></label>
@@ -120,11 +120,11 @@ export default function GeneralPage() {
           </div>
         </div>
 
-        <div className="pt-4 border-t border-slate-800 flex justify-end">
+        <div className="pt-4 border-t border-[var(--color-border)] flex justify-end">
           <button
             onClick={handleSave}
             disabled={saving}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            className="bg-primary hover:bg-primary-active text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
           >
             {saving ? "Menyimpan..." : "Simpan Perubahan"}
           </button>

@@ -54,7 +54,7 @@ export default function PublicationPage() {
         description="Kelola siklus hidup dari Musyawarah aktif ini."
       />
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6 max-w-2xl">
+      <div className="bg-slate-900 border border-[var(--color-border)] rounded-xl p-6 space-y-6 max-w-2xl">
         
         <div>
           <h3 className="text-sm font-medium text-slate-300 mb-4">Status Saat Ini</h3>
@@ -65,7 +65,7 @@ export default function PublicationPage() {
               disabled={saving || event.status === 'DRAFT'}
               className={`flex-1 p-4 rounded-xl border text-left transition-all ${
                 event.status === 'DRAFT' 
-                  ? 'border-blue-500 bg-blue-500/10 ring-1 ring-blue-500/50' 
+                  ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 ring-1 ring-blue-500/50' 
                   : 'border-slate-700 bg-slate-800/50 hover:bg-slate-800 opacity-70'
               }`}
             >
@@ -78,7 +78,7 @@ export default function PublicationPage() {
               disabled={saving || event.status === 'PUBLISHED'}
               className={`flex-1 p-4 rounded-xl border text-left transition-all ${
                 event.status === 'PUBLISHED' 
-                  ? 'border-emerald-500 bg-emerald-500/10 ring-1 ring-emerald-500/50' 
+                  ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 ring-1 ring-[var(--color-primary)]/50' 
                   : 'border-slate-700 bg-slate-800/50 hover:bg-slate-800 opacity-70'
               }`}
             >
@@ -102,15 +102,15 @@ export default function PublicationPage() {
         </div>
 
         {event.status === 'PUBLISHED' && (
-          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-5 mt-6">
-            <h4 className="text-emerald-400 font-semibold mb-2">Musyawarah Aktif & Berjalan</h4>
-            <p className="text-sm text-emerald-200/80 mb-4">
+          <div className="bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 rounded-lg p-5 mt-6">
+            <h4 className="text-primary font-semibold mb-2">Musyawarah Aktif & Berjalan</h4>
+            <p className="text-sm text-primary/80 mb-4">
               Website saat ini dapat diakses publik. Jadwal dan fase pendaftaran bergantung pada konfigurasi timeline Anda.
             </p>
             <div className="flex items-center gap-3">
               <a 
                 href="/admin/musyawarah/timeline" 
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                className="bg-primary hover:bg-primary-active text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 Cek Timeline Operasional
               </a>
@@ -125,7 +125,7 @@ export default function PublicationPage() {
         )}
 
         {event.status === 'DRAFT' && (
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-5 mt-6">
+          <div className="bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 rounded-lg p-5 mt-6">
             <p className="text-sm text-blue-200">
               <strong>Catatan:</strong> Mengubah status ke <em>Published</em> mensyaratkan semua field wajib telah diisi. Pastikan General, Location, dan Timeline telah dikonfigurasi.
             </p>

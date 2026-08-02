@@ -32,7 +32,7 @@ export function Hero({ data }: { data: HomeResponse | null }) {
           <div className="lg:col-span-7">
             {/* 1. Official identity pill */}
             <FadeUp delay={0.05}>
-              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-blue-500/20 bg-gradient-to-r from-blue-500/10 to-sky-400/5 text-[11px] font-bold text-blue-600 uppercase tracking-[0.16em] mb-8 shadow-[0_0_12px_rgba(37,99,235,0.1)]">
+              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-[var(--color-primary)]/20 bg-gradient-to-r from-blue-500/10 to-sky-400/5 text-[11px] font-bold text-primary uppercase tracking-[0.16em] mb-8 shadow-[0_0_12px_rgba(37,99,235,0.1)]">
                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
                 {badge}
               </div>

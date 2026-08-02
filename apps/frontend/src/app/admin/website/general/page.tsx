@@ -59,7 +59,7 @@ export default function AdminWebsiteGeneralPage() {
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -78,7 +78,7 @@ export default function AdminWebsiteGeneralPage() {
         <div
           className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm ${
             message.type === "success"
-              ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+              ? "bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-primary"
               : "bg-rose-500/10 border border-rose-500/20 text-rose-400"
           }`}
         >
@@ -93,7 +93,7 @@ export default function AdminWebsiteGeneralPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Identitas Website */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-[var(--color-border)] rounded-2xl p-6">
           <h2 className="text-base font-semibold text-white mb-4">Identitas Website</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -102,7 +102,7 @@ export default function AdminWebsiteGeneralPage() {
                 type="text"
                 value={formData.site_name}
                 onChange={(e) => setFormData({ ...formData, site_name: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors"
                 required
               />
             </div>
@@ -112,14 +112,14 @@ export default function AdminWebsiteGeneralPage() {
                 type="text"
                 value={formData.tagline}
                 onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors"
               />
             </div>
           </div>
         </div>
 
         {/* Tema & Warna */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-[var(--color-border)] rounded-2xl p-6">
           <h2 className="text-base font-semibold text-white mb-4">Tema & Warna</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -127,7 +127,7 @@ export default function AdminWebsiteGeneralPage() {
               <select
                 value={formData.theme}
                 onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] transition-colors"
               >
                 <option value="modern-tech">Modern Tech</option>
                 <option value="classic">Classic Community</option>
@@ -146,7 +146,7 @@ export default function AdminWebsiteGeneralPage() {
                   type="text"
                   value={formData.primary_color}
                   onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
-                  className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono"
+                  className="flex-1 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white font-mono"
                 />
               </div>
             </div>
@@ -163,7 +163,7 @@ export default function AdminWebsiteGeneralPage() {
                   type="text"
                   value={formData.secondary_color}
                   onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
-                  className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono"
+                  className="flex-1 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white font-mono"
                 />
               </div>
             </div>
@@ -171,10 +171,10 @@ export default function AdminWebsiteGeneralPage() {
         </div>
 
         {/* Kontrol Akses & Fitur */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-[var(--color-border)] rounded-2xl p-6">
           <h2 className="text-base font-semibold text-white mb-4">Fitur & Mode Portal</h2>
           <div className="space-y-4">
-            <label className="flex items-center justify-between p-3.5 bg-slate-950/60 border border-slate-800/80 rounded-xl cursor-pointer hover:border-slate-700 transition-colors">
+            <label className="flex items-center justify-between p-3.5 bg-[var(--color-bg)]/60 border border-[var(--color-border)]/80 rounded-xl cursor-pointer hover:border-slate-700 transition-colors">
               <div>
                 <span className="text-sm font-medium text-white block">Registrasi Aktif</span>
                 <span className="text-xs text-slate-400">Izinkan peserta dan bakal calon mengakses formulir pendaftaran</span>
@@ -187,7 +187,7 @@ export default function AdminWebsiteGeneralPage() {
               />
             </label>
 
-            <label className="flex items-center justify-between p-3.5 bg-slate-950/60 border border-slate-800/80 rounded-xl cursor-pointer hover:border-slate-700 transition-colors">
+            <label className="flex items-center justify-between p-3.5 bg-[var(--color-bg)]/60 border border-[var(--color-border)]/80 rounded-xl cursor-pointer hover:border-slate-700 transition-colors">
               <div>
                 <span className="text-sm font-medium text-white block">Mode Perawatan (Maintenance Mode)</span>
                 <span className="text-xs text-slate-400">Kunci portal publik untuk pemeliharaan sistem darurat</span>
@@ -203,7 +203,7 @@ export default function AdminWebsiteGeneralPage() {
         </div>
 
         {/* SEO & Metadata */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-[var(--color-border)] rounded-2xl p-6">
           <h2 className="text-base font-semibold text-white mb-4">Search Engine Optimization (SEO)</h2>
           <div className="space-y-4">
             <div>
@@ -212,7 +212,7 @@ export default function AdminWebsiteGeneralPage() {
                 type="text"
                 value={formData.seo_title}
                 onChange={(e) => setFormData({ ...formData, seo_title: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
               />
             </div>
             <div>
@@ -221,7 +221,7 @@ export default function AdminWebsiteGeneralPage() {
                 rows={3}
                 value={formData.seo_description}
                 onChange={(e) => setFormData({ ...formData, seo_description: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] resize-none"
               />
             </div>
           </div>
@@ -232,7 +232,7 @@ export default function AdminWebsiteGeneralPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold text-sm transition-colors shadow-lg shadow-blue-600/30"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-semibold text-sm transition-colors shadow-lg shadow-[var(--color-primary)]/30"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Simpan Perubahan

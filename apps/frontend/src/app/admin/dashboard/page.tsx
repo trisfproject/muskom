@@ -26,7 +26,7 @@ export default function AdminDashboardPage() {
   if (!summary || !summary.event) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center max-w-md mx-auto">
-        <div className="w-16 h-16 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center mb-6">
+        <div className="w-16 h-16 bg-slate-900 border border-[var(--color-border)] rounded-2xl flex items-center justify-center mb-6">
           <Settings2 className="w-8 h-8 text-slate-500" />
         </div>
         <h2 className="text-xl font-bold text-white mb-2">Belum Ada Musyawarah Aktif</h2>
@@ -35,7 +35,7 @@ export default function AdminDashboardPage() {
         </p>
         <Link 
           href="/admin/musyawarah/general"
-          className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
+          className="inline-flex items-center gap-2 bg-primary hover:bg-primary-active text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
         >
           Konfigurasi Sekarang
           <ArrowRight className="w-4 h-4" />
@@ -82,8 +82,8 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Widget 1: Current Active Phase */}
-        <div className="col-span-1 md:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
+        <div className="col-span-1 md:col-span-2 bg-slate-900 border border-[var(--color-border)] rounded-xl p-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-primary)]/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
           <div className="relative z-10">
             <h3 className="text-sm font-medium text-slate-400 mb-1">Fase Saat Ini</h3>
             <div className="text-2xl font-bold text-white mb-4">
@@ -92,17 +92,17 @@ export default function AdminDashboardPage() {
             
             <div className="flex flex-wrap gap-3 mt-6">
               {lifecycle === 'DRAFT' && (
-                <Link href="/admin/musyawarah/publication" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                <Link href="/admin/musyawarah/publication" className="inline-flex items-center gap-2 bg-primary hover:bg-primary-active text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                   <ArrowRight className="w-4 h-4" /> Publikasikan Acara
                 </Link>
               )}
               {lifecycle.includes('PARTICIPANT') && (
-                <Link href="/admin/registrations" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-700">
+                <Link href="/admin/registrations" className="inline-flex items-center gap-2 bg-primary hover:bg-primary-active text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-700">
                   <Users className="w-4 h-4" /> Kelola Peserta
                 </Link>
               )}
               {lifecycle.includes('CANDIDATE') && (
-                <Link href="/admin/candidates" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-700">
+                <Link href="/admin/candidates" className="inline-flex items-center gap-2 bg-primary hover:bg-primary-active text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-700">
                   <UserCheck className="w-4 h-4" /> Kelola Kandidat
                 </Link>
               )}
@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
         <div className={`col-span-1 rounded-xl p-6 border flex flex-col justify-between ${
           totalPending > 0 
             ? 'bg-amber-500/10 border-amber-500/20' 
-            : 'bg-slate-900 border-slate-800'
+            : 'bg-slate-900 border-[var(--color-border)]'
         }`}>
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -149,9 +149,9 @@ export default function AdminDashboardPage() {
 
         {/* Widget 3: Quick Stats */}
         <div className="col-span-1 md:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-500" />
+          <div className="bg-slate-900 border border-[var(--color-border)] p-5 rounded-xl flex items-center gap-4">
+            <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center">
+              <Users className="w-5 h-5 text-primary" />
             </div>
             <div>
               <div className="text-2xl font-bold text-white">{total_participants}</div>
@@ -159,7 +159,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
           
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center gap-4">
+          <div className="bg-slate-900 border border-[var(--color-border)] p-5 rounded-xl flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
               <UserCheck className="w-5 h-5 text-purple-500" />
             </div>
@@ -169,9 +169,9 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-              <FileText className="w-5 h-5 text-emerald-500" />
+          <div className="bg-slate-900 border border-[var(--color-border)] p-5 rounded-xl flex items-center gap-4">
+            <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center">
+              <FileText className="w-5 h-5 text-primary" />
             </div>
             <div>
               <div className="text-2xl font-bold text-white">{event.publish_result ? 'Publik' : 'Tertutup'}</div>
@@ -179,7 +179,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-xl flex items-center gap-4">
+          <div className="bg-slate-900 border border-[var(--color-border)] p-5 rounded-xl flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center">
               <Settings2 className="w-5 h-5 text-slate-400" />
             </div>

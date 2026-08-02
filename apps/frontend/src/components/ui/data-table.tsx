@@ -85,11 +85,11 @@ export function DataTable<T extends { id?: string }>({
             value={searchTerm}
             onChange={handleSearch}
             placeholder={searchPlaceholder}
-            className="w-full bg-slate-900 border border-slate-800 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600/50 transition-all"
+            className="w-full bg-slate-900 border border-[var(--color-border)] rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600/50 transition-all"
           />
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button className="flex items-center gap-2 px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
+          <button className="flex items-center gap-2 px-3 py-2 bg-slate-900 border border-[var(--color-border)] rounded-lg text-sm text-slate-300 hover:text-white hover:bg-slate-800 transition-colors">
             <SlidersHorizontal className="w-4 h-4" />
             <span className="hidden sm:inline">Filter</span>
           </button>
@@ -98,7 +98,7 @@ export function DataTable<T extends { id?: string }>({
       </div>
 
       {/* Table Container */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden relative">
+      <div className="bg-slate-900 border border-[var(--color-border)] rounded-xl overflow-hidden relative">
         <div className="overflow-x-auto min-h-[400px]">
           <table className="w-full text-sm text-left whitespace-nowrap">
             <thead className="bg-slate-800/50 text-slate-400 sticky top-0 z-10">

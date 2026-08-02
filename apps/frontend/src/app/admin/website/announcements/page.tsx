@@ -121,7 +121,7 @@ export default function AdminWebsiteAnnouncementsPage() {
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -138,7 +138,7 @@ export default function AdminWebsiteAnnouncementsPage() {
         </div>
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-colors shadow-lg shadow-blue-600/30 shrink-0"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm transition-colors shadow-lg shadow-[var(--color-primary)]/30 shrink-0"
         >
           <Plus className="w-4 h-4" />
           Buat Pengumuman
@@ -149,7 +149,7 @@ export default function AdminWebsiteAnnouncementsPage() {
         <div
           className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm ${
             message.type === "success"
-              ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+              ? "bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-primary"
               : "bg-rose-500/10 border border-rose-500/20 text-rose-400"
           }`}
         >
@@ -165,7 +165,7 @@ export default function AdminWebsiteAnnouncementsPage() {
       {/* Announcements List */}
       <div className="space-y-3">
         {announcements.length === 0 ? (
-          <div className="p-12 text-center bg-slate-900 border border-slate-800 rounded-2xl">
+          <div className="p-12 text-center bg-slate-900 border border-[var(--color-border)] rounded-2xl">
             <Megaphone className="w-10 h-10 text-slate-600 mx-auto mb-3" />
             <p className="text-slate-400 text-sm font-medium">Belum ada pengumuman</p>
             <p className="text-slate-600 text-xs mt-1">Klik tombol &quot;Buat Pengumuman&quot; untuk menambahkan konten pertama.</p>
@@ -174,11 +174,11 @@ export default function AdminWebsiteAnnouncementsPage() {
           announcements.map((item) => (
             <div
               key={item.id}
-              className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-700 transition-colors"
+              className="bg-slate-900 border border-[var(--color-border)] rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-700 transition-colors"
             >
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-primary text-xs font-semibold">
                     {item.category || "Pengumuman"}
                   </span>
                   {item.is_pinned && (
@@ -224,8 +224,8 @@ export default function AdminWebsiteAnnouncementsPage() {
       {/* Modal Dialog */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl">
-            <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+          <div className="bg-slate-900 border border-[var(--color-border)] rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl">
+            <div className="p-5 border-b border-[var(--color-border)] flex items-center justify-between">
               <h2 className="text-base font-bold text-white">
                 {editingItem ? "Edit Pengumuman" : "Buat Pengumuman Baru"}
               </h2>
@@ -244,7 +244,7 @@ export default function AdminWebsiteAnnouncementsPage() {
                   type="text"
                   value={formState.title}
                   onChange={(e) => setFormState({ ...formState, title: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
                   required
                 />
               </div>
@@ -256,7 +256,7 @@ export default function AdminWebsiteAnnouncementsPage() {
                     type="text"
                     value={formState.category}
                     onChange={(e) => setFormState({ ...formState, category: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
                     placeholder="Tahapan, Panduan, Berita"
                     required
                   />
@@ -267,7 +267,7 @@ export default function AdminWebsiteAnnouncementsPage() {
                     type="text"
                     value={formState.slug}
                     onChange={(e) => setFormState({ ...formState, slug: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-blue-500"
+                    className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-[var(--color-primary)]"
                     placeholder="otomatis jika kosong"
                   />
                 </div>
@@ -279,7 +279,7 @@ export default function AdminWebsiteAnnouncementsPage() {
                   rows={2}
                   value={formState.summary}
                   onChange={(e) => setFormState({ ...formState, summary: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
+                  className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] resize-none"
                 />
               </div>
 
@@ -289,13 +289,13 @@ export default function AdminWebsiteAnnouncementsPage() {
                   rows={5}
                   value={formState.content}
                   onChange={(e) => setFormState({ ...formState, content: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
+                  className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] resize-none"
                   required
                 />
               </div>
 
               <div className="space-y-2 pt-2">
-                <label className="flex items-center gap-3 p-3 bg-slate-950/60 border border-slate-800 rounded-xl cursor-pointer">
+                <label className="flex items-center gap-3 p-3 bg-[var(--color-bg)]/60 border border-[var(--color-border)] rounded-xl cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formState.is_pinned}
@@ -308,7 +308,7 @@ export default function AdminWebsiteAnnouncementsPage() {
                   </div>
                 </label>
 
-                <label className="flex items-center gap-3 p-3 bg-slate-950/60 border border-slate-800 rounded-xl cursor-pointer">
+                <label className="flex items-center gap-3 p-3 bg-[var(--color-bg)]/60 border border-[var(--color-border)] rounded-xl cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formState.is_published}
@@ -322,7 +322,7 @@ export default function AdminWebsiteAnnouncementsPage() {
                 </label>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-[var(--color-border)]">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
@@ -333,7 +333,7 @@ export default function AdminWebsiteAnnouncementsPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold transition-colors"
+                  className="flex items-center gap-2 px-5 py-2 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-xs font-semibold transition-colors"
                 >
                   {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
                   Simpan

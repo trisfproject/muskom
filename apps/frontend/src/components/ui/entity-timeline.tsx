@@ -54,7 +54,7 @@ export function EntityTimeline({ entity, entityId }: EntityTimelineProps) {
               {format(new Date(log.created_at), 'dd MMM yyyy HH:mm:ss')}
             </div>
             {log.reason && (
-              <div className="mt-2 text-xs p-2 bg-slate-900 rounded border border-slate-800 text-slate-300">
+              <div className="mt-2 text-xs p-2 bg-slate-900 rounded border border-[var(--color-border)] text-slate-300">
                 {log.reason}
               </div>
             )}

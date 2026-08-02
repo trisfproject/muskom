@@ -58,7 +58,7 @@ export default function AdminWebsiteHeroPage() {
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -77,7 +77,7 @@ export default function AdminWebsiteHeroPage() {
         <div
           className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm ${
             message.type === "success"
-              ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+              ? "bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-primary"
               : "bg-rose-500/10 border border-rose-500/20 text-rose-400"
           }`}
         >
@@ -92,7 +92,7 @@ export default function AdminWebsiteHeroPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Main Content */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-[var(--color-border)] rounded-2xl p-6">
           <h2 className="text-base font-semibold text-white mb-4">Konten Utama Hero</h2>
           <div className="space-y-4">
             <div>
@@ -101,7 +101,7 @@ export default function AdminWebsiteHeroPage() {
                 type="text"
                 value={formData.hero_badge}
                 onChange={(e) => setFormData({ ...formData, hero_badge: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
                 placeholder="Together We Shape the Future"
                 required
               />
@@ -112,7 +112,7 @@ export default function AdminWebsiteHeroPage() {
                 type="text"
                 value={formData.hero_title}
                 onChange={(e) => setFormData({ ...formData, hero_title: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 font-bold"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] font-bold"
                 required
               />
             </div>
@@ -122,20 +122,20 @@ export default function AdminWebsiteHeroPage() {
                 rows={3}
                 value={formData.hero_description}
                 onChange={(e) => setFormData({ ...formData, hero_description: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] resize-none"
               />
             </div>
           </div>
         </div>
 
         {/* Primary & Secondary CTAs */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-[var(--color-border)] rounded-2xl p-6">
           <h2 className="text-base font-semibold text-white mb-4">Tombol Aksi (Call To Action)</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Primary CTA */}
-            <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3">
+            <div className="p-4 bg-[var(--color-bg)]/60 border border-[var(--color-border)] rounded-xl space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">CTA Utama</span>
+                <span className="text-xs font-bold text-primary uppercase tracking-wider">CTA Utama</span>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <span className="text-xs text-slate-400">Aktif</span>
                   <input
@@ -152,7 +152,7 @@ export default function AdminWebsiteHeroPage() {
                   type="text"
                   value={formData.primary_cta_label}
                   onChange={(e) => setFormData({ ...formData, primary_cta_label: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white"
+                  className="w-full bg-slate-900 border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs text-white"
                 />
               </div>
               <div>
@@ -161,13 +161,13 @@ export default function AdminWebsiteHeroPage() {
                   type="text"
                   value={formData.primary_cta_url}
                   onChange={(e) => setFormData({ ...formData, primary_cta_url: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white font-mono"
+                  className="w-full bg-slate-900 border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs text-white font-mono"
                 />
               </div>
             </div>
 
             {/* Secondary CTA */}
-            <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-3">
+            <div className="p-4 bg-[var(--color-bg)]/60 border border-[var(--color-border)] rounded-xl space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">CTA Sekunder</span>
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -186,7 +186,7 @@ export default function AdminWebsiteHeroPage() {
                   type="text"
                   value={formData.secondary_cta_label}
                   onChange={(e) => setFormData({ ...formData, secondary_cta_label: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white"
+                  className="w-full bg-slate-900 border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs text-white"
                 />
               </div>
               <div>
@@ -195,7 +195,7 @@ export default function AdminWebsiteHeroPage() {
                   type="text"
                   value={formData.secondary_cta_url}
                   onChange={(e) => setFormData({ ...formData, secondary_cta_url: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white font-mono"
+                  className="w-full bg-slate-900 border border-[var(--color-border)] rounded-lg px-3 py-2 text-xs text-white font-mono"
                 />
               </div>
             </div>
@@ -203,7 +203,7 @@ export default function AdminWebsiteHeroPage() {
         </div>
 
         {/* Visual Background Mode */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-[var(--color-border)] rounded-2xl p-6">
           <h2 className="text-base font-semibold text-white mb-4">Mode Latar Belakang & Status</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -211,7 +211,7 @@ export default function AdminWebsiteHeroPage() {
               <select
                 value={formData.background_mode}
                 onChange={(e) => setFormData({ ...formData, background_mode: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
               >
                 <option value="aurora-blueprint">Aurora + Blueprint (Modern Tech 60 FPS)</option>
                 <option value="minimal-clean">Minimal Clean</option>
@@ -222,7 +222,7 @@ export default function AdminWebsiteHeroPage() {
               <select
                 value={formData.hero_status}
                 onChange={(e) => setFormData({ ...formData, hero_status: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
               >
                 <option value="ACTIVE">Aktif (Live)</option>
                 <option value="PAUSED">Ditunda</option>
@@ -236,7 +236,7 @@ export default function AdminWebsiteHeroPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold text-sm transition-colors shadow-lg shadow-blue-600/30"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-semibold text-sm transition-colors shadow-lg shadow-[var(--color-primary)]/30"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Simpan Perubahan

@@ -24,12 +24,12 @@ export function StatusChip({ status, className }: StatusChipProps) {
       case "ACTIVE":
       case "VERIFIED":
       case "COMPLETED":
-        return "bg-emerald-500/10 text-emerald-500 border-emerald-500/20";
+        return "bg-[var(--color-success)]/10 text-[var(--color-success)] border-[var(--color-success)]/20";
       case "PENDING":
-        return "bg-amber-500/10 text-amber-500 border-amber-500/20";
+        return "bg-[var(--color-warning)]/10 text-[var(--color-warning)] border-[var(--color-warning)]/20";
       case "REJECTED":
       case "CANCELLED":
-        return "bg-rose-500/10 text-rose-500 border-rose-500/20";
+        return "bg-[var(--color-danger)]/10 text-[var(--color-danger)] border-[var(--color-danger)]/20";
       case "DRAFT":
       case "ARCHIVED":
       default:

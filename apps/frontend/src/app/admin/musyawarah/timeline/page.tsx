@@ -160,10 +160,10 @@ export default function TimelinePage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
         {/* Timeline Form */}
-        <div className="col-span-1 xl:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-8">
+        <div className="col-span-1 xl:col-span-2 bg-slate-900 border border-[var(--color-border)] rounded-xl p-6 space-y-8">
           
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-white border-b border-slate-800 pb-2">1. Fase Registrasi Peserta</h3>
+            <h3 className="text-sm font-semibold text-white border-b border-[var(--color-border)] pb-2">1. Fase Registrasi Peserta</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Waktu Buka</label>
@@ -177,7 +177,7 @@ export default function TimelinePage() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-white border-b border-slate-800 pb-2">2. Fase Bursa Calon (Kandidat)</h3>
+            <h3 className="text-sm font-semibold text-white border-b border-[var(--color-border)] pb-2">2. Fase Bursa Calon (Kandidat)</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Waktu Buka</label>
@@ -191,7 +191,7 @@ export default function TimelinePage() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-white border-b border-slate-800 pb-2">3. Fase Pemilihan (Voting)</h3>
+            <h3 className="text-sm font-semibold text-white border-b border-[var(--color-border)] pb-2">3. Fase Pemilihan (Voting)</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Waktu Buka</label>
@@ -204,11 +204,11 @@ export default function TimelinePage() {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-800 flex justify-end">
+          <div className="pt-4 border-t border-[var(--color-border)] flex justify-end">
             <button
               onClick={handleSave}
               disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              className="bg-primary hover:bg-primary-active text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
             >
               {saving ? "Menyimpan..." : "Simpan Jadwal"}
             </button>
@@ -234,7 +234,7 @@ export default function TimelinePage() {
               </Link>
             </div>
           ) : (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center sticky top-24">
+            <div className="bg-slate-900 border border-[var(--color-border)] rounded-xl p-6 text-center sticky top-24">
               <Clock className="w-10 h-10 text-slate-600 mx-auto mb-4" />
               <h3 className="text-base font-semibold text-slate-400 mb-2">Tidak Ada Aktivitas Saat Ini</h3>
               <p className="text-xs text-slate-500">

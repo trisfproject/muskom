@@ -67,7 +67,7 @@ export function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggle
                   href={item.href}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? "text-blue-600 bg-blue-600/10 font-semibold"
+                      ? "text-primary bg-primary/10 font-semibold"
                       : "nav-link"
                   }`}
                 >

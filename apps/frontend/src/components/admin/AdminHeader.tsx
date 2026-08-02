@@ -36,15 +36,15 @@ export function AdminHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-6 py-4 h-16">
+    <header className="sticky top-0 z-40 bg-[var(--color-bg)]/80 backdrop-blur-md border-b border-[var(--color-border)] flex items-center justify-between px-6 py-4 h-16">
       {/* Search Bar Placeholder */}
       <div className="flex-1 max-w-md">
         <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition-colors" />
           <input
             type="text"
             placeholder="Search anywhere (Cmd+K)"
-            className="w-full bg-slate-900 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:border-blue-600 transition-all"
+            className="w-full bg-slate-900 border border-[var(--color-border)] rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:border-blue-600 transition-all"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
             <kbd className="hidden sm:inline-flex items-center justify-center h-5 px-1.5 text-[10px] font-medium rounded border border-slate-700 bg-slate-800 text-slate-400">⌘</kbd>
@@ -58,7 +58,7 @@ export function AdminHeader() {
         
         {/* Active Musyawarah Indicator */}
         {summary?.event && (
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800">
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-[var(--color-border)]">
             <div className={`w-2 h-2 rounded-full ${summary.event.status === 'PUBLISHED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
             <span className="text-xs font-medium text-slate-300">
               {summary.event.name || 'Untitled Event'}
@@ -78,10 +78,10 @@ export function AdminHeader() {
           </button>
 
           {/* Notifications Dropdown (Hover) */}
-          <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-800 rounded-xl shadow-xl shadow-black/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
-            <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+          <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-[var(--color-border)] rounded-xl shadow-xl shadow-black/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
+            <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
               <span className="text-sm font-semibold text-white">Notifikasi Operasional</span>
-              <span className="text-[10px] font-medium bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-medium bg-[var(--color-primary)]/10 text-primary px-2 py-0.5 rounded-full">
                 {(summary?.pending_participants || 0) + (summary?.pending_candidates || 0)} Baru
               </span>
             </div>
@@ -102,8 +102,8 @@ export function AdminHeader() {
               
               {(summary?.pending_candidates || 0) > 0 && (
                 <Link href="/admin/candidates" className="flex items-start gap-3 p-3 hover:bg-slate-800 rounded-lg transition-colors group/item">
-                  <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <UserIcon className="w-4 h-4 text-blue-500" />
+                  <div className="w-8 h-8 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <UserIcon className="w-4 h-4 text-primary" />
                   </div>
                   <div>
                     <div className="text-sm font-medium text-slate-200 group-hover/item:text-white transition-colors">
@@ -134,13 +134,13 @@ export function AdminHeader() {
                 {user?.role_name || 'System Admin'}
               </div>
             </div>
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white border-2 border-slate-800 shadow-sm">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white border-2 border-[var(--color-border)] shadow-sm">
               <UserIcon className="w-5 h-5" />
             </div>
           </button>
 
           {/* Dropdown (Hover) */}
-          <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-xl shadow-black/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
+          <div className="absolute right-0 mt-2 w-48 bg-slate-900 border border-[var(--color-border)] rounded-xl shadow-xl shadow-black/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
             <div className="p-2 space-y-1">
               <Link href="/admin/users/profile" className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">
                 <Settings className="w-4 h-4" />

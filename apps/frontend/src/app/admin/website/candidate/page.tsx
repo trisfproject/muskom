@@ -51,7 +51,7 @@ export default function AdminWebsiteCandidateCMSPage() {
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -70,7 +70,7 @@ export default function AdminWebsiteCandidateCMSPage() {
         <div
           className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm ${
             message.type === "success"
-              ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+              ? "bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-primary"
               : "bg-rose-500/10 border border-rose-500/20 text-rose-400"
           }`}
         >
@@ -85,7 +85,7 @@ export default function AdminWebsiteCandidateCMSPage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section Heading */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-[var(--color-border)] rounded-2xl p-6">
           <h2 className="text-base font-semibold text-white mb-4">Header Section Bursa Calon</h2>
           <div className="space-y-4">
             <div>
@@ -94,7 +94,7 @@ export default function AdminWebsiteCandidateCMSPage() {
                 type="text"
                 value={formData.section_title}
                 onChange={(e) => setFormData({ ...formData, section_title: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
                 required
               />
             </div>
@@ -104,14 +104,14 @@ export default function AdminWebsiteCandidateCMSPage() {
                 rows={3}
                 value={formData.section_description}
                 onChange={(e) => setFormData({ ...formData, section_description: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 resize-none"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)] resize-none"
               />
             </div>
           </div>
         </div>
 
         {/* Messages & Status */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-[var(--color-border)] rounded-2xl p-6">
           <h2 className="text-base font-semibold text-white mb-4">Pesan & Status Bursa Calon</h2>
           <div className="space-y-4">
             <div>
@@ -119,7 +119,7 @@ export default function AdminWebsiteCandidateCMSPage() {
               <select
                 value={formData.registration_status}
                 onChange={(e) => setFormData({ ...formData, registration_status: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
               >
                 <option value="PENJARINGAN">Penjaringan Sedang Berlangsung</option>
                 <option value="VERIFIKASI">Verifikasi Administrasi</option>
@@ -132,7 +132,7 @@ export default function AdminWebsiteCandidateCMSPage() {
                 type="text"
                 value={formData.empty_state_message}
                 onChange={(e) => setFormData({ ...formData, empty_state_message: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
               />
             </div>
             <div>
@@ -141,7 +141,7 @@ export default function AdminWebsiteCandidateCMSPage() {
                 type="text"
                 value={formData.publication_message}
                 onChange={(e) => setFormData({ ...formData, publication_message: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-[var(--color-primary)]"
               />
             </div>
           </div>
@@ -152,7 +152,7 @@ export default function AdminWebsiteCandidateCMSPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold text-sm transition-colors shadow-lg shadow-blue-600/30"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-semibold text-sm transition-colors shadow-lg shadow-[var(--color-primary)]/30"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Simpan Perubahan

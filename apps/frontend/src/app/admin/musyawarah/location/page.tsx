@@ -78,7 +78,7 @@ export default function LocationPage() {
         description="Pengaturan lokasi dan alamat acara Musyawarah."
       />
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6 max-w-2xl">
+      <div className="bg-slate-900 border border-[var(--color-border)] rounded-xl p-6 space-y-6 max-w-2xl">
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Tipe Pertemuan</label>
@@ -86,7 +86,7 @@ export default function LocationPage() {
               name="meeting_type" 
               value={event.meeting_type || 'OFFLINE'} 
               onChange={handleChange}
-              className="flex h-10 w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full rounded-md border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="OFFLINE">Offline</option>
               <option value="ONLINE">Online</option>
@@ -117,11 +117,11 @@ export default function LocationPage() {
           </div>
         </div>
 
-        <div className="pt-4 border-t border-slate-800 flex justify-end">
+        <div className="pt-4 border-t border-[var(--color-border)] flex justify-end">
           <button
             onClick={handleSave}
             disabled={saving}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            className="bg-primary hover:bg-primary-active text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
           >
             {saving ? "Menyimpan..." : "Simpan Perubahan"}
           </button>

@@ -54,10 +54,10 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 relative overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-[var(--color-bg)] relative overflow-hidden flex flex-col">
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute -top-1/3 left-1/2 -translate-x-1/2 w-[80vw] h-[80vw] max-w-3xl rounded-full bg-emerald-500/5 blur-[120px]" />
+        <div className="absolute -top-1/3 left-1/2 -translate-x-1/2 w-[80vw] h-[80vw] max-w-3xl rounded-full bg-[var(--color-primary)]/5 blur-[120px]" />
         <div className="absolute bottom-0 left-0 w-1/2 h-1/2 rounded-full bg-slate-900/50 blur-[80px]" />
       </div>
       <div className="dot-grid absolute inset-0 pointer-events-none opacity-60" />
@@ -76,7 +76,7 @@ export default function AdminLoginPage() {
         <div className="w-full max-w-[420px]">
           {/* Brand */}
           <div className="flex flex-col items-center mb-10">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center mb-5 shadow-xl shadow-emerald-500/20">
+            <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mb-5 shadow-xl shadow-[var(--color-primary)]/20">
               <span className="text-slate-950 font-black text-2xl">M</span>
             </div>
             <h1 className="text-2xl font-black text-white tracking-tight mb-1">Portal Admin</h1>
@@ -128,7 +128,7 @@ export default function AdminLoginPage() {
               </div>
 
               <div className="flex justify-end">
-                <button type="button" className="text-xs text-slate-500 hover:text-emerald-400 transition-colors font-medium">
+                <button type="button" className="text-xs text-slate-500 hover:text-primary transition-colors font-medium">
                   Lupa password?
                 </button>
               </div>

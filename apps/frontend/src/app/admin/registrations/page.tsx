@@ -68,7 +68,7 @@ export default function AdminRegistrationsPage() {
           <h1 className="text-2xl font-bold text-slate-900">Data Peserta</h1>
           <p className="text-slate-500 text-sm">Kelola pendaftaran peserta musyawarah.</p>
         </div>
-        <button onClick={exportCSV} className="flex items-center gap-2 bg-blue-50 text-blue-600 font-semibold px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">
+        <button onClick={exportCSV} className="flex items-center gap-2 bg-blue-50 text-primary font-semibold px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">
           <Download className="w-4 h-4" /> Export CSV
         </button>
       </div>
@@ -82,13 +82,13 @@ export default function AdminRegistrationsPage() {
               placeholder="Cari nama peserta..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-blue-500"
+              className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-[var(--color-primary)]"
             />
           </div>
           <select 
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-blue-500 bg-white"
+            className="px-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-[var(--color-primary)] bg-white"
           >
             <option value="">Semua Status</option>
             <option value="PENDING">Menunggu</option>

@@ -7,7 +7,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen pg-bg flex flex-col items-center justify-center p-6 text-center">
       <div className="w-20 h-20 rounded-3xl pg-surface border pg-border flex items-center justify-center mb-8 shadow-2xl">
-        <SearchX className="w-10 h-10 text-blue-600" />
+        <SearchX className="w-10 h-10 text-primary" />
       </div>
       
       <h1 className="text-4xl md:text-5xl font-black pg-text tracking-tight mb-4">

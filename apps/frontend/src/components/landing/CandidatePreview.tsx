@@ -12,12 +12,12 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
     // Section rhythm: soft blue tint
     <section id="kandidat" className="relative overflow-hidden">
       <div className="section-divider" />
-      <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/5 blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
       <div className="container-landing py-24 lg:py-32 relative z-10">
         
         <SlideUp className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 lg:mb-24">
           <div className="max-w-2xl">
-            <p className="text-blue-600 text-xs font-semibold tracking-widest uppercase mb-3">Kandidat</p>
+            <p className="text-primary text-xs font-semibold tracking-widest uppercase mb-3">Kandidat</p>
             <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-4">{sectionTitle}</h2>
             <p className="pg-muted text-lg leading-relaxed">
               {sectionDesc}
@@ -49,11 +49,11 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
               <SlideUp key={c.id} delay={i * 0.1}>
                 <div className="group pg-card-i p-6 lg:p-8 flex flex-col h-full hover:shadow-2xl transition-all duration-300">
                   <div className="flex items-center gap-5 mb-6">
-                    <div className="w-16 h-16 rounded-full bg-blue-600/10 flex items-center justify-center shrink-0 border border-blue-600/20 text-blue-600 font-black text-xl">
+                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-blue-600/20 text-primary font-black text-xl">
                       {c.sequence_number ?? "?"}
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold pg-text group-hover:text-blue-600 transition-colors">{c.name}</h3>
+                      <h3 className="text-xl font-bold pg-text group-hover:text-primary transition-colors">{c.name}</h3>
                       <p className="text-sm pg-faint">{c.title}</p>
                     </div>
                   </div>

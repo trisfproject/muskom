@@ -85,11 +85,11 @@ export default function RegisterPage() {
         {step < 4 && (
           <div className="mb-10">
             <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">
-              <span className={step === 1 ? "text-blue-600" : ""}>Personal</span>
+              <span className={step === 1 ? "text-primary" : ""}>Personal</span>
               <span className="flex-1 border-t border-slate-200 mx-4" />
-              <span className={step === 2 ? "text-blue-600" : ""}>Keanggotaan</span>
+              <span className={step === 2 ? "text-primary" : ""}>Keanggotaan</span>
               <span className="flex-1 border-t border-slate-200 mx-4" />
-              <span className={step === 3 ? "text-blue-600" : ""}>Review</span>
+              <span className={step === 3 ? "text-primary" : ""}>Review</span>
             </div>
           </div>
         )}
@@ -132,7 +132,7 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="mt-10 fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 sm:relative sm:p-0 sm:border-0 sm:bg-transparent">
-                  <button type="button" onClick={onNextStep1} className="w-full sm:w-auto bg-blue-600 text-white font-bold py-4 px-8 rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors">
+                  <button type="button" onClick={onNextStep1} className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-8 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors">
                     Lanjutkan <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
@@ -160,7 +160,7 @@ export default function RegisterPage() {
                   <button type="button" onClick={() => setStep(1)} className="w-full sm:w-auto bg-slate-100 text-slate-700 font-bold py-4 px-8 rounded-xl hover:bg-slate-200 transition-colors">
                     Kembali
                   </button>
-                  <button type="button" onClick={onNextStep2} className="w-full sm:w-auto bg-blue-600 text-white font-bold py-4 px-8 rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors">
+                  <button type="button" onClick={onNextStep2} className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-8 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors">
                     Review Data <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
@@ -195,7 +195,7 @@ export default function RegisterPage() {
                   <button type="button" onClick={() => setStep(2)} disabled={loading} className="w-full sm:w-auto bg-slate-100 text-slate-700 font-bold py-4 px-8 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50">
                     Kembali
                   </button>
-                  <button type="submit" disabled={loading} className="w-full sm:w-auto bg-blue-600 text-white font-bold py-4 px-8 rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
+                  <button type="submit" disabled={loading} className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-8 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
                     {loading ? "Memproses..." : "Selesaikan Pendaftaran"}
                   </button>
                 </div>
@@ -281,7 +281,7 @@ function ReviewRow({ label, value, onClick }: { label: string, value: string, on
         <p className="text-sm text-slate-500 mb-0.5">{label}</p>
         <p className="font-semibold text-slate-900">{value}</p>
       </div>
-      <button type="button" onClick={onClick} className="text-sm font-bold text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity self-start sm:self-auto">
+      <button type="button" onClick={onClick} className="text-sm font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity self-start sm:self-auto">
         Ubah
       </button>
     </div>

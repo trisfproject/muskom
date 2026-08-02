@@ -1,9 +1,9 @@
 @layer base {
   :root {
     /* ── COLORS ── */
-    --color-primary: #10b981;
-    --color-primary-hover: #34d399;
-    --color-primary-active: #059669;
+    --color-primary: #2563eb;
+    --color-primary-hover: #3b82f6;
+    --color-primary-active: #1d4ed8;
     
     --color-bg: #fafaf9;
     --color-surface: #ffffff;
@@ -46,7 +46,7 @@
     --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.10);
     --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.10);
     --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.10);
-    --shadow-glow: 0 0 15px rgba(16, 185, 129, 0.3);
+    --shadow-glow: 0 0 15px rgba(37, 99, 235, 0.3);
 
     /* ── ANIMATIONS ── */
     --anim-fast: 150ms;
@@ -71,6 +71,6 @@
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.30);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.40);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.60);
-    --shadow-glow: 0 0 15px rgba(16, 185, 129, 0.2);
+    --shadow-glow: 0 0 15px rgba(37, 99, 235, 0.2);
   }
 }

@@ -109,7 +109,7 @@ export default function AdminInformationPages() {
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
@@ -126,7 +126,7 @@ export default function AdminInformationPages() {
         </div>
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-colors shadow-lg shadow-blue-600/30 shrink-0"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm transition-colors shadow-lg shadow-[var(--color-primary)]/30 shrink-0"
         >
           <Plus className="w-4 h-4" />
           Buat Halaman
@@ -137,7 +137,7 @@ export default function AdminInformationPages() {
         <div
           className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm ${
             message.type === "success"
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+              ? "bg-[var(--color-primary)]/10 text-primary border border-[var(--color-primary)]/20"
               : "bg-red-500/10 text-red-400 border border-red-500/20"
           }`}
         >
@@ -147,11 +147,11 @@ export default function AdminInformationPages() {
       )}
 
       {/* Pages List */}
-      <div className="bg-[#1A1F2E] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-[#1A1F2E] border border-[var(--color-border)] rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-800 bg-[#141824]/50">
+              <tr className="border-b border-[var(--color-border)] bg-[#141824]/50">
                 <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-[40%]">Halaman</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">Aksi</th>
@@ -170,8 +170,8 @@ export default function AdminInformationPages() {
                   <tr key={p.id} className="hover:bg-white/[0.02] transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20">
-                          <FileText className="w-5 h-5 text-blue-400" />
+                        <div className="w-10 h-10 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center shrink-0 border border-[var(--color-primary)]/20">
+                          <FileText className="w-5 h-5 text-primary" />
                         </div>
                         <div>
                           <p className="text-white font-medium mb-1">{p.title}</p>
@@ -187,7 +187,7 @@ export default function AdminInformationPages() {
                       <span
                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
                           p.is_published
-                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                            ? "bg-[var(--color-primary)]/10 text-primary border-[var(--color-primary)]/20"
                             : "bg-slate-800 text-slate-400 border-slate-700"
                         }`}
                       >
@@ -206,7 +206,7 @@ export default function AdminInformationPages() {
                         </Link>
                         <button
                           onClick={() => openEditModal(p)}
-                          className="p-2 text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-colors"
+                          className="p-2 text-primary hover:text-primary-hover bg-[var(--color-primary)]/10 hover:bg-primary-hover/20 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -232,8 +232,8 @@ export default function AdminInformationPages() {
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
-          <div className="relative w-full max-w-3xl bg-[#1A1F2E] border border-slate-800 rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-slate-800">
+          <div className="relative w-full max-w-3xl bg-[#1A1F2E] border border-[var(--color-border)] rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-[var(--color-border)]">
               <h2 className="text-xl font-bold text-white">
                 {editingItem ? "Edit Halaman" : "Buat Halaman Baru"}
               </h2>
@@ -255,7 +255,7 @@ export default function AdminInformationPages() {
                       required
                       value={formState.title}
                       onChange={(e) => setFormState({ ...formState, title: e.target.value })}
-                      className="w-full bg-[#141824] border border-slate-800 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                      className="w-full bg-[#141824] border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
                       placeholder="Masukkan judul halaman..."
                     />
                   </div>
@@ -263,14 +263,14 @@ export default function AdminInformationPages() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-slate-300">URL Slug</label>
                     <div className="flex">
-                      <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-800 bg-slate-800/50 text-slate-400 text-sm">
+                      <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-[var(--color-border)] bg-slate-800/50 text-slate-400 text-sm">
                         /informasi/
                       </span>
                       <input
                         type="text"
                         value={formState.slug}
                         onChange={(e) => setFormState({ ...formState, slug: e.target.value })}
-                        className="flex-1 min-w-0 bg-[#141824] border border-slate-800 rounded-r-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                        className="flex-1 min-w-0 bg-[#141824] border border-[var(--color-border)] rounded-r-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
                         placeholder="Otomatis dari judul jika kosong"
                       />
                     </div>
@@ -285,18 +285,18 @@ export default function AdminInformationPages() {
                     rows={12}
                     value={formState.content}
                     onChange={(e) => setFormState({ ...formState, content: e.target.value })}
-                    className="w-full bg-[#141824] border border-slate-800 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono text-sm"
+                    className="w-full bg-[#141824] border border-[var(--color-border)] rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all font-mono text-sm"
                     placeholder="Tulis konten halaman di sini..."
                   />
                 </div>
 
-                <div className="flex items-center gap-3 p-4 rounded-xl border border-slate-800 bg-[#141824]">
+                <div className="flex items-center gap-3 p-4 rounded-xl border border-[var(--color-border)] bg-[#141824]">
                   <input
                     type="checkbox"
                     id="is_published"
                     checked={formState.is_published}
                     onChange={(e) => setFormState({ ...formState, is_published: e.target.checked })}
-                    className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900"
+                    className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-primary focus:ring-[var(--color-primary)] focus:ring-offset-slate-900"
                   />
                   <label htmlFor="is_published" className="text-sm text-slate-300 font-medium select-none cursor-pointer">
                     Publikasikan halaman ini (Bisa diakses publik)
@@ -305,7 +305,7 @@ export default function AdminInformationPages() {
               </form>
             </div>
 
-            <div className="p-6 border-t border-slate-800 bg-[#1A1F2E] rounded-b-2xl flex justify-end gap-3">
+            <div className="p-6 border-t border-[var(--color-border)] bg-[#1A1F2E] rounded-b-2xl flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
@@ -317,7 +317,7 @@ export default function AdminInformationPages() {
                 type="submit"
                 form="page-form"
                 disabled={saving}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px]"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm transition-all shadow-lg shadow-[var(--color-primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px]"
               >
                 {saving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

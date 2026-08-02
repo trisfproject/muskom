@@ -44,7 +44,7 @@ export function DetailLayout({
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-slate-800">
+      <div className="border-b border-[var(--color-border)]">
         <nav className="flex gap-6">
           {tabs.map(tab => (
             <button
@@ -53,7 +53,7 @@ export function DetailLayout({
               className={cn(
                 "py-3 text-sm font-medium border-b-2 transition-colors",
                 activeTab === tab.id
-                  ? "border-blue-500 text-blue-400"
+                  ? "border-[var(--color-primary)] text-primary"
                   : "border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700"
               )}
             >
