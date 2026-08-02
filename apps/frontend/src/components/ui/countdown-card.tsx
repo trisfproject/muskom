@@ -14,25 +14,42 @@ export function CountdownCard({
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    React.startTransition(() => setMounted(true));
+    setMounted(true);
     if (!targetDate) return;
+
     const target = new Date(targetDate).getTime();
 
-    const calc = () => {
+    const calculateTimeLeft = () => {
       const diff = target - Date.now();
       if (diff <= 0) {
-        setT({ d: 0, h: 0, m: 0, s: 0 });
-        return;
+        return { d: 0, h: 0, m: 0, s: 0 };
       }
-      setT({
+      return {
         d: Math.floor(diff / (1000 * 60 * 60 * 24)),
         h: Math.floor((diff / (1000 * 60 * 60)) % 24),
         m: Math.floor((diff / 1000 / 60) % 60),
         s: Math.floor((diff / 1000) % 60),
-      });
+      };
     };
-    calc();
-    const id = setInterval(calc, 1000);
+
+    // Initial setting
+    setT(calculateTimeLeft());
+
+    const id = setInterval(() => {
+      setT((prev) => {
+        const next = calculateTimeLeft();
+        if (
+          prev.d === next.d &&
+          prev.h === next.h &&
+          prev.m === next.m &&
+          prev.s === next.s
+        ) {
+          return prev;
+        }
+        return next;
+      });
+    }, 1000);
+
     return () => clearInterval(id);
   }, [targetDate]);
 
