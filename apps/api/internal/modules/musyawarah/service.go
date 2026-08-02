@@ -61,8 +61,21 @@ func (s *service) GetConfig(ctx context.Context) (*MusyawarahResponse, error) {
 	res := &MusyawarahResponse{
 		ID:                         evt.ID,
 		Name:                       evt.Name,
+		Slug:                       evt.Slug,
 		Theme:                      evt.Theme,
+		Tagline:                    evt.Tagline,
+		Description:                evt.Description,
 		Location:                   evt.Location,
+		Year:                       evt.Year,
+		StartDate:                  evt.StartDate,
+		EndDate:                    evt.EndDate,
+		Timezone:                   evt.Timezone,
+		Venue:                      evt.Venue,
+		Address:                    evt.Address,
+		GoogleMapsURL:              evt.GoogleMapsURL,
+		City:                       evt.City,
+		Province:                   evt.Province,
+		MeetingType:                evt.MeetingType,
 		Status:                     evt.Status,
 		MaxParticipants:            stg.RegistrationLimit,
 		PublishResult:              stg.ShowLiveResult,
@@ -109,11 +122,29 @@ func (s *service) UpdateConfig(ctx context.Context, req *UpdateMusyawarahRequest
 	}
 
 	evt.Name = req.Name
+	evt.Slug = req.Slug
 	evt.Theme = req.Theme
+	evt.Tagline = req.Tagline
+	evt.Description = req.Description
 	evt.Location = req.Location
-	evt.BannerPath = req.BannerPath
-	evt.LogoPath = req.LogoPath
 	evt.Status = req.Status
+	evt.Year = req.Year
+	evt.StartDate = req.StartDate
+	evt.EndDate = req.EndDate
+	evt.Timezone = req.Timezone
+	evt.Venue = req.Venue
+	evt.Address = req.Address
+	evt.GoogleMapsURL = req.GoogleMapsURL
+	evt.City = req.City
+	evt.Province = req.Province
+	evt.MeetingType = req.MeetingType
+
+	if req.BannerPath != nil {
+		evt.BannerPath = req.BannerPath
+	}
+	if req.LogoPath != nil {
+		evt.LogoPath = req.LogoPath
+	}
 
 	stg, err := s.repo.GetSettings(ctx, evt.ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {

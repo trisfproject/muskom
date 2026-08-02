@@ -3,14 +3,27 @@ package musyawarah
 import "time"
 
 type MusyawarahEvent struct {
-	ID         string  `db:"id"`
-	Name       string  `db:"name"`
-	Theme      *string `db:"theme"`
-	Location   *string `db:"location"`
-	BannerPath *string `db:"banner_path"`
-	LogoPath   *string `db:"logo_path"`
-	CoverPath  *string `db:"cover_path"`
-	Status     string  `db:"status"`
+	ID            string     `db:"id"`
+	Name          string     `db:"name"`
+	Slug          string     `db:"slug"`
+	Theme         *string    `db:"theme"`
+	Tagline       *string    `db:"tagline"`
+	Description   *string    `db:"description"`
+	Location      *string    `db:"location"`
+	BannerPath    *string    `db:"banner_path"`
+	LogoPath      *string    `db:"logo_path"`
+	CoverPath     *string    `db:"cover_path"`
+	Status        string     `db:"status"`
+	Year          *int       `db:"year"`
+	StartDate     *time.Time `db:"start_date"`
+	EndDate       *time.Time `db:"end_date"`
+	Timezone      *string    `db:"timezone"`
+	Venue         *string    `db:"venue"`
+	Address       *string    `db:"address"`
+	GoogleMapsURL *string    `db:"google_maps_url"`
+	City          *string    `db:"city"`
+	Province      *string    `db:"province"`
+	MeetingType   *string    `db:"meeting_type"`
 }
 
 type MusyawarahSettings struct {

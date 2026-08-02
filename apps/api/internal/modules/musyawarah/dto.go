@@ -3,12 +3,25 @@ package musyawarah
 import "time"
 
 type UpdateMusyawarahRequest struct {
-	Name                       string  `json:"name" validate:"required,max=255"`
-	Theme                      *string `json:"theme" validate:"omitempty,max=255"`
-	Location                   *string `json:"location" validate:"omitempty,max=255"`
-	BannerPath                 *string `json:"banner_path" validate:"omitempty,max=255"`
-	LogoPath                   *string `json:"logo_path" validate:"omitempty,max=255"`
-	Status                     string  `json:"status" validate:"required,oneof=DRAFT UPCOMING ONGOING COMPLETED CANCELLED"`
+	Name                       string     `json:"name" validate:"required,max=255"`
+	Slug                       string     `json:"slug" validate:"required,max=255"`
+	Theme                      *string    `json:"theme" validate:"omitempty,max=255"`
+	Tagline                    *string    `json:"tagline" validate:"omitempty,max=255"`
+	Description                *string    `json:"description" validate:"omitempty"`
+	Year                       *int       `json:"year" validate:"omitempty"`
+	StartDate                  *time.Time `json:"start_date" validate:"omitempty"`
+	EndDate                    *time.Time `json:"end_date" validate:"omitempty"`
+	Timezone                   *string    `json:"timezone" validate:"omitempty,max=50"`
+	Venue                      *string    `json:"venue" validate:"omitempty,max=255"`
+	Address                    *string    `json:"address" validate:"omitempty"`
+	GoogleMapsURL              *string    `json:"google_maps_url" validate:"omitempty"`
+	City                       *string    `json:"city" validate:"omitempty,max=100"`
+	Province                   *string    `json:"province" validate:"omitempty,max=100"`
+	MeetingType                *string    `json:"meeting_type" validate:"omitempty,max=50"`
+	Location                   *string    `json:"location" validate:"omitempty,max=255"`
+	BannerPath                 *string    `json:"banner_path" validate:"omitempty,max=255"`
+	LogoPath                   *string    `json:"logo_path" validate:"omitempty,max=255"`
+	Status                     string     `json:"status" validate:"required,oneof=DRAFT PUBLISHED ARCHIVED UPCOMING ONGOING COMPLETED CANCELLED"`
 	MaxParticipants            *int    `json:"max_participants"`
 	PublishResult              bool    `json:"publish_result"`
 	AllowCandidateRegistration bool    `json:"allow_candidate_registration"`
@@ -23,14 +36,27 @@ type UpdateMusyawarahRequest struct {
 }
 
 type MusyawarahResponse struct {
-	ID                         string  `json:"id"`
-	Name                       string  `json:"name"`
-	Theme                      *string `json:"theme"`
-	Location                   *string `json:"location"`
-	BannerPath                 *string `json:"banner_path"`
-	LogoPath                   *string `json:"logo_path"`
-	CoverPath                  *string `json:"cover_path"`
-	Status                     string  `json:"status"`
+	ID                         string     `json:"id"`
+	Name                       string     `json:"name"`
+	Slug                       string     `json:"slug"`
+	Theme                      *string    `json:"theme"`
+	Tagline                    *string    `json:"tagline"`
+	Description                *string    `json:"description"`
+	Year                       *int       `json:"year"`
+	StartDate                  *time.Time `json:"start_date"`
+	EndDate                    *time.Time `json:"end_date"`
+	Timezone                   *string    `json:"timezone"`
+	Venue                      *string    `json:"venue"`
+	Address                    *string    `json:"address"`
+	GoogleMapsURL              *string    `json:"google_maps_url"`
+	City                       *string    `json:"city"`
+	Province                   *string    `json:"province"`
+	MeetingType                *string    `json:"meeting_type"`
+	Location                   *string    `json:"location"`
+	BannerPath                 *string    `json:"banner_path"`
+	LogoPath                   *string    `json:"logo_path"`
+	CoverPath                  *string    `json:"cover_path"`
+	Status                     string     `json:"status"`
 	MaxParticipants            *int    `json:"max_participants"`
 	PublishResult              bool    `json:"publish_result"`
 	AllowCandidateRegistration bool    `json:"allow_candidate_registration"`

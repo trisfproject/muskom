@@ -40,6 +40,16 @@ export function AdminSidebar() {
       ],
     },
     {
+      title: "Musyawarah",
+      items: [
+        { label: "General", href: "/admin/musyawarah/general", icon: Sliders },
+        { label: "Location", href: "/admin/musyawarah/location", icon: Sparkles },
+        { label: "Timeline", href: "/admin/musyawarah/timeline", icon: Calendar },
+        { label: "Publication", href: "/admin/musyawarah/publication", icon: Megaphone },
+        { label: "Archive", href: "/admin/musyawarah/archive", icon: UserCheck },
+      ],
+    },
+    {
       title: "Website CMS",
       items: [
         { label: "General", href: "/admin/website/general", icon: Sliders },

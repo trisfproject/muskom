@@ -32,15 +32,15 @@ func (r *repository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
 
 func (r *repository) GetActiveEvent(ctx context.Context) (*MusyawarahEvent, error) {
 	query := `
-		SELECT id, name, theme, location, banner_path, logo_path, cover_path, status 
+		SELECT id, name, slug, theme, tagline, description, location, banner_path, logo_path, cover_path, status,
+		       year, start_date, end_date, timezone, venue, address, google_maps_url, city, province, meeting_type
 		FROM events 
-		WHERE deleted_at IS NULL 
-		ORDER BY created_at ASC 
+		WHERE is_default_active = true AND deleted_at IS NULL
 		LIMIT 1
 	`
-	var e MusyawarahEvent
-	err := r.db.GetContext(ctx, &e, query)
-	return &e, err
+	var event MusyawarahEvent
+	err := r.db.GetContext(ctx, &event, query)
+	return &event, err
 }
 
 func (r *repository) GetSettings(ctx context.Context, eventID string) (*MusyawarahSettings, error) {
@@ -70,13 +70,18 @@ func (r *repository) GetPhases(ctx context.Context, eventID string) ([]Musyawara
 	return p, err
 }
 
-func (r *repository) UpdateEvent(ctx context.Context, tx *sqlx.Tx, e *MusyawarahEvent) error {
+func (r *repository) UpdateEvent(ctx context.Context, tx *sqlx.Tx, event *MusyawarahEvent) error {
 	query := `
-		UPDATE events 
-		SET name = $1, theme = $2, location = $3, banner_path = $4, logo_path = $5, cover_path = $6, status = $7, updated_at = NOW()
-		WHERE id = $8
+		UPDATE events SET 
+			name = $1, slug = $2, theme = $3, tagline = $4, description = $5, location = $6, banner_path = $7, logo_path = $8, status = $9, updated_at = NOW(),
+			year = $10, start_date = $11, end_date = $12, timezone = $13, venue = $14, address = $15, google_maps_url = $16, city = $17, province = $18, meeting_type = $19
+		WHERE id = $20 AND deleted_at IS NULL
 	`
-	_, err := tx.ExecContext(ctx, query, e.Name, e.Theme, e.Location, e.BannerPath, e.LogoPath, e.CoverPath, e.Status, e.ID)
+	_, err := tx.ExecContext(ctx, query,
+		event.Name, event.Slug, event.Theme, event.Tagline, event.Description, event.Location, event.BannerPath, event.LogoPath, event.Status,
+		event.Year, event.StartDate, event.EndDate, event.Timezone, event.Venue, event.Address, event.GoogleMapsURL, event.City, event.Province, event.MeetingType,
+		event.ID,
+	)
 	return err
 }
 
