@@ -45,6 +45,17 @@ type Service interface {
 	// Admin Footer
 	GetAdminFooter(ctx context.Context) (*WebsiteFooterSettings, error)
 	UpdateAdminFooter(ctx context.Context, req *UpdateFooterRequest) (*WebsiteFooterSettings, error)
+
+	// Public Information
+	GetPublicInformationPages(ctx context.Context) ([]PublicInformationPageDTO, error)
+	GetPublicInformationPage(ctx context.Context, slug string) (*PublicInformationPageDTO, error)
+
+	// Admin Information
+	GetAdminInformationPages(ctx context.Context) ([]WebsiteInformationPage, error)
+	GetAdminInformationPage(ctx context.Context, id string) (*WebsiteInformationPage, error)
+	CreateAdminInformationPage(ctx context.Context, req *CreateInformationPageRequest) (*WebsiteInformationPage, error)
+	UpdateAdminInformationPage(ctx context.Context, id string, req *UpdateInformationPageRequest) (*WebsiteInformationPage, error)
+	DeleteAdminInformationPage(ctx context.Context, id string) error
 }
 
 type service struct {
@@ -571,4 +582,88 @@ func (s *service) UpdateAdminFooter(ctx context.Context, req *UpdateFooterReques
 		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventFooterUpdated)
 	}
 	return res, err
+}
+
+// ----------------------------------------------------------------------------
+// Information Pages
+// ----------------------------------------------------------------------------
+
+func (s *service) GetPublicInformationPages(ctx context.Context) ([]PublicInformationPageDTO, error) {
+	pages, err := s.repo.GetInformationPages(ctx, true)
+	if err != nil {
+		return nil, err
+	}
+	var dtos []PublicInformationPageDTO
+	for _, p := range pages {
+		dtos = append(dtos, PublicInformationPageDTO{
+			ID:          p.ID,
+			Slug:        p.Slug,
+			Title:       p.Title,
+			Content:     p.Content,
+			IsPublished: p.IsPublished,
+			CreatedAt:   p.CreatedAt,
+			UpdatedAt:   p.UpdatedAt,
+		})
+	}
+	return dtos, nil
+}
+
+func (s *service) GetPublicInformationPage(ctx context.Context, slug string) (*PublicInformationPageDTO, error) {
+	p, err := s.repo.GetInformationPage(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+	return &PublicInformationPageDTO{
+		ID:          p.ID,
+		Slug:        p.Slug,
+		Title:       p.Title,
+		Content:     p.Content,
+		IsPublished: p.IsPublished,
+		CreatedAt:   p.CreatedAt,
+		UpdatedAt:   p.UpdatedAt,
+	}, nil
+}
+
+func (s *service) GetAdminInformationPages(ctx context.Context) ([]WebsiteInformationPage, error) {
+	return s.repo.GetInformationPages(ctx, false)
+}
+
+func (s *service) GetAdminInformationPage(ctx context.Context, id string) (*WebsiteInformationPage, error) {
+	return s.repo.GetInformationPage(ctx, id)
+}
+
+func (s *service) CreateAdminInformationPage(ctx context.Context, req *CreateInformationPageRequest) (*WebsiteInformationPage, error) {
+	entity := &WebsiteInformationPage{
+		Slug:        req.Slug,
+		Title:       req.Title,
+		Content:     req.Content,
+		IsPublished: req.IsPublished,
+	}
+	res, err := s.repo.CreateInformationPage(ctx, entity)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventInformationUpdated)
+	}
+	return res, err
+}
+
+func (s *service) UpdateAdminInformationPage(ctx context.Context, id string, req *UpdateInformationPageRequest) (*WebsiteInformationPage, error) {
+	entity := &WebsiteInformationPage{
+		Slug:        req.Slug,
+		Title:       req.Title,
+		Content:     req.Content,
+		IsPublished: req.IsPublished,
+	}
+	res, err := s.repo.UpdateInformationPage(ctx, id, entity)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventInformationUpdated)
+	}
+	return res, err
+}
+
+func (s *service) DeleteAdminInformationPage(ctx context.Context, id string) error {
+	err := s.repo.DeleteInformationPage(ctx, id)
+	if err == nil {
+		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventInformationUpdated)
+	}
+	return err
 }

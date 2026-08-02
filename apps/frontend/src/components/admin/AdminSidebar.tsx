@@ -57,6 +57,7 @@ export function AdminSidebar() {
         { label: "Timeline", href: "/admin/website/timeline", icon: Calendar },
         { label: "Pengumuman", href: "/admin/website/announcements", icon: Megaphone },
         { label: "Bursa Calon", href: "/admin/website/candidate", icon: UserCheck },
+        { label: "Pusat Informasi", href: "/admin/website/information", icon: Sparkles },
         { label: "Footer", href: "/admin/website/footer", icon: PanelBottom },
       ],
     },

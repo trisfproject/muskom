@@ -477,3 +477,73 @@ func (r *repository) UpdateFooter(ctx context.Context, f *WebsiteFooterSettings)
 	)
 	return &updated, err
 }
+
+// ----------------------------------------------------------------------------
+// Information Pages
+// ----------------------------------------------------------------------------
+
+func (r *repository) GetInformationPages(ctx context.Context, onlyPublished bool) ([]WebsiteInformationPage, error) {
+	query := `
+		SELECT id, slug, title, content, is_published, created_at, updated_at
+		FROM website_information_pages
+	`
+	if onlyPublished {
+		query += ` WHERE is_published = true `
+	}
+	query += ` ORDER BY created_at ASC`
+
+	var list []WebsiteInformationPage
+	err := r.db.SelectContext(ctx, &list, query)
+	if list == nil {
+		list = []WebsiteInformationPage{}
+	}
+	return list, err
+}
+
+func (r *repository) GetInformationPage(ctx context.Context, idOrSlug string) (*WebsiteInformationPage, error) {
+	query := `
+		SELECT id, slug, title, content, is_published, created_at, updated_at
+		FROM website_information_pages
+		WHERE id::text = $1 OR slug = $1
+		LIMIT 1
+	`
+	var p WebsiteInformationPage
+	err := r.db.GetContext(ctx, &p, query, idOrSlug)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r *repository) CreateInformationPage(ctx context.Context, p *WebsiteInformationPage) (*WebsiteInformationPage, error) {
+	query := `
+		INSERT INTO website_information_pages (slug, title, content, is_published)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, slug, title, content, is_published, created_at, updated_at
+	`
+	var created WebsiteInformationPage
+	err := r.db.GetContext(ctx, &created, query,
+		p.Slug, p.Title, p.Content, p.IsPublished,
+	)
+	return &created, err
+}
+
+func (r *repository) UpdateInformationPage(ctx context.Context, id string, p *WebsiteInformationPage) (*WebsiteInformationPage, error) {
+	query := `
+		UPDATE website_information_pages
+		SET slug = $1, title = $2, content = $3, is_published = $4, updated_at = NOW()
+		WHERE id = $5
+		RETURNING id, slug, title, content, is_published, created_at, updated_at
+	`
+	var updated WebsiteInformationPage
+	err := r.db.GetContext(ctx, &updated, query,
+		p.Slug, p.Title, p.Content, p.IsPublished, id,
+	)
+	return &updated, err
+}
+
+func (r *repository) DeleteInformationPage(ctx context.Context, id string) error {
+	query := `DELETE FROM website_information_pages WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, query, id)
+	return err
+}

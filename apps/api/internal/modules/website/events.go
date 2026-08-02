@@ -13,6 +13,7 @@ const (
 	EventAnnouncementUpdated = "website.announcement.updated"
 	EventCandidateUpdated    = "website.candidate.updated"
 	EventFooterUpdated       = "website.footer.updated"
+	EventInformationUpdated  = "website.information.updated"
 )
 
 // TriggerCacheInvalidation publishes a mutation event and invalidates the public home cache.

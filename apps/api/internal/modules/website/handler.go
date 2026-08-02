@@ -322,3 +322,86 @@ func (h *Handler) UpdateAdminFooter(c fiber.Ctx) error {
 	}
 	return response.SendSuccess(c, fiber.StatusOK, "Footer settings updated successfully", res, nil)
 }
+
+// ----------------------------------------------------------------------------
+// Public Handlers: Information Pages
+// ----------------------------------------------------------------------------
+
+func (h *Handler) GetPublicInformationPages(c fiber.Ctx) error {
+	res, err := h.service.GetPublicInformationPages(c.Context())
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve information pages", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Information pages retrieved", res, nil)
+}
+
+func (h *Handler) GetPublicInformationPageBySlug(c fiber.Ctx) error {
+	slug := c.Params("slug")
+	res, err := h.service.GetPublicInformationPage(c.Context(), slug)
+	if err != nil {
+		return response.SendError(c, fiber.StatusNotFound, "Information page not found", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Information page retrieved", res, nil)
+}
+
+// ----------------------------------------------------------------------------
+// Admin Handlers: Information Pages
+// ----------------------------------------------------------------------------
+
+func (h *Handler) GetAdminInformationPages(c fiber.Ctx) error {
+	res, err := h.service.GetAdminInformationPages(c.Context())
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve information pages", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Information pages retrieved", res, nil)
+}
+
+func (h *Handler) GetAdminInformationPageByID(c fiber.Ctx) error {
+	id := c.Params("id")
+	res, err := h.service.GetAdminInformationPage(c.Context(), id)
+	if err != nil {
+		return response.SendError(c, fiber.StatusNotFound, "Information page not found", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Information page retrieved", res, nil)
+}
+
+func (h *Handler) CreateAdminInformationPage(c fiber.Ctx) error {
+	var req CreateInformationPageRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+	if errs := h.validator.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	res, err := h.service.CreateAdminInformationPage(c.Context(), &req)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to create information page", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusCreated, "Information page created successfully", res, nil)
+}
+
+func (h *Handler) UpdateAdminInformationPage(c fiber.Ctx) error {
+	id := c.Params("id")
+	var req UpdateInformationPageRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+	if errs := h.validator.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	res, err := h.service.UpdateAdminInformationPage(c.Context(), id, &req)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to update information page", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Information page updated successfully", res, nil)
+}
+
+func (h *Handler) DeleteAdminInformationPage(c fiber.Ctx) error {
+	id := c.Params("id")
+	if err := h.service.DeleteAdminInformationPage(c.Context(), id); err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to delete information page", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Information page deleted successfully", nil, nil)
+}

@@ -3,7 +3,7 @@ import { ThemeWrapper } from "@/components/landing/ThemeWrapper"
 import { Hero } from "@/components/landing/Hero"
 import { Timeline } from "@/components/landing/Timeline"
 import { CandidatePreview } from "@/components/landing/CandidatePreview"
-import { Announcement } from "@/components/landing/Announcement"
+import { InformationCenter } from "@/components/landing/InformationCenter"
 import { Footer } from "@/components/landing/Footer"
 
 // Allowed sections per ADR 0006: Navbar, Hero, Timeline, Candidates, Announcements, Footer
@@ -19,7 +19,7 @@ export default async function LandingPage() {
         <Hero data={homeData ?? null} />
         <Timeline data={homeData ?? null} />
         <CandidatePreview data={homeData ?? null} />
-        <Announcement data={homeData ?? null} />
+        <InformationCenter data={homeData ?? null} />
       </main>
       <Footer data={homeData ?? null} />
     </ThemeWrapper>

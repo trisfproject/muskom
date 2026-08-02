@@ -97,3 +97,14 @@ type WebsiteFooterSettings struct {
 	CreatedAt        time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt        time.Time `db:"updated_at" json:"updated_at"`
 }
+
+// WebsiteInformationPage represents an information center page
+type WebsiteInformationPage struct {
+	ID          string    `db:"id" json:"id"`
+	Slug        string    `db:"slug" json:"slug"`
+	Title       string    `db:"title" json:"title"`
+	Content     string    `db:"content" json:"content"`
+	IsPublished bool      `db:"is_published" json:"is_published"`
+	CreatedAt   time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
+}

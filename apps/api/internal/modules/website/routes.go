@@ -23,6 +23,10 @@ func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, redisClient *redis.Clie
 	router.Get("/announcements", handler.GetPublicAnnouncements)
 	router.Get("/announcements/:slug", handler.GetPublicAnnouncementBySlug)
 	router.Get("/footer", handler.GetPublicFooter)
+
+	// Information Pages
+	router.Get("/information", handler.GetPublicInformationPages)
+	router.Get("/information/:slug", handler.GetPublicInformationPageBySlug)
 }
 
 // SetupAdminRoutes registers CRUD endpoints for Admin Website CMS.
@@ -56,6 +60,13 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, redisClient *redis.Clien
 	router.Get("/announcements/:id", handler.GetAdminAnnouncementByID)
 	router.Put("/announcements/:id", handler.UpdateAdminAnnouncement)
 	router.Delete("/announcements/:id", handler.DeleteAdminAnnouncement)
+
+	// Information Pages
+	router.Get("/information", handler.GetAdminInformationPages)
+	router.Post("/information", handler.CreateAdminInformationPage)
+	router.Get("/information/:id", handler.GetAdminInformationPageByID)
+	router.Put("/information/:id", handler.UpdateAdminInformationPage)
+	router.Delete("/information/:id", handler.DeleteAdminInformationPage)
 
 	// Candidate CMS
 	router.Get("/candidate", handler.GetAdminCandidateSettings)

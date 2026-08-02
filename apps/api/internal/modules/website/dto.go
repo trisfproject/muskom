@@ -264,3 +264,27 @@ type UpdateFooterRequest struct {
 	OfficialBadge    string `json:"official_badge" validate:"required,max=255"`
 	Tagline          string `json:"tagline" validate:"required,max=255"`
 }
+
+type PublicInformationPageDTO struct {
+	ID          string    `json:"id"`
+	Slug        string    `json:"slug"`
+	Title       string    `json:"title"`
+	Content     string    `json:"content"`
+	IsPublished bool      `json:"is_published"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type CreateInformationPageRequest struct {
+	Slug        string `json:"slug" validate:"required,max=255"`
+	Title       string `json:"title" validate:"required,max=255"`
+	Content     string `json:"content" validate:"required"`
+	IsPublished bool   `json:"is_published"`
+}
+
+type UpdateInformationPageRequest struct {
+	Slug        string `json:"slug" validate:"required,max=255"`
+	Title       string `json:"title" validate:"required,max=255"`
+	Content     string `json:"content" validate:"required"`
+	IsPublished bool   `json:"is_published"`
+}

@@ -62,6 +62,16 @@ export interface Announcement {
   updated_at?: string;
 }
 
+export interface InformationPage {
+  id?: string;
+  slug: string;
+  title: string;
+  content: string;
+  is_published: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface CandidateCMSSettings {
   id?: string;
   section_title: string;
@@ -163,6 +173,37 @@ export const websiteService = {
   },
   async updateFooter(data: FooterSettings): Promise<FooterSettings> {
     const res = await api.put("/admin/website/footer", data);
+    return res.data.data;
+  },
+
+  // Information Pages (Admin)
+  async getInformationPages(): Promise<InformationPage[]> {
+    const res = await api.get("/admin/website/information");
+    return res.data.data;
+  },
+  async getInformationPage(id: string): Promise<InformationPage> {
+    const res = await api.get(`/admin/website/information/${id}`);
+    return res.data.data;
+  },
+  async createInformationPage(data: Partial<InformationPage>): Promise<InformationPage> {
+    const res = await api.post("/admin/website/information", data);
+    return res.data.data;
+  },
+  async updateInformationPage(id: string, data: Partial<InformationPage>): Promise<InformationPage> {
+    const res = await api.put(`/admin/website/information/${id}`, data);
+    return res.data.data;
+  },
+  async deleteInformationPage(id: string): Promise<void> {
+    await api.delete(`/admin/website/information/${id}`);
+  },
+
+  // Information Pages (Public)
+  async getPublicInformationPages(): Promise<InformationPage[]> {
+    const res = await api.get("/public/information");
+    return res.data.data;
+  },
+  async getPublicInformationPage(slug: string): Promise<InformationPage> {
+    const res = await api.get(`/public/information/${slug}`);
     return res.data.data;
   },
 };
