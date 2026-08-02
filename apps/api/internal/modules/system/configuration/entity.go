@@ -19,35 +19,33 @@ type SystemConfiguration struct {
 // ---------------------------------------------------------
 
 type WebsiteIdentityConfig struct {
-	CommunityName      string `json:"community_name"`
-	EventName          string `json:"event_name"`
-	EventYear          string `json:"event_year"`
-	WebsiteTitle       string `json:"website_title"`
-	WebsiteDescription string `json:"website_description"`
-	LogoURL            string `json:"logo_url"`
-	FaviconURL         string `json:"favicon_url"`
+	CommunityName      string `json:"community_name" validate:"required,max=255"`
+	WebsiteTitle       string `json:"website_title" validate:"required,max=255"`
+	WebsiteDescription string `json:"website_description" validate:"required"`
+	LogoURL            string `json:"logo_url" validate:"omitempty"`
+	FaviconURL         string `json:"favicon_url" validate:"omitempty"`
 }
 
 type PublicationConfig struct {
-	WebsiteStatus    string `json:"website_status"` // e.g., "PUBLISHED", "DRAFT"
+	WebsiteStatus    string `json:"website_status" validate:"required,oneof=PUBLISHED DRAFT ARCHIVED MAINTENANCE"`
 	MaintenanceMode  bool   `json:"maintenance_mode"`
 	PublicVisibility bool   `json:"public_visibility"`
-	OfflineMessage   string `json:"offline_message"`
+	OfflineMessage   string `json:"offline_message" validate:"omitempty,max=500"`
 }
 
 type RegistrationConfig struct {
 	CandidateRegistration   bool    `json:"candidate_registration"`
 	ParticipantRegistration bool    `json:"participant_registration"`
-	OpeningDate             *string `json:"opening_date"` // ISO Date string
-	ClosingDate             *string `json:"closing_date"` // ISO Date string
-	RegistrationInformation string  `json:"registration_information"`
+	OpeningDate             *string `json:"opening_date" validate:"omitempty,datetime=2006-01-02T15:04:05Z07:00"`
+	ClosingDate             *string `json:"closing_date" validate:"omitempty,datetime=2006-01-02T15:04:05Z07:00"`
+	RegistrationInformation string  `json:"registration_information" validate:"omitempty"`
 }
 
 type SEOConfig struct {
-	MetaTitle       string `json:"meta_title"`
-	MetaDescription string `json:"meta_description"`
-	MetaKeywords    string `json:"meta_keywords"`
-	OpenGraphImage  string `json:"opengraph_image"`
+	MetaTitle       string `json:"meta_title" validate:"required,max=255"`
+	MetaDescription string `json:"meta_description" validate:"required,max=500"`
+	MetaKeywords    string `json:"meta_keywords" validate:"omitempty,max=500"`
+	OpenGraphImage  string `json:"opengraph_image" validate:"omitempty"`
 }
 
 type FeatureFlagsConfig struct {
@@ -62,13 +60,11 @@ type FeatureFlagsConfig struct {
 }
 
 type ContactConfig struct {
-	Email       string `json:"email"`
-	WhatsApp    string `json:"whatsapp"`
-	Secretariat string `json:"secretariat"`
-	MapsEmbed   string `json:"maps_embed"`
+	Email       string `json:"email" validate:"required,email"`
+	WhatsApp    string `json:"whatsapp" validate:"required,max=20"`
+	Secretariat string `json:"secretariat" validate:"required"`
+	MapsEmbed   string `json:"maps_embed" validate:"omitempty"`
 }
-
-
 
 // FullSystemConfig is an aggregate structure useful for returning everything to the client
 type FullSystemConfig struct {

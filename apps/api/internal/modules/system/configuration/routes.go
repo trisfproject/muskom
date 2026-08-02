@@ -14,7 +14,7 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, val *va
 	auditService := audit.NewService(auditRepo, log)
 	repo := NewRepository(db)
 	cache := NewCache(rdb)
-	service := NewService(repo, cache, auditService, log)
+	service := NewService(repo, cache, auditService, log, val)
 	handler := NewHandler(service, val)
 
 	// Define routes

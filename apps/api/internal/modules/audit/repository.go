@@ -18,7 +18,7 @@ func NewRepository(db *sqlx.DB) AuditRepository {
 func (r *repository) Insert(ctx context.Context, entry AuditEntry) error {
 	query := `
 		INSERT INTO audit_logs (module, entity, entity_id, action, user_id, actor_role, reason, ip_address, user_agent, metadata, previous_value, new_value, correlation_id)
-		VALUES (:module, :entity, :entity_id, :action, :actor_id, :actor_role, :reason, :ip_address, :user_agent, :metadata, :previous_value, :new_value, :correlation_id)
+		VALUES (:module, :entity, :entity_id, :action, :user_id, :actor_role, :reason, :ip_address, :user_agent, :metadata, :previous_value, :new_value, :correlation_id)
 	`
 	_, err := r.db.NamedExecContext(ctx, query, entry)
 	return err

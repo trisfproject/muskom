@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"go.uber.org/zap"
 )
 
@@ -19,14 +20,16 @@ type service struct {
 	cache        Cache
 	auditService audit.AuditService
 	log          *zap.Logger
+	val          *validator.Validator
 }
 
-func NewService(repo Repository, cache Cache, auditService audit.AuditService, log *zap.Logger) Service {
+func NewService(repo Repository, cache Cache, auditService audit.AuditService, log *zap.Logger, val *validator.Validator) Service {
 	return &service{
 		repo:         repo,
 		cache:        cache,
 		auditService: auditService,
 		log:          log,
+		val:          val,
 	}
 }
 
@@ -76,14 +79,16 @@ func (s *service) GetSystemConfig(ctx context.Context) (*FullSystemConfig, error
 
 func (s *service) UpdateConfigGroup(ctx context.Context, req UpdateConfigRequest, updatedBy *string) error {
 	// Validate the payload based on the group
-	if err := ValidateConfigPayload(req.GroupName, req.Settings); err != nil {
+	if err := ValidateConfigPayload(req.GroupName, req.Settings, s.val); err != nil {
 		return fmt.Errorf("invalid configuration payload: %w", err)
 	}
 
 	// Fetch previous config for audit log
 	var previousValue interface{}
+	var entityID string
 	prevConfig, _ := s.repo.GetConfigByGroup(ctx, req.GroupName)
 	if prevConfig != nil {
+		entityID = prevConfig.ID
 		var pv map[string]interface{}
 		_ = json.Unmarshal(prevConfig.Settings, &pv)
 		previousValue = pv
@@ -104,7 +109,7 @@ func (s *service) UpdateConfigGroup(ctx context.Context, req UpdateConfigRequest
 		Module:        audit.ModuleSystem,
 		Action:        "UPDATE_CONFIG",
 		Entity:        "system_configuration",
-		EntityID:      req.GroupName,
+		EntityID:      entityID,
 		ActorID:       updatedBy,
 		PreviousValue: previousValue,
 		NewValue:      newValue,

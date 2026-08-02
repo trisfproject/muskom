@@ -27,10 +27,7 @@ func (h *Handler) HandleGetConfig(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve system configuration", []response.ErrorDetail{{Message: err.Error()}})
 	}
 
-	return response.SendSuccess(c, fiber.StatusOK, "System configuration retrieved successfully", SystemConfigResponse{
-		Message: "Success",
-		Data:    *config,
-	}, nil)
+	return response.SendSuccess(c, fiber.StatusOK, "System configuration retrieved successfully", config, nil)
 }
 
 // HandleUpdateConfig updates a specific configuration group.
