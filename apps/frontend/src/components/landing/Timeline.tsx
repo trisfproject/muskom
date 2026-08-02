@@ -1,3 +1,5 @@
+"use client";
+
 import { HomeResponse } from "@/types/landing"
 import { SlideUp, EmptyState, TimelineSkeleton } from "@/components/landing/Shared"
 import { Container, Section } from "@/components/ui/layout"
@@ -27,7 +29,14 @@ function formatDateRange(startDateStr: string, endDateStr: string): string {
   }
 }
 
+import { useSystemConfig } from "@/contexts/ConfigContext"
+
 export function Timeline({ data }: { data: HomeResponse | null }) {
+  const { config } = useSystemConfig();
+  const isActive = config?.timeline.active_timeline_mode ?? true;
+  
+  if (!isActive) return null;
+
   const timelines = data?.timeline;
 
   return (

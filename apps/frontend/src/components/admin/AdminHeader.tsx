@@ -6,8 +6,10 @@ import Cookies from "js-cookie";
 import { dashboardService } from "@/services/dashboard";
 import { DashboardSummary } from "@/types/dashboard";
 import Link from "next/link";
+import { useSystemConfig } from "@/contexts/ConfigContext";
 
 export function AdminHeader() {
+  const { config } = useSystemConfig();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [user, setUser] = useState<{ full_name: string; role_name: string } | null>(null);
 
@@ -57,11 +59,11 @@ export function AdminHeader() {
       <div className="flex items-center gap-4 ml-auto">
         
         {/* Active Musyawarah Indicator */}
-        {summary?.event && (
+        {config && (
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full pg-surface border border-[var(--color-border)]">
-            <div className={`w-2 h-2 rounded-full ${summary.event.status === 'PUBLISHED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+            <div className={`w-2 h-2 rounded-full ${config.publication.website_status === 'PUBLISHED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
             <span className="text-xs font-medium pg-muted">
-              {summary.event.name || 'Untitled Event'}
+              {config.website_identity.event_name} {config.website_identity.event_year}
             </span>
           </div>
         )}

@@ -18,71 +18,53 @@ type SystemConfiguration struct {
 // Strongly-Typed Configuration Groups
 // ---------------------------------------------------------
 
-type WebsiteConfig struct {
-	SiteName       string `json:"site_name"`
-	Theme          string `json:"theme"`
-	PrimaryColor   string `json:"primary_color"`
-	DefaultTheme   string `json:"default_theme"`
-	Maintenance    bool   `json:"maintenance"`
-	LandingEnabled bool   `json:"landing_enabled"`
+type WebsiteIdentityConfig struct {
+	CommunityName      string `json:"community_name"`
+	EventName          string `json:"event_name"`
+	EventYear          string `json:"event_year"`
+	WebsiteTitle       string `json:"website_title"`
+	WebsiteDescription string `json:"website_description"`
+	LogoURL            string `json:"logo_url"`
+	FaviconURL         string `json:"favicon_url"`
 }
 
-type EventConfig struct {
-	ActiveEventID     *string `json:"active_event_id"`
-	Timezone          string  `json:"timezone"`
-	CurrentElection   *string `json:"current_election"`
-	CurrentMusyawarah *string `json:"current_musyawarah"`
-	ArchiveMode       bool    `json:"archive_mode"`
+type PublicationConfig struct {
+	WebsiteStatus    string `json:"website_status"` // e.g., "PUBLISHED", "DRAFT"
+	MaintenanceMode  bool   `json:"maintenance_mode"`
+	PublicVisibility bool   `json:"public_visibility"`
 }
 
 type RegistrationConfig struct {
-	ParticipantRegistrationEnabled bool    `json:"participant_registration_enabled"`
-	CandidateRegistrationEnabled   bool    `json:"candidate_registration_enabled"`
-	RegistrationDeadline           *string `json:"registration_deadline"` // ISO Date string
-	MaxParticipants                int     `json:"max_participants"`
+	CandidateRegistration   bool    `json:"candidate_registration"`
+	ParticipantRegistration bool    `json:"participant_registration"`
+	OpeningDate             *string `json:"opening_date"` // ISO Date string
+	ClosingDate             *string `json:"closing_date"` // ISO Date string
 }
 
-type VotingConfig struct {
-	VotingEnabled  bool    `json:"voting_enabled"`
-	VotingStart    *string `json:"voting_start"` // ISO Date string
-	VotingEnd      *string `json:"voting_end"`   // ISO Date string
-	RealtimeResult bool    `json:"realtime_result"`
-	PublicResult   bool    `json:"public_result"`
+type TimelineConfig struct {
+	ActiveTimelineMode bool   `json:"active_timeline_mode"`
+	CountdownSource    string `json:"countdown_source"` // e.g., "TIMELINE_EVENT", "MANUAL"
 }
 
-type AttendanceConfig struct {
-	AttendanceEnabled bool `json:"attendance_enabled"`
-	QRExpiration      int  `json:"qr_expiration"`   // seconds
-	CheckInWindow     int  `json:"check_in_window"` // minutes
+type ContactConfig struct {
+	Email       string `json:"email"`
+	WhatsApp    string `json:"whatsapp"`
+	Secretariat string `json:"secretariat"`
+	MapsEmbed   string `json:"maps_embed"`
 }
 
-type NotificationConfig struct {
-	TelegramEnabled bool `json:"telegram_enabled"`
-	EmailEnabled    bool `json:"email_enabled"`
-	ReminderEnabled bool `json:"reminder_enabled"`
-}
-
-type SecurityConfig struct {
-	MaxLoginAttempts      int `json:"max_login_attempts"`
-	SessionTimeoutMinutes int `json:"session_timeout_minutes"`
-}
-
-type FeatureFlagsConfig struct {
-	CandidateModule  bool `json:"candidate_module"`
-	VotingModule     bool `json:"voting_module"`
-	AttendanceModule bool `json:"attendance_module"`
-	StatisticsModule bool `json:"statistics_module"`
-	GalleryModule    bool `json:"gallery_module"`
+type SocialMediaConfig struct {
+	Instagram string `json:"instagram"`
+	Telegram  string `json:"telegram"`
+	Website   string `json:"website"`
 }
 
 // FullSystemConfig is an aggregate structure useful for returning everything to the client
 type FullSystemConfig struct {
-	Website      WebsiteConfig      `json:"website"`
-	Event        EventConfig        `json:"event"`
-	Registration RegistrationConfig `json:"registration"`
-	Voting       VotingConfig       `json:"voting"`
-	Attendance   AttendanceConfig   `json:"attendance"`
-	Notification NotificationConfig `json:"notification"`
-	Security     SecurityConfig     `json:"security"`
-	FeatureFlags FeatureFlagsConfig `json:"feature_flags"`
+	WebsiteIdentity WebsiteIdentityConfig `json:"website_identity"`
+	Publication     PublicationConfig     `json:"publication"`
+	Registration    RegistrationConfig    `json:"registration"`
+	Timeline        TimelineConfig        `json:"timeline"`
+	Contact         ContactConfig         `json:"contact"`
+	SocialMedia     SocialMediaConfig     `json:"social_media"`
 }

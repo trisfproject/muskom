@@ -198,6 +198,7 @@ export default function AdminWebsiteTimelinePage() {
             <p className="text-slate-600 text-xs mt-1">Klik tombol &quot;Tambah Tahapan&quot; di atas untuk membuat jadwal.</p>
           </div>
         ) : (
+          phases.map((phase, idx) => (
             <div
               key={phase.id || idx}
               className="pg-surface border pg-border shadow-xs rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md hover:border-primary/20 transition-all duration-200"

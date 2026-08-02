@@ -11,29 +11,23 @@ func ValidateConfigPayload(groupName string, payload json.RawMessage) error {
 	var err error
 
 	switch groupName {
-	case "website":
-		var c WebsiteConfig
+	case "website_identity":
+		var c WebsiteIdentityConfig
 		err = json.Unmarshal(payload, &c)
-	case "event":
-		var c EventConfig
+	case "publication":
+		var c PublicationConfig
 		err = json.Unmarshal(payload, &c)
 	case "registration":
 		var c RegistrationConfig
 		err = json.Unmarshal(payload, &c)
-	case "voting":
-		var c VotingConfig
+	case "timeline":
+		var c TimelineConfig
 		err = json.Unmarshal(payload, &c)
-	case "attendance":
-		var c AttendanceConfig
+	case "contact":
+		var c ContactConfig
 		err = json.Unmarshal(payload, &c)
-	case "notification":
-		var c NotificationConfig
-		err = json.Unmarshal(payload, &c)
-	case "security":
-		var c SecurityConfig
-		err = json.Unmarshal(payload, &c)
-	case "feature_flags":
-		var c FeatureFlagsConfig
+	case "social_media":
+		var c SocialMediaConfig
 		err = json.Unmarshal(payload, &c)
 	default:
 		return fmt.Errorf("unknown configuration group: %s", groupName)

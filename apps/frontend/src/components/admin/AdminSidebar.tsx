@@ -17,8 +17,11 @@ import {
 } from "lucide-react";
 import Cookies from "js-cookie";
 
+import { useSystemConfig } from "@/contexts/ConfigContext";
+
 export function AdminSidebar() {
   const pathname = usePathname();
+  const { config } = useSystemConfig();
 
   // If login page, don't render sidebar
   if (pathname.includes("/admin/login")) {
@@ -31,6 +34,9 @@ export function AdminSidebar() {
     Cookies.remove("user_data");
     window.location.href = "/admin/login";
   };
+
+  const communityName = config?.website_identity?.community_name || "MUSKOM";
+  const initial = communityName.charAt(0).toUpperCase();
 
   const navItems = [
     {
@@ -82,10 +88,10 @@ export function AdminSidebar() {
       <div className="p-5 border-b pg-border flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-black text-sm shadow-md shadow-[var(--color-primary)]/30">
-            M
+            {initial}
           </div>
           <div>
-            <h1 className="font-bold pg-text text-sm tracking-tight">MUSKOM</h1>
+            <h1 className="font-bold pg-text text-sm tracking-tight">{communityName}</h1>
             <p className="text-[10px] text-primary font-semibold uppercase tracking-wider">Admin Portal</p>
           </div>
         </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSystemConfig } from "@/contexts/ConfigContext";
 import { HomeResponse } from "@/types/landing";
 import { ArrowRight, Calendar } from "lucide-react";
 import Link from "next/link";
@@ -8,11 +9,12 @@ import { SlideUp } from "@/components/landing/Shared";
 import { SectionPill } from "@/components/ui/section-pill";
 
 export function Hero({ data }: { data: HomeResponse | null }) {
+  const { config } = useSystemConfig();
+  const identity = config?.website_identity;
+  
   const badge = data?.hero?.hero_badge || "Together We Shape the Future";
-  const title = "Musyawarah KOMITKABE 2026";
-  const description =
-    data?.hero?.hero_description ||
-    "Platform pemilihan resmi KOMITKABE 2026. Membangun proses kepemimpinan yang transparan, terpercaya, dan akuntabel.";
+  const title = identity ? `${identity.event_name} ${identity.event_year}` : "Musyawarah KOMITKABE 2026";
+  const description = data?.hero?.hero_description || identity?.website_description || "Platform pemilihan resmi. Membangun proses kepemimpinan yang transparan, terpercaya, dan akuntabel.";
 
   const ctaList = [
     data?.cta?.candidate_registration,
@@ -106,6 +108,10 @@ export function Hero({ data }: { data: HomeResponse | null }) {
 
 // Integrated Phase Card — Redesigned for natural harmony and breathing atmosphere
 function IntegratedPhaseCard({ data }: { data: HomeResponse | null }) {
+  const { config } = useSystemConfig();
+  const identity = config?.website_identity;
+  const eventLabel = identity ? `${identity.event_name} ${identity.event_year}` : "MUSKOM 2026";
+  
   const phaseName = data?.currentPhase?.name || "Penjaringan Bakal Calon";
   const countdownTarget = data?.countdown?.target_date;
   const countdownLabel = data?.countdown?.label || "Tahapan Berakhir";
@@ -135,7 +141,7 @@ function IntegratedPhaseCard({ data }: { data: HomeResponse | null }) {
 
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             <Calendar className="w-3.5 h-3.5" />
-            <span>MUSKOM 2026</span>
+            <span>{eventLabel}</span>
           </div>
         </div>
 

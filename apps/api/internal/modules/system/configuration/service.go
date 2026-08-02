@@ -48,22 +48,18 @@ func (s *service) GetSystemConfig(ctx context.Context) (*FullSystemConfig, error
 	// Map DB rows to the FullSystemConfig struct
 	for _, c := range configs {
 		switch c.GroupName {
-		case "website":
-			_ = json.Unmarshal(c.Settings, &fullConfig.Website)
-		case "event":
-			_ = json.Unmarshal(c.Settings, &fullConfig.Event)
+		case "website_identity":
+			_ = json.Unmarshal(c.Settings, &fullConfig.WebsiteIdentity)
+		case "publication":
+			_ = json.Unmarshal(c.Settings, &fullConfig.Publication)
 		case "registration":
 			_ = json.Unmarshal(c.Settings, &fullConfig.Registration)
-		case "voting":
-			_ = json.Unmarshal(c.Settings, &fullConfig.Voting)
-		case "attendance":
-			_ = json.Unmarshal(c.Settings, &fullConfig.Attendance)
-		case "notification":
-			_ = json.Unmarshal(c.Settings, &fullConfig.Notification)
-		case "security":
-			_ = json.Unmarshal(c.Settings, &fullConfig.Security)
-		case "feature_flags":
-			_ = json.Unmarshal(c.Settings, &fullConfig.FeatureFlags)
+		case "timeline":
+			_ = json.Unmarshal(c.Settings, &fullConfig.Timeline)
+		case "contact":
+			_ = json.Unmarshal(c.Settings, &fullConfig.Contact)
+		case "social_media":
+			_ = json.Unmarshal(c.Settings, &fullConfig.SocialMedia)
 		}
 	}
 

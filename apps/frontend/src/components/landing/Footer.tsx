@@ -1,19 +1,22 @@
 "use client";
 
+import { useSystemConfig } from "@/contexts/ConfigContext";
 import { HomeResponse } from "@/types/landing";
-import { ArrowUp, ArrowRight, ShieldCheck, Mail, MapPin, FileText } from "lucide-react";
+import { ArrowUp, ArrowRight, ShieldCheck, Mail, MapPin, FileText, Phone, Instagram, Send, Globe } from "lucide-react";
 import Link from "next/link";
 
 export function Footer({ data }: { data: HomeResponse | null }) {
+  const { config } = useSystemConfig();
+  const identity = config?.website_identity;
+  const contact = config?.contact;
+  const social = config?.social_media;
+
   if (!data) return null;
 
-  const orgName = data.footer?.organization_name || "MUSKOM";
-  const desc =
-    data.footer?.description ||
-    "Portal resmi Musyawarah KOMITKABE. Membangun proses pemilihan yang transparan, profesional, dan dapat dipercaya oleh seluruh anggota komunitas.";
-  const copyright =
-    data.footer?.copyright ||
-    `© ${new Date().getFullYear()} MUSKOM. Seluruh hak cipta dilindungi.`;
+  const orgName = identity?.community_name || data.footer?.organization_name || "MUSKOM";
+  const eventLabel = identity ? `${identity.event_name} ${identity.event_year}` : "MUSKOM 2026";
+  const desc = identity?.website_description || data.footer?.description || "Portal resmi Musyawarah. Membangun proses pemilihan yang transparan, profesional, dan dapat dipercaya oleh seluruh anggota komunitas.";
+  const copyright = data.footer?.copyright || `© ${new Date().getFullYear()} ${orgName}. Seluruh hak cipta dilindungi.`;
   const badge = data.footer?.official_badge || "OFFICIAL PORTAL";
   const tagline = data.footer?.tagline || "Dibangun untuk kemajuan bersama.";
 
@@ -114,16 +117,34 @@ export function Footer({ data }: { data: HomeResponse | null }) {
 
             <div className="space-y-3.5 text-sm text-slate-600 dark:text-slate-400">
               <p className="font-medium text-slate-800 dark:text-slate-200">
-                Panitia Pelaksana MUSKOM 2026
+                Panitia Pelaksana {eventLabel}
               </p>
 
-              <div className="flex items-center gap-2 text-xs">
-                <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span>panitia@muskom.org</span>
+              <div className="flex flex-col gap-2.5 mt-4">
+                {contact?.email && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <a href={`mailto:${contact.email}`} className="hover:text-primary transition-colors">{contact.email}</a>
+                  </div>
+                )}
+                
+                {contact?.whatsapp && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <Phone className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <a href={`https://wa.me/${contact.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">{contact.whatsapp}</a>
+                  </div>
+                )}
+                
+                {contact?.secretariat && (
+                  <div className="flex items-start gap-2 text-xs">
+                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                    <span className="leading-relaxed">{contact.secretariat}</span>
+                  </div>
+                )}
               </div>
 
               {/* Status Badge */}
-              <div className="pt-2">
+              <div className="pt-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 dark:bg-primary/10">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-[11px] font-bold text-primary tracking-widest uppercase">
@@ -164,9 +185,31 @@ export function Footer({ data }: { data: HomeResponse | null }) {
         </div>
 
         {/* ── Bottom Bar: Copyright & Attribution ── */}
-        <div className="pt-6 border-t border-slate-200/60 dark:border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
-          <p>{copyright}</p>
-          <div className="flex items-center gap-4">
+        <div className="pt-6 border-t border-slate-200/60 dark:border-slate-800/60 flex flex-col lg:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex flex-col sm:flex-row items-center gap-4 lg:gap-8">
+            <p>{copyright}</p>
+            
+            {/* Social Media Links */}
+            <div className="flex items-center gap-3">
+              {social?.instagram && (
+                <a href={`https://instagram.com/${social.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white dark:hover:bg-primary transition-colors" aria-label="Instagram">
+                  <Instagram className="w-3.5 h-3.5" />
+                </a>
+              )}
+              {social?.telegram && (
+                <a href={social.telegram.startsWith('http') ? social.telegram : `https://${social.telegram}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white dark:hover:bg-primary transition-colors" aria-label="Telegram">
+                  <Send className="w-3.5 h-3.5" />
+                </a>
+              )}
+              {social?.website && (
+                <a href={social.website.startsWith('http') ? social.website : `https://${social.website}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white dark:hover:bg-primary transition-colors" aria-label="Website">
+                  <Globe className="w-3.5 h-3.5" />
+                </a>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4 mt-4 lg:mt-0">
             <span>Asas LUBER JURDIL</span>
             <span>•</span>
             <span>Platform E-Voting Digital</span>
