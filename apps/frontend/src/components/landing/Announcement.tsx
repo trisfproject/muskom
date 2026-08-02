@@ -32,7 +32,7 @@ export function Announcement({ data }: { data: HomeResponse | null }) {
         )}
 
         {announcements && announcements.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {announcements.map((a, i) => {
               const isLatest = a.is_pinned || i === 0;
               const dateStr = a.published_at || a.created_at;

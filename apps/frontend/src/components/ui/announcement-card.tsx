@@ -16,7 +16,11 @@ export interface AnnouncementCardProps extends React.HTMLAttributes<HTMLDivEleme
 export const AnnouncementCard = React.forwardRef<HTMLDivElement, AnnouncementCardProps>(
   ({ className, category, title, summary, date, thumbnailUrl, isLatest, ...props }, ref) => {
     return (
-      <Card ref={ref} interactive className={cn("p-6 lg:p-8 flex flex-col h-full group relative overflow-hidden", isLatest && "border-info/50", className)} {...props}>
+      <Card ref={ref} className={cn(
+      "group relative overflow-hidden flex flex-col p-6 lg:p-8 transition-normal hover:shadow-lg h-full",
+      isLatest && "border-info/30",
+      className
+    )} {...props}>
         {isLatest && (
           <div className="absolute top-0 right-0 px-3 py-1 bg-info text-[10px] font-bold text-white rounded-bl-xl tracking-wider uppercase flex items-center gap-1 z-10">
             <Sparkles className="w-2.5 h-2.5" />

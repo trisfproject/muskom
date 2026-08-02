@@ -22,7 +22,7 @@ export function Hero({ data }: { data: HomeResponse | null }) {
   ].filter(Boolean)
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden">
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-20">
       {/* ── Atmospheric layers (bottom to top) ── */}
       <div className="absolute inset-0 bg-aurora pointer-events-none" />
       <div className="absolute inset-0 bg-blueprint pointer-events-none" />
@@ -32,7 +32,7 @@ export function Hero({ data }: { data: HomeResponse | null }) {
 
       {/* ── Content ── */}
       <Container className="relative z-10 py-36 lg:py-0">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
           {/* Left column */}
           <div className="lg:col-span-7">

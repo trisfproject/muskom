@@ -78,7 +78,7 @@ export function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggle
           </nav>
 
           {/* Right actions */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-4 shrink-0">
             {/* Theme toggle */}
             <button
               id="theme-toggle"

@@ -7,6 +7,7 @@
 @import "../styles/effects.css";
 @import "../styles/backgrounds.css";
 @import "../styles/animations.css";
+@import "../styles/layout.css";
 
 @layer base {
   * { box-sizing: border-box; }

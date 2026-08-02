@@ -63,7 +63,7 @@ export function Timeline({ data }: { data: HomeResponse | null }) {
 
         {/* Journey list */}
         {timelines && timelines.length > 0 && (
-          <div className="max-w-3xl mx-auto flex flex-col gap-6">
+          <div className="max-w-3xl mx-auto flex flex-col gap-6 lg:gap-8">
             {timelines.map((phase, i) => {
               const status = (phase.status === "past" || phase.status === "active" || phase.status === "upcoming") 
                 ? phase.status 

@@ -1,0 +1,24 @@
+@layer utilities {
+  .container-landing {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 1440px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .container-landing {
+      padding-left: 2.5rem;
+      padding-right: 2.5rem;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .container-landing {
+      padding-left: 5rem;
+      padding-right: 5rem;
+    }
+  }
+}
