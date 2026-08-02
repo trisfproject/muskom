@@ -45,7 +45,7 @@ export function Header() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-1.5 justify-center">
-              {navItems.map((item) => {
+              {navItems.filter((item) => item.label !== "Admin").map((item) => {
                 const isActive = activeSection === item.href
                 return (
                     <Link
