@@ -86,7 +86,7 @@ export default function AdminWebsiteCandidateCMSPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section Heading */}
         <div className="pg-surface border pg-border rounded-2xl p-6">
-          <h2 className="text-base font-semibold pg-text mb-4">Header Section Bursa Calon</h2>
+          <h2 className="text-base font-semibold pg-text mb-4">Header Section Kandidat</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1.5">Judul Section</label>
@@ -112,7 +112,7 @@ export default function AdminWebsiteCandidateCMSPage() {
 
         {/* Messages & Status */}
         <div className="pg-surface border pg-border rounded-2xl p-6">
-          <h2 className="text-base font-semibold pg-text mb-4">Pesan & Status Bursa Calon</h2>
+          <h2 className="text-base font-semibold pg-text mb-4">Pesan & Status Kandidat</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1.5">Status Penjaringan / Bursa</label>

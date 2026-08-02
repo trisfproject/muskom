@@ -138,7 +138,7 @@ export default function AdminInformationPages() {
           className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm ${
             message.type === "success"
               ? "bg-[var(--color-primary)]/10 text-primary border border-[var(--color-primary)]/20"
-              : "bg-red-500/10 text-red-400 border border-red-500/20"
+              : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
           }`}
         >
           {message.type === "success" ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
@@ -147,7 +147,7 @@ export default function AdminInformationPages() {
       )}
 
       {/* Pages List */}
-      <div className="bg-[#1A1F2E] border pg-border rounded-2xl overflow-hidden shadow-xl">
+      <div className="pg-surface border pg-border rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -157,7 +157,7 @@ export default function AdminInformationPages() {
                 <th className="px-6 py-4 text-xs font-semibold pg-muted uppercase tracking-wider text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800">
+            <tbody className="divide-y divide-[var(--color-border)]">
               {pages.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-6 py-12 text-center pg-muted">
@@ -167,7 +167,7 @@ export default function AdminInformationPages() {
                 </tr>
               ) : (
                 pages.map((p) => (
-                  <tr key={p.id} className="hover:bg-white/[0.02] transition-colors group">
+                  <tr key={p.id} className="hover:pg-surface-elevated transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-start gap-4">
                         <div className="w-10 h-10 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center shrink-0 border border-[var(--color-primary)]/20">
@@ -213,7 +213,7 @@ export default function AdminInformationPages() {
                         </button>
                         <button
                           onClick={() => p.id && handleDelete(p.id)}
-                          className="p-2 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-colors"
+                          className="p-2 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-colors"
                           title="Hapus"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -232,7 +232,7 @@ export default function AdminInformationPages() {
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
-          <div className="relative w-full max-w-3xl bg-[#1A1F2E] border pg-border rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+          <div className="relative w-full max-w-3xl pg-surface border pg-border rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
             <div className="flex items-center justify-between p-6 border-b pg-border">
               <h2 className="text-xl font-bold pg-text">
                 {editingItem ? "Edit Halaman" : "Buat Halaman Baru"}
@@ -249,7 +249,7 @@ export default function AdminInformationPages() {
               <form id="page-form" onSubmit={handleSave} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Judul Halaman <span className="text-red-400">*</span></label>
+                    <label className="text-sm font-medium pg-text">Judul Halaman <span className="text-rose-500">*</span></label>
                     <input
                       type="text"
                       required
@@ -261,7 +261,7 @@ export default function AdminInformationPages() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">URL Slug</label>
+                    <label className="text-sm font-medium pg-text">URL Slug</label>
                     <div className="flex">
                       <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 pg-border pg-surface-elevated/50 pg-muted text-sm">
                         /informasi/
@@ -278,7 +278,7 @@ export default function AdminInformationPages() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">Konten (Markdown/HTML) <span className="text-red-400">*</span></label>
+                  <label className="text-sm font-medium pg-text">Konten (Markdown/HTML) <span className="text-rose-500">*</span></label>
                   <p className="text-xs pg-muted mb-2">Gunakan Markdown untuk memformat teks (misal: **Tebal**, # Judul, - Daftar).</p>
                   <textarea
                     required
@@ -296,20 +296,20 @@ export default function AdminInformationPages() {
                     id="is_published"
                     checked={formState.is_published}
                     onChange={(e) => setFormState({ ...formState, is_published: e.target.checked })}
-                    className="w-4 h-4 rounded pg-border pg-surface-elevated text-primary focus:ring-[var(--color-primary)] focus:ring-offset-slate-900"
+                    className="w-4 h-4 rounded pg-border pg-surface-elevated text-primary focus:ring-[var(--color-primary)] focus:ring-offset-[var(--color-surface)]"
                   />
-                  <label htmlFor="is_published" className="text-sm text-slate-300 font-medium select-none cursor-pointer">
+                  <label htmlFor="is_published" className="text-sm pg-text font-medium select-none cursor-pointer">
                     Publikasikan halaman ini (Bisa diakses publik)
                   </label>
                 </div>
               </form>
             </div>
 
-            <div className="p-6 border-t pg-border bg-[#1A1F2E] rounded-b-2xl flex justify-end gap-3">
+            <div className="p-6 border-t pg-border pg-surface rounded-b-2xl flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="px-5 py-2.5 text-sm font-medium text-slate-300 hover:pg-text transition-colors"
+                className="px-5 py-2.5 text-sm font-medium pg-text hover:pg-muted transition-colors"
               >
                 Batal
               </button>

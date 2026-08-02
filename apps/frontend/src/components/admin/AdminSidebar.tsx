@@ -16,6 +16,14 @@ import {
   ChevronRight,
   ExternalLink,
   List,
+  MonitorPlay,
+  Users,
+  Info,
+  Archive,
+  MapPin,
+  UserPlus,
+  ShieldCheck,
+  Activity
 } from "lucide-react";
 import Cookies from "js-cookie";
 
@@ -51,34 +59,34 @@ export function AdminSidebar() {
       title: "Musyawarah",
       items: [
         { label: "General", href: "/admin/website/general", icon: Sliders, exact: false },
-        { label: "Lokasi", href: "/admin/musyawarah/location", icon: Sparkles, exact: false },
+        { label: "Lokasi", href: "/admin/musyawarah/location", icon: MapPin, exact: false },
         { label: "Timeline", href: "/admin/website/timeline", icon: Calendar, exact: false },
         { label: "Publikasi", href: "/admin/musyawarah/publication", icon: Megaphone, exact: false },
-        { label: "Arsip", href: "/admin/musyawarah/archive", icon: UserCheck, exact: false },
+        { label: "Arsip", href: "/admin/musyawarah/archive", icon: Archive, exact: false },
       ],
     },
     {
       title: "Website",
       items: [
-        { label: "Hero", href: "/admin/website/hero", icon: Sparkles },
-        { label: "Bursa Calon", href: "/admin/website/candidate", icon: UserCheck },
-        { label: "Pusat Informasi", href: "/admin/website/information", icon: Sparkles },
+        { label: "Hero", href: "/admin/website/hero", icon: MonitorPlay },
+        { label: "Kandidat", href: "/admin/website/candidate", icon: Users },
+        { label: "Pusat Informasi", href: "/admin/website/information", icon: Info },
         { label: "Footer", href: "/admin/website/footer", icon: PanelBottom },
       ],
     },
     {
       title: "Registrasi",
       items: [
-        { label: "Bakal Calon", href: "#coming-soon-candidate", icon: UserCheck, comingSoon: true },
-        { label: "Peserta", href: "/admin/registrations", icon: UserCheck, exact: false },
-        { label: "Verifikasi", href: "#coming-soon-verification", icon: UserCheck, comingSoon: true },
+        { label: "Bakal Calon", href: "#coming-soon-candidate", icon: UserPlus, comingSoon: true },
+        { label: "Peserta", href: "/admin/registrations", icon: Users, exact: false },
+        { label: "Verifikasi", href: "#coming-soon-verification", icon: ShieldCheck, comingSoon: true },
       ],
     },
     {
       title: "System",
       items: [
-        { label: "Pengguna", href: "/admin/users", icon: UserCheck, exact: false },
-        { label: "Audit Log", href: "/admin/audit", icon: LayoutDashboard, exact: false },
+        { label: "Pengguna", href: "/admin/users", icon: Users, exact: false },
+        { label: "Audit Log", href: "/admin/audit", icon: Activity, exact: false },
       ],
     },
   ] as { title: string; items: { label: string; href: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean; comingSoon?: boolean }[] }[];
