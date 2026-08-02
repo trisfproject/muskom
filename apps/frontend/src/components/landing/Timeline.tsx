@@ -74,8 +74,9 @@ export function Timeline({ data }: { data: HomeResponse | null }) {
               return (
                 <SlideUp key={phase.id} delay={i * 0.07}>
                   <TimelineItem
+                    order={orderIndex}
                     status={status}
-                    title={`${orderIndex}. ${phase.title}`}
+                    title={phase.title}
                     date={formattedDate}
                     description={phase.description}
                     isLast={i === timelines.length - 1}

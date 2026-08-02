@@ -1,8 +1,9 @@
 import * as React from "react"
+import { Check, Clock, Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Card } from "./surfaces"
 
 export interface TimelineItemProps extends React.HTMLAttributes<HTMLDivElement> {
+  order: string
   title: string
   date: string
   description?: string
@@ -11,56 +12,132 @@ export interface TimelineItemProps extends React.HTMLAttributes<HTMLDivElement> 
 }
 
 export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
-  ({ className, title, date, description, status, isLast = false, ...props }, ref) => {
+  ({ className, order, title, date, description, status, isLast = false, ...props }, ref) => {
     return (
-      <div ref={ref} className={cn("relative flex gap-6 group", className)} {...props}>
+      <div ref={ref} className={cn("relative flex gap-4 sm:gap-6 group", className)} {...props}>
         {/* Connector Line */}
         {!isLast && (
-          <div className="absolute left-[15px] top-[32px] bottom-[-24px] w-0.5 z-0">
-            <div className={cn(
-              "w-full h-full",
-              status === "past" ? "bg-[var(--color-success)]" : 
-              status === "active" ? "bg-gradient-to-b from-[var(--color-primary)] to-[var(--color-info)]" : 
-              "bg-gradient-to-b from-[var(--color-info)] to-[rgba(71,85,105,0.3)]"
-            )} />
+          <div className="absolute left-[17px] sm:left-[19px] top-[40px] bottom-[-24px] w-[2px] z-0">
+            <div
+              className={cn(
+                "w-full h-full transition-all duration-300",
+                status === "past"
+                  ? "bg-emerald-500/40"
+                  : status === "active"
+                  ? "bg-gradient-to-b from-primary via-primary/40 to-slate-200 dark:to-slate-800"
+                  : "bg-slate-200/80 dark:bg-slate-800/80"
+              )}
+            />
           </div>
         )}
 
-        {/* Timeline Dot */}
-        <div className="relative z-10 flex flex-col items-center mt-1">
-          <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center border-2 border-surface bg-surface shadow-sm transition-normal",
-            status === "past" && "bg-success border-success shadow-[0_0_0_3px_rgba(16,185,129,0.15)]",
-            status === "active" && "bg-primary border-primary shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_18%,transparent),0_0_0_6px_color-mix(in_srgb,var(--color-primary)_8%,transparent),0_0_20px_color-mix(in_srgb,var(--color-primary)_35%,transparent)]",
-            status === "upcoming" && "bg-info border-info shadow-[0_0_0_2px_rgba(56,189,248,0.12)]"
-          )}>
-            <div className={cn("w-2 h-2 rounded-full", status === "upcoming" ? "bg-surface" : "bg-white")} />
-          </div>
+        {/* Timeline Node */}
+        <div className="relative z-10 flex flex-col items-center mt-1 shrink-0">
+          {status === "past" && (
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-emerald-50 text-emerald-600 border-2 border-emerald-500/40 shadow-xs dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-600/50">
+              <Check className="w-4 h-4 sm:w-4.5 sm:h-4.5 stroke-[2.5]" />
+            </div>
+          )}
+
+          {status === "active" && (
+            <div className="relative flex items-center justify-center">
+              <div className="absolute -inset-1.5 rounded-full bg-primary/20 animate-ping opacity-75 pointer-events-none" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-primary text-white border-2 border-white dark:border-slate-900 shadow-[0_0_20px_rgba(37,99,235,0.45)] ring-4 ring-primary/20">
+                <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
+              </div>
+            </div>
+          )}
+
+          {status === "upcoming" && (
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-surface border-2 border-light text-muted shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600" />
+            </div>
+          )}
         </div>
 
-        {/* Timeline Content */}
-        <Card className={cn(
-          "flex-1 p-6 md:p-8 transition-normal",
-          status === "active" && "border-primary/50 shadow-glow"
-        )}>
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-3">
-            <h3 className={cn(
-              "text-title font-bold",
-              status === "active" ? "text-primary" : "text-base"
-            )}>
-              {title}
-            </h3>
-            <span className={cn(
-              "text-sm font-semibold whitespace-nowrap",
-              status === "active" ? "text-primary" : "text-muted"
-            )}>
-              {date}
-            </span>
-          </div>
-          {description && (
-            <p className="text-body text-muted leading-relaxed">{description}</p>
+        {/* Timeline Card */}
+        <div
+          className={cn(
+            "flex-1 p-5 sm:p-7 rounded-2xl transition-all duration-300 relative overflow-hidden",
+            status === "active"
+              ? "bg-surface border-2 border-primary shadow-[0_8px_30px_rgba(37,99,235,0.1)] ring-1 ring-primary/20"
+              : status === "past"
+              ? "bg-surface/90 border border-light hover:border-slate-300 dark:hover:border-slate-700 shadow-xs"
+              : "bg-surface/60 border border-light/80 opacity-90 shadow-xs"
           )}
-        </Card>
+        >
+          {/* Active Phase Background Accent Glow */}
+          {status === "active" && (
+            <div
+              className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-primary/8 pointer-events-none"
+              style={{ filter: "blur(24px)" }}
+            />
+          )}
+
+          {/* Card Header: Badges & Date */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3 relative z-10">
+            {/* Status Badge */}
+            <div className="flex items-center gap-2">
+              {status === "active" && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary text-white shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  Fase Aktif
+                </span>
+              )}
+              {status === "past" && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60">
+                  <Check className="w-3 h-3 stroke-[2.5]" />
+                  Selesai
+                </span>
+              )}
+              {status === "upcoming" && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-secondary text-muted border border-light">
+                  Akan Datang
+                </span>
+              )}
+              <span className="text-xs font-bold text-muted uppercase tracking-wider">
+                Tahap {order}
+              </span>
+            </div>
+
+            {/* Date with Icon */}
+            <div
+              className={cn(
+                "inline-flex items-center gap-1.5 text-xs font-semibold",
+                status === "active" ? "text-primary" : "text-muted"
+              )}
+            >
+              {status === "active" ? (
+                <Clock className="w-3.5 h-3.5 text-primary" />
+              ) : (
+                <Calendar className="w-3.5 h-3.5" />
+              )}
+              <span>{date}</span>
+            </div>
+          </div>
+
+          {/* Title */}
+          <h3
+            className={cn(
+              "text-lg sm:text-xl font-bold tracking-tight mb-2 relative z-10",
+              status === "active" ? "text-base" : "text-base"
+            )}
+          >
+            {title}
+          </h3>
+
+          {/* Description */}
+          {description && (
+            <p
+              className={cn(
+                "text-sm leading-relaxed relative z-10",
+                status === "active" ? "text-muted font-normal" : "text-muted"
+              )}
+            >
+              {description}
+            </p>
+          )}
+        </div>
       </div>
     )
   }
