@@ -3,6 +3,7 @@
 import { Menu, X, Sun, Moon, Lock } from "lucide-react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useTheme } from "next-themes"
 
 // Nav: Beranda, Timeline, Kandidat, Pengumuman — per ADR 0006 (no FAQ, no Bantuan)
 const navItems = [
@@ -12,10 +13,20 @@ const navItems = [
   { label: "Pengumuman", href: "#pengumuman" },
 ]
 
-export function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggleTheme: () => void }) {
+export function Header() {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [activeSection, setActiveSection] = useState("#")
   const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark")
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -92,13 +103,17 @@ export function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggle
                 id="theme-toggle"
                 onClick={toggleTheme}
                 className="w-9 h-9 flex items-center justify-center rounded-full border border-light bg-surface text-muted hover:text-base hover:bg-surface-secondary transition-all hover:scale-105"
-                aria-label={theme === "dark" ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
+                aria-label={mounted && theme === "dark" ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
                 suppressHydrationWarning
               >
-                {theme === "dark" ? (
-                  <Sun className="w-4 h-4 text-amber-400" />
+                {mounted ? (
+                  theme === "dark" ? (
+                    <Sun className="w-4 h-4 text-amber-400" />
+                  ) : (
+                    <Moon className="w-4 h-4" />
+                  )
                 ) : (
-                  <Moon className="w-4 h-4 text-slate-600" />
+                  <span className="w-4 h-4" />
                 )}
               </button>
 
@@ -175,18 +190,25 @@ export function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggle
                 setOpen(false)
               }}
               className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold rounded-xl border border-light bg-surface text-base hover:bg-surface-secondary transition-colors"
-              aria-label={theme === "dark" ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
+              aria-label={mounted && theme === "dark" ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
               suppressHydrationWarning
             >
-              {theme === "dark" ? (
-                <>
-                  <Sun className="w-4 h-4 text-amber-400" />
-                  Tema Terang
-                </>
+              {mounted ? (
+                theme === "dark" ? (
+                  <>
+                    <Sun className="w-4 h-4 text-amber-400" />
+                    Tema Terang
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-4 h-4" />
+                    Tema Gelap
+                  </>
+                )
               ) : (
                 <>
-                  <Moon className="w-4 h-4 text-slate-600" />
-                  Tema Gelap
+                  <span className="w-4 h-4" />
+                  Tema Loading...
                 </>
               )}
             </button>
