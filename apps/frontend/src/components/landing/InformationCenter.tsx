@@ -10,6 +10,7 @@ import { websiteService, InformationPage } from "@/services/website";
 import Link from "next/link";
 import { FileText, BookOpen, ShieldCheck, ChevronRight, X, Calendar, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import { SectionPill } from "@/components/ui/section-pill";
 
 interface AnnouncementItem {
   id: string;
@@ -52,8 +53,8 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
       />
 
       <Container className="py-24 lg:py-32 relative z-10">
-        <SlideUp className="text-center max-w-2xl mx-auto mb-16 lg:mb-20">
-          <p className="text-info text-xs font-bold tracking-[0.16em] uppercase mb-3">Pusat Informasi</p>
+        <SlideUp className="text-center max-w-2xl mx-auto mb-16 lg:mb-20 flex flex-col items-center">
+          <SectionPill label="Pusat Informasi" className="mb-4" />
           <SectionHeader 
             title="Pusat Informasi" 
             description="Pembaruan terbaru, pengumuman resmi, dan panduan penting terkait pelaksanaan musyawarah."

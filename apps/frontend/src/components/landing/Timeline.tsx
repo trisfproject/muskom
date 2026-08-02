@@ -3,6 +3,7 @@ import { SlideUp, EmptyState, TimelineSkeleton } from "@/components/landing/Shar
 import { Container, Section } from "@/components/ui/layout"
 import { SectionHeader } from "@/components/ui/section-header"
 import { TimelineItem } from "@/components/ui/timeline-item"
+import { SectionPill } from "@/components/ui/section-pill"
 
 // Timeline — visual journey showing progress
 // Timeline — visual journey showing progress
@@ -40,8 +41,8 @@ export function Timeline({ data }: { data: HomeResponse | null }) {
       />
 
       <Container className="py-24 lg:py-32 relative z-10">
-        <SlideUp className="text-center max-w-2xl mx-auto mb-16 lg:mb-24">
-          <p className="text-info text-xs font-bold tracking-[0.16em] uppercase mb-3">Linimasa</p>
+        <SlideUp className="text-center max-w-2xl mx-auto mb-16 lg:mb-24 flex flex-col items-center">
+          <SectionPill label="Linimasa" className="mb-4" />
           <SectionHeader 
             title="Agenda Resmi" 
             description="Tahapan dan jadwal pelaksanaan musyawarah dari persiapan hingga penetapan."

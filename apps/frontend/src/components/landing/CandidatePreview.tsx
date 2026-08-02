@@ -1,6 +1,7 @@
 import { HomeResponse } from "@/types/landing"
 import { ArrowRight } from "lucide-react"
 import { SlideUp, EmptyState, CandidateSkeleton } from "@/components/landing/Shared"
+import { SectionPill } from "@/components/ui/section-pill"
 
 export function CandidatePreview({ data }: { data: HomeResponse | null }) {
   const candidates = data?.candidates;
@@ -15,8 +16,8 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
       <div className="container-landing py-24 lg:py-32 relative z-10">
         
         <SlideUp className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 lg:mb-24">
-          <div className="max-w-2xl">
-            <p className="text-primary text-xs font-semibold tracking-widest uppercase mb-3">Kandidat</p>
+          <div className="max-w-2xl flex flex-col items-start">
+            <SectionPill label="Kandidat" className="mb-4" />
             <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-4">{sectionTitle}</h2>
             <p className="pg-muted text-lg leading-relaxed">
               {sectionDesc}

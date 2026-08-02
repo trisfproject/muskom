@@ -1,52 +1,30 @@
 "use client"
 
-import { Menu, X, Sun, Moon, Lock } from "lucide-react"
+import { Menu, X, Lock } from "lucide-react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useTheme } from "next-themes"
+import { useAnchorNav } from "@/hooks/useAnchorNav"
 
-// Nav: Beranda, Timeline, Kandidat, Pengumuman — per ADR 0006 (no FAQ, no Bantuan)
+// Nav: Beranda, Timeline, Kandidat, Informasi — per ADR 0006
 const navItems = [
-  { label: "Beranda",     href: "#"           },
-  { label: "Timeline",   href: "#timeline"   },
-  { label: "Kandidat",   href: "#kandidat"   },
-  { label: "Pengumuman", href: "#pengumuman" },
+  { label: "Beranda",     href: "/"           },
+  { label: "Timeline",   href: "/#timeline"   },
+  { label: "Kandidat",   href: "/#kandidat"   },
+  { label: "Informasi",  href: "/#informasi"  },
 ]
 
 export function Header() {
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [activeSection, setActiveSection] = useState("#")
   const [open, setOpen] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark")
-  }
+  const { activeSection, handleNavClick } = useAnchorNav(["informasi", "kandidat", "timeline"], 80)
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20)
-
-      const sections = ["pengumuman", "kandidat", "timeline"]
-      const scrollPosition = window.scrollY + 200
-
-      let current = "#"
-      for (const section of sections) {
-        const el = document.getElementById(section)
-        if (el && el.offsetTop <= scrollPosition) {
-          current = `#${section}`
-          break
-        }
-      }
-      setActiveSection(current)
     }
 
     window.addEventListener("scroll", handleScroll, { passive: true })
+    handleScroll()
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
@@ -66,8 +44,8 @@ export function Header() {
           <div
             className={`pointer-events-auto flex items-center justify-between gap-4 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full transition-all duration-300 backdrop-blur-xl border ${
               scrolled
-                ? "bg-white/70 dark:bg-slate-900/70 border-white/50 dark:border-slate-700/30 shadow-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
-                : "bg-white/30 dark:bg-slate-900/30 border-white/30 dark:border-slate-700/20 shadow-xs"
+                ? "bg-white/70 border-slate-200/50 shadow-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]"
+                : "bg-white/30 border-slate-200/30 shadow-xs"
             }`}
           >
             {/* Brand */}
@@ -81,41 +59,24 @@ export function Header() {
               {navItems.map((item) => {
                 const isActive = activeSection === item.href
                 return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
-                      isActive
-                        ? "text-primary bg-primary/10 font-semibold shadow-xs"
-                        : "text-muted hover:text-base hover:bg-surface-secondary"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                )
-              })}
-            </nav>
-
-            {/* Right Actions */}
-            <div className="flex items-center gap-2.5 shrink-0">
-              {/* Theme Toggle */}
-              <button
-                id="theme-toggle"
-                onClick={toggleTheme}
-                className="w-9 h-9 flex items-center justify-center rounded-full border border-light bg-surface text-muted hover:text-base hover:bg-surface-secondary transition-all hover:scale-105"
-                aria-label={mounted && theme === "dark" ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
-                suppressHydrationWarning
-              >
-                {mounted ? (
-                  theme === "dark" ? (
-                    <Sun className="w-4 h-4 text-amber-400" />
-                  ) : (
-                    <Moon className="w-4 h-4" />
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      onClick={(e) => handleNavClick(e, item.href)}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
+                        isActive
+                          ? "text-primary bg-primary/10 font-semibold shadow-xs"
+                          : "text-muted hover:text-base hover:bg-surface-secondary"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
                   )
-                ) : (
-                  <span className="w-4 h-4" />
-                )}
-              </button>
+                })}
+              </nav>
+
+              {/* Right Actions */}
+              <div className="flex items-center gap-2.5 shrink-0">
 
               {/* Portal Admin CTA */}
               <Link
@@ -172,46 +133,28 @@ export function Header() {
             </button>
           </div>
           <div className="flex-1 p-3 space-y-1 overflow-y-auto">
-            {navItems.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-muted hover:text-base hover:bg-surface-secondary transition-colors"
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const isActive = activeSection === item.href
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => {
+                    setOpen(false)
+                    handleNavClick(e, item.href)
+                  }}
+                  className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                    isActive
+                      ? "text-primary bg-primary/10"
+                      : "text-muted hover:text-base hover:bg-surface-secondary"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
           </div>
           <div className="p-4 border-t border-light space-y-2.5">
-            <button
-              onClick={() => {
-                toggleTheme()
-                setOpen(false)
-              }}
-              className="flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold rounded-xl border border-light bg-surface text-base hover:bg-surface-secondary transition-colors"
-              aria-label={mounted && theme === "dark" ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
-              suppressHydrationWarning
-            >
-              {mounted ? (
-                theme === "dark" ? (
-                  <>
-                    <Sun className="w-4 h-4 text-amber-400" />
-                    Tema Terang
-                  </>
-                ) : (
-                  <>
-                    <Moon className="w-4 h-4" />
-                    Tema Gelap
-                  </>
-                )
-              ) : (
-                <>
-                  <span className="w-4 h-4" />
-                  Tema Loading...
-                </>
-              )}
-            </button>
             <Link
               href="/admin/login"
               onClick={() => setOpen(false)}

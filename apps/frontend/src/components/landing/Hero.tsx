@@ -5,6 +5,7 @@ import { ArrowRight, Calendar } from "lucide-react";
 import Link from "next/link";
 import { CountdownCard } from "@/components/ui/countdown-card";
 import { SlideUp } from "@/components/landing/Shared";
+import { SectionPill } from "@/components/ui/section-pill";
 
 export function Hero({ data }: { data: HomeResponse | null }) {
   const badge = data?.hero?.hero_badge || "Together We Shape the Future";
@@ -39,12 +40,8 @@ export function Hero({ data }: { data: HomeResponse | null }) {
           <div className="lg:col-span-6 relative z-10">
             <SlideUp delay={0.1}>
               {/* 1. Official Identity Pill */}
-              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-blue-500/20 bg-blue-50/80 dark:bg-blue-950/40 backdrop-blur-md text-xs font-bold text-blue-600 dark:text-blue-400 tracking-wide mb-8 shadow-xs hover:shadow-sm hover:border-blue-500/30 transition-all cursor-default">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600 dark:bg-blue-400" />
-                </span>
-                <span>{badge}</span>
+              <div className="mb-8">
+                <SectionPill label={badge} animated={true} />
               </div>
             </SlideUp>
 
