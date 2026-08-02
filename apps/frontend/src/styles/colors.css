@@ -28,4 +28,12 @@
   
   .text-info { color: var(--color-info); }
   .bg-info { background-color: var(--color-info); }
+
+  /* ── Legacy / Semantic ── */
+  .pg-bg { background-color: var(--color-bg); }
+  .pg-surface { background-color: var(--color-surface); }
+  .pg-text { color: var(--color-text-primary); }
+  .pg-muted { color: var(--color-text-secondary); }
+  .pg-faint { color: var(--color-text-secondary); opacity: 0.7; }
+  .pg-border { border-color: var(--color-border); }
 }

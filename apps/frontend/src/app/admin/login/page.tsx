@@ -58,14 +58,14 @@ export default function AdminLoginPage() {
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-1/3 left-1/2 -translate-x-1/2 w-[80vw] h-[80vw] max-w-3xl rounded-full bg-[var(--color-primary)]/5 blur-[120px]" />
-        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 rounded-full bg-slate-900/50 blur-[80px]" />
+        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 rounded-full bg-blue-50/50 dark:bg-slate-900/50 blur-[80px]" />
       </div>
       <div className="dot-grid absolute inset-0 pointer-events-none opacity-60" />
 
       {/* Back link */}
       <div className="relative z-10 p-5">
         <Link href="/"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-white transition-colors group">
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
           Kembali ke Portal
         </Link>
@@ -79,14 +79,14 @@ export default function AdminLoginPage() {
             <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mb-5 shadow-xl shadow-[var(--color-primary)]/20">
               <span className="text-slate-950 font-black text-2xl">M</span>
             </div>
-            <h1 className="text-2xl font-black text-white tracking-tight mb-1">Portal Admin</h1>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-1">Portal Admin</h1>
             <p className="text-sm text-slate-500 text-center max-w-xs">
               Masuk menggunakan kredensial administrator yang telah diberikan oleh panitia.
             </p>
           </div>
 
           {/* Form card */}
-          <div className="bg-slate-900/60 border border-white/7 rounded-2xl p-6 backdrop-blur-sm shadow-2xl">
+          <div className="bg-white/60 dark:bg-slate-900/60 border border-slate-200/50 dark:border-white/10 rounded-2xl p-6 backdrop-blur-sm shadow-2xl">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <Label htmlFor="username">Username</Label>
@@ -119,7 +119,7 @@ export default function AdminLoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPass((s) => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
                     tabIndex={-1}
                   >
                     {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
