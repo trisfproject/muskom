@@ -50,6 +50,13 @@ type Repository interface {
 	// Footer
 	GetFooter(ctx context.Context) (*WebsiteFooterSettings, error)
 	UpdateFooter(ctx context.Context, f *WebsiteFooterSettings) (*WebsiteFooterSettings, error)
+
+	// Information Pages
+	GetInformationPages(ctx context.Context, onlyPublished bool) ([]WebsiteInformationPage, error)
+	GetInformationPage(ctx context.Context, idOrSlug string) (*WebsiteInformationPage, error)
+	CreateInformationPage(ctx context.Context, p *WebsiteInformationPage) (*WebsiteInformationPage, error)
+	UpdateInformationPage(ctx context.Context, id string, p *WebsiteInformationPage) (*WebsiteInformationPage, error)
+	DeleteInformationPage(ctx context.Context, id string) error
 }
 
 type repository struct {

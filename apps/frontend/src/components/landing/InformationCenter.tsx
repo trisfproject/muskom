@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { HomeResponse } from "@/types/landing";
 import { SlideUp, EmptyState, AnnouncementSkeleton } from "@/components/landing/Shared";
