@@ -56,6 +56,13 @@ export function AdminSidebar() {
         { label: "Data Peserta", href: "/admin/registrations", icon: UserCheck },
       ],
     },
+    {
+      title: "System & Security",
+      items: [
+        { label: "Pengguna & Hak Akses", href: "/admin/users", icon: UserCheck },
+        { label: "Audit Log", href: "/admin/audit", icon: LayoutDashboard },
+      ],
+    },
   ];
 
   return (

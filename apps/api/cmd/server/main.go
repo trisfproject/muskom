@@ -25,6 +25,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/voting"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/system/configuration"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/user"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
@@ -134,6 +135,7 @@ func main() {
 	reporting.SetupAdminRoutes(adminGroup.Group("/reporting"), db, log)
 	voting.SetupAdminRoutes(adminGroup.Group("/votes"), db, log, bus)
 	result.SetupAdminRoutes(adminGroup, db, log)
+	user.SetupRoutes(adminGroup.Group("/users", checker.RequirePermission("system.manage")), db, log, val)
 
 	// 8. Graceful Shutdown
 	go func() {
