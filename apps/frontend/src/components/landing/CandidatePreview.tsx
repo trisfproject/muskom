@@ -13,13 +13,13 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
     // Section rhythm: soft blue tint
     <section id="kandidat" className="relative overflow-hidden">
       <div className="section-divider" />
-      <div className="container-landing py-24 lg:py-32 relative z-10">
+      <div className="container-landing py-16 md:py-24 lg:py-32 relative z-10">
         
-        <SlideUp className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 lg:mb-24">
+        <SlideUp className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 mb-12 md:mb-16 lg:mb-24">
           <div className="max-w-2xl flex flex-col items-start">
             <SectionPill label="Kandidat" className="mb-4" />
-            <h2 className="text-3xl sm:text-4xl font-black pg-text tracking-tight mb-4">{sectionTitle}</h2>
-            <p className="pg-muted text-lg leading-relaxed">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-black pg-text tracking-tight mb-3 md:mb-4">{sectionTitle}</h2>
+            <p className="pg-muted text-base md:text-lg leading-relaxed">
               {sectionDesc}
             </p>
           </div>
@@ -47,14 +47,14 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {candidates.map((c, i) => (
               <SlideUp key={c.id} delay={i * 0.1}>
-                <div className="group bg-white/60 dark:bg-slate-900/50 backdrop-blur-xl border border-white/40 dark:border-slate-700/30 p-8 lg:p-10 rounded-3xl flex flex-col h-full hover:shadow-xl hover:shadow-blue-500/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] hover:-translate-y-1 transition-all duration-300">
-                  <div className="flex items-center gap-5 mb-6">
-                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-blue-600/20 text-primary font-black text-xl">
+                <div className="group bg-white/60 dark:bg-slate-900/50 backdrop-blur-xl border border-white/40 dark:border-slate-700/30 p-6 md:p-8 lg:p-10 rounded-3xl flex flex-col h-full hover:shadow-xl hover:shadow-blue-500/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] hover:-translate-y-1 transition-all duration-300">
+                  <div className="flex items-center gap-4 md:gap-5 mb-5 md:mb-6">
+                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-blue-600/20 text-primary font-black text-lg md:text-xl">
                       {c.sequence_number ?? "?"}
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold pg-text group-hover:text-primary transition-colors">{c.name}</h3>
-                      <p className="text-sm pg-faint">{c.title}</p>
+                      <h3 className="text-lg md:text-xl font-bold pg-text group-hover:text-primary transition-colors">{c.name}</h3>
+                      <p className="text-xs md:text-sm pg-faint">{c.title}</p>
                     </div>
                   </div>
                   <div className="flex-1">

@@ -46,9 +46,9 @@ export function Footer({ data }: { data: HomeResponse | null }) {
         style={{ filter: "blur(60px)" }}
       />
 
-      <div className="container-landing py-16 lg:py-20 relative z-10">
+      <div className="container-landing py-12 md:py-16 lg:py-20 relative z-10 pb-24 md:pb-16 lg:pb-20">
         {/* ── Main Content Grid ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-8 lg:gap-12 mb-14">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-12 gap-10 md:gap-8 lg:gap-12 mb-10 md:mb-14">
           {/* Column 1: Brand Presentation */}
           <div className="md:col-span-1 lg:col-span-5 flex flex-col justify-between">
             <div>
@@ -85,7 +85,7 @@ export function Footer({ data }: { data: HomeResponse | null }) {
 
           {/* Column 2: Official Documents & Direct Access */}
           <div className="md:col-span-1 lg:col-span-4">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-5 flex items-center gap-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-4 md:mb-5 flex items-center gap-2">
               <FileText className="w-3.5 h-3.5 text-primary" />
               Dokumen & Panduan Resmi
             </h4>
@@ -107,7 +107,7 @@ export function Footer({ data }: { data: HomeResponse | null }) {
 
           {/* Column 3: Secretariat & Contact Info */}
           <div className="md:col-span-1 lg:col-span-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-5 flex items-center gap-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-4 md:mb-5 flex items-center gap-2">
               <MapPin className="w-3.5 h-3.5 text-primary" />
               Sekretariat Panitia
             </h4>
@@ -136,7 +136,7 @@ export function Footer({ data }: { data: HomeResponse | null }) {
         </div>
 
         {/* ── Community Closing Message Strip ── */}
-        <div className="mb-10 p-5 sm:p-6 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mb-8 md:mb-10 p-4 md:p-5 lg:p-6 rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3 text-center sm:text-left">
             <div className="hidden sm:flex w-9 h-9 rounded-xl bg-primary/10 items-center justify-center text-primary shrink-0 font-black text-sm">
               M

@@ -14,7 +14,7 @@ export interface TimelineItemProps extends React.HTMLAttributes<HTMLDivElement> 
 export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
   ({ className, order, title, date, description, status, isLast = false, ...props }, ref) => {
     return (
-      <div ref={ref} className={cn("relative flex gap-6 sm:gap-10 group", className)} {...props}>
+      <div ref={ref} className={cn("relative flex gap-4 md:gap-6 lg:gap-10 group", className)} {...props}>
         {/* Connector Line */}
         {!isLast && (
           <div className="absolute left-[17px] sm:left-[19px] top-[40px] bottom-[-24px] w-[2px] z-0">
@@ -57,7 +57,7 @@ export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
 
         <div
           className={cn(
-            "flex-1 p-6 sm:p-8 rounded-3xl transition-all duration-300 relative overflow-hidden backdrop-blur-xl hover:shadow-xl hover:-translate-y-1",
+            "flex-1 p-5 md:p-6 lg:p-8 rounded-3xl transition-all duration-300 relative overflow-hidden backdrop-blur-xl hover:shadow-xl hover:-translate-y-1",
             status === "active"
               ? "bg-white/90 dark:bg-slate-900/80 shadow-[0_8px_32px_-8px_rgba(37,99,235,0.25)] dark:shadow-[0_8px_32px_-8px_rgba(37,99,235,0.15)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_0_0_1px_rgba(255,255,255,0.8)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),inset_0_0_0_1px_rgba(255,255,255,0.1)] ring-1 ring-blue-500/20"
               : status === "past"
@@ -84,17 +84,17 @@ export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
                 </span>
               )}
               {status === "past" && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] md:text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60">
                   <Check className="w-3 h-3 stroke-[2.5]" />
                   Selesai
                 </span>
               )}
               {status === "upcoming" && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-surface-secondary text-muted border border-light">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] md:text-xs font-medium bg-surface-secondary text-muted border border-light">
                   Akan Datang
                 </span>
               )}
-              <span className="text-xs font-bold text-muted uppercase tracking-wider">
+              <span className="text-[10px] md:text-xs font-bold text-muted uppercase tracking-wider">
                 Tahap {order}
               </span>
             </div>
@@ -102,7 +102,7 @@ export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
             {/* Date with Icon */}
             <div
               className={cn(
-                "inline-flex items-center gap-1.5 text-xs font-semibold",
+                "inline-flex items-center gap-1.5 text-[11px] md:text-xs font-semibold",
                 status === "active" ? "text-primary" : "text-muted"
               )}
             >
@@ -118,7 +118,7 @@ export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
           {/* Title */}
           <h3
             className={cn(
-              "text-lg sm:text-xl font-bold tracking-tight mb-2 relative z-10",
+              "text-base md:text-lg lg:text-xl font-bold tracking-tight mb-2 relative z-10",
               status === "active" ? "text-base" : "text-base"
             )}
           >

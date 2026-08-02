@@ -40,8 +40,8 @@ export function Timeline({ data }: { data: HomeResponse | null }) {
         style={{ filter: "blur(60px)" }}
       />
 
-      <Container className="py-24 lg:py-32 relative z-10">
-        <SlideUp className="text-center max-w-2xl mx-auto mb-16 lg:mb-24 flex flex-col items-center">
+      <Container className="py-16 md:py-24 lg:py-32 relative z-10">
+        <SlideUp className="text-center max-w-2xl mx-auto mb-12 md:mb-16 lg:mb-24 flex flex-col items-center">
           <SectionPill label="Linimasa" className="mb-4" />
           <SectionHeader 
             title="Agenda Resmi" 

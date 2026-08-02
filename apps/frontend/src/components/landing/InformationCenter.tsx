@@ -52,8 +52,8 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
         style={{ filter: "blur(70px)", opacity: 0.6 }}
       />
 
-      <Container className="py-24 lg:py-32 relative z-10">
-        <SlideUp className="text-center max-w-2xl mx-auto mb-16 lg:mb-20 flex flex-col items-center">
+      <Container className="py-16 md:py-24 lg:py-32 relative z-10">
+        <SlideUp className="text-center max-w-2xl mx-auto mb-12 md:mb-16 lg:mb-20 flex flex-col items-center">
           <SectionPill label="Pusat Informasi" className="mb-4" />
           <SectionHeader 
             title="Pusat Informasi" 
@@ -62,10 +62,10 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
           />
         </SlideUp>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 max-w-7xl mx-auto items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 lg:gap-10 max-w-7xl mx-auto items-start">
           {/* Left Column: Pengumuman */}
           <div className="lg:col-span-7 xl:col-span-8">
-            <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-200/80 dark:border-slate-800">
+            <div className="flex items-center justify-between mb-5 md:mb-6 pb-2 border-b border-slate-200/80 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
@@ -73,14 +73,14 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
                 </h3>
               </div>
               {announcements.length > 0 && (
-                <span className="text-xs font-semibold text-muted bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-full border border-light dark:border-slate-700">
+                <span className="text-[11px] md:text-xs font-semibold text-muted bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-full border border-light dark:border-slate-700">
                   {announcements.length} Pengumuman
                 </span>
               )}
             </div>
 
             {!data && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <AnnouncementSkeleton />
                 <AnnouncementSkeleton />
               </div>
@@ -96,7 +96,7 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
             )}
 
             {announcements.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 {announcements.map((a, i) => {
                   const isLatest = a.is_pinned || i === 0;
                   const dateStr = a.published_at || a.created_at;
@@ -126,20 +126,20 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
           </div>
 
           {/* Right Column: Panduan & Tata Tertib (Official Pages) */}
-          <div className="lg:col-span-5 xl:col-span-4">
-            <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-200/80 dark:border-slate-800">
+          <div className="lg:col-span-5 xl:col-span-4 mt-8 lg:mt-0">
+            <div className="flex items-center justify-between mb-5 md:mb-6 pb-2 border-b border-slate-200/80 dark:border-slate-800">
               <div className="flex items-center gap-2.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-info" />
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                   Panduan & Tata Tertib
                 </h3>
               </div>
-              <span className="text-[11px] font-bold text-primary uppercase tracking-wider bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
+              <span className="text-[10px] md:text-[11px] font-bold text-primary uppercase tracking-wider bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
                 Resmi
               </span>
             </div>
             
-            <div className="bg-white/50 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/40 dark:border-slate-700/30 rounded-2xl p-4 sm:p-5 shadow-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-300">
+            <div className="bg-white/50 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/40 dark:border-slate-700/30 rounded-2xl p-3 md:p-4 lg:p-5 shadow-sm shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] transition-all duration-300">
               {loadingPages ? (
                 <div className="p-8 text-center text-slate-500">
                   <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
