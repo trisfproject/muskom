@@ -38,7 +38,9 @@ export default function AdminWebsiteGeneralPage() {
       await configService.updateConfigGroup("website_identity", formData.website_identity);
       await configService.updateConfigGroup("publication", formData.publication);
       await configService.updateConfigGroup("registration", formData.registration);
-      await configService.updateConfigGroup("timeline", formData.timeline);
+      await configService.updateConfigGroup("contact", formData.contact);
+      await configService.updateConfigGroup("seo", formData.seo);
+      await configService.updateConfigGroup("feature_flags", formData.feature_flags);
       await configService.updateConfigGroup("contact", formData.contact);
       
       await refreshConfig();
@@ -114,6 +116,10 @@ export default function AdminWebsiteGeneralPage() {
                     <option value="DRAFT">Draft</option>
                   </select>
                </div>
+               <div className="md:col-span-2 mt-4">
+                  <label className="block text-xs font-medium text-slate-300 mb-1.5">Offline Message</label>
+                  <textarea rows={2} value={formData.publication.offline_message} onChange={(e) => setFormData({ ...formData, publication: { ...formData.publication, offline_message: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] resize-none" />
+               </div>
             </div>
             <label className="flex items-center justify-between p-3.5 bg-[var(--color-bg)]/60 border pg-border/80 rounded-xl cursor-pointer hover:pg-border transition-colors">
               <div>
@@ -150,19 +156,71 @@ export default function AdminWebsiteGeneralPage() {
               </div>
               <input type="checkbox" checked={formData.registration.participant_registration} onChange={(e) => setFormData({ ...formData, registration: { ...formData.registration, participant_registration: e.target.checked }})} className="w-5 h-5 rounded accent-blue-600 cursor-pointer" />
             </label>
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5 mt-2">Registration Information</label>
+              <textarea rows={2} value={formData.registration.registration_information} onChange={(e) => setFormData({ ...formData, registration: { ...formData.registration, registration_information: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] resize-none" />
+            </div>
           </div>
         </div>
 
-        {/* Timeline */}
+        {/* SEO */}
         <div className="pg-surface border pg-border rounded-2xl p-6">
-          <h2 className="text-base font-semibold pg-text mb-4">Timeline</h2>
-          <div className="space-y-4">
-             <label className="flex items-center justify-between p-3.5 bg-[var(--color-bg)]/60 border pg-border/80 rounded-xl cursor-pointer hover:pg-border transition-colors">
-              <div>
-                <span className="text-sm font-medium pg-text block">Active Timeline Mode</span>
-                <span className="text-xs pg-muted">Tampilkan widget countdown dan timeline di landing page</span>
-              </div>
-              <input type="checkbox" checked={formData.timeline.active_timeline_mode} onChange={(e) => setFormData({ ...formData, timeline: { ...formData.timeline, active_timeline_mode: e.target.checked }})} className="w-5 h-5 rounded accent-blue-600 cursor-pointer" />
+          <h2 className="text-base font-semibold pg-text mb-4">SEO Configuration</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Meta Title</label>
+              <input type="text" value={formData.seo.meta_title} onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, meta_title: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Meta Keywords</label>
+              <input type="text" value={formData.seo.meta_keywords} onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, meta_keywords: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="e.g. musyawarah, pemilu, komunitas" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Meta Description</label>
+              <textarea rows={2} value={formData.seo.meta_description} onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, meta_description: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] resize-none" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">OpenGraph Image URL</label>
+              <input type="text" value={formData.seo.opengraph_image} onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, opengraph_image: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors" />
+            </div>
+          </div>
+        </div>
+
+        {/* Feature Flags */}
+        <div className="pg-surface border pg-border rounded-2xl p-6">
+          <h2 className="text-base font-semibold pg-text mb-4">Feature Flags</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="flex items-center justify-between p-3.5 bg-[var(--color-bg)]/60 border pg-border/80 rounded-xl cursor-pointer hover:pg-border transition-colors">
+              <div><span className="text-sm font-medium pg-text block">Show Hero</span></div>
+              <input type="checkbox" checked={formData.feature_flags.show_hero} onChange={(e) => setFormData({ ...formData, feature_flags: { ...formData.feature_flags, show_hero: e.target.checked }})} className="w-5 h-5 rounded accent-blue-600 cursor-pointer" />
+            </label>
+            <label className="flex items-center justify-between p-3.5 bg-[var(--color-bg)]/60 border pg-border/80 rounded-xl cursor-pointer hover:pg-border transition-colors">
+              <div><span className="text-sm font-medium pg-text block">Show Countdown</span></div>
+              <input type="checkbox" checked={formData.feature_flags.show_countdown} onChange={(e) => setFormData({ ...formData, feature_flags: { ...formData.feature_flags, show_countdown: e.target.checked }})} className="w-5 h-5 rounded accent-blue-600 cursor-pointer" />
+            </label>
+            <label className="flex items-center justify-between p-3.5 bg-[var(--color-bg)]/60 border pg-border/80 rounded-xl cursor-pointer hover:pg-border transition-colors">
+              <div><span className="text-sm font-medium pg-text block">Show Timeline</span></div>
+              <input type="checkbox" checked={formData.feature_flags.show_timeline} onChange={(e) => setFormData({ ...formData, feature_flags: { ...formData.feature_flags, show_timeline: e.target.checked }})} className="w-5 h-5 rounded accent-blue-600 cursor-pointer" />
+            </label>
+            <label className="flex items-center justify-between p-3.5 bg-[var(--color-bg)]/60 border pg-border/80 rounded-xl cursor-pointer hover:pg-border transition-colors">
+              <div><span className="text-sm font-medium pg-text block">Show Candidate</span></div>
+              <input type="checkbox" checked={formData.feature_flags.show_candidate} onChange={(e) => setFormData({ ...formData, feature_flags: { ...formData.feature_flags, show_candidate: e.target.checked }})} className="w-5 h-5 rounded accent-blue-600 cursor-pointer" />
+            </label>
+            <label className="flex items-center justify-between p-3.5 bg-[var(--color-bg)]/60 border pg-border/80 rounded-xl cursor-pointer hover:pg-border transition-colors">
+              <div><span className="text-sm font-medium pg-text block">Show Information</span></div>
+              <input type="checkbox" checked={formData.feature_flags.show_information} onChange={(e) => setFormData({ ...formData, feature_flags: { ...formData.feature_flags, show_information: e.target.checked }})} className="w-5 h-5 rounded accent-blue-600 cursor-pointer" />
+            </label>
+            <label className="flex items-center justify-between p-3.5 bg-[var(--color-bg)]/60 border pg-border/80 rounded-xl cursor-pointer hover:pg-border transition-colors">
+              <div><span className="text-sm font-medium pg-text block">Show Footer</span></div>
+              <input type="checkbox" checked={formData.feature_flags.show_footer} onChange={(e) => setFormData({ ...formData, feature_flags: { ...formData.feature_flags, show_footer: e.target.checked }})} className="w-5 h-5 rounded accent-blue-600 cursor-pointer" />
+            </label>
+            <label className="flex items-center justify-between p-3.5 bg-[var(--color-bg)]/60 border pg-border/80 rounded-xl cursor-pointer hover:pg-border transition-colors">
+              <div><span className="text-sm font-medium pg-text block">Enable Registration</span></div>
+              <input type="checkbox" checked={formData.feature_flags.enable_registration} onChange={(e) => setFormData({ ...formData, feature_flags: { ...formData.feature_flags, enable_registration: e.target.checked }})} className="w-5 h-5 rounded accent-blue-600 cursor-pointer" />
+            </label>
+            <label className="flex items-center justify-between p-3.5 bg-[var(--color-bg)]/60 border pg-border/80 rounded-xl cursor-pointer hover:pg-border transition-colors">
+              <div><span className="text-sm font-medium pg-text block">Enable Dark Theme</span></div>
+              <input type="checkbox" checked={formData.feature_flags.enable_dark_theme} onChange={(e) => setFormData({ ...formData, feature_flags: { ...formData.feature_flags, enable_dark_theme: e.target.checked }})} className="w-5 h-5 rounded accent-blue-600 cursor-pointer" />
             </label>
           </div>
         </div>
@@ -182,6 +240,10 @@ export default function AdminWebsiteGeneralPage() {
             <div className="md:col-span-2">
               <label className="block text-xs font-medium text-slate-300 mb-1.5">Secretariat Address</label>
               <input type="text" value={formData.contact.secretariat} onChange={(e) => setFormData({ ...formData, contact: { ...formData.contact, secretariat: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors" />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Google Maps Embed URL</label>
+              <input type="text" value={formData.contact.maps_embed} onChange={(e) => setFormData({ ...formData, contact: { ...formData.contact, maps_embed: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="https://www.google.com/maps/embed?pb=..." />
             </div>
           </div>
         </div>

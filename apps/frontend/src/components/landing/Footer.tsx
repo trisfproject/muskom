@@ -11,6 +11,9 @@ export function Footer({ data }: { data: HomeResponse | null }) {
   const contact = config?.contact;
 
   if (!data) return null;
+  if (config?.feature_flags && !config.feature_flags.show_footer) {
+    return null;
+  }
 
   const orgName = identity?.community_name || data.footer?.organization_name || "MUSKOM";
   const eventLabel = identity ? `${identity.event_name} ${identity.event_year}` : "MUSKOM 2026";

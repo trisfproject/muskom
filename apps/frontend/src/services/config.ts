@@ -14,6 +14,7 @@ export interface PublicationConfig {
   website_status: string; // e.g., "PUBLISHED", "DRAFT"
   maintenance_mode: boolean;
   public_visibility: boolean;
+  offline_message: string;
 }
 
 export interface RegistrationConfig {
@@ -21,11 +22,25 @@ export interface RegistrationConfig {
   participant_registration: boolean;
   opening_date: string | null;
   closing_date: string | null;
+  registration_information: string;
 }
 
-export interface TimelineConfig {
-  active_timeline_mode: boolean;
-  countdown_source: string; // e.g., "TIMELINE_EVENT", "MANUAL"
+export interface SEOConfig {
+  meta_title: string;
+  meta_description: string;
+  meta_keywords: string;
+  opengraph_image: string;
+}
+
+export interface FeatureFlagsConfig {
+  show_hero: boolean;
+  show_countdown: boolean;
+  show_timeline: boolean;
+  show_candidate: boolean;
+  show_information: boolean;
+  show_footer: boolean;
+  enable_registration: boolean;
+  enable_dark_theme: boolean;
 }
 
 export interface ContactConfig {
@@ -40,8 +55,9 @@ export interface FullSystemConfig {
   website_identity: WebsiteIdentityConfig;
   publication: PublicationConfig;
   registration: RegistrationConfig;
-  timeline: TimelineConfig;
   contact: ContactConfig;
+  seo: SEOConfig;
+  feature_flags: FeatureFlagsConfig;
 }
 
 interface ConfigResponse {

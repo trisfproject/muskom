@@ -20,8 +20,11 @@ func ValidateConfigPayload(groupName string, payload json.RawMessage) error {
 	case "registration":
 		var c RegistrationConfig
 		err = json.Unmarshal(payload, &c)
-	case "timeline":
-		var c TimelineConfig
+	case "seo":
+		var c SEOConfig
+		err = json.Unmarshal(payload, &c)
+	case "feature_flags":
+		var c FeatureFlagsConfig
 		err = json.Unmarshal(payload, &c)
 	case "contact":
 		var c ContactConfig

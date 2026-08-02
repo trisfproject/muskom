@@ -33,7 +33,7 @@ import { useSystemConfig } from "@/contexts/ConfigContext"
 
 export function Timeline({ data }: { data: HomeResponse | null }) {
   const { config } = useSystemConfig();
-  const isActive = config?.timeline.active_timeline_mode ?? true;
+  const isActive = config?.feature_flags?.show_timeline ?? true;
   
   if (!isActive) return null;
 

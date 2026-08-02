@@ -21,6 +21,10 @@ export function Hero({ data }: { data: HomeResponse | null }) {
     data?.cta?.participant_registration,
   ].filter(Boolean);
 
+  if (config?.feature_flags && !config.feature_flags.show_hero) {
+    return null;
+  }
+
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-28 pb-12 md:pt-36 md:pb-20 lg:pt-48 lg:pb-32">
       {/* ── Specific Hero Lighting (Overlays on top of Global Atmosphere) ── */}
@@ -151,7 +155,7 @@ function IntegratedPhaseCard({ data }: { data: HomeResponse | null }) {
         </h3>
 
         {/* Countdown Integration */}
-        {countdownTarget && (
+        {countdownTarget && config?.feature_flags?.show_countdown !== false && (
           <div className="pt-5 md:pt-10 pb-1 md:pb-2 border-t border-slate-200/50 dark:border-slate-700/50 relative">
             {/* Subtle glow on separator */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />

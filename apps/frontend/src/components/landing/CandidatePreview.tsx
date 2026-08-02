@@ -1,13 +1,21 @@
+"use client";
+
 import { HomeResponse } from "@/types/landing"
 import { ArrowRight } from "lucide-react"
 import { SlideUp, EmptyState, CandidateSkeleton } from "@/components/landing/Shared"
 import { SectionPill } from "@/components/ui/section-pill"
+import { useSystemConfig } from "@/contexts/ConfigContext"
 
 export function CandidatePreview({ data }: { data: HomeResponse | null }) {
   const candidates = data?.candidates;
   const sectionTitle = data?.candidate_cms?.section_title || "Bursa Calon Ketua";
   const sectionDesc = data?.candidate_cms?.section_description || "Mengenal lebih dekat visi dan misi calon pemimpin yang akan membawa perubahan untuk komunitas.";
   const emptyMsg = data?.candidate_cms?.empty_state_message || "Calon Ketua Umum akan dipublikasikan setelah proses verifikasi administrasi selesai.";
+
+  const { config } = useSystemConfig();
+  if (config?.feature_flags && !config.feature_flags.show_candidate) {
+    return null;
+  }
 
   return (
     // Section rhythm: soft blue tint

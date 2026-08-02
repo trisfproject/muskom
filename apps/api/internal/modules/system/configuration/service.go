@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"go.uber.org/zap"
 )
 
@@ -14,16 +15,18 @@ type Service interface {
 }
 
 type service struct {
-	repo  Repository
-	cache Cache
-	log   *zap.Logger
+	repo         Repository
+	cache        Cache
+	auditService audit.AuditService
+	log          *zap.Logger
 }
 
-func NewService(repo Repository, cache Cache, log *zap.Logger) Service {
+func NewService(repo Repository, cache Cache, auditService audit.AuditService, log *zap.Logger) Service {
 	return &service{
-		repo:  repo,
-		cache: cache,
-		log:   log,
+		repo:         repo,
+		cache:        cache,
+		auditService: auditService,
+		log:          log,
 	}
 }
 
@@ -54,10 +57,12 @@ func (s *service) GetSystemConfig(ctx context.Context) (*FullSystemConfig, error
 			_ = json.Unmarshal(c.Settings, &fullConfig.Publication)
 		case "registration":
 			_ = json.Unmarshal(c.Settings, &fullConfig.Registration)
-		case "timeline":
-			_ = json.Unmarshal(c.Settings, &fullConfig.Timeline)
 		case "contact":
 			_ = json.Unmarshal(c.Settings, &fullConfig.Contact)
+		case "seo":
+			_ = json.Unmarshal(c.Settings, &fullConfig.SEO)
+		case "feature_flags":
+			_ = json.Unmarshal(c.Settings, &fullConfig.FeatureFlags)
 		}
 	}
 
@@ -75,11 +80,35 @@ func (s *service) UpdateConfigGroup(ctx context.Context, req UpdateConfigRequest
 		return fmt.Errorf("invalid configuration payload: %w", err)
 	}
 
+	// Fetch previous config for audit log
+	var previousValue interface{}
+	prevConfig, _ := s.repo.GetConfigByGroup(ctx, req.GroupName)
+	if prevConfig != nil {
+		var pv map[string]interface{}
+		_ = json.Unmarshal(prevConfig.Settings, &pv)
+		previousValue = pv
+	}
+
 	// Update the database
 	if err := s.repo.UpdateConfigGroup(ctx, req.GroupName, req.Settings, updatedBy); err != nil {
 		s.log.Error("Failed to update config group in DB", zap.Error(err), zap.String("group", req.GroupName))
 		return err
 	}
+
+	// Unmarshal new settings for audit
+	var newValue map[string]interface{}
+	_ = json.Unmarshal(req.Settings, &newValue)
+
+	// Fire async audit log
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:        audit.ModuleSystem,
+		Action:        "UPDATE_CONFIG",
+		Entity:        "system_configuration",
+		EntityID:      req.GroupName,
+		ActorID:       updatedBy,
+		PreviousValue: previousValue,
+		NewValue:      newValue,
+	})
 
 	// Invalidate the cache so the next request rebuilds it
 	if err := s.cache.InvalidateConfig(ctx); err != nil {

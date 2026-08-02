@@ -23,11 +23,19 @@ interface AnnouncementItem {
   is_pinned?: boolean;
 }
 
+import { useSystemConfig } from "@/contexts/ConfigContext";
+
 export function InformationCenter({ data }: { data: HomeResponse | null }) {
+  const { config } = useSystemConfig();
+  
   const announcements = (data?.announcements as AnnouncementItem[] | undefined) || [];
   const [pages, setPages] = useState<InformationPage[]>([]);
   const [loadingPages, setLoadingPages] = useState(true);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<AnnouncementItem | null>(null);
+
+  if (config?.feature_flags && !config.feature_flags.show_information) {
+    return null;
+  }
 
   useEffect(() => {
     async function loadPages() {

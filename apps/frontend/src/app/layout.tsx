@@ -22,23 +22,28 @@ export async function generateMetadata(): Promise<Metadata> {
     if (res.ok) {
       const json = await res.json();
       const config = json.data;
-      if (config && config.website_identity) {
+      if (config) {
+        const identity = config.website_identity;
+        const seo = config.seo;
+        
         return {
-          title: { default: config.website_identity.website_title, template: `%s | ${config.website_identity.community_name}` },
-          description: config.website_identity.website_description,
-          keywords: ["musyawarah", "komunitas", "pemilihan", "portal resmi"],
-          authors: [{ name: config.website_identity.community_name }],
+          title: { default: seo?.meta_title || identity?.website_title, template: `%s | ${identity?.community_name}` },
+          description: seo?.meta_description || identity?.website_description,
+          keywords: seo?.meta_keywords ? seo.meta_keywords.split(',').map((k: string) => k.trim()) : ["musyawarah", "komunitas", "pemilihan", "portal resmi"],
+          authors: [{ name: identity?.community_name }],
           robots: "index, follow",
           openGraph: {
-            title: config.website_identity.website_title,
-            description: config.website_identity.website_description,
-            siteName: config.website_identity.community_name,
+            title: seo?.meta_title || identity?.website_title,
+            description: seo?.meta_description || identity?.website_description,
+            siteName: identity?.community_name,
+            images: seo?.opengraph_image ? [seo.opengraph_image] : [],
             type: "website",
           },
           twitter: {
             card: "summary_large_image",
-            title: config.website_identity.website_title,
-            description: config.website_identity.website_description,
+            title: seo?.meta_title || identity?.website_title,
+            description: seo?.meta_description || identity?.website_description,
+            images: seo?.opengraph_image ? [seo.opengraph_image] : [],
           },
         };
       }

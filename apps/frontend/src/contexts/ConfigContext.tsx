@@ -27,16 +27,30 @@ const fallbackConfig: FullSystemConfig = {
     website_status: "PUBLISHED",
     maintenance_mode: false,
     public_visibility: true,
+    offline_message: "Sistem sedang dalam pemeliharaan.",
   },
   registration: {
     candidate_registration: true,
     participant_registration: true,
     opening_date: null,
     closing_date: null,
+    registration_information: "Silakan mendaftar untuk mengikuti musyawarah.",
   },
-  timeline: {
-    active_timeline_mode: true,
-    countdown_source: "TIMELINE_EVENT",
+  seo: {
+    meta_title: "MUSKOM - Portal Resmi",
+    meta_description: "Portal resmi pengelolaan musyawarah.",
+    meta_keywords: "musyawarah, komunitas",
+    opengraph_image: "/logo.png",
+  },
+  feature_flags: {
+    show_hero: true,
+    show_countdown: true,
+    show_timeline: true,
+    show_candidate: true,
+    show_information: true,
+    show_footer: true,
+    enable_registration: true,
+    enable_dark_theme: true,
   },
   contact: {
     email: "admin@muskom.local",

@@ -32,6 +32,7 @@ type PublicationConfig struct {
 	WebsiteStatus    string `json:"website_status"` // e.g., "PUBLISHED", "DRAFT"
 	MaintenanceMode  bool   `json:"maintenance_mode"`
 	PublicVisibility bool   `json:"public_visibility"`
+	OfflineMessage   string `json:"offline_message"`
 }
 
 type RegistrationConfig struct {
@@ -39,11 +40,25 @@ type RegistrationConfig struct {
 	ParticipantRegistration bool    `json:"participant_registration"`
 	OpeningDate             *string `json:"opening_date"` // ISO Date string
 	ClosingDate             *string `json:"closing_date"` // ISO Date string
+	RegistrationInformation string  `json:"registration_information"`
 }
 
-type TimelineConfig struct {
-	ActiveTimelineMode bool   `json:"active_timeline_mode"`
-	CountdownSource    string `json:"countdown_source"` // e.g., "TIMELINE_EVENT", "MANUAL"
+type SEOConfig struct {
+	MetaTitle       string `json:"meta_title"`
+	MetaDescription string `json:"meta_description"`
+	MetaKeywords    string `json:"meta_keywords"`
+	OpenGraphImage  string `json:"opengraph_image"`
+}
+
+type FeatureFlagsConfig struct {
+	ShowHero           bool `json:"show_hero"`
+	ShowCountdown      bool `json:"show_countdown"`
+	ShowTimeline       bool `json:"show_timeline"`
+	ShowCandidate      bool `json:"show_candidate"`
+	ShowInformation    bool `json:"show_information"`
+	ShowFooter         bool `json:"show_footer"`
+	EnableRegistration bool `json:"enable_registration"`
+	EnableDarkTheme    bool `json:"enable_dark_theme"`
 }
 
 type ContactConfig struct {
@@ -60,6 +75,7 @@ type FullSystemConfig struct {
 	WebsiteIdentity WebsiteIdentityConfig `json:"website_identity"`
 	Publication     PublicationConfig     `json:"publication"`
 	Registration    RegistrationConfig    `json:"registration"`
-	Timeline        TimelineConfig        `json:"timeline"`
 	Contact         ContactConfig         `json:"contact"`
+	SEO             SEOConfig             `json:"seo"`
+	FeatureFlags    FeatureFlagsConfig    `json:"feature_flags"`
 }
