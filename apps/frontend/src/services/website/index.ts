@@ -199,11 +199,42 @@ export const websiteService = {
 
   // Information Pages (Public)
   async getPublicInformationPages(): Promise<InformationPage[]> {
-    const res = await api.get("/public/information");
-    return res.data.data;
+    try {
+      const isServer = typeof window === 'undefined';
+      const baseUrl = isServer
+        ? process.env.INTERNAL_API_URL || 'http://api:8080/api/v1'
+        : process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+
+      const res = await fetch(`${baseUrl}/public/information`, {
+        next: { revalidate: 30 }
+      });
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      const json = await res.json();
+      return json.data || [];
+    } catch (err) {
+      console.warn("Failed to fetch public information pages:", err);
+      return [];
+    }
   },
-  async getPublicInformationPage(slug: string): Promise<InformationPage> {
-    const res = await api.get(`/public/information/${slug}`);
-    return res.data.data;
+  async getPublicInformationPage(slug: string): Promise<InformationPage | null> {
+    try {
+      const isServer = typeof window === 'undefined';
+      const baseUrl = isServer
+        ? process.env.INTERNAL_API_URL || 'http://api:8080/api/v1'
+        : process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+
+      const res = await fetch(`${baseUrl}/public/information/${slug}`, {
+        next: { revalidate: 30 }
+      });
+      if (!res.ok) {
+        if (res.status === 404) return null;
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const json = await res.json();
+      return json.data || null;
+    } catch (err) {
+      console.warn(`Failed to fetch information page [${slug}]:`, err);
+      return null;
+    }
   },
 };

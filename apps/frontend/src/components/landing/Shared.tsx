@@ -1,7 +1,7 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { Clock, UserCircle2, CalendarDays } from "lucide-react"
+import { Clock, UserCircle2, CalendarDays, FileText, BookOpen } from "lucide-react"
 import { startTransition, useEffect, useState } from "react"
 import { Card } from "@/components/ui/surfaces"
 
@@ -40,25 +40,28 @@ export function SlideUp({ children, delay = 0, className }: { children: React.Re
 // ─────────────────────────────────────────────────────────────
 // (CountdownTimer moved to ui/countdown-card.tsx)
 // ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // UNIFIED EMPTY STATE
 // ─────────────────────────────────────────────────────────────
 export function EmptyState({
   icon = "calendar",
   title,
   description,
+  className,
 }: {
-  icon?: "calendar" | "user"
+  icon?: "calendar" | "user" | "file" | "book"
   title: string
   description: string
+  className?: string
 }) {
-  const Icon = icon === "user" ? UserCircle2 : CalendarDays
+  const Icon = icon === "user" ? UserCircle2 : icon === "file" ? FileText : CalendarDays
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-surface-secondary border border-light rounded-2xl max-w-md mx-auto">
-      <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
-        <Icon className="w-6 h-6 text-primary" />
+    <div className={`flex flex-col items-center justify-center py-12 px-6 text-center bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl max-w-md mx-auto ${className || ""}`}>
+      <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-3.5 shadow-sm">
+        <Icon className="w-5 h-5 text-primary" />
       </div>
-      <h3 className="text-base font-bold text-base mb-2">{title}</h3>
-      <p className="text-muted max-w-xs text-sm leading-relaxed">{description}</p>
+      <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 mb-1.5">{title}</h3>
+      <p className="text-muted text-xs sm:text-sm leading-relaxed max-w-xs">{description}</p>
     </div>
   )
 }
