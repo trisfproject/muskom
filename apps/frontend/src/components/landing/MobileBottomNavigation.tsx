@@ -3,9 +3,19 @@
 import Link from "next/link"
 import { useAnchorNav } from "@/hooks/useAnchorNav"
 import { navItems } from "@/config/navigation"
+import { useSystemConfig } from "@/contexts/ConfigContext"
 
 export function MobileBottomNavigation() {
   const { activeSection, handleNavClick } = useAnchorNav(navItems, 80)
+  const { config } = useSystemConfig()
+  const flags = config?.feature_flags
+
+  const filteredNavItems = navItems.filter((item) => {
+    if (item.label === "Timeline" && flags && !flags.show_timeline) return false
+    if (item.label === "Kandidat" && flags && !flags.show_candidate) return false
+    if (item.label === "Informasi" && flags && !flags.show_information) return false
+    return true
+  })
 
   return (
     <div 
@@ -13,7 +23,7 @@ export function MobileBottomNavigation() {
       style={{ bottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
     >
       <nav className="flex items-center justify-between px-2 py-2 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/30 shadow-lg shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] rounded-full">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const isActive = activeSection === item.href || (activeSection === "/" && item.href === "/")
 
           return (

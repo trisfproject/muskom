@@ -13,13 +13,17 @@ export function Hero({ data }: { data: HomeResponse | null }) {
   const identity = config?.website_identity;
   
   const badge = data?.hero?.hero_badge || "Together We Shape the Future";
-  const title = identity ? `${identity.event_name} ${identity.event_year}` : "Musyawarah KOMITKABE 2026";
+  const title = data?.event?.name || identity?.community_name || "Musyawarah Komunitas";
   const description = data?.hero?.hero_description || identity?.website_description || "Platform pemilihan resmi. Membangun proses kepemimpinan yang transparan, terpercaya, dan akuntabel.";
 
-  const ctaList = [
+  let ctaList = [
     data?.cta?.candidate_registration,
     data?.cta?.participant_registration,
   ].filter(Boolean);
+
+  if (config?.feature_flags && !config.feature_flags.enable_registration) {
+    ctaList = [];
+  }
 
   if (config?.feature_flags && !config.feature_flags.show_hero) {
     return null;
@@ -114,7 +118,7 @@ export function Hero({ data }: { data: HomeResponse | null }) {
 function IntegratedPhaseCard({ data }: { data: HomeResponse | null }) {
   const { config } = useSystemConfig();
   const identity = config?.website_identity;
-  const eventLabel = identity ? `${identity.event_name} ${identity.event_year}` : "MUSKOM 2026";
+  const eventLabel = data?.event?.name || identity?.community_name || "MUSKOM 2026";
   
   const phaseName = data?.currentPhase?.name || "Penjaringan Bakal Calon";
   const countdownTarget = data?.countdown?.target_date;

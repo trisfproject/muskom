@@ -7,10 +7,13 @@ import { useAnchorNav } from "@/hooks/useAnchorNav"
 import { navItems } from "@/config/navigation"
 import { MobileBottomNavigation } from "@/components/landing/MobileBottomNavigation"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
-
+import { useSystemConfig } from "@/contexts/ConfigContext"
 export function Header() {
   const [scrolled, setScrolled] = useState(false)
   const { activeSection, handleNavClick } = useAnchorNav(navItems, 80)
+  const { config } = useSystemConfig()
+  const identity = config?.website_identity
+  const flags = config?.feature_flags
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,6 +24,14 @@ export function Header() {
     handleScroll()
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  const filteredNavItems = navItems.filter((item) => {
+    if (item.label === "Admin") return false
+    if (item.label === "Timeline" && flags && !flags.show_timeline) return false
+    if (item.label === "Kandidat" && flags && !flags.show_candidate) return false
+    if (item.label === "Informasi" && flags && !flags.show_information) return false
+    return true
+  })
 
   return (
     <>
@@ -40,12 +51,14 @@ export function Header() {
             {/* Brand */}
             <Link href="/" className="flex items-center gap-2.5 group shrink-0">
               <span className="w-2 h-2 rounded-full bg-primary group-hover:scale-125 transition-transform" />
-              <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">MUSKOM</span>
+              <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
+                {identity?.community_name || "MUSKOM"}
+              </span>
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-1.5 justify-center">
-              {navItems.filter((item) => item.label !== "Admin").map((item) => {
+              {filteredNavItems.map((item) => {
                 const isActive = activeSection === item.href
                 return (
                     <Link
@@ -68,9 +81,11 @@ export function Header() {
               <div className="flex items-center gap-2.5 shrink-0">
 
               {/* Theme Toggle */}
-              <div className="hidden sm:block">
-                <ThemeToggle />
-              </div>
+              {(!flags || flags.enable_dark_theme) && (
+                <div className="hidden sm:block">
+                  <ThemeToggle />
+                </div>
+              )}
 
               {/* Portal Admin CTA */}
               <Link

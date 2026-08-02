@@ -13,6 +13,33 @@ export const revalidate = 60
 export default async function LandingPage() {
   const homeData = await landingService.getPublicHome()
 
+  let config: any = null;
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+    const res = await fetch(`${apiUrl}/system/config`, { next: { revalidate: 60 } });
+    if (res.ok) {
+      const json = await res.json();
+      config = json.data;
+    }
+  } catch (error) {
+    console.error("Failed to fetch config for maintenance mode check", error);
+  }
+
+  const isMaintenance = config?.publication?.maintenance_mode || config?.publication?.website_status === "MAINTENANCE";
+
+  if (isMaintenance) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 p-4">
+        <div className="max-w-md text-center p-8 bg-white dark:bg-slate-800 rounded-3xl shadow-xl">
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-4">Pemeliharaan Sistem</h1>
+          <p className="text-slate-600 dark:text-slate-300">
+            {config?.publication?.offline_message || "Website sedang dalam pemeliharaan. Silakan kembali lagi nanti."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ThemeWrapper>
       <main>
