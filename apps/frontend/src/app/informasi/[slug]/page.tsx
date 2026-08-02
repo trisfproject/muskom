@@ -1,13 +1,10 @@
 import { Metadata } from "next";
 import { websiteService } from "@/services/website";
 import { ThemeWrapper } from "@/components/landing/ThemeWrapper";
-import { Container } from "@/components/ui/layout";
 import { Footer } from "@/components/landing/Footer";
 import { landingService } from "@/services/landing";
-import { FileText, ArrowLeft, Calendar } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
+import { DocumentationLayout } from "@/components/layout/DocumentationLayout";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -153,94 +150,12 @@ export default async function InformationPageDetail({ params }: Props) {
 
   return (
     <ThemeWrapper>
-      <main className="min-h-screen pt-28 pb-24 relative">
-        {/* Subtle background glow */}
-        <div
-          className="absolute top-0 right-0 w-[500px] h-[350px] pointer-events-none bg-glow"
-          style={{ filter: "blur(60px)" }}
-        />
-
-        <Container className="max-w-4xl relative z-10">
-          {/* Back Navigation */}
-          <Link
-            href="/#informasi"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary-hover transition-colors mb-8 group"
-          >
-            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-            Kembali ke Pusat Informasi
-          </Link>
-
-          {/* Page Header Card */}
-          <div className="mb-10 p-8 sm:p-10 rounded-3xl bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl border border-light dark:border-slate-800 shadow-sm">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-wide uppercase mb-5">
-              <FileText className="w-3.5 h-3.5" />
-              Pusat Informasi Resmi
-            </div>
-            
-            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight mb-5">
-              {page.title}
-            </h1>
-            
-            {formattedDate && (
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted">
-                <Calendar className="w-4 h-4 text-primary" />
-                <span>Terakhir diperbarui: {formattedDate}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Page Content Card */}
-          <div className="p-8 sm:p-12 rounded-3xl bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-light dark:border-slate-800 shadow-sm leading-relaxed">
-            <ReactMarkdown
-              components={{
-                h1: ({ children }) => (
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2 mb-6 border-b border-light dark:border-slate-800 pb-3">
-                    {children}
-                  </h1>
-                ),
-                h2: ({ children }) => (
-                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-8 mb-4 flex items-center gap-3">
-                    <span className="w-1.5 h-6 rounded-full bg-primary inline-block shrink-0" />
-                    {children}
-                  </h2>
-                ),
-                h3: ({ children }) => (
-                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-6 mb-3">
-                    {children}
-                  </h3>
-                ),
-                p: ({ children }) => (
-                  <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed mb-5">
-                    {children}
-                  </p>
-                ),
-                ul: ({ children }) => (
-                  <ul className="list-disc list-outside ml-6 space-y-2.5 mb-6 text-slate-700 dark:text-slate-300">
-                    {children}
-                  </ul>
-                ),
-                ol: ({ children }) => (
-                  <ol className="list-decimal list-outside ml-6 space-y-2.5 mb-6 text-slate-700 dark:text-slate-300">
-                    {children}
-                  </ol>
-                ),
-                li: ({ children }) => (
-                  <li className="leading-relaxed pl-1">
-                    {children}
-                  </li>
-                ),
-                strong: ({ children }) => (
-                  <strong className="font-bold text-slate-900 dark:text-white">
-                    {children}
-                  </strong>
-                ),
-              }}
-            >
-              {page.content}
-            </ReactMarkdown>
-          </div>
-        </Container>
-      </main>
+      <DocumentationLayout
+        title={page.title}
+        content={page.content}
+        lastUpdated={formattedDate}
+        backLink={{ href: "/#informasi", label: "Kembali ke Pusat Informasi" }}
+      />
       <Footer data={homeData ?? null} />
     </ThemeWrapper>
   );
