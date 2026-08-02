@@ -1,7 +1,5 @@
 import publicApi from '@/lib/public-api';
 import { HomeResponse } from '@/types/landing';
-import { landingSeed } from '@/data/landing-seed';
-
 export const landingService = {
   async getPublicHome(): Promise<HomeResponse | null> {
     try {
@@ -22,19 +20,37 @@ export const landingService = {
 
       // Transform API response to match frontend HomeResponse structure and inject lifecycle logic
       const lifecycle = apiData?.event?.lifecycle_state || 'PREPARATION';
-      
-      const mappedData: HomeResponse = {
-        ...landingSeed, // fallback for static CMS parts
-        hero: apiData?.hero || landingSeed.hero,
-        footer: apiData?.footer || landingSeed.footer,
-        countdown: apiData?.countdown || landingSeed.countdown,
+      const mappedData = {
+        ...apiData,
+        hero: apiData?.hero || {
+          hero_badge: "Welcome",
+          hero_title: "MUSKOM 2026",
+          hero_description: "Musyawarah Komisariat",
+          primary_cta_label: "Daftar",
+          primary_cta_url: "/register",
+          primary_cta_enabled: false,
+          secondary_cta_label: "Info",
+          secondary_cta_url: "#",
+          secondary_cta_enabled: false,
+          background_mode: "default",
+          hero_status: "ACTIVE",
+          is_published: true,
+        },
+        footer: apiData?.footer || {
+          organization_name: "MUSKOM",
+          description: "Musyawarah Komisariat",
+          copyright: "2026 MUSKOM",
+          official_badge: "Official",
+          tagline: "Together we build",
+        },
+        countdown: apiData?.countdown,
         currentPhase: {
-          name: apiData?.currentPhase?.name || landingSeed.currentPhase.name,
+          name: apiData?.currentPhase?.name || "Belum Ada Jadwal",
           end_date: apiData?.currentPhase?.end_date,
           is_active: apiData?.currentPhase?.is_active || false,
         },
         event: apiData?.event, // Include event for downstream use
-      };
+      } as HomeResponse;
 
       // Lifecycle-driven CTA overrides
       mappedData.cta = {
@@ -58,8 +74,8 @@ export const landingService = {
 
       return mappedData;
     } catch (error: unknown) {
-      console.warn("API unavailable, falling back to seed data:", error);
-      return landingSeed;
+      console.error("API request failed:", error);
+      throw new Error("Gagal memuat data dari server. Pastikan API berjalan dengan baik.");
     }
   },
   async registerParticipant(data: Record<string, unknown>): Promise<Record<string, unknown>> {

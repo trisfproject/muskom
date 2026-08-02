@@ -212,8 +212,8 @@ export const websiteService = {
       const json = await res.json();
       return json.data || [];
     } catch (err) {
-      console.warn("Failed to fetch public information pages:", err);
-      return [];
+      console.error("Failed to fetch public information pages:", err);
+      throw err;
     }
   },
   async getPublicInformationPage(slug: string): Promise<InformationPage | null> {
@@ -233,8 +233,8 @@ export const websiteService = {
       const json = await res.json();
       return json.data || null;
     } catch (err) {
-      console.warn(`Failed to fetch information page [${slug}]:`, err);
-      return null;
+      console.error(`Failed to fetch information page [${slug}]:`, err);
+      throw err;
     }
   },
 };
