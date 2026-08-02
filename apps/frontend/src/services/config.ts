@@ -35,11 +35,6 @@ export interface ContactConfig {
   maps_embed: string;
 }
 
-export interface SocialMediaConfig {
-  instagram: string;
-  telegram: string;
-  website: string;
-}
 
 export interface FullSystemConfig {
   website_identity: WebsiteIdentityConfig;
@@ -47,7 +42,6 @@ export interface FullSystemConfig {
   registration: RegistrationConfig;
   timeline: TimelineConfig;
   contact: ContactConfig;
-  social_media: SocialMediaConfig;
 }
 
 interface ConfigResponse {

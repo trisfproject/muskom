@@ -58,8 +58,6 @@ func (s *service) GetSystemConfig(ctx context.Context) (*FullSystemConfig, error
 			_ = json.Unmarshal(c.Settings, &fullConfig.Timeline)
 		case "contact":
 			_ = json.Unmarshal(c.Settings, &fullConfig.Contact)
-		case "social_media":
-			_ = json.Unmarshal(c.Settings, &fullConfig.SocialMedia)
 		}
 	}
 

@@ -8,6 +8,5 @@ VALUES
     ('publication', '{"website_status": "PUBLISHED", "maintenance_mode": false, "public_visibility": true}'::jsonb),
     ('registration', '{"candidate_registration": true, "participant_registration": true, "opening_date": null, "closing_date": null}'::jsonb),
     ('timeline', '{"active_timeline_mode": true, "countdown_source": "TIMELINE_EVENT"}'::jsonb),
-    ('contact', '{"email": "admin@muskom.local", "whatsapp": "+6281234567890", "secretariat": "Jl. Musyawarah No. 1, Jakarta", "maps_embed": ""}'::jsonb),
-    ('social_media', '{"instagram": "@muskom", "telegram": "t.me/muskom", "website": "https://muskom.local"}'::jsonb)
+    ('contact', '{"email": "admin@muskom.local", "whatsapp": "+6281234567890", "secretariat": "Jl. Musyawarah No. 1, Jakarta", "maps_embed": ""}'::jsonb)
 ON CONFLICT (group_name) DO UPDATE SET settings = EXCLUDED.settings;

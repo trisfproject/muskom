@@ -53,11 +53,7 @@ type ContactConfig struct {
 	MapsEmbed   string `json:"maps_embed"`
 }
 
-type SocialMediaConfig struct {
-	Instagram string `json:"instagram"`
-	Telegram  string `json:"telegram"`
-	Website   string `json:"website"`
-}
+
 
 // FullSystemConfig is an aggregate structure useful for returning everything to the client
 type FullSystemConfig struct {
@@ -66,5 +62,4 @@ type FullSystemConfig struct {
 	Registration    RegistrationConfig    `json:"registration"`
 	Timeline        TimelineConfig        `json:"timeline"`
 	Contact         ContactConfig         `json:"contact"`
-	SocialMedia     SocialMediaConfig     `json:"social_media"`
 }

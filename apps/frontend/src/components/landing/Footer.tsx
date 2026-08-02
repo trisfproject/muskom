@@ -2,14 +2,13 @@
 
 import { useSystemConfig } from "@/contexts/ConfigContext";
 import { HomeResponse } from "@/types/landing";
-import { ArrowUp, ArrowRight, ShieldCheck, Mail, MapPin, FileText, Phone, Instagram, Send, Globe } from "lucide-react";
+import { ArrowUp, ArrowRight, ShieldCheck, Mail, MapPin, FileText, Phone } from "lucide-react";
 import Link from "next/link";
 
 export function Footer({ data }: { data: HomeResponse | null }) {
   const { config } = useSystemConfig();
   const identity = config?.website_identity;
   const contact = config?.contact;
-  const social = config?.social_media;
 
   if (!data) return null;
 
@@ -188,25 +187,6 @@ export function Footer({ data }: { data: HomeResponse | null }) {
         <div className="pt-6 border-t border-slate-200/60 dark:border-slate-800/60 flex flex-col lg:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex flex-col sm:flex-row items-center gap-4 lg:gap-8">
             <p>{copyright}</p>
-            
-            {/* Social Media Links */}
-            <div className="flex items-center gap-3">
-              {social?.instagram && (
-                <a href={`https://instagram.com/${social.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white dark:hover:bg-primary transition-colors" aria-label="Instagram">
-                  <Instagram className="w-3.5 h-3.5" />
-                </a>
-              )}
-              {social?.telegram && (
-                <a href={social.telegram.startsWith('http') ? social.telegram : `https://${social.telegram}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white dark:hover:bg-primary transition-colors" aria-label="Telegram">
-                  <Send className="w-3.5 h-3.5" />
-                </a>
-              )}
-              {social?.website && (
-                <a href={social.website.startsWith('http') ? social.website : `https://${social.website}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-primary hover:text-white dark:hover:bg-primary transition-colors" aria-label="Website">
-                  <Globe className="w-3.5 h-3.5" />
-                </a>
-              )}
-            </div>
           </div>
           
           <div className="flex items-center gap-4 mt-4 lg:mt-0">

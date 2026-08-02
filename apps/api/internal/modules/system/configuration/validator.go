@@ -26,9 +26,6 @@ func ValidateConfigPayload(groupName string, payload json.RawMessage) error {
 	case "contact":
 		var c ContactConfig
 		err = json.Unmarshal(payload, &c)
-	case "social_media":
-		var c SocialMediaConfig
-		err = json.Unmarshal(payload, &c)
 	default:
 		return fmt.Errorf("unknown configuration group: %s", groupName)
 	}

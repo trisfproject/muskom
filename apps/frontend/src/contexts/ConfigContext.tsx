@@ -43,11 +43,6 @@ const fallbackConfig: FullSystemConfig = {
     whatsapp: "",
     secretariat: "",
     maps_embed: "",
-  },
-  social_media: {
-    instagram: "",
-    telegram: "",
-    website: "",
   }
 };
 

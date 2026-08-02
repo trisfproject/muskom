@@ -40,7 +40,6 @@ export default function AdminWebsiteGeneralPage() {
       await configService.updateConfigGroup("registration", formData.registration);
       await configService.updateConfigGroup("timeline", formData.timeline);
       await configService.updateConfigGroup("contact", formData.contact);
-      await configService.updateConfigGroup("social_media", formData.social_media);
       
       await refreshConfig();
       setMessage({ type: "success", text: "Konfigurasi sistem berhasil disimpan." });
@@ -183,21 +182,6 @@ export default function AdminWebsiteGeneralPage() {
             <div className="md:col-span-2">
               <label className="block text-xs font-medium text-slate-300 mb-1.5">Secretariat Address</label>
               <input type="text" value={formData.contact.secretariat} onChange={(e) => setFormData({ ...formData, contact: { ...formData.contact, secretariat: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors" />
-            </div>
-          </div>
-        </div>
-
-        {/* Social Media */}
-        <div className="pg-surface border pg-border rounded-2xl p-6">
-          <h2 className="text-base font-semibold pg-text mb-4">Social Media</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">Instagram</label>
-              <input type="text" value={formData.social_media.instagram} onChange={(e) => setFormData({ ...formData, social_media: { ...formData.social_media, instagram: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">Telegram</label>
-              <input type="text" value={formData.social_media.telegram} onChange={(e) => setFormData({ ...formData, social_media: { ...formData.social_media, telegram: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors" />
             </div>
           </div>
         </div>
