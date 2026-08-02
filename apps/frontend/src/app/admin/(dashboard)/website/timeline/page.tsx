@@ -212,9 +212,20 @@ export default function AdminWebsiteTimelinePage() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2 mb-1.5">
                     <h3 className="font-bold pg-text text-lg">{phase.title}</h3>
-                    {phase.current_indicator && (
+                    {phase.status === "active" && (
                       <span className="px-3 py-1 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-primary text-[10px] font-semibold uppercase tracking-wider h-7 inline-flex items-center">
                         Fase Aktif
+                      </span>
+                    )}
+                    {phase.status === "past" && (
+                      <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-[10px] font-semibold uppercase tracking-wider h-7 inline-flex items-center">
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        Selesai
+                      </span>
+                    )}
+                    {phase.status === "upcoming" && (
+                      <span className="px-3 py-1 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-500 text-[10px] font-semibold uppercase tracking-wider h-7 inline-flex items-center">
+                        Akan Datang
                       </span>
                     )}
                     {phase.registration_type !== "NONE" && (

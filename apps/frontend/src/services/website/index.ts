@@ -43,6 +43,7 @@ export interface TimelinePhase {
   registration_type: "NONE" | "PARTICIPANT" | "CANDIDATE" | "BOTH";
   current_indicator: boolean;
   is_published: boolean;
+  status?: "upcoming" | "active" | "past";
   created_at?: string;
   updated_at?: string;
 }

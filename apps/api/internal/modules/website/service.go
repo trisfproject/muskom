@@ -77,8 +77,51 @@ func NewService(repo Repository, cache Cache, mapper *Mapper, validator *Validat
 }
 
 // ----------------------------------------------------------------------------
+// Shared Helpers
+// ----------------------------------------------------------------------------
+
+func CalculatePhasesStatus(phases []WebsiteTimelinePhase) {
+	now := time.Now().UTC()
+	var activePhaseID *string
+
+	// 1. Find the explicitly active phase (CurrentIndicator == true)
+	for i := range phases {
+		if phases[i].CurrentIndicator {
+			id := phases[i].ID
+			activePhaseID = &id
+			break
+		}
+	}
+
+	// 2. If no explicit active phase, find the first valid active phase by date
+	if activePhaseID == nil {
+		for i := range phases {
+			p := &phases[i]
+			if (now.After(p.StartDate) || now.Equal(p.StartDate)) && (now.Before(p.EndDate) || now.Equal(p.EndDate)) {
+				id := p.ID
+				activePhaseID = &id
+				break
+			}
+		}
+	}
+
+	// 3. Assign statuses
+	for i := range phases {
+		p := &phases[i]
+		if activePhaseID != nil && p.ID == *activePhaseID {
+			p.Status = "active"
+		} else if now.After(p.EndDate) {
+			p.Status = "past"
+		} else {
+			p.Status = "upcoming"
+		}
+	}
+}
+
+// ----------------------------------------------------------------------------
 // Public Service Methods
 // ----------------------------------------------------------------------------
+
 
 func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error) {
 	start := time.Now()
@@ -105,14 +148,15 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 	footer, _ := s.repo.GetFooter(ctx)
 
 	// 3. Current Phase & Countdown Engine
-	now := time.Now().UTC()
+	CalculatePhasesStatus(phases)
+
 	var currentPhase PublicCurrentPhaseDTO
 	var countdown *PublicCountdownDTO
 	var activePhase *WebsiteTimelinePhase
 	var nextPhase *WebsiteTimelinePhase
 
 	for i := range phases {
-		if phases[i].CurrentIndicator {
+		if phases[i].Status == "active" {
 			activePhase = &phases[i]
 			if i+1 < len(phases) {
 				nextPhase = &phases[i+1]
@@ -123,15 +167,9 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 
 	if activePhase == nil {
 		for i := range phases {
-			p := &phases[i]
-			if (now.After(p.StartDate) || now.Equal(p.StartDate)) && (now.Before(p.EndDate) || now.Equal(p.EndDate)) {
-				activePhase = p
-				if i+1 < len(phases) {
-					nextPhase = &phases[i+1]
-				}
+			if phases[i].Status == "upcoming" {
+				nextPhase = &phases[i]
 				break
-			} else if now.Before(p.StartDate) && activePhase == nil && nextPhase == nil {
-				nextPhase = p
 			}
 		}
 	}
@@ -283,16 +321,10 @@ func (s *service) GetPublicTimeline(ctx context.Context) ([]PublicTimelineDTO, e
 		return nil, err
 	}
 
-	now := time.Now().UTC()
+	CalculatePhasesStatus(phases)
+
 	dtos := make([]PublicTimelineDTO, len(phases))
 	for i, p := range phases {
-		status := "upcoming"
-		if p.CurrentIndicator || ((now.After(p.StartDate) || now.Equal(p.StartDate)) && (now.Before(p.EndDate) || now.Equal(p.EndDate))) {
-			status = "active"
-		} else if now.After(p.EndDate) {
-			status = "past"
-		}
-
 		dtos[i] = PublicTimelineDTO{
 			ID:               p.ID,
 			Title:            p.Title,
@@ -301,7 +333,7 @@ func (s *service) GetPublicTimeline(ctx context.Context) ([]PublicTimelineDTO, e
 			EndDate:          p.EndDate,
 			DisplayOrder:     p.DisplayOrder,
 			RegistrationType: p.RegistrationType,
-			Status:           status,
+			Status:           p.Status,
 		}
 	}
 	return dtos, nil
@@ -423,7 +455,12 @@ func (s *service) UpdateAdminHero(ctx context.Context, req *UpdateHeroRequest) (
 }
 
 func (s *service) GetAdminTimeline(ctx context.Context) ([]WebsiteTimelinePhase, error) {
-	return s.repo.GetTimelinePhases(ctx, false)
+	phases, err := s.repo.GetTimelinePhases(ctx, false)
+	if err != nil {
+		return nil, err
+	}
+	CalculatePhasesStatus(phases)
+	return phases, nil
 }
 
 func (s *service) GetAdminTimelineByID(ctx context.Context, id string) (*WebsiteTimelinePhase, error) {

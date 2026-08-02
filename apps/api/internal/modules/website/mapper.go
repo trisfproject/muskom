@@ -113,13 +113,6 @@ func (m *Mapper) MapHero(h *WebsiteHeroSettings) WebsiteHeroDTO {
 func (m *Mapper) MapTimelinePhases(phases []WebsiteTimelinePhase, activePhaseID *string) []PublicTimelineDTO {
 	res := make([]PublicTimelineDTO, len(phases))
 	for i, p := range phases {
-		status := "upcoming"
-		if activePhaseID != nil && p.ID == *activePhaseID {
-			status = "active"
-		} else if p.EndDate.Before(p.StartDate) { // fallback
-			status = "past"
-		}
-		// status is further refined by caller based on current time
 		res[i] = PublicTimelineDTO{
 			ID:               p.ID,
 			Title:            p.Title,
@@ -128,7 +121,7 @@ func (m *Mapper) MapTimelinePhases(phases []WebsiteTimelinePhase, activePhaseID 
 			EndDate:          p.EndDate,
 			DisplayOrder:     p.DisplayOrder,
 			RegistrationType: p.RegistrationType,
-			Status:           status,
+			Status:           p.Status,
 		}
 	}
 	return res
