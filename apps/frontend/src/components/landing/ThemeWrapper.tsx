@@ -3,19 +3,13 @@ import { useEffect, useState, startTransition } from "react"
 import { Header } from "./Header"
 
 export function ThemeWrapper({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<"dark" | "light">("dark")
+  const [theme, setTheme] = useState<"dark" | "light">("light")
 
   useEffect(() => {
     const stored = localStorage.getItem("muskom-theme") as "dark" | "light" | null
-    const resolved = stored ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-    startTransition(() => setTheme(resolved))
-
-    const mq = window.matchMedia("(prefers-color-scheme: dark)")
-    const listener = (e: MediaQueryListEvent) => {
-      if (!localStorage.getItem("muskom-theme")) setTheme(e.matches ? "dark" : "light")
+    if (stored) {
+      startTransition(() => setTheme(stored))
     }
-    mq.addEventListener("change", listener)
-    return () => mq.removeEventListener("change", listener)
   }, [])
 
   const toggleTheme = () => {
