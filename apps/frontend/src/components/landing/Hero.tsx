@@ -23,7 +23,7 @@ export function Hero({ data }: { data: HomeResponse | null }) {
 
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-20">
-      {/* Global background handles atmosphere. We only need content here. */}
+      <div className="absolute inset-0 bg-network opacity-50 pointer-events-none" />
       {/* ── Content ── */}
       <Container className="relative z-10 py-36 lg:py-0">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">

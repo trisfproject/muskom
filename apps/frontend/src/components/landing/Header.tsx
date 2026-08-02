@@ -116,7 +116,7 @@ export function Header({ theme, toggleTheme }: { theme: "dark" | "light"; toggle
           style={{ background: "rgba(0,0,0,0.55)" }}
           onClick={() => setOpen(false)}
         />
-        <div className={`absolute inset-y-0 right-0 w-72 pg-surface border-l pg-border flex flex-col transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}>
+        <div className={`absolute inset-y-0 right-0 w-72 glass border-l-0 sm:border-l border-[var(--color-border)] flex flex-col transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}>
           <div className="flex items-center justify-between px-5 h-16 border-b pg-border">
             <span className="font-bold pg-text">Menu</span>
             <button onClick={() => setOpen(false)}

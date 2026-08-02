@@ -19,9 +19,9 @@ export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
           <div className="absolute left-[15px] top-[32px] bottom-[-24px] w-0.5 z-0">
             <div className={cn(
               "w-full h-full",
-              status === "past" ? "bg-success" : 
-              status === "active" ? "bg-gradient-to-b from-primary to-info" : 
-              "bg-gradient-to-b from-info to-[rgba(71,85,105,0.3)]"
+              status === "past" ? "bg-[var(--color-success)]" : 
+              status === "active" ? "bg-gradient-to-b from-[var(--color-primary)] to-[var(--color-info)]" : 
+              "bg-gradient-to-b from-[var(--color-info)] to-[rgba(71,85,105,0.3)]"
             )} />
           </div>
         )}
@@ -31,7 +31,7 @@ export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
           <div className={cn(
             "w-8 h-8 rounded-full flex items-center justify-center border-2 border-surface bg-surface shadow-sm transition-normal",
             status === "past" && "bg-success border-success shadow-[0_0_0_3px_rgba(16,185,129,0.15)]",
-            status === "active" && "bg-primary border-primary shadow-[0_0_0_3px_rgba(16,185,129,0.18),0_0_0_6px_rgba(16,185,129,0.08),0_0_20px_rgba(16,185,129,0.35)]",
+            status === "active" && "bg-primary border-primary shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_18%,transparent),0_0_0_6px_color-mix(in_srgb,var(--color-primary)_8%,transparent),0_0_20px_color-mix(in_srgb,var(--color-primary)_35%,transparent)]",
             status === "upcoming" && "bg-info border-info shadow-[0_0_0_2px_rgba(56,189,248,0.12)]"
           )}>
             <div className={cn("w-2 h-2 rounded-full", status === "upcoming" ? "bg-surface" : "bg-white")} />

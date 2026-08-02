@@ -1,21 +1,21 @@
 @layer utilities {
   .bg-aurora {
     background:
-      radial-gradient(ellipse 80% 80% at 50% -20%, rgba(37, 99, 235, 0.08), transparent),
-      radial-gradient(ellipse 60% 60% at 80% 0%, rgba(56, 189, 248, 0.05), transparent);
+      radial-gradient(ellipse 80% 80% at 50% -20%, color-mix(in srgb, var(--color-primary) 5%, transparent), transparent),
+      radial-gradient(ellipse 60% 60% at 80% 0%, color-mix(in srgb, var(--color-info) 3%, transparent), transparent);
   }
 
   .bg-blueprint {
     background-image:
-      linear-gradient(rgba(37, 99, 235, 0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(37, 99, 235, 0.02) 1px, transparent 1px);
+      linear-gradient(color-mix(in srgb, var(--color-primary) 1.5%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-primary) 1.5%, transparent) 1px, transparent 1px);
     background-size: 64px 64px;
     mask-image: radial-gradient(ellipse at center, transparent 15%, black 80%);
     -webkit-mask-image: radial-gradient(ellipse at center, transparent 15%, black 80%);
   }
 
   .bg-network {
-    background-image: radial-gradient(circle, rgba(37, 99, 235, 0.04) 1px, transparent 1px);
+    background-image: radial-gradient(circle, color-mix(in srgb, var(--color-primary) 3%, transparent) 1px, transparent 1px);
     background-size: 32px 32px;
     mask-image: radial-gradient(ellipse at center, transparent 40%, black 100%);
     -webkit-mask-image: radial-gradient(ellipse at center, transparent 40%, black 100%);
@@ -27,13 +27,13 @@
 
   .bg-noise {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: 0.02;
+    opacity: 0.015;
     mix-blend-mode: overlay;
   }
 
   .bg-glow {
     background:
-      radial-gradient(circle 600px at 90% 10%, rgba(37, 99, 235, 0.05), transparent),
-      radial-gradient(circle 500px at 10% 90%, rgba(56, 189, 248, 0.04), transparent);
+      radial-gradient(circle 600px at 90% 10%, color-mix(in srgb, var(--color-primary) 3%, transparent), transparent),
+      radial-gradient(circle 500px at 10% 90%, color-mix(in srgb, var(--color-info) 2%, transparent), transparent);
   }
 }
