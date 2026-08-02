@@ -56,8 +56,8 @@ export function EmptyState({
 }) {
   const Icon = icon === "user" ? UserCircle2 : icon === "file" ? FileText : CalendarDays
   return (
-    <div className={`flex flex-col items-center justify-center py-12 px-6 text-center bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl max-w-md mx-auto ${className || ""}`}>
-      <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-3.5 shadow-sm">
+    <div className={`flex flex-col items-center justify-center py-12 px-6 text-center bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border border-dashed border-slate-300/50 dark:border-slate-700/50 rounded-2xl max-w-md mx-auto ${className || ""}`}>
+      <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-3.5 shadow-sm">
         <Icon className="w-5 h-5 text-primary" />
       </div>
       <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 mb-1.5">{title}</h3>

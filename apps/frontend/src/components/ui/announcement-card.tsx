@@ -20,8 +20,8 @@ export const AnnouncementCard = React.forwardRef<HTMLDivElement, AnnouncementCar
         ref={ref}
         onClick={onClick}
         className={cn(
-          "group relative overflow-hidden flex flex-col p-6 sm:p-7 transition-all duration-300 rounded-2xl bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm border border-light dark:border-slate-800 hover:border-primary/40 hover:shadow-xl hover:-translate-y-1 h-full cursor-pointer",
-          isLatest && "border-primary/30 ring-1 ring-primary/10 shadow-sm",
+          "group relative overflow-hidden flex flex-col p-6 sm:p-7 transition-all duration-300 rounded-2xl bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl hover:shadow-xl hover:shadow-blue-500/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_0_0_1px_rgba(255,255,255,0.5)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),inset_0_0_0_1px_rgba(255,255,255,0.05)] hover:-translate-y-1 h-full cursor-pointer",
+          isLatest && "shadow-[0_4px_24px_-4px_rgba(37,99,235,0.15)] ring-1 ring-blue-500/20 bg-blue-50/50 dark:bg-blue-900/10",
           className
         )}
         {...props}

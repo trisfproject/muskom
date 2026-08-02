@@ -9,6 +9,10 @@
 @import "../styles/animations.css";
 @import "../styles/layout.css";
 
+@theme {
+  --color-primary: #2563eb;
+  --color-info: #3b82f6;
+}
 @layer base {
   * { box-sizing: border-box; }
 

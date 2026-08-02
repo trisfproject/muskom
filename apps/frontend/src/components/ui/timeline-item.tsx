@@ -14,18 +14,18 @@ export interface TimelineItemProps extends React.HTMLAttributes<HTMLDivElement> 
 export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
   ({ className, order, title, date, description, status, isLast = false, ...props }, ref) => {
     return (
-      <div ref={ref} className={cn("relative flex gap-4 sm:gap-6 group", className)} {...props}>
+      <div ref={ref} className={cn("relative flex gap-6 sm:gap-10 group", className)} {...props}>
         {/* Connector Line */}
         {!isLast && (
           <div className="absolute left-[17px] sm:left-[19px] top-[40px] bottom-[-24px] w-[2px] z-0">
             <div
               className={cn(
-                "w-full h-full transition-all duration-300",
+                "w-full h-full transition-all duration-300 rounded-full",
                 status === "past"
-                  ? "bg-emerald-500/40"
+                  ? "bg-gradient-to-b from-emerald-400/40 to-emerald-400/10"
                   : status === "active"
-                  ? "bg-gradient-to-b from-primary via-primary/40 to-slate-200 dark:to-slate-800"
-                  : "bg-slate-200/80 dark:bg-slate-800/80"
+                  ? "bg-gradient-to-b from-primary/60 via-primary/20 to-slate-200/30 dark:to-slate-700/30"
+                  : "bg-gradient-to-b from-slate-200/50 to-slate-200/10 dark:from-slate-700/50 dark:to-slate-700/10"
               )}
             />
           </div>
@@ -57,12 +57,12 @@ export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
 
         <div
           className={cn(
-            "flex-1 p-6 sm:p-8 rounded-3xl transition-all duration-300 relative overflow-hidden backdrop-blur-xl border hover:shadow-xl hover:-translate-y-1",
+            "flex-1 p-6 sm:p-8 rounded-3xl transition-all duration-300 relative overflow-hidden backdrop-blur-xl hover:shadow-xl hover:-translate-y-1",
             status === "active"
-              ? "bg-white/80 dark:bg-slate-900/80 border-primary/40 shadow-glow shadow-[inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] hover:shadow-blue-500/15"
+              ? "bg-white/90 dark:bg-slate-900/80 shadow-[0_8px_32px_-8px_rgba(37,99,235,0.25)] dark:shadow-[0_8px_32px_-8px_rgba(37,99,235,0.15)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.9),inset_0_0_0_1px_rgba(255,255,255,0.8)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),inset_0_0_0_1px_rgba(255,255,255,0.1)] ring-1 ring-blue-500/20"
               : status === "past"
-              ? "bg-white/50 dark:bg-slate-900/40 border-white/50 dark:border-slate-700/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)] hover:border-blue-200/50"
-              : "bg-white/30 dark:bg-slate-900/20 border-white/30 dark:border-slate-700/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3)] opacity-90"
+              ? "bg-white/50 dark:bg-slate-900/40 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.05)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_0_0_1px_rgba(255,255,255,0.5)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),inset_0_0_0_1px_rgba(255,255,255,0.1)]"
+              : "bg-white/30 dark:bg-slate-900/20 shadow-[0_4px_16px_-4px_rgba(0,0,0,0.02)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.4),inset_0_0_0_1px_rgba(255,255,255,0.3)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),inset_0_0_0_1px_rgba(255,255,255,0.1)] opacity-90"
           )}
         >
           {/* Active Phase Background Accent Glow */}

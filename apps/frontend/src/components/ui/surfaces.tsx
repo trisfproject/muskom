@@ -11,7 +11,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          "bg-surface border border-light rounded-2xl",
+          "bg-white/60 dark:bg-slate-900/40 backdrop-blur-xl rounded-2xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_0_0_1px_rgba(255,255,255,0.5)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),inset_0_0_0_1px_rgba(255,255,255,0.05)]",
           interactive && "shadow-sm transition-normal hover:-translate-y-0.5 hover:shadow-md hover:border-base hover:bg-surface-secondary active:translate-y-0 active:shadow-xs",
           className
         )}
