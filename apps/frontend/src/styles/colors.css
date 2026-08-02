@@ -32,8 +32,10 @@
   /* ── Legacy / Semantic ── */
   .pg-bg { background-color: var(--color-bg); }
   .pg-surface { background-color: var(--color-surface); }
+  .pg-surface-elevated { background-color: var(--color-surface-secondary); }
   .pg-text { color: var(--color-text-primary); }
   .pg-muted { color: var(--color-text-secondary); }
   .pg-faint { color: var(--color-text-secondary); opacity: 0.7; }
   .pg-border { border-color: var(--color-border); }
+  .pg-primary { background-color: var(--color-primary); }
 }

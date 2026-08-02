@@ -5,8 +5,10 @@ import { landingSeed } from '@/data/landing-seed';
 export const landingService = {
   async getPublicHome(): Promise<HomeResponse | null> {
     try {
-      // Use native fetch to leverage Next.js Data Cache in Server Components
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+      const isServer = typeof window === 'undefined';
+      const baseUrl = isServer
+        ? process.env.INTERNAL_API_URL || 'http://api:8080/api/v1'
+        : process.env.NEXT_PUBLIC_API_URL || '/api/v1';
       const res = await fetch(`${baseUrl}/public/home`, {
         next: { revalidate: 60 } // ISR Cache: 60 seconds
       });

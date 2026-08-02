@@ -44,11 +44,11 @@ export function AdminHeader() {
           <input
             type="text"
             placeholder="Search anywhere (Cmd+K)"
-            className="w-full bg-white dark:bg-slate-900 border border-[var(--color-border)] rounded-lg pl-10 pr-4 py-2 text-sm text-slate-900 dark:text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-600/50 focus:border-blue-600 transition-all"
+            className="w-full pg-surface border border-[var(--color-border)] rounded-lg pl-10 pr-4 py-2 text-sm pg-text placeholder:pg-muted focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 focus:border-[var(--color-primary)] transition-all"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-            <kbd className="hidden sm:inline-flex items-center justify-center h-5 px-1.5 text-[10px] font-medium rounded border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">⌘</kbd>
-            <kbd className="hidden sm:inline-flex items-center justify-center h-5 px-1.5 text-[10px] font-medium rounded border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">K</kbd>
+            <kbd className="hidden sm:inline-flex items-center justify-center h-5 px-1.5 text-[10px] font-medium rounded border pg-border pg-surface-elevated pg-muted">⌘</kbd>
+            <kbd className="hidden sm:inline-flex items-center justify-center h-5 px-1.5 text-[10px] font-medium rounded border pg-border pg-surface-elevated pg-muted">K</kbd>
           </div>
         </div>
       </div>
@@ -58,19 +58,19 @@ export function AdminHeader() {
         
         {/* Active Musyawarah Indicator */}
         {summary?.event && (
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-[var(--color-border)]">
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full pg-surface border border-[var(--color-border)]">
             <div className={`w-2 h-2 rounded-full ${summary.event.status === 'PUBLISHED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+            <span className="text-xs font-medium pg-muted">
               {summary.event.name || 'Untitled Event'}
             </span>
           </div>
         )}
 
-        <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden md:block"></div>
+        <div className="h-6 w-px bg-[var(--color-border)] hidden md:block"></div>
 
         {/* Quick Actions / Notifications */}
         <div className="relative group">
-          <button className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+          <button className="relative p-2 pg-muted hover:pg-text hover:pg-surface-elevated rounded-full transition-colors">
             <Bell className="w-5 h-5" />
             {(summary?.pending_participants || 0) + (summary?.pending_candidates || 0) > 0 && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full border border-slate-950"></span>
@@ -78,44 +78,44 @@ export function AdminHeader() {
           </button>
 
           {/* Notifications Dropdown (Hover) */}
-          <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-slate-900 border border-[var(--color-border)] rounded-xl shadow-xl shadow-black/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
+          <div className="absolute right-0 mt-2 w-72 pg-surface border border-[var(--color-border)] rounded-xl shadow-xl shadow-black/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
             <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-900 dark:text-white">Notifikasi Operasional</span>
+              <span className="text-sm font-semibold pg-text">Notifikasi Operasional</span>
               <span className="text-[10px] font-medium bg-[var(--color-primary)]/10 text-primary px-2 py-0.5 rounded-full">
                 {(summary?.pending_participants || 0) + (summary?.pending_candidates || 0)} Baru
               </span>
             </div>
             <div className="p-2 max-h-64 overflow-y-auto">
               {(summary?.pending_participants || 0) > 0 && (
-                <Link href="/admin/registrations" className="flex items-start gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors group/item">
+                <Link href="/admin/registrations" className="flex items-start gap-3 p-3 hover:pg-surface-elevated rounded-lg transition-colors group/item">
                   <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
                     <UserIcon className="w-4 h-4 text-amber-500" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover/item:text-slate-900 dark:group-hover/item:text-white transition-colors">
+                    <div className="text-sm font-medium pg-muted group-hover/item:pg-text transition-colors">
                       {summary?.pending_participants} Peserta perlu verifikasi
                     </div>
-                    <div className="text-xs text-slate-500 mt-0.5">Harap segera tinjau data pendaftaran peserta baru.</div>
+                    <div className="text-xs pg-faint mt-0.5">Harap segera tinjau data pendaftaran peserta baru.</div>
                   </div>
                 </Link>
               )}
               
               {(summary?.pending_candidates || 0) > 0 && (
-                <Link href="/admin/candidates" className="flex items-start gap-3 p-3 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors group/item">
+                <Link href="/admin/candidates" className="flex items-start gap-3 p-3 hover:pg-surface-elevated rounded-lg transition-colors group/item">
                   <div className="w-8 h-8 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center shrink-0 mt-0.5">
                     <UserIcon className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-slate-700 dark:text-slate-200 group-hover/item:text-slate-900 dark:group-hover/item:text-white transition-colors">
+                    <div className="text-sm font-medium pg-muted group-hover/item:pg-text transition-colors">
                       {summary?.pending_candidates} Kandidat perlu verifikasi
                     </div>
-                    <div className="text-xs text-slate-500 mt-0.5">Harap segera tinjau kelengkapan berkas kandidat.</div>
+                    <div className="text-xs pg-faint mt-0.5">Harap segera tinjau kelengkapan berkas kandidat.</div>
                   </div>
                 </Link>
               )}
 
               {((summary?.pending_participants || 0) + (summary?.pending_candidates || 0)) === 0 && (
-                <div className="p-4 text-center text-sm text-slate-500">
+                <div className="p-4 text-center text-sm pg-muted">
                   Tidak ada notifikasi tugas operasional saat ini.
                 </div>
               )}
@@ -127,10 +127,10 @@ export function AdminHeader() {
         <div className="relative group">
           <button className="flex items-center gap-2 pl-2">
             <div className="text-right hidden sm:block">
-              <div className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">
+              <div className="text-sm font-semibold pg-text leading-tight">
                 {user?.full_name || 'Administrator'}
               </div>
-              <div className="text-[10px] font-medium text-slate-500">
+              <div className="text-[10px] font-medium pg-muted">
                 {user?.role_name || 'System Admin'}
               </div>
             </div>
@@ -140,9 +140,9 @@ export function AdminHeader() {
           </button>
 
           {/* Dropdown (Hover) */}
-          <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-[var(--color-border)] rounded-xl shadow-xl shadow-black/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
+          <div className="absolute right-0 mt-2 w-48 pg-surface border border-[var(--color-border)] rounded-xl shadow-xl shadow-black/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
             <div className="p-2 space-y-1">
-              <Link href="/admin/users/profile" className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+              <Link href="/admin/users/profile" className="flex items-center gap-2 px-3 py-2 text-sm pg-muted hover:pg-text hover:pg-surface-elevated rounded-lg transition-colors">
                 <Settings className="w-4 h-4" />
                 <span>Account Settings</span>
               </Link>
