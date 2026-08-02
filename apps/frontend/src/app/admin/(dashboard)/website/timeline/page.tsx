@@ -165,7 +165,7 @@ export default function AdminWebsiteTimelinePage() {
         </div>
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover pg-text font-semibold text-sm transition-colors shadow-lg shadow-[var(--color-primary)]/30 shrink-0"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm transition-all duration-200 shadow-xl shadow-[var(--color-primary)]/40 hover:-translate-y-[2px] shrink-0"
         >
           <Plus className="w-4 h-4" />
           Tambah Tahapan
@@ -198,38 +198,38 @@ export default function AdminWebsiteTimelinePage() {
             <p className="text-slate-600 text-xs mt-1">Klik tombol &quot;Tambah Tahapan&quot; di atas untuk membuat jadwal.</p>
           </div>
         ) : (
-          phases.map((phase, idx) => (
             <div
               key={phase.id || idx}
-              className="pg-surface border pg-border rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:pg-border transition-colors"
+              className="pg-surface border pg-border shadow-xs rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md hover:border-primary/20 transition-all duration-200"
             >
               <div className="flex items-start gap-4">
                 {/* Order Index */}
-                <div className="w-9 h-9 rounded-xl pg-surface-elevated border pg-border flex items-center justify-center text-xs font-bold text-slate-300 shrink-0">
+                <div className="w-9 h-9 rounded-xl pg-surface-elevated border-2 pg-border flex items-center justify-center text-xs font-medium pg-text shrink-0">
                   {String(idx + 1).padStart(2, "0")}
                 </div>
 
                 <div>
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h3 className="font-bold pg-text text-base">{phase.title}</h3>
+                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                    <h3 className="font-bold pg-text text-lg">{phase.title}</h3>
                     {phase.current_indicator && (
-                      <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-primary text-[10px] font-bold uppercase tracking-wider">
+                      <span className="px-3 py-1 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-primary text-[10px] font-semibold uppercase tracking-wider h-7 inline-flex items-center">
                         Fase Aktif
                       </span>
                     )}
                     {phase.registration_type !== "NONE" && (
-                      <span className="px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-primary text-[10px] font-bold uppercase tracking-wider">
+                      <span className="px-3 py-1 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-primary text-[10px] font-semibold uppercase tracking-wider h-7 inline-flex items-center">
                         Reg: {phase.registration_type}
                       </span>
                     )}
                     {!phase.is_published && (
-                      <span className="px-2 py-0.5 rounded-full pg-surface-elevated pg-muted text-[10px] font-medium">
+                      <span className="px-3 py-1 rounded-full pg-surface-elevated border pg-border pg-muted text-[10px] font-semibold tracking-wider h-7 inline-flex items-center uppercase">
                         Draft
                       </span>
                     )}
                   </div>
-                  <p className="text-xs pg-muted line-clamp-1">{phase.description || "Tidak ada deskripsi."}</p>
-                  <p className="text-[11px] pg-muted font-mono mt-1.5">
+                  <p className="text-sm leading-relaxed pg-muted line-clamp-2">{phase.description || "Tidak ada deskripsi."}</p>
+                  <p className="flex items-center gap-1.5 text-xs pg-muted font-medium mt-2.5">
+                    <Calendar className="w-3.5 h-3.5" />
                     {phase.start_date ? new Date(phase.start_date).toLocaleDateString("id-ID") : ""} —{" "}
                     {phase.end_date ? new Date(phase.end_date).toLocaleDateString("id-ID") : ""}
                   </p>
@@ -241,7 +241,7 @@ export default function AdminWebsiteTimelinePage() {
                 <button
                   onClick={() => moveOrder(idx, "up")}
                   disabled={idx === 0}
-                  className="p-2 rounded-lg pg-surface-elevated hover:pg-surface-elevated/80 disabled:opacity-30 text-slate-300 transition-colors"
+                  className="p-2 rounded-lg pg-surface-elevated border pg-border hover:border-primary hover:shadow-sm disabled:opacity-30 text-primary transition-all duration-200"
                   title="Pindah ke Atas"
                 >
                   <ArrowUp className="w-3.5 h-3.5" />
@@ -249,21 +249,21 @@ export default function AdminWebsiteTimelinePage() {
                 <button
                   onClick={() => moveOrder(idx, "down")}
                   disabled={idx === phases.length - 1}
-                  className="p-2 rounded-lg pg-surface-elevated hover:pg-surface-elevated/80 disabled:opacity-30 text-slate-300 transition-colors"
+                  className="p-2 rounded-lg pg-surface-elevated border pg-border hover:border-primary hover:shadow-sm disabled:opacity-30 text-slate-500 dark:text-slate-400 transition-all duration-200"
                   title="Pindah ke Bawah"
                 >
                   <ArrowDown className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => openEditModal(phase)}
-                  className="p-2 rounded-lg pg-surface-elevated hover:pg-surface-elevated/80 text-slate-300 transition-colors"
+                  className="p-2 rounded-lg pg-surface-elevated border pg-border hover:border-primary hover:shadow-sm text-primary transition-all duration-200"
                   title="Edit Tahapan"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => handleDelete(phase.id!)}
-                  className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors"
+                  className="p-2 rounded-lg pg-surface-elevated border pg-border hover:border-rose-500/50 hover:bg-rose-500/10 hover:shadow-sm text-slate-500 dark:text-slate-400 hover:text-rose-500 transition-all duration-200"
                   title="Hapus Tahapan"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
