@@ -23,13 +23,7 @@ export function Hero({ data }: { data: HomeResponse | null }) {
 
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden pt-20">
-      {/* ── Atmospheric layers (bottom to top) ── */}
-      <div className="absolute inset-0 bg-aurora pointer-events-none" />
-      <div className="absolute inset-0 bg-blueprint pointer-events-none" />
-      <div className="absolute inset-0 bg-network pointer-events-none" />
-      <div className="absolute inset-0 bg-noise pointer-events-none" />
-      <div className="absolute inset-0 bg-glow pointer-events-none" />
-
+      {/* Global background handles atmosphere. We only need content here. */}
       {/* ── Content ── */}
       <Container className="relative z-10 py-36 lg:py-0">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
@@ -46,9 +40,12 @@ export function Hero({ data }: { data: HomeResponse | null }) {
 
             {/* 2. Heading */}
             <FadeUp delay={0.15}>
-              <h1 className="text-display text-base tracking-tight mb-6">
-                {title}
-              </h1>
+              <div className="relative inline-block">
+                <div className="absolute -inset-x-8 -inset-y-4 bg-primary/20 blur-3xl rounded-full opacity-50 pointer-events-none" />
+                <h1 className="relative text-display text-base tracking-tight mb-6">
+                  {title}
+                </h1>
+              </div>
             </FadeUp>
 
             {/* 3. Description */}

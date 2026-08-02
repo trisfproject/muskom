@@ -10,7 +10,7 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
 
   return (
     // Section rhythm: soft blue tint
-    <section id="kandidat" className="pg-section-alt relative overflow-hidden">
+    <section id="kandidat" className="relative overflow-hidden">
       <div className="section-divider" />
       <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/5 blur-[100px] rounded-full pointer-events-none" />
       <div className="container-landing py-24 lg:py-32 relative z-10">

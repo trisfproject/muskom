@@ -12,10 +12,12 @@ export function Footer({ data }: { data: HomeResponse | null }) {
   const tagline = data.footer?.tagline || "Dibangun untuk kemajuan bersama.";
 
   return (
-    <footer className="pg-section-navy border-t border-white/5 relative">
+    <footer className="pg-section-navy border-t border-white/5 relative overflow-hidden">
+      <div className="absolute inset-0 bg-blueprint pointer-events-none opacity-20" />
+      <div className="absolute inset-0 bg-noise pointer-events-none" />
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
 
-      <div className="container-landing py-20 lg:py-24">
+      <div className="container-landing py-20 lg:py-24 relative z-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-12">
 
           {/* Left — Brand */}

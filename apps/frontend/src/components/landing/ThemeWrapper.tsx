@@ -26,8 +26,19 @@ export function ThemeWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen pg-bg" data-theme={theme}>
-      <Header theme={theme} toggleTheme={toggleTheme} />
-      {children}
+      {/* ── Global Atmospheric Layers ── */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 bg-aurora" />
+        <div className="absolute inset-0 bg-blueprint" />
+        <div className="absolute inset-0 bg-network" />
+        <div className="absolute inset-0 bg-noise" />
+        <div className="absolute inset-0 bg-glow" />
+      </div>
+
+      <div className="relative z-10">
+        <Header theme={theme} toggleTheme={toggleTheme} />
+        {children}
+      </div>
     </div>
   )
 }

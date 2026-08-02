@@ -33,11 +33,11 @@ export const Section = React.forwardRef<HTMLElement, SectionProps>(
         ref={ref}
         className={cn(
           {
-            "bg-base": variant === "default",
-            "bg-surface-secondary": variant === "alt" || variant === "neutral",
-            "bg-[var(--color-surface)]": variant === "paper" || variant === "white",
-            "bg-[#0f172a]": variant === "navy", /* Legacy fallback */
-            "bg-[#f0f9ff]": variant === "blue",
+            "bg-transparent": variant === "default",
+            "bg-[var(--color-surface)]/20": variant === "alt" || variant === "neutral",
+            "bg-[var(--color-surface)]/80 backdrop-blur-sm": variant === "paper" || variant === "white",
+            "bg-[#0f172a]/90 backdrop-blur-sm": variant === "navy", /* Legacy fallback */
+            "bg-[#f0f9ff]/50": variant === "blue",
           },
           className
         )}
