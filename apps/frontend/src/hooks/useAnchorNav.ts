@@ -1,38 +1,75 @@
 import { useState, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 
-export function useAnchorNav(sectionIds: string[], offset: number = 100) {
+export interface NavItem {
+  href: string;
+}
+
+export function useAnchorNav(navItems: NavItem[], offset: number = 100) {
   const [activeSection, setActiveSection] = useState<string>('/');
   const pathname = usePathname();
 
   // Scroll spy and active state
   useEffect(() => {
+    // 1. Route-based navigation active state (when not on landing page)
     if (pathname !== '/') {
-      // Highlight navigation based on path prefix (e.g., /informasi/* -> /#informasi)
-      const matchedSection = sectionIds.find(id => pathname.startsWith(`/${id}`));
-      if (matchedSection) {
-        setActiveSection(`/#${matchedSection}`);
+      // Find matching route for paths like /admin/*
+      const routeMatch = navItems.find(item => !item.href.startsWith('/#') && item.href !== '/' && pathname.startsWith(item.href));
+      if (routeMatch) {
+        setActiveSection(routeMatch.href);
+        return;
       }
+
+      // Find matching section for paths like /informasi/*
+      const sectionMatch = navItems.find(item => item.href.startsWith('/#') && pathname.startsWith(item.href.replace('/#', '/')));
+      if (sectionMatch) {
+        setActiveSection(sectionMatch.href);
+        return;
+      }
+      
+      setActiveSection('');
       return;
     }
 
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + offset + 150; // extra margin for active threshold
-      let current = '/';
-      for (const section of sectionIds) {
-        const el = document.getElementById(section);
-        if (el && el.offsetTop <= scrollPosition) {
-          current = `/#${section}`;
-        }
-      }
-      setActiveSection(current);
+    // 2. Section-based navigation (IntersectionObserver)
+    const sectionItems = navItems.filter(item => item.href.startsWith('/#'));
+    
+    const observerOptions = {
+      root: null,
+      rootMargin: '-20% 0px -60% 0px',
+      threshold: 0
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
+    const observerCallback: IntersectionObserverCallback = (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setActiveSection(`/#${entry.target.id}`);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    sectionItems.forEach(item => {
+      const id = item.href.replace('/#', '');
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    // Handle top of page (Beranda)
+    const handleScrollTop = () => {
+      if (window.scrollY < 200) {
+        setActiveSection('/');
+      }
+    };
+    window.addEventListener('scroll', handleScrollTop, { passive: true });
+    handleScrollTop(); // Initial check
     
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [sectionIds, offset, pathname]);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScrollTop);
+    };
+  }, [navItems, pathname]);
 
   // Handle incoming hash navigation (from other pages)
   useEffect(() => {

@@ -1,22 +1,15 @@
 "use client"
 
-import { Menu, X, Lock } from "lucide-react"
+import { Lock } from "lucide-react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useAnchorNav } from "@/hooks/useAnchorNav"
-
-// Nav: Beranda, Timeline, Kandidat, Informasi — per ADR 0006
-const navItems = [
-  { label: "Beranda",     href: "/"           },
-  { label: "Timeline",   href: "/#timeline"   },
-  { label: "Kandidat",   href: "/#kandidat"   },
-  { label: "Informasi",  href: "/#informasi"  },
-]
+import { navItems } from "@/config/navigation"
+import { MobileBottomNavigation } from "@/components/landing/MobileBottomNavigation"
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false)
-  const [open, setOpen] = useState(false)
-  const { activeSection, handleNavClick } = useAnchorNav(["informasi", "kandidat", "timeline"], 80)
+  const { activeSection, handleNavClick } = useAnchorNav(navItems, 80)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,11 +20,6 @@ export function Header() {
     handleScroll()
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
-
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : ""
-    return () => { document.body.style.overflow = "" }
-  }, [open])
 
   return (
     <>
@@ -87,85 +75,13 @@ export function Header() {
                 Portal Admin
               </Link>
 
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setOpen(true)}
-                className="md:hidden w-9 h-9 flex items-center justify-center rounded-full border border-light bg-surface text-muted hover:text-base transition-colors"
-                aria-label="Buka menu navigasi"
-                aria-expanded={open}
-              >
-                <Menu className="w-4.5 h-4.5" />
-              </button>
+              {/* Mobile Navigation is now handled by MobileBottomNavigation component */}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Mobile Drawer */}
-      <div
-        className={`fixed inset-0 z-50 md:hidden transition-all duration-300 ${
-          open ? "visible" : "invisible pointer-events-none"
-        }`}
-      >
-        <div
-          className={`absolute inset-0 transition-opacity duration-300 ${
-            open ? "opacity-100" : "opacity-0"
-          }`}
-          style={{ background: "rgba(15, 23, 42, 0.4)", backdropFilter: "blur(4px)" }}
-          onClick={() => setOpen(false)}
-        />
-        <div
-          className={`absolute inset-y-0 right-0 w-72 glass border-l border-light flex flex-col transition-transform duration-300 ${
-            open ? "translate-x-0" : "translate-x-full"
-          }`}
-        >
-          <div className="flex items-center justify-between px-5 h-16 border-b border-light">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              <span className="font-bold text-base">Menu Navigasi</span>
-            </div>
-            <button
-              onClick={() => setOpen(false)}
-              className="w-8 h-8 flex items-center justify-center rounded-full text-muted hover:text-base hover:bg-surface-secondary transition-colors"
-              aria-label="Tutup menu navigasi"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="flex-1 p-3 space-y-1 overflow-y-auto">
-            {navItems.map((item) => {
-              const isActive = activeSection === item.href
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  onClick={(e) => {
-                    setOpen(false)
-                    handleNavClick(e, item.href)
-                  }}
-                  className={`flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                    isActive
-                      ? "text-primary bg-primary/10"
-                      : "text-muted hover:text-base hover:bg-surface-secondary"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              )
-            })}
-          </div>
-          <div className="p-4 border-t border-light space-y-2.5">
-            <Link
-              href="/admin/login"
-              onClick={() => setOpen(false)}
-              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 font-bold text-sm rounded-xl bg-primary text-white hover:bg-primary-hover transition-colors shadow-glow"
-            >
-              <Lock className="w-4 h-4" />
-              Portal Admin
-            </Link>
-          </div>
-        </div>
-      </div>
+      <MobileBottomNavigation />
     </>
   )
 }
