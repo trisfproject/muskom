@@ -50,6 +50,12 @@ export function AdminSidebar() {
         { label: "Footer", href: "/admin/website/footer", icon: PanelBottom },
       ],
     },
+    {
+      title: "Registrations",
+      items: [
+        { label: "Data Peserta", href: "/admin/registrations", icon: UserCheck },
+      ],
+    },
   ];
 
   return (

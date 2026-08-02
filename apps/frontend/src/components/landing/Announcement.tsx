@@ -7,7 +7,6 @@ import { AnnouncementCard } from "@/components/ui/announcement-card"
 export function Announcement({ data }: { data: HomeResponse | null }) {
   const announcements = data?.announcements;
   return (
-  return (
     <Section id="pengumuman" className="relative">
       <div className="section-divider" />
       <Container className="py-24 lg:py-32">
