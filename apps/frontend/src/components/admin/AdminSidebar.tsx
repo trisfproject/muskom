@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -14,6 +15,7 @@ import {
   LogOut,
   ChevronRight,
   ExternalLink,
+  List,
 } from "lucide-react";
 import Cookies from "js-cookie";
 
@@ -42,17 +44,18 @@ export function AdminSidebar() {
     {
       title: "Overview",
       items: [
-        { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+        { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, exact: true },
       ],
     },
     {
       title: "Musyawarah",
       items: [
-        { label: "General", href: "/admin/musyawarah/general", icon: Sliders },
-        { label: "Location", href: "/admin/musyawarah/location", icon: Sparkles },
-        { label: "Timeline", href: "/admin/musyawarah/timeline", icon: Calendar },
-        { label: "Publication", href: "/admin/musyawarah/publication", icon: Megaphone },
-        { label: "Archive", href: "/admin/musyawarah/archive", icon: UserCheck },
+        { label: "Semua Musyawarah", href: "/admin/musyawarah", icon: List, exact: true },
+        { label: "General", href: "/admin/musyawarah/general", icon: Sliders, exact: false },
+        { label: "Location", href: "/admin/musyawarah/location", icon: Sparkles, exact: false },
+        { label: "Timeline", href: "/admin/musyawarah/timeline", icon: Calendar, exact: false },
+        { label: "Publication", href: "/admin/musyawarah/publication", icon: Megaphone, exact: false },
+        { label: "Archive", href: "/admin/musyawarah/archive", icon: UserCheck, exact: false },
       ],
     },
     {
@@ -70,17 +73,17 @@ export function AdminSidebar() {
     {
       title: "Registrations",
       items: [
-        { label: "Data Peserta", href: "/admin/registrations", icon: UserCheck },
+        { label: "Data Peserta", href: "/admin/registrations", icon: UserCheck, exact: false },
       ],
     },
     {
       title: "System & Security",
       items: [
-        { label: "Pengguna & Hak Akses", href: "/admin/users", icon: UserCheck },
-        { label: "Audit Log", href: "/admin/audit", icon: LayoutDashboard },
+        { label: "Pengguna & Hak Akses", href: "/admin/users", icon: UserCheck, exact: false },
+        { label: "Audit Log", href: "/admin/audit", icon: LayoutDashboard, exact: false },
       ],
     },
-  ];
+  ] as { title: string; items: { label: string; href: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean }[] }[];
 
   return (
     <aside className="w-64 pg-bg border-r pg-border pg-muted flex flex-col h-screen sticky top-0 shrink-0 select-none">
@@ -115,7 +118,9 @@ export function AdminSidebar() {
             <div className="space-y-1">
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href;
+                const isActive = item.exact 
+                  ? pathname === item.href 
+                  : pathname.startsWith(item.href);
                 return (
                   <Link
                     key={item.href}

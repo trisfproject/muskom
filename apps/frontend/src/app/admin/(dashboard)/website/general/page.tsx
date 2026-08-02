@@ -79,19 +79,14 @@ export default function AdminWebsiteGeneralPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Identitas Website */}
         <div className="pg-surface border pg-border rounded-2xl p-6">
-          <h2 className="text-base font-semibold pg-text mb-4">Website Identity</h2>
+          <h2 className="text-base font-semibold pg-text mb-1">Website Identity</h2>
+          <p className="text-xs pg-muted mb-4">
+            Nama acara dan tahun dikelola di <a href="/admin/musyawarah" className="text-primary hover:underline">Musyawarah</a>.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-xs font-medium text-slate-300 mb-1.5">Community Name</label>
               <input type="text" value={formData.website_identity.community_name} onChange={(e) => setFormData({ ...formData, website_identity: { ...formData.website_identity, community_name: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors" required />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">Event Name</label>
-              <input type="text" value={formData.website_identity.event_name} onChange={(e) => setFormData({ ...formData, website_identity: { ...formData.website_identity, event_name: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors" required />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">Event Year</label>
-              <input type="text" value={formData.website_identity.event_year} onChange={(e) => setFormData({ ...formData, website_identity: { ...formData.website_identity, event_year: e.target.value }})} className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors" required />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1.5">Website Title</label>

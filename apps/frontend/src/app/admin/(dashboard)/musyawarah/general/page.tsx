@@ -7,28 +7,30 @@ import { MusyawarahEvent, UpdateEventPayload } from "@/types/event";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 export default function GeneralPage() {
   const [event, setEvent] = useState<MusyawarahEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchEvent();
-  }, []);
-
   const fetchEvent = async () => {
     try {
       const data = await eventService.getEvent();
       setEvent(data);
-    } catch (error) {
+    } catch {
       toast.error("Gagal mengambil konfigurasi");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  useEffect(() => {
+    fetchEvent();
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     if (!event) return;
     setEvent({ ...event, [e.target.name]: e.target.value });
   };
@@ -61,21 +63,36 @@ export default function GeneralPage() {
       };
       await eventService.updateEvent(payload);
       toast.success("Konfigurasi general berhasil disimpan");
-    } catch (error) {
+    } catch {
       toast.error("Gagal menyimpan konfigurasi");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="p-8 pg-muted">Memuat...</div>;
-  if (!event) return <div className="p-8 pg-muted">Konfigurasi tidak ditemukan</div>;
+  if (loading) return <div className="p-8 pg-muted animate-pulse">Memuat...</div>;
+
+  if (!event) return (
+    <div className="flex flex-col items-center justify-center min-h-[40vh] text-center max-w-md mx-auto">
+      <h2 className="text-xl font-bold pg-text mb-2">Tidak Ada Musyawarah Aktif</h2>
+      <p className="pg-muted text-sm mb-6">
+        Aktifkan sebuah Musyawarah dari halaman daftar untuk mengatur konfigurasi general.
+      </p>
+      <Link
+        href="/admin/musyawarah"
+        className="inline-flex items-center gap-2 bg-primary hover:bg-primary-active pg-text px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
+      >
+        Lihat Daftar Musyawarah
+        <ArrowRight className="w-4 h-4" />
+      </Link>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
       <SectionHeader 
         title="General Configuration" 
-        description="Pengaturan informasi dasar Musyawarah aktif."
+        description={`Pengaturan informasi dasar Musyawarah aktif: ${event.name}`}
       />
 
       <div className="pg-surface border pg-border rounded-xl p-6 space-y-6 max-w-2xl">

@@ -3,27 +3,31 @@ package musyawarah
 import "time"
 
 type MusyawarahEvent struct {
-	ID            string     `db:"id"`
-	Name          string     `db:"name"`
-	Slug          string     `db:"slug"`
-	Theme         *string    `db:"theme"`
-	Tagline       *string    `db:"tagline"`
-	Description   *string    `db:"description"`
-	Location      *string    `db:"location"`
-	BannerPath    *string    `db:"banner_path"`
-	LogoPath      *string    `db:"logo_path"`
-	CoverPath     *string    `db:"cover_path"`
-	Status        string     `db:"status"`
-	Year          *int       `db:"year"`
-	StartDate     *time.Time `db:"start_date"`
-	EndDate       *time.Time `db:"end_date"`
-	Timezone      *string    `db:"timezone"`
-	Venue         *string    `db:"venue"`
-	Address       *string    `db:"address"`
-	GoogleMapsURL *string    `db:"google_maps_url"`
-	City          *string    `db:"city"`
-	Province      *string    `db:"province"`
-	MeetingType   *string    `db:"meeting_type"`
+	ID                         string     `db:"id"`
+	Name                       string     `db:"name"`
+	Slug                       string     `db:"slug"`
+	Theme                      *string    `db:"theme"`
+	Description                *string    `db:"description"`
+	Location                   *string    `db:"location"`
+	Address                    *string    `db:"address"`
+	GoogleMapsURL              *string    `db:"google_maps_url"`
+	PeriodStart                *time.Time `db:"period_start"`
+	PeriodEnd                  *time.Time `db:"period_end"`
+	EventDate                  *time.Time `db:"event_date"`
+	RegistrationOpen           *time.Time `db:"registration_open"`
+	RegistrationClose          *time.Time `db:"registration_close"`
+	CandidateRegistrationOpen  *time.Time `db:"candidate_registration_open"`
+	CandidateRegistrationClose *time.Time `db:"candidate_registration_close"`
+	BannerPath                 *string    `db:"banner_path"`
+	LogoPath                   *string    `db:"logo_path"`
+	CoverPath                  *string    `db:"cover_path"`
+	Status                     string     `db:"status"`
+	IsActive                   bool       `db:"is_default_active"`
+	CreatedBy                  *string    `db:"created_by"`
+	UpdatedBy                  *string    `db:"updated_by"`
+	CreatedAt                  time.Time  `db:"created_at"`
+	UpdatedAt                  time.Time  `db:"updated_at"`
+	DeletedAt                  *time.Time `db:"deleted_at"`
 }
 
 type MusyawarahSettings struct {

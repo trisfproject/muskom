@@ -11,10 +11,6 @@ export default function AdminRegistrationsPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    fetchData();
-  }, [statusFilter, search]);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -29,6 +25,11 @@ export default function AdminRegistrationsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, search]);
 
   const handleStatusUpdate = async (id: string, status: "APPROVED" | "REJECTED") => {
     if (!confirm(`Are you sure you want to ${status} this registration?`)) return;

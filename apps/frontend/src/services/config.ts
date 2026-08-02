@@ -2,8 +2,6 @@ import api from "@/lib/api";
 
 export interface WebsiteIdentityConfig {
   community_name: string;
-  event_name: string;
-  event_year: string;
   website_title: string;
   website_description: string;
   logo_url: string;

@@ -2,37 +2,55 @@ package musyawarah
 
 import "time"
 
+// --- List / Create ---
+
+type CreateMusyawarahRequest struct {
+	Name                       string     `json:"name" validate:"required,max=255"`
+	Slug                       string     `json:"slug" validate:"required,max=255"`
+	Theme                      *string    `json:"theme" validate:"omitempty,max=255"`
+	Description                *string    `json:"description" validate:"omitempty"`
+	PeriodStart                *time.Time `json:"period_start" validate:"omitempty"`
+	PeriodEnd                  *time.Time `json:"period_end" validate:"omitempty"`
+	EventDate                  *time.Time `json:"event_date" validate:"omitempty"`
+	RegistrationOpen           *time.Time `json:"registration_open" validate:"omitempty"`
+	RegistrationClose          *time.Time `json:"registration_close" validate:"omitempty"`
+	CandidateRegistrationOpen  *time.Time `json:"candidate_registration_open" validate:"omitempty"`
+	CandidateRegistrationClose *time.Time `json:"candidate_registration_close" validate:"omitempty"`
+	LocationName               *string    `json:"location_name" validate:"omitempty,max=255"`
+	Address                    *string    `json:"address" validate:"omitempty"`
+	GoogleMapsURL              *string    `json:"google_maps_url" validate:"omitempty,max=255"`
+}
+
+type MusyawarahListItem struct {
+	ID          string     `json:"id"`
+	Name        string     `json:"name"`
+	Slug        string     `json:"slug"`
+	Theme       *string    `json:"theme"`
+	Status      string     `json:"status"`
+	IsActive    bool       `json:"is_active"`
+	PeriodStart *time.Time `json:"period_start"`
+	PeriodEnd   *time.Time `json:"period_end"`
+	EventDate   *time.Time `json:"event_date"`
+	CreatedAt   time.Time  `json:"created_at"`
+}
+
+// --- Update (full config) ---
+
 type UpdateMusyawarahRequest struct {
 	Name                       string     `json:"name" validate:"required,max=255"`
 	Slug                       string     `json:"slug" validate:"required,max=255"`
 	Theme                      *string    `json:"theme" validate:"omitempty,max=255"`
-	Tagline                    *string    `json:"tagline" validate:"omitempty,max=255"`
 	Description                *string    `json:"description" validate:"omitempty"`
-	Year                       *int       `json:"year" validate:"omitempty"`
-	StartDate                  *time.Time `json:"start_date" validate:"omitempty"`
-	EndDate                    *time.Time `json:"end_date" validate:"omitempty"`
-	Timezone                   *string    `json:"timezone" validate:"omitempty,max=50"`
-	Venue                      *string    `json:"venue" validate:"omitempty,max=255"`
+	PeriodStart                *time.Time `json:"period_start" validate:"omitempty"`
+	PeriodEnd                  *time.Time `json:"period_end" validate:"omitempty"`
+	EventDate                  *time.Time `json:"event_date" validate:"omitempty"`
+	RegistrationOpen           *time.Time `json:"registration_open" validate:"omitempty"`
+	RegistrationClose          *time.Time `json:"registration_close" validate:"omitempty"`
+	CandidateRegistrationOpen  *time.Time `json:"candidate_registration_open" validate:"omitempty"`
+	CandidateRegistrationClose *time.Time `json:"candidate_registration_close" validate:"omitempty"`
+	LocationName               *string    `json:"location_name" validate:"omitempty,max=255"`
 	Address                    *string    `json:"address" validate:"omitempty"`
-	GoogleMapsURL              *string    `json:"google_maps_url" validate:"omitempty"`
-	City                       *string    `json:"city" validate:"omitempty,max=100"`
-	Province                   *string    `json:"province" validate:"omitempty,max=100"`
-	MeetingType                *string    `json:"meeting_type" validate:"omitempty,max=50"`
-	Location                   *string    `json:"location" validate:"omitempty,max=255"`
-	BannerPath                 *string    `json:"banner_path" validate:"omitempty,max=255"`
-	LogoPath                   *string    `json:"logo_path" validate:"omitempty,max=255"`
-	Status                     string     `json:"status" validate:"required,oneof=DRAFT PUBLISHED ARCHIVED UPCOMING ONGOING COMPLETED CANCELLED"`
-	MaxParticipants            *int    `json:"max_participants"`
-	PublishResult              bool    `json:"publish_result"`
-	AllowCandidateRegistration bool    `json:"allow_candidate_registration"`
-
-	// Phases
-	RegistrationStart          *time.Time `json:"registration_start"`
-	RegistrationEnd            *time.Time `json:"registration_end"`
-	CandidateRegistrationStart *time.Time `json:"candidate_registration_start"`
-	CandidateRegistrationEnd   *time.Time `json:"candidate_registration_end"`
-	VotingStart                *time.Time `json:"voting_start"`
-	VotingEnd                  *time.Time `json:"voting_end"`
+	GoogleMapsURL              *string    `json:"google_maps_url" validate:"omitempty,max=255"`
 }
 
 type MusyawarahResponse struct {
@@ -40,34 +58,24 @@ type MusyawarahResponse struct {
 	Name                       string     `json:"name"`
 	Slug                       string     `json:"slug"`
 	Theme                      *string    `json:"theme"`
-	Tagline                    *string    `json:"tagline"`
 	Description                *string    `json:"description"`
-	Year                       *int       `json:"year"`
-	StartDate                  *time.Time `json:"start_date"`
-	EndDate                    *time.Time `json:"end_date"`
-	Timezone                   *string    `json:"timezone"`
-	Venue                      *string    `json:"venue"`
+	PeriodStart                *time.Time `json:"period_start"`
+	PeriodEnd                  *time.Time `json:"period_end"`
+	EventDate                  *time.Time `json:"event_date"`
+	RegistrationOpen           *time.Time `json:"registration_open"`
+	RegistrationClose          *time.Time `json:"registration_close"`
+	CandidateRegistrationOpen  *time.Time `json:"candidate_registration_open"`
+	CandidateRegistrationClose *time.Time `json:"candidate_registration_close"`
+	LocationName               *string    `json:"location_name"`
 	Address                    *string    `json:"address"`
 	GoogleMapsURL              *string    `json:"google_maps_url"`
-	City                       *string    `json:"city"`
-	Province                   *string    `json:"province"`
-	MeetingType                *string    `json:"meeting_type"`
-	Location                   *string    `json:"location"`
 	BannerPath                 *string    `json:"banner_path"`
 	LogoPath                   *string    `json:"logo_path"`
 	CoverPath                  *string    `json:"cover_path"`
 	Status                     string     `json:"status"`
-	MaxParticipants            *int    `json:"max_participants"`
-	PublishResult              bool    `json:"publish_result"`
-	AllowCandidateRegistration bool    `json:"allow_candidate_registration"`
-
-	RegistrationStart          *time.Time `json:"registration_start"`
-	RegistrationEnd            *time.Time `json:"registration_end"`
-	CandidateRegistrationStart *time.Time `json:"candidate_registration_start"`
-	CandidateRegistrationEnd   *time.Time `json:"candidate_registration_end"`
-	VotingStart                *time.Time `json:"voting_start"`
-	VotingEnd                  *time.Time `json:"voting_end"`
-	LifecycleState             string     `json:"lifecycle_state"`
+	IsActive                   bool       `json:"is_active"`
+	CreatedAt                  time.Time  `json:"created_at"`
+	UpdatedAt                  time.Time  `json:"updated_at"`
 }
 
 type TimelinePhaseDTO struct {

@@ -23,6 +23,128 @@ func NewHandler(service Service, val *validator.Validator, maxUploadSize int64) 
 	return &Handler{service: service, validator: val, maxUploadSize: maxUploadSize}
 }
 
+// --- Multi-event CRUD handlers ---
+
+func (h *Handler) List(c fiber.Ctx) error {
+	items, err := h.service.ListAll(c.Context())
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Musyawarah list retrieved", items, nil)
+}
+
+func (h *Handler) GetByID(c fiber.Ctx) error {
+	id := c.Params("id")
+	res, err := h.service.GetByID(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrMusyawarahNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, "Musyawarah not found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Musyawarah retrieved", res, nil)
+}
+
+func (h *Handler) Create(c fiber.Ctx) error {
+	var req CreateMusyawarahRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+
+	if errs := h.validator.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	res, err := h.service.Create(c.Context(), &req)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to create Musyawarah", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusCreated, "Musyawarah created", res, nil)
+}
+
+func (h *Handler) UpdateByID(c fiber.Ctx) error {
+	id := c.Params("id")
+	var req UpdateMusyawarahRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+
+	if errs := h.validator.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	res, err := h.service.UpdateByID(c.Context(), id, &req)
+	if err != nil {
+		if errors.Is(err, ErrMusyawarahNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, "Musyawarah not found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Musyawarah updated", res, nil)
+}
+
+func (h *Handler) Activate(c fiber.Ctx) error {
+	id := c.Params("id")
+	res, err := h.service.Activate(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrMusyawarahNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, "Musyawarah not found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to activate Musyawarah", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Musyawarah activated", res, nil)
+}
+
+func (h *Handler) Deactivate(c fiber.Ctx) error {
+	id := c.Params("id")
+	res, err := h.service.Deactivate(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrMusyawarahNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, "Musyawarah not found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to deactivate Musyawarah", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Musyawarah deactivated", res, nil)
+}
+
+func (h *Handler) Archive(c fiber.Ctx) error {
+	id := c.Params("id")
+	res, err := h.service.Archive(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrMusyawarahNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, "Musyawarah not found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to archive Musyawarah", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Musyawarah archived", res, nil)
+}
+
+func (h *Handler) Publish(c fiber.Ctx) error {
+	id := c.Params("id")
+	res, err := h.service.Publish(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrMusyawarahNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, "Musyawarah not found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to publish Musyawarah", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Musyawarah published", res, nil)
+}
+
+func (h *Handler) Delete(c fiber.Ctx) error {
+	id := c.Params("id")
+	err := h.service.Delete(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrMusyawarahNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, "Musyawarah not found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to delete Musyawarah", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Musyawarah deleted", nil, nil)
+}
+
+// --- Active event handlers (backward-compatible) ---
+
 func (h *Handler) Get(c fiber.Ctx) error {
 	res, err := h.service.GetConfig(c.Context())
 	if err != nil {

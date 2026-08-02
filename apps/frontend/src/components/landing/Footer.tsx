@@ -16,7 +16,7 @@ export function Footer({ data }: { data: HomeResponse | null }) {
   }
 
   const orgName = identity?.community_name || data.footer?.organization_name || "MUSKOM";
-  const eventLabel = identity ? `${identity.event_name} ${identity.event_year}` : "MUSKOM 2026";
+  const eventLabel = data?.event?.name || identity?.community_name || "MUSKOM 2026";
   const desc = identity?.website_description || data.footer?.description || "Portal resmi Musyawarah. Membangun proses pemilihan yang transparan, profesional, dan dapat dipercaya oleh seluruh anggota komunitas.";
   const copyright = data.footer?.copyright || `© ${new Date().getFullYear()} ${orgName}. Seluruh hak cipta dilindungi.`;
   const badge = data.footer?.official_badge || "OFFICIAL PORTAL";

@@ -33,10 +33,6 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
   const [loadingPages, setLoadingPages] = useState(true);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<AnnouncementItem | null>(null);
 
-  if (config?.feature_flags && !config.feature_flags.show_information) {
-    return null;
-  }
-
   useEffect(() => {
     async function loadPages() {
       try {
@@ -50,6 +46,10 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
     }
     loadPages();
   }, []);
+
+  if (config?.feature_flags && !config.feature_flags.show_information) {
+    return null;
+  }
 
   return (
     <Section id="informasi" className="relative overflow-hidden">

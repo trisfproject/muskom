@@ -82,7 +82,7 @@ export function DocumentationLayout({ title, content, lastUpdated, backLink }: D
   const hasToc = headings.length >= 2;
 
   // Render Table of Contents
-  const TOC = () => (
+  const renderTOC = () => (
     <nav className="space-y-1">
       {headings.map((heading) => (
         <a
@@ -238,7 +238,7 @@ export function DocumentationLayout({ title, content, lastUpdated, backLink }: D
                 
                 {isMobileTocOpen && (
                   <div className="mt-2 p-4 rounded-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/60 dark:border-slate-800 shadow-sm">
-                    <TOC />
+                    {renderTOC()}
                   </div>
                 )}
               </div>
@@ -249,7 +249,7 @@ export function DocumentationLayout({ title, content, lastUpdated, backLink }: D
                   Daftar Isi
                 </h4>
                 <div className="pl-1 border-l-2 border-slate-100 dark:border-slate-800/60">
-                  <TOC />
+                  {renderTOC()}
                 </div>
               </div>
             </aside>

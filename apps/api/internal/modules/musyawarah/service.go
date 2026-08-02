@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	ErrConfigNotFound = errors.New("musyawarah configuration not found")
+	ErrConfigNotFound     = errors.New("musyawarah configuration not found")
+	ErrMusyawarahNotFound = errors.New("musyawarah not found")
 )
 
 func CalculateLifecycleState(status string, phases []MusyawarahPhase) string {
@@ -22,10 +23,8 @@ func CalculateLifecycleState(status string, phases []MusyawarahPhase) string {
 		return status
 	}
 
-	// Status is PUBLISHED (or UPCOMING/ONGOING theoretically). Calculate based on time.
 	now := time.Now()
-	
-	// Map phases by name
+
 	phaseMap := make(map[string]MusyawarahPhase)
 	for _, p := range phases {
 		phaseMap[p.Phase] = p
@@ -39,15 +38,6 @@ func CalculateLifecycleState(status string, phases []MusyawarahPhase) string {
 		return now.After(*p.StartAt) && now.Before(*p.EndAt)
 	}
 
-	isPast := func(pName string) bool {
-		p, ok := phaseMap[pName]
-		if !ok || p.EndAt == nil {
-			return false
-		}
-		return now.After(*p.EndAt)
-	}
-
-	// Determine lifecycle based on configured timeline priority (reverse chronological order logic is best, but sequential is fine if dates don't overlap)
 	if isActive("RESULT_PUBLICATION") {
 		return "RESULT_PUBLICATION"
 	}
@@ -64,34 +54,34 @@ func CalculateLifecycleState(status string, phases []MusyawarahPhase) string {
 		return "CAMPAIGN"
 	}
 	if isActive("CANDIDATE_VERIFICATION") {
-		return "CANDIDATE_VERIFICATION"
+		return "VERIFICATION"
+	}
+	if isActive("ADMINISTRATIVE_VERIFICATION") {
+		return "VERIFICATION"
 	}
 	if isActive("CANDIDATE_REGISTRATION") {
 		return "CANDIDATE_REGISTRATION"
 	}
-	if isActive("ADMINISTRATIVE_VERIFICATION") {
-		return "PARTICIPANT_VERIFICATION"
-	}
 	if isActive("REGISTRATION") {
-		return "PARTICIPANT_REGISTRATION"
+		return "REGISTRATION"
 	}
 
-	// If no phase is actively matched, we must figure out the gaps.
-	// Are we before registration?
-	if reg, ok := phaseMap["REGISTRATION"]; ok && reg.StartAt != nil && now.Before(*reg.StartAt) {
-		return "PREPARATION"
-	}
-
-	// If we are past everything but not completed yet
-	if isPast("RESULT_PUBLICATION") || isPast("VOTING") {
-		return "COMPLETED"
-	}
-
-	// Default fallback for PUBLISHED
-	return "PUBLISHED"
+	return "UPCOMING"
 }
 
 type Service interface {
+	// Multi-event CRUD
+	ListAll(ctx context.Context) ([]MusyawarahListItem, error)
+	GetByID(ctx context.Context, id string) (*MusyawarahResponse, error)
+	Create(ctx context.Context, req *CreateMusyawarahRequest) (*MusyawarahResponse, error)
+	UpdateByID(ctx context.Context, id string, req *UpdateMusyawarahRequest) (*MusyawarahResponse, error)
+	Activate(ctx context.Context, id string) (*MusyawarahResponse, error)
+	Deactivate(ctx context.Context, id string) (*MusyawarahResponse, error)
+	Archive(ctx context.Context, id string) (*MusyawarahResponse, error)
+	Publish(ctx context.Context, id string) (*MusyawarahResponse, error)
+	Delete(ctx context.Context, id string) error
+
+	// Active event (backward compat)
 	GetConfig(ctx context.Context) (*MusyawarahResponse, error)
 	UpdateConfig(ctx context.Context, req *UpdateMusyawarahRequest) (*MusyawarahResponse, error)
 	GetSettings(ctx context.Context) (*SettingsResponse, error)
@@ -105,55 +95,299 @@ type Service interface {
 
 type service struct {
 	repo    Repository
-	log     *zap.Logger
+	logger  *zap.Logger
 	storage storage.Storage
 }
 
-func NewService(repo Repository, log *zap.Logger, strg storage.Storage) Service {
-	return &service{repo: repo, log: log, storage: strg}
+func NewService(repo Repository, logger *zap.Logger, strg storage.Storage) Service {
+	return &service{repo: repo, logger: logger, storage: strg}
 }
 
-func (s *service) GetConfig(ctx context.Context) (*MusyawarahResponse, error) {
-	evt, err := s.repo.GetActiveEvent(ctx)
+// --- Multi-event CRUD ---
+
+func (s *service) ListAll(ctx context.Context) ([]MusyawarahListItem, error) {
+	events, err := s.repo.ListEvents(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]MusyawarahListItem, 0, len(events))
+	for _, e := range events {
+		items = append(items, MusyawarahListItem{
+			ID:          e.ID,
+			Name:        e.Name,
+			Slug:        e.Slug,
+			Theme:       e.Theme,
+			Status:      e.Status,
+			IsActive:    e.IsActive,
+			PeriodStart: e.PeriodStart,
+			PeriodEnd:   e.PeriodEnd,
+			EventDate:   e.EventDate,
+			CreatedAt:   e.CreatedAt,
+		})
+	}
+	return items, nil
+}
+
+func (s *service) GetByID(ctx context.Context, id string) (*MusyawarahResponse, error) {
+	evt, err := s.repo.GetEventByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrConfigNotFound
+			return nil, ErrMusyawarahNotFound
+		}
+		return nil, err
+	}
+	return s.buildResponse(ctx, evt)
+}
+
+func (s *service) validateDates(periodStart, periodEnd, regOpen, regClose, candOpen, candClose *time.Time) error {
+	if periodStart != nil && periodEnd != nil && periodStart.After(*periodEnd) {
+		return errors.New("period start must be before period end")
+	}
+	if regOpen != nil && regClose != nil && regOpen.After(*regClose) {
+		return errors.New("registration open must be before registration close")
+	}
+	if candOpen != nil && candClose != nil && candOpen.After(*candClose) {
+		return errors.New("candidate registration open must be before candidate registration close")
+	}
+	return nil
+}
+
+func (s *service) Create(ctx context.Context, req *CreateMusyawarahRequest) (*MusyawarahResponse, error) {
+	if err := s.validateDates(req.PeriodStart, req.PeriodEnd, req.RegistrationOpen, req.RegistrationClose, req.CandidateRegistrationOpen, req.CandidateRegistrationClose); err != nil {
+		return nil, err
+	}
+
+	evt := &MusyawarahEvent{
+		Name:                       req.Name,
+		Slug:                       req.Slug,
+		Theme:                      req.Theme,
+		Description:                req.Description,
+		PeriodStart:                req.PeriodStart,
+		PeriodEnd:                  req.PeriodEnd,
+		EventDate:                  req.EventDate,
+		RegistrationOpen:           req.RegistrationOpen,
+		RegistrationClose:          req.RegistrationClose,
+		CandidateRegistrationOpen:  req.CandidateRegistrationOpen,
+		CandidateRegistrationClose: req.CandidateRegistrationClose,
+		Location:                   req.LocationName,
+		Address:                    req.Address,
+		GoogleMapsURL:              req.GoogleMapsURL,
+	}
+
+	// Assuming context contains user info, mock user here if not available
+	user := "system"
+	evt.CreatedBy = &user
+
+	created, err := s.repo.CreateEvent(ctx, evt)
+	if err != nil {
+		return nil, err
+	}
+
+	s.logger.Info("AuditLog", zap.String("operation", "CREATE"), zap.String("user", user), zap.String("id", created.ID))
+
+	return s.GetByID(ctx, created.ID)
+}
+
+func (s *service) UpdateByID(ctx context.Context, id string, req *UpdateMusyawarahRequest) (*MusyawarahResponse, error) {
+	if err := s.validateDates(req.PeriodStart, req.PeriodEnd, req.RegistrationOpen, req.RegistrationClose, req.CandidateRegistrationOpen, req.CandidateRegistrationClose); err != nil {
+		return nil, err
+	}
+
+	evt, err := s.repo.GetEventByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrMusyawarahNotFound
 		}
 		return nil, err
 	}
 
-	stg, err := s.repo.GetSettings(ctx, evt.ID)
+	evt.Name = req.Name
+	evt.Slug = req.Slug
+	evt.Theme = req.Theme
+	evt.Description = req.Description
+	evt.PeriodStart = req.PeriodStart
+	evt.PeriodEnd = req.PeriodEnd
+	evt.EventDate = req.EventDate
+	evt.RegistrationOpen = req.RegistrationOpen
+	evt.RegistrationClose = req.RegistrationClose
+	evt.CandidateRegistrationOpen = req.CandidateRegistrationOpen
+	evt.CandidateRegistrationClose = req.CandidateRegistrationClose
+	evt.Location = req.LocationName
+	evt.Address = req.Address
+	evt.GoogleMapsURL = req.GoogleMapsURL
+
+	user := "system"
+	evt.UpdatedBy = &user
+
+	tx, err := s.repo.BeginTx(ctx)
 	if err != nil {
 		return nil, err
 	}
+	defer tx.Rollback()
 
-	phases, err := s.repo.GetPhases(ctx, evt.ID)
-	if err != nil {
+	if err := s.repo.UpdateEvent(ctx, tx, evt); err != nil {
 		return nil, err
 	}
 
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	s.logger.Info("AuditLog", zap.String("operation", "UPDATE"), zap.String("user", user), zap.String("id", evt.ID))
+
+	return s.GetByID(ctx, id)
+}
+
+func (s *service) Activate(ctx context.Context, id string) (*MusyawarahResponse, error) {
+	evt, err := s.repo.GetEventByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrMusyawarahNotFound
+		}
+		return nil, err
+	}
+
+	if evt.Status == "ARCHIVED" {
+		return nil, errors.New("cannot activate an archived event")
+	}
+
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	if err := s.repo.DeactivateAll(ctx, tx); err != nil {
+		return nil, err
+	}
+	if err := s.repo.SetActive(ctx, tx, id); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	s.logger.Info("AuditLog", zap.String("operation", "ACTIVATE"), zap.String("user", "system"), zap.String("id", id))
+
+	return s.GetByID(ctx, id)
+}
+
+func (s *service) Deactivate(ctx context.Context, id string) (*MusyawarahResponse, error) {
+	_, err := s.repo.GetEventByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrMusyawarahNotFound
+		}
+		return nil, err
+	}
+
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	if err := s.repo.DeactivateAll(ctx, tx); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	s.logger.Info("AuditLog", zap.String("operation", "DEACTIVATE"), zap.String("user", "system"), zap.String("id", id))
+
+	return s.GetByID(ctx, id)
+}
+
+func (s *service) Archive(ctx context.Context, id string) (*MusyawarahResponse, error) {
+	evt, err := s.repo.GetEventByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrMusyawarahNotFound
+		}
+		return nil, err
+	}
+
+	if err := s.repo.ArchiveEvent(ctx, id); err != nil {
+		return nil, err
+	}
+
+	s.logger.Info("AuditLog", zap.String("operation", "ARCHIVE"), zap.String("user", "system"), zap.String("id", evt.ID))
+
+	return s.GetByID(ctx, id)
+}
+
+func (s *service) Publish(ctx context.Context, id string) (*MusyawarahResponse, error) {
+	evt, err := s.repo.GetEventByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrMusyawarahNotFound
+		}
+		return nil, err
+	}
+
+	evt.Status = "PUBLISHED"
+	user := "system"
+	evt.UpdatedBy = &user
+
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	if err := s.repo.UpdateEvent(ctx, tx, evt); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	s.logger.Info("AuditLog", zap.String("operation", "PUBLISH"), zap.String("user", user), zap.String("id", evt.ID))
+
+	return s.GetByID(ctx, id)
+}
+
+func (s *service) Delete(ctx context.Context, id string) error {
+	evt, err := s.repo.GetEventByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrMusyawarahNotFound
+		}
+		return err
+	}
+
+	user := "system"
+	err = s.repo.SoftDeleteEvent(ctx, id, user)
+	if err == nil {
+		s.logger.Info("AuditLog", zap.String("operation", "DELETE"), zap.String("user", user), zap.String("id", evt.ID))
+	}
+	return err
+}
+
+// buildResponse constructs a MusyawarahResponse from a MusyawarahEvent
+func (s *service) buildResponse(ctx context.Context, evt *MusyawarahEvent) (*MusyawarahResponse, error) {
 	res := &MusyawarahResponse{
 		ID:                         evt.ID,
 		Name:                       evt.Name,
 		Slug:                       evt.Slug,
 		Theme:                      evt.Theme,
-		Tagline:                    evt.Tagline,
 		Description:                evt.Description,
-		Location:                   evt.Location,
-		Year:                       evt.Year,
-		StartDate:                  evt.StartDate,
-		EndDate:                    evt.EndDate,
-		Timezone:                   evt.Timezone,
-		Venue:                      evt.Venue,
+		PeriodStart:                evt.PeriodStart,
+		PeriodEnd:                  evt.PeriodEnd,
+		LocationName:               evt.Location,
 		Address:                    evt.Address,
 		GoogleMapsURL:              evt.GoogleMapsURL,
-		City:                       evt.City,
-		Province:                   evt.Province,
-		MeetingType:                evt.MeetingType,
+		EventDate:                  evt.EventDate,
+		RegistrationOpen:           evt.RegistrationOpen,
+		RegistrationClose:          evt.RegistrationClose,
+		CandidateRegistrationOpen:  evt.CandidateRegistrationOpen,
+		CandidateRegistrationClose: evt.CandidateRegistrationClose,
 		Status:                     evt.Status,
-		MaxParticipants:            stg.RegistrationLimit,
-		PublishResult:              stg.ShowLiveResult,
-		AllowCandidateRegistration: stg.AllowCandidateRegistration,
+		IsActive:                   evt.IsActive,
+		CreatedAt:                  evt.CreatedAt,
+		UpdatedAt:                  evt.UpdatedAt,
 	}
 
 	if evt.LogoPath != nil && *evt.LogoPath != "" {
@@ -169,23 +403,20 @@ func (s *service) GetConfig(ctx context.Context) (*MusyawarahResponse, error) {
 		res.CoverPath = &url
 	}
 
-	for _, p := range phases {
-		switch p.Phase {
-		case "REGISTRATION":
-			res.RegistrationStart = p.StartAt
-			res.RegistrationEnd = p.EndAt
-		case "CANDIDATE_REGISTRATION":
-			res.CandidateRegistrationStart = p.StartAt
-			res.CandidateRegistrationEnd = p.EndAt
-		case "VOTING":
-			res.VotingStart = p.StartAt
-			res.VotingEnd = p.EndAt
-		}
-	}
-
-	res.LifecycleState = CalculateLifecycleState(evt.Status, phases)
-
 	return res, nil
+}
+
+// --- Active event (backward compat) ---
+
+func (s *service) GetConfig(ctx context.Context) (*MusyawarahResponse, error) {
+	evt, err := s.repo.GetActiveEvent(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrConfigNotFound
+		}
+		return nil, err
+	}
+	return s.buildResponse(ctx, evt)
 }
 
 func (s *service) UpdateConfig(ctx context.Context, req *UpdateMusyawarahRequest) (*MusyawarahResponse, error) {
@@ -196,72 +427,7 @@ func (s *service) UpdateConfig(ctx context.Context, req *UpdateMusyawarahRequest
 		}
 		return nil, err
 	}
-
-	evt.Name = req.Name
-	evt.Slug = req.Slug
-	evt.Theme = req.Theme
-	evt.Tagline = req.Tagline
-	evt.Description = req.Description
-	evt.Location = req.Location
-	evt.Status = req.Status
-	evt.Year = req.Year
-	evt.StartDate = req.StartDate
-	evt.EndDate = req.EndDate
-	evt.Timezone = req.Timezone
-	evt.Venue = req.Venue
-	evt.Address = req.Address
-	evt.GoogleMapsURL = req.GoogleMapsURL
-	evt.City = req.City
-	evt.Province = req.Province
-	evt.MeetingType = req.MeetingType
-
-	if req.BannerPath != nil {
-		evt.BannerPath = req.BannerPath
-	}
-	if req.LogoPath != nil {
-		evt.LogoPath = req.LogoPath
-	}
-
-	stg, err := s.repo.GetSettings(ctx, evt.ID)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return nil, err
-	}
-
-	stg.RegistrationLimit = req.MaxParticipants
-	stg.ShowLiveResult = req.PublishResult
-	stg.AllowCandidateRegistration = req.AllowCandidateRegistration
-
-	phases := []MusyawarahPhase{
-		{Phase: "REGISTRATION", StartAt: req.RegistrationStart, EndAt: req.RegistrationEnd},
-		{Phase: "CANDIDATE_REGISTRATION", StartAt: req.CandidateRegistrationStart, EndAt: req.CandidateRegistrationEnd},
-		{Phase: "VOTING", StartAt: req.VotingStart, EndAt: req.VotingEnd},
-	}
-
-	tx, err := s.repo.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	if err := s.repo.UpdateEvent(ctx, tx, evt); err != nil {
-		return nil, err
-	}
-
-	if err := s.repo.UpdateSettings(ctx, tx, evt.ID, stg); err != nil {
-		return nil, err
-	}
-
-	for _, p := range phases {
-		if err := s.repo.UpsertPhase(ctx, tx, evt.ID, &p); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	return s.GetConfig(ctx)
+	return s.UpdateByID(ctx, evt.ID, req)
 }
 
 func (s *service) GetSettings(ctx context.Context) (*SettingsResponse, error) {
@@ -306,6 +472,12 @@ func (s *service) UpdateSettings(ctx context.Context, req *SettingsRequest) (*Se
 		return nil, err
 	}
 
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
 	stg := &MusyawarahSettings{
 		RegistrationLimit:          req.MaxParticipants,
 		RegistrationApprovalMode:   req.RegistrationApprovalMode,
@@ -323,12 +495,6 @@ func (s *service) UpdateSettings(ctx context.Context, req *SettingsRequest) (*Se
 		ShowStatistics:             req.ShowStatistics,
 		ShowAnnouncements:          req.ShowAnnouncements,
 	}
-
-	tx, err := s.repo.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
 
 	if err := s.repo.UpdateSettings(ctx, tx, evt.ID, stg); err != nil {
 		return nil, err
@@ -382,64 +548,7 @@ func (s *service) GetTimeline(ctx context.Context) (*TimelineResponse, error) {
 	return res, nil
 }
 
-func (s *service) validateTimeline(req *TimelineRequest) error {
-	type PhaseInfo struct {
-		Name  string
-		Phase TimelinePhaseDTO
-	}
-
-	phases := []PhaseInfo{
-		{"Registration", req.Registration},
-		{"Candidate Registration", req.CandidateRegistration},
-		{"Administrative Verification", req.AdministrativeVerification},
-		{"Candidate Verification", req.CandidateVerification},
-		{"Campaign", req.Campaign},
-		{"Cooling-off", req.CoolingOff},
-		{"Attendance Check-in", req.AttendanceCheckIn},
-		{"Voting", req.Voting},
-		{"Result Publication", req.ResultPublication},
-	}
-
-	var lastValidEnd *time.Time
-	var lastValidName string
-
-	for _, p := range phases {
-		start := p.Phase.StartAt
-		end := p.Phase.EndAt
-
-		if start != nil && end != nil {
-			if start.After(*end) || start.Equal(*end) {
-				return fmt.Errorf("%s start date must be before end date", p.Name)
-			}
-		}
-
-		if start != nil {
-			if lastValidEnd != nil && start.Before(*lastValidEnd) {
-				return fmt.Errorf("%s must start after %s finishes", p.Name, lastValidName)
-			}
-		} else if end != nil {
-			if lastValidEnd != nil && end.Before(*lastValidEnd) {
-				return fmt.Errorf("%s must end after %s finishes", p.Name, lastValidName)
-			}
-		}
-
-		if end != nil {
-			lastValidEnd = end
-			lastValidName = p.Name
-		} else if start != nil {
-			lastValidEnd = start
-			lastValidName = p.Name
-		}
-	}
-
-	return nil
-}
-
 func (s *service) UpdateTimeline(ctx context.Context, req *TimelineRequest) (*TimelineResponse, error) {
-	if err := s.validateTimeline(req); err != nil {
-		return nil, err
-	}
-
 	evt, err := s.repo.GetActiveEvent(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -448,25 +557,30 @@ func (s *service) UpdateTimeline(ctx context.Context, req *TimelineRequest) (*Ti
 		return nil, err
 	}
 
-	phases := []MusyawarahPhase{
-		{Phase: "REGISTRATION", StartAt: req.Registration.StartAt, EndAt: req.Registration.EndAt},
-		{Phase: "CANDIDATE_REGISTRATION", StartAt: req.CandidateRegistration.StartAt, EndAt: req.CandidateRegistration.EndAt},
-		{Phase: "ADMINISTRATIVE_VERIFICATION", StartAt: req.AdministrativeVerification.StartAt, EndAt: req.AdministrativeVerification.EndAt},
-		{Phase: "CANDIDATE_VERIFICATION", StartAt: req.CandidateVerification.StartAt, EndAt: req.CandidateVerification.EndAt},
-		{Phase: "CAMPAIGN", StartAt: req.Campaign.StartAt, EndAt: req.Campaign.EndAt},
-		{Phase: "COOLING_OFF", StartAt: req.CoolingOff.StartAt, EndAt: req.CoolingOff.EndAt},
-		{Phase: "ATTENDANCE_CHECK_IN", StartAt: req.AttendanceCheckIn.StartAt, EndAt: req.AttendanceCheckIn.EndAt},
-		{Phase: "VOTING", StartAt: req.Voting.StartAt, EndAt: req.Voting.EndAt},
-		{Phase: "RESULT_PUBLICATION", StartAt: req.ResultPublication.StartAt, EndAt: req.ResultPublication.EndAt},
-	}
-
 	tx, err := s.repo.BeginTx(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	for _, p := range phases {
+	phaseMap := map[string]TimelinePhaseDTO{
+		"REGISTRATION":                req.Registration,
+		"CANDIDATE_REGISTRATION":      req.CandidateRegistration,
+		"ADMINISTRATIVE_VERIFICATION": req.AdministrativeVerification,
+		"CANDIDATE_VERIFICATION":      req.CandidateVerification,
+		"CAMPAIGN":                    req.Campaign,
+		"COOLING_OFF":                 req.CoolingOff,
+		"ATTENDANCE_CHECK_IN":         req.AttendanceCheckIn,
+		"VOTING":                      req.Voting,
+		"RESULT_PUBLICATION":          req.ResultPublication,
+	}
+
+	for phaseName, dto := range phaseMap {
+		p := MusyawarahPhase{
+			Phase:   phaseName,
+			StartAt: dto.StartAt,
+			EndAt:   dto.EndAt,
+		}
 		if err := s.repo.UpsertPhase(ctx, tx, evt.ID, &p); err != nil {
 			return nil, err
 		}
@@ -488,31 +602,28 @@ func (s *service) GetMedia(ctx context.Context) (*MediaResponse, error) {
 		return nil, err
 	}
 
-	res := &MediaResponse{}
+	var logoURL, bannerURL, coverURL *string
 	if evt.LogoPath != nil && *evt.LogoPath != "" {
-		url := s.storage.URL(*evt.LogoPath)
-		res.LogoURL = &url
+		u := s.storage.URL(*evt.LogoPath)
+		logoURL = &u
 	}
 	if evt.BannerPath != nil && *evt.BannerPath != "" {
-		url := s.storage.URL(*evt.BannerPath)
-		res.BannerURL = &url
+		u := s.storage.URL(*evt.BannerPath)
+		bannerURL = &u
 	}
 	if evt.CoverPath != nil && *evt.CoverPath != "" {
-		url := s.storage.URL(*evt.CoverPath)
-		res.CoverURL = &url
+		u := s.storage.URL(*evt.CoverPath)
+		coverURL = &u
 	}
-	return res, nil
+
+	return &MediaResponse{
+		LogoURL:   logoURL,
+		BannerURL: bannerURL,
+		CoverURL:  coverURL,
+	}, nil
 }
 
 func (s *service) UploadMedia(ctx context.Context, mediaType string, file io.Reader, filename string, contentType string) (*MediaResponse, error) {
-	if mediaType != "logo" && mediaType != "banner" && mediaType != "cover" {
-		return nil, errors.New("invalid media type")
-	}
-
-	if contentType != "image/png" && contentType != "image/jpeg" && contentType != "image/webp" {
-		return nil, errors.New("invalid content type, must be PNG, JPEG, or WebP")
-	}
-
 	evt, err := s.repo.GetActiveEvent(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -521,54 +632,26 @@ func (s *service) UploadMedia(ctx context.Context, mediaType string, file io.Rea
 		return nil, err
 	}
 
-	var oldPath *string
-	switch mediaType {
-	case "logo":
-		oldPath = evt.LogoPath
-	case "banner":
-		oldPath = evt.BannerPath
-	case "cover":
-		oldPath = evt.CoverPath
+	if contentType != "image/png" && contentType != "image/jpeg" && contentType != "image/webp" {
+		return nil, errors.New("invalid content type, must be PNG, JPEG, or WebP")
 	}
 
 	ext := filepath.Ext(filename)
-	if ext == "" {
-		switch contentType {
-		case "image/png":
-			ext = ".png"
-		case "image/jpeg":
-			ext = ".jpg"
-		case "image/webp":
-			ext = ".webp"
-		}
-	}
-	newFileName := fmt.Sprintf("%s_%s_%d%s", evt.ID, mediaType, time.Now().UnixNano(), ext)
+	customFilename := fmt.Sprintf("%s_%d%s", mediaType, time.Now().Unix(), ext)
 
-	fileInfo, err := s.storage.Upload(ctx, file, newFileName)
+	fileInfo, err := s.storage.Upload(ctx, file, customFilename)
 	if err != nil {
-		s.log.Error("Failed to upload media", zap.Error(err))
-		return nil, errors.New("failed to upload file")
-	}
-
-	if err := s.repo.UpdateMedia(ctx, evt.ID, mediaType, &fileInfo.Path); err != nil {
-		_ = s.storage.Delete(ctx, fileInfo.Path)
 		return nil, err
 	}
 
-	if oldPath != nil && *oldPath != "" {
-		if err := s.storage.Delete(ctx, *oldPath); err != nil {
-			s.log.Warn("Failed to delete old media file", zap.String("path", *oldPath), zap.Error(err))
-		}
+	if err := s.repo.UpdateMedia(ctx, evt.ID, mediaType, &fileInfo.Path); err != nil {
+		return nil, err
 	}
 
 	return s.GetMedia(ctx)
 }
 
 func (s *service) DeleteMedia(ctx context.Context, mediaType string) error {
-	if mediaType != "logo" && mediaType != "banner" && mediaType != "cover" {
-		return errors.New("invalid media type")
-	}
-
 	evt, err := s.repo.GetActiveEvent(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -577,27 +660,19 @@ func (s *service) DeleteMedia(ctx context.Context, mediaType string) error {
 		return err
 	}
 
-	var oldPath *string
+	var currentPath *string
 	switch mediaType {
 	case "logo":
-		oldPath = evt.LogoPath
+		currentPath = evt.LogoPath
 	case "banner":
-		oldPath = evt.BannerPath
+		currentPath = evt.BannerPath
 	case "cover":
-		oldPath = evt.CoverPath
+		currentPath = evt.CoverPath
 	}
 
-	if oldPath == nil || *oldPath == "" {
-		return nil
+	if currentPath != nil && *currentPath != "" {
+		_ = s.storage.Delete(ctx, *currentPath)
 	}
 
-	if err := s.repo.UpdateMedia(ctx, evt.ID, mediaType, nil); err != nil {
-		return err
-	}
-
-	if err := s.storage.Delete(ctx, *oldPath); err != nil {
-		s.log.Warn("Failed to delete media file from storage", zap.String("path", *oldPath), zap.Error(err))
-	}
-
-	return nil
+	return s.repo.UpdateMedia(ctx, evt.ID, mediaType, nil)
 }

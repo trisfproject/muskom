@@ -59,11 +59,11 @@ export function AdminHeader() {
       <div className="flex items-center gap-4 ml-auto">
         
         {/* Active Musyawarah Indicator */}
-        {config && (
+        {(config || summary?.event) && (
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full pg-surface border border-[var(--color-border)]">
-            <div className={`w-2 h-2 rounded-full ${config.publication.website_status === 'PUBLISHED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+            <div className={`w-2 h-2 rounded-full ${config?.publication.website_status === 'PUBLISHED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
             <span className="text-xs font-medium pg-muted">
-              {config.website_identity.event_name} {config.website_identity.event_year}
+              {summary?.event?.name || config?.website_identity?.community_name || "MUSKOM"}
             </span>
           </div>
         )}

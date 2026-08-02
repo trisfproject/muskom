@@ -13,10 +13,6 @@ export default function LocationPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchEvent();
-  }, []);
-
   const fetchEvent = async () => {
     try {
       const data = await eventService.getEvent();
@@ -27,6 +23,10 @@ export default function LocationPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchEvent();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     if (!event) return;

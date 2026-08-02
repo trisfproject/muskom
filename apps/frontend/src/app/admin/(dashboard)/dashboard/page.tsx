@@ -34,10 +34,10 @@ export default function AdminDashboardPage() {
           Sistem membutuhkan setidaknya satu konfigurasi Musyawarah yang aktif untuk memulai operasional pendaftaran dan pemilihan.
         </p>
         <Link 
-          href="/admin/musyawarah/general"
+          href="/admin/musyawarah"
           className="inline-flex items-center gap-2 bg-primary hover:bg-primary-active pg-text px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
         >
-          Konfigurasi Sekarang
+          Kelola Musyawarah
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>

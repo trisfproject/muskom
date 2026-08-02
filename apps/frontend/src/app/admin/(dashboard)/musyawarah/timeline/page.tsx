@@ -14,10 +14,6 @@ export default function TimelinePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchEvent();
-  }, []);
-
   const fetchEvent = async () => {
     try {
       const data = await eventService.getEvent();
@@ -28,6 +24,10 @@ export default function TimelinePage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchEvent();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!event) return;

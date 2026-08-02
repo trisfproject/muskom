@@ -16,8 +16,6 @@ const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 const fallbackConfig: FullSystemConfig = {
   website_identity: {
     community_name: "MUSKOM",
-    event_name: "Musyawarah Komunitas",
-    event_year: "2026",
     website_title: "MUSKOM — Portal Musyawarah",
     website_description: "Portal resmi pengelolaan musyawarah.",
     logo_url: "/logo.png",

@@ -11,10 +11,6 @@ export default function PublicationPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchEvent();
-  }, []);
-
   const fetchEvent = async () => {
     try {
       const data = await eventService.getEvent();
@@ -25,6 +21,10 @@ export default function PublicationPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchEvent();
+  }, []);
 
   const handleStatusChange = async (newStatus: EventPhase) => {
     if (!event) return;
