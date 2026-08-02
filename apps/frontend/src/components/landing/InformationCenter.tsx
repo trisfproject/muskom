@@ -138,7 +138,7 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
               </span>
             </div>
             
-            <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl border border-light dark:border-slate-800 rounded-2xl p-3 shadow-sm">
+            <div className="bg-white/60 dark:bg-slate-900/50 backdrop-blur-2xl border border-white/60 dark:border-slate-800/60 rounded-2xl p-3 shadow-sm transition-all duration-300">
               {loadingPages ? (
                 <div className="p-8 text-center text-slate-500">
                   <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
@@ -148,16 +148,15 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
                 <EmptyState
                   icon="book"
                   title="Belum Ada Panduan"
-                  description="Panduan dan tata tertib resmi sedang disiapkan oleh panitia pelaksana."
-                  className="py-10 border-0 bg-transparent"
+                  description="Panduan dan tata tertib akan segera dipublikasikan."
                 />
               ) : (
-                <div className="flex flex-col gap-2">
+                <div className="space-y-1.5">
                   {pages.map((p, i) => (
                     <SlideUp key={p.id || p.slug} delay={i * 0.08}>
                       <Link
                         href={`/informasi/${p.slug}`}
-                        className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 border border-transparent hover:border-slate-200/80 dark:hover:border-slate-700/60 transition-all duration-200 group"
+                        className="flex items-center justify-between p-3.5 sm:p-4 rounded-xl bg-white/40 hover:bg-white/80 dark:bg-slate-800/30 dark:hover:bg-slate-800/60 border border-transparent hover:border-white/80 dark:hover:border-slate-700/60 hover:shadow-sm hover:shadow-blue-500/5 transition-all duration-200 group"
                       >
                         <div className="flex items-center gap-3.5 min-w-0">
                           <div className="w-10 h-10 shrink-0 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
@@ -188,7 +187,7 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
       {selectedAnnouncement && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div 
-            className="relative w-full max-w-2xl max-h-[85vh] bg-white dark:bg-slate-900 rounded-3xl border border-light dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col"
+            className="relative w-full max-w-2xl max-h-[85vh] bg-white/90 dark:bg-slate-900/90 backdrop-blur-3xl rounded-3xl border border-white/60 dark:border-slate-700/60 shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}

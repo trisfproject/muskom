@@ -55,15 +55,14 @@ export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
           )}
         </div>
 
-        {/* Timeline Card */}
         <div
           className={cn(
-            "flex-1 p-5 sm:p-7 rounded-2xl transition-all duration-300 relative overflow-hidden",
+            "flex-1 p-5 sm:p-7 rounded-3xl transition-all duration-300 relative overflow-hidden backdrop-blur-xl border hover:shadow-xl hover:-translate-y-1",
             status === "active"
-              ? "bg-surface border-2 border-primary shadow-[0_8px_30px_rgba(37,99,235,0.1)] ring-1 ring-primary/20"
+              ? "bg-white/90 dark:bg-slate-900/90 border-primary shadow-glow hover:shadow-blue-500/15"
               : status === "past"
-              ? "bg-surface/90 border border-light hover:border-slate-300 dark:hover:border-slate-700 shadow-xs"
-              : "bg-surface/60 border border-light/80 opacity-90 shadow-xs"
+              ? "bg-white/60 dark:bg-slate-900/50 border-white/60 dark:border-slate-800/60 hover:border-blue-200/50"
+              : "bg-white/40 dark:bg-slate-900/30 border-white/40 dark:border-slate-800/40 opacity-90"
           )}
         >
           {/* Active Phase Background Accent Glow */}

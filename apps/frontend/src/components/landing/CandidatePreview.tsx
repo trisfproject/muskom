@@ -12,7 +12,6 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
     // Section rhythm: soft blue tint
     <section id="kandidat" className="relative overflow-hidden">
       <div className="section-divider" />
-      <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
       <div className="container-landing py-24 lg:py-32 relative z-10">
         
         <SlideUp className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 lg:mb-24">
@@ -47,7 +46,7 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {candidates.map((c, i) => (
               <SlideUp key={c.id} delay={i * 0.1}>
-                <div className="group pg-card-i p-6 lg:p-8 flex flex-col h-full hover:shadow-2xl transition-all duration-300">
+                <div className="group bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-white/50 dark:border-slate-800/50 p-6 lg:p-8 rounded-3xl flex flex-col h-full hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300">
                   <div className="flex items-center gap-5 mb-6">
                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-blue-600/20 text-primary font-black text-xl">
                       {c.sequence_number ?? "?"}
