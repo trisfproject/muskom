@@ -101,11 +101,36 @@ export default function PublicationPage() {
           </div>
         </div>
 
-        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mt-6">
-          <p className="text-xs text-blue-200">
-            <strong>Catatan:</strong> Mengubah status ke <em>Published</em> mensyaratkan semua field wajib telah diisi. Mengubah status ke <em>Archived</em> akan menonaktifkan semua fungsi interaktif seperti registrasi dan voting.
-          </p>
-        </div>
+        {event.status === 'PUBLISHED' && (
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-5 mt-6">
+            <h4 className="text-emerald-400 font-semibold mb-2">Musyawarah Aktif & Berjalan</h4>
+            <p className="text-sm text-emerald-200/80 mb-4">
+              Website saat ini dapat diakses publik. Jadwal dan fase pendaftaran bergantung pada konfigurasi timeline Anda.
+            </p>
+            <div className="flex items-center gap-3">
+              <a 
+                href="/admin/musyawarah/timeline" 
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                Cek Timeline Operasional
+              </a>
+              <a 
+                href="/admin/dashboard" 
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-700"
+              >
+                Ke Dashboard Utama
+              </a>
+            </div>
+          </div>
+        )}
+
+        {event.status === 'DRAFT' && (
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-5 mt-6">
+            <p className="text-sm text-blue-200">
+              <strong>Catatan:</strong> Mengubah status ke <em>Published</em> mensyaratkan semua field wajib telah diisi. Pastikan General, Location, dan Timeline telah dikonfigurasi.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

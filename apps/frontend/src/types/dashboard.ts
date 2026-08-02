@@ -1,8 +1,10 @@
+import { EventPhase } from './event';
+
 export interface EventInfo {
   id: string;
   name: string;
   theme?: string;
-  status: 'DRAFT' | 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+  status: EventPhase;
   publish_result: boolean;
   registration_start?: string;
   registration_end?: string;

@@ -3,18 +3,18 @@
 import { useEffect, useState } from "react";
 import { Search, Bell, User as UserIcon, LogOut, Settings } from "lucide-react";
 import Cookies from "js-cookie";
-import { eventService } from "@/services/event";
-import { MusyawarahEvent } from "@/types/event";
+import { dashboardService } from "@/services/dashboard";
+import { DashboardSummary } from "@/types/dashboard";
 import Link from "next/link";
 
 export function AdminHeader() {
-  const [activeEvent, setActiveEvent] = useState<MusyawarahEvent | null>(null);
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [user, setUser] = useState<{ full_name: string; role_name: string } | null>(null);
 
   useEffect(() => {
-    // Fetch active event
-    eventService.getEvent().then(data => {
-      setActiveEvent(data);
+    // Fetch dashboard summary
+    dashboardService.getSummary().then(data => {
+      setSummary(data);
     }).catch(() => {});
 
     // Get user from cookie
@@ -57,22 +57,71 @@ export function AdminHeader() {
       <div className="flex items-center gap-4 ml-auto">
         
         {/* Active Musyawarah Indicator */}
-        {activeEvent && (
+        {summary?.event && (
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800">
-            <div className={`w-2 h-2 rounded-full ${activeEvent.status === 'PUBLISHED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+            <div className={`w-2 h-2 rounded-full ${summary.event.status === 'PUBLISHED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
             <span className="text-xs font-medium text-slate-300">
-              {activeEvent.name || 'Untitled Event'}
+              {summary.event.name || 'Untitled Event'}
             </span>
           </div>
         )}
 
         <div className="h-6 w-px bg-slate-800 hidden md:block"></div>
 
-        {/* Quick Actions */}
-        <button className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full border border-slate-950"></span>
-        </button>
+        {/* Quick Actions / Notifications */}
+        <div className="relative group">
+          <button className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition-colors">
+            <Bell className="w-5 h-5" />
+            {(summary?.pending_participants || 0) + (summary?.pending_candidates || 0) > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full border border-slate-950"></span>
+            )}
+          </button>
+
+          {/* Notifications Dropdown (Hover) */}
+          <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-800 rounded-xl shadow-xl shadow-black/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
+            <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+              <span className="text-sm font-semibold text-white">Notifikasi Operasional</span>
+              <span className="text-[10px] font-medium bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full">
+                {(summary?.pending_participants || 0) + (summary?.pending_candidates || 0)} Baru
+              </span>
+            </div>
+            <div className="p-2 max-h-64 overflow-y-auto">
+              {(summary?.pending_participants || 0) > 0 && (
+                <Link href="/admin/registrations" className="flex items-start gap-3 p-3 hover:bg-slate-800 rounded-lg transition-colors group/item">
+                  <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <UserIcon className="w-4 h-4 text-amber-500" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-slate-200 group-hover/item:text-white transition-colors">
+                      {summary?.pending_participants} Peserta perlu verifikasi
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">Harap segera tinjau data pendaftaran peserta baru.</div>
+                  </div>
+                </Link>
+              )}
+              
+              {(summary?.pending_candidates || 0) > 0 && (
+                <Link href="/admin/candidates" className="flex items-start gap-3 p-3 hover:bg-slate-800 rounded-lg transition-colors group/item">
+                  <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <UserIcon className="w-4 h-4 text-blue-500" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-slate-200 group-hover/item:text-white transition-colors">
+                      {summary?.pending_candidates} Kandidat perlu verifikasi
+                    </div>
+                    <div className="text-xs text-slate-500 mt-0.5">Harap segera tinjau kelengkapan berkas kandidat.</div>
+                  </div>
+                </Link>
+              )}
+
+              {((summary?.pending_participants || 0) + (summary?.pending_candidates || 0)) === 0 && (
+                <div className="p-4 text-center text-sm text-slate-500">
+                  Tidak ada notifikasi tugas operasional saat ini.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* User Profile */}
         <div className="relative group">
