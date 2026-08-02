@@ -39,9 +39,9 @@ BEGIN
     SELECT r_super_admin, id FROM permissions
     ON CONFLICT DO NOTHING;
 
-    -- ADMIN gets everything except system manage
+    -- ADMIN gets everything
     INSERT INTO role_permissions (role_id, permission_id)
-    SELECT r_admin, id FROM permissions WHERE code != 'system.manage'
+    SELECT r_admin, id FROM permissions
     ON CONFLICT DO NOTHING;
 
     -- COMMITTEE gets specific management things

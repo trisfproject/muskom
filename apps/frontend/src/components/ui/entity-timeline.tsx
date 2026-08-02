@@ -18,7 +18,7 @@ export function EntityTimeline({ entity, entityId }: EntityTimelineProps) {
       try {
         const res = await auditService.listLogs({ search: entityId }); // simplistic filtering based on existing backend
         // Filter by exact entity and entity_id just in case
-        const exactLogs = res.data.filter(l => l.entity === entity && l.entity_id === entityId);
+        const exactLogs = (res.items || []).filter((l: any) => l.entity === entity && l.entity_id === entityId);
         setLogs(exactLogs);
       } catch (err: any) {
         toast.error('Gagal mengambil history');

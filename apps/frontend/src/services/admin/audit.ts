@@ -21,7 +21,7 @@ export interface AuditLog {
 }
 
 export interface ListAuditLogsResponse {
-  data: AuditLog[];
+  items: AuditLog[];
   total: number;
   page: number;
   limit: number;

@@ -16,7 +16,7 @@ export default function AuditPage() {
     setLoading(true);
     try {
       const res = await auditService.listLogs({ search });
-      setLogs(res.data);
+      setLogs(res.items || []);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Gagal mengambil audit log");
     } finally {
@@ -100,7 +100,7 @@ export default function AuditPage() {
         loading={loading}
         onSearch={setSearch}
         searchPlaceholder="Cari aktivitas..."
-        emptyMessage="Tidak ada log audit ditemukan."
+        emptyMessage="No audit data available."
       />
     </div>
   );
