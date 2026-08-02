@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"go.uber.org/zap"
 )
@@ -172,13 +173,23 @@ func (s *service) GetPublicHome(ctx context.Context) (*HomeResponse, error) {
 		}
 	}
 
+	// Calculate Lifecycle State using the central musyawarah engine
+	phases, err := s.repo.GetPhases(ctx, event.ID)
+	lifecycleState := event.Status
+	if err == nil {
+		lifecycleState = musyawarah.CalculateLifecycleState(event.Status, phases)
+	} else {
+		s.logger.Error("Failed to fetch event phases", zap.Error(err))
+	}
+
 	return &HomeResponse{
 		Event: &EventDTO{
-			Name:      event.Name,
-			Theme:     event.Theme,
-			Location:  event.Location,
-			EventDate: event.EventDate,
-			Status:    event.Status,
+			Name:           event.Name,
+			Theme:          event.Theme,
+			Location:       event.Location,
+			EventDate:      event.EventDate,
+			Status:         event.Status,
+			LifecycleState: lifecycleState,
 		},
 		Settings: SettingsDTO{
 			RegistrationApprovalMode: settings.RegistrationApprovalMode,

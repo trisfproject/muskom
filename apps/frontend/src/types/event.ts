@@ -1,5 +1,21 @@
 export type EventPhase = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
 
+export type LifecycleState = 
+  | 'DRAFT' 
+  | 'PREPARATION' 
+  | 'PARTICIPANT_REGISTRATION' 
+  | 'PARTICIPANT_VERIFICATION' 
+  | 'CANDIDATE_REGISTRATION' 
+  | 'CANDIDATE_VERIFICATION' 
+  | 'CANDIDATE_PUBLICATION' 
+  | 'CAMPAIGN' 
+  | 'COOLING_DOWN' 
+  | 'ATTENDANCE' 
+  | 'VOTING' 
+  | 'RESULT_PUBLICATION' 
+  | 'COMPLETED' 
+  | 'ARCHIVED';
+
 export interface MusyawarahEvent {
   id?: string;
   name: string;
@@ -22,6 +38,7 @@ export interface MusyawarahEvent {
   logo_path?: string;
   cover_path?: string;
   status: EventPhase;
+  lifecycle_state?: LifecycleState;
   max_participants?: number;
   publish_result: boolean;
   allow_candidate_registration: boolean;

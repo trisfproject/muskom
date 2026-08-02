@@ -111,6 +111,7 @@ export interface HomeResponse {
   candidate_cms: WebsiteCandidateCMSDTO;
   candidates: PublicCandidateDTO[];
   footer: WebsiteFooterDTO;
+  event?: PublicEventDTO;
 }
 
 // Backward compatibility helper if needed
@@ -120,6 +121,7 @@ export type PublicEventDTO = {
   location?: string;
   event_date?: string;
   status: string;
+  lifecycle_state?: string;
 };
 export type PublicSettingsDTO = {
   registration_approval_mode: string;

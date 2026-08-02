@@ -47,8 +47,28 @@ export default function AdminDashboardPage() {
   const { event, pending_participants, pending_candidates, total_participants, total_candidates } = summary;
   const totalPending = pending_participants + pending_candidates;
 
-  // Determine Current Phase loosely based on dates (Mock logic for now as real dates aren't parsed strictly here, but good for UI demo)
-  const isRegistrationOpen = event.registration_start && new Date() >= new Date(event.registration_start) && (!event.registration_end || new Date() <= new Date(event.registration_end));
+  const lifecycle = event.lifecycle_state || 'PREPARATION';
+
+  const formatLifecycleName = (lc: string) => {
+    const map: Record<string, string> = {
+      'DRAFT': 'Persiapan Sistem',
+      'PREPARATION': 'Menunggu Jadwal',
+      'PARTICIPANT_REGISTRATION': 'Pendaftaran Peserta',
+      'PARTICIPANT_VERIFICATION': 'Verifikasi Peserta',
+      'CANDIDATE_REGISTRATION': 'Pendaftaran Calon',
+      'CANDIDATE_VERIFICATION': 'Verifikasi Calon',
+      'CANDIDATE_PUBLICATION': 'Penetapan Calon',
+      'CAMPAIGN': 'Masa Kampanye',
+      'COOLING_DOWN': 'Masa Tenang',
+      'ATTENDANCE': 'Registrasi Kehadiran',
+      'VOTING': 'Sesi Pemilihan Aktif',
+      'RESULT_PUBLICATION': 'Publikasi Hasil',
+      'COMPLETED': 'Musyawarah Selesai',
+      'ARCHIVED': 'Diarsipkan',
+      'PUBLISHED': 'Berjalan',
+    };
+    return map[lc] || lc;
+  }
 
   return (
     <div className="space-y-6">
@@ -67,27 +87,28 @@ export default function AdminDashboardPage() {
           <div className="relative z-10">
             <h3 className="text-sm font-medium text-slate-400 mb-1">Fase Saat Ini</h3>
             <div className="text-2xl font-bold text-white mb-4">
-              {event.status === 'DRAFT' ? 'Persiapan Sistem' : 
-               event.status === 'PUBLISHED' && isRegistrationOpen ? 'Registrasi Peserta Dibuka' :
-               event.status === 'PUBLISHED' ? 'Pendaftaran Ditutup' : 'Musyawarah Selesai'}
+              {formatLifecycleName(lifecycle)}
             </div>
             
             <div className="flex flex-wrap gap-3 mt-6">
-              {event.status === 'DRAFT' && (
+              {lifecycle === 'DRAFT' && (
                 <Link href="/admin/musyawarah/publication" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                   <ArrowRight className="w-4 h-4" /> Publikasikan Acara
                 </Link>
               )}
-              {event.status === 'PUBLISHED' && (
-                <Link href="/admin/registrations" className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-700">
+              {lifecycle.includes('PARTICIPANT') && (
+                <Link href="/admin/registrations" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-700">
                   <Users className="w-4 h-4" /> Kelola Peserta
                 </Link>
               )}
-              {event.status === 'PUBLISHED' && (
-                <Link href="/admin/musyawarah/timeline" className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-700">
-                  <Calendar className="w-4 h-4" /> Ubah Timeline
+              {lifecycle.includes('CANDIDATE') && (
+                <Link href="/admin/candidates" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-700">
+                  <UserCheck className="w-4 h-4" /> Kelola Kandidat
                 </Link>
               )}
+              <Link href="/admin/musyawarah/timeline" className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-700">
+                <Calendar className="w-4 h-4" /> Timeline
+              </Link>
             </div>
           </div>
         </div>

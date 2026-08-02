@@ -67,6 +67,7 @@ type MusyawarahResponse struct {
 	CandidateRegistrationEnd   *time.Time `json:"candidate_registration_end"`
 	VotingStart                *time.Time `json:"voting_start"`
 	VotingEnd                  *time.Time `json:"voting_end"`
+	LifecycleState             string     `json:"lifecycle_state"`
 }
 
 type TimelinePhaseDTO struct {

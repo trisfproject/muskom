@@ -17,6 +17,80 @@ var (
 	ErrConfigNotFound = errors.New("musyawarah configuration not found")
 )
 
+func CalculateLifecycleState(status string, phases []MusyawarahPhase) string {
+	if status == "DRAFT" || status == "ARCHIVED" || status == "CANCELLED" || status == "COMPLETED" {
+		return status
+	}
+
+	// Status is PUBLISHED (or UPCOMING/ONGOING theoretically). Calculate based on time.
+	now := time.Now()
+	
+	// Map phases by name
+	phaseMap := make(map[string]MusyawarahPhase)
+	for _, p := range phases {
+		phaseMap[p.Phase] = p
+	}
+
+	isActive := func(pName string) bool {
+		p, ok := phaseMap[pName]
+		if !ok || p.StartAt == nil || p.EndAt == nil {
+			return false
+		}
+		return now.After(*p.StartAt) && now.Before(*p.EndAt)
+	}
+
+	isPast := func(pName string) bool {
+		p, ok := phaseMap[pName]
+		if !ok || p.EndAt == nil {
+			return false
+		}
+		return now.After(*p.EndAt)
+	}
+
+	// Determine lifecycle based on configured timeline priority (reverse chronological order logic is best, but sequential is fine if dates don't overlap)
+	if isActive("RESULT_PUBLICATION") {
+		return "RESULT_PUBLICATION"
+	}
+	if isActive("VOTING") {
+		return "VOTING"
+	}
+	if isActive("ATTENDANCE_CHECK_IN") {
+		return "ATTENDANCE"
+	}
+	if isActive("COOLING_OFF") {
+		return "COOLING_DOWN"
+	}
+	if isActive("CAMPAIGN") {
+		return "CAMPAIGN"
+	}
+	if isActive("CANDIDATE_VERIFICATION") {
+		return "CANDIDATE_VERIFICATION"
+	}
+	if isActive("CANDIDATE_REGISTRATION") {
+		return "CANDIDATE_REGISTRATION"
+	}
+	if isActive("ADMINISTRATIVE_VERIFICATION") {
+		return "PARTICIPANT_VERIFICATION"
+	}
+	if isActive("REGISTRATION") {
+		return "PARTICIPANT_REGISTRATION"
+	}
+
+	// If no phase is actively matched, we must figure out the gaps.
+	// Are we before registration?
+	if reg, ok := phaseMap["REGISTRATION"]; ok && reg.StartAt != nil && now.Before(*reg.StartAt) {
+		return "PREPARATION"
+	}
+
+	// If we are past everything but not completed yet
+	if isPast("RESULT_PUBLICATION") || isPast("VOTING") {
+		return "COMPLETED"
+	}
+
+	// Default fallback for PUBLISHED
+	return "PUBLISHED"
+}
+
 type Service interface {
 	GetConfig(ctx context.Context) (*MusyawarahResponse, error)
 	UpdateConfig(ctx context.Context, req *UpdateMusyawarahRequest) (*MusyawarahResponse, error)
@@ -108,6 +182,8 @@ func (s *service) GetConfig(ctx context.Context) (*MusyawarahResponse, error) {
 			res.VotingEnd = p.EndAt
 		}
 	}
+
+	res.LifecycleState = CalculateLifecycleState(evt.Status, phases)
 
 	return res, nil
 }

@@ -1,10 +1,11 @@
-import { EventPhase } from './event';
+import { EventPhase, LifecycleState } from './event';
 
 export interface EventInfo {
   id: string;
   name: string;
   theme?: string;
   status: EventPhase;
+  lifecycle_state?: LifecycleState;
   publish_result: boolean;
   registration_start?: string;
   registration_end?: string;

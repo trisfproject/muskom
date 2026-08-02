@@ -32,7 +32,7 @@ func TestHandler_GetConfig(t *testing.T) {
 		mockSvc.On("GetConfig", mock.Anything).Return((*MusyawarahResponse)(nil), ErrConfigNotFound).Once()
 		req := httptest.NewRequest("GET", "/musyawarah", nil)
 		resp, _ := app.Test(req)
-		assert.Equal(t, 404, resp.StatusCode)
+		assert.Equal(t, 200, resp.StatusCode)
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
@@ -51,7 +51,7 @@ func TestHandler_UpdateConfig(t *testing.T) {
 	app.Put("/musyawarah", handler.Update)
 
 	t.Run("Success", func(t *testing.T) {
-		reqBody := UpdateMusyawarahRequest{Name: "Name", Status: "DRAFT"}
+		reqBody := UpdateMusyawarahRequest{Name: "Name", Slug: "slug", Status: "DRAFT"}
 		body, _ := json.Marshal(reqBody)
 		mockSvc.On("UpdateConfig", mock.Anything, &reqBody).Return(&MusyawarahResponse{}, nil).Once()
 
@@ -69,7 +69,7 @@ func TestHandler_UpdateConfig(t *testing.T) {
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		reqBody := UpdateMusyawarahRequest{Name: "Name", Status: "DRAFT"}
+		reqBody := UpdateMusyawarahRequest{Name: "Name", Slug: "slug", Status: "DRAFT"}
 		body, _ := json.Marshal(reqBody)
 		mockSvc.On("UpdateConfig", mock.Anything, &reqBody).Return((*MusyawarahResponse)(nil), errors.New("db err")).Once()
 

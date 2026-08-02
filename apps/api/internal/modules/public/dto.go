@@ -12,11 +12,12 @@ type HomeResponse struct {
 }
 
 type EventDTO struct {
-	Name      string     `json:"name"`
-	Theme     *string    `json:"theme"`
-	Location  *string    `json:"location"`
-	EventDate *time.Time `json:"event_date"`
-	Status    string     `json:"status"`
+	Name           string     `json:"name"`
+	Theme          *string    `json:"theme"`
+	Location       *string    `json:"location"`
+	EventDate      *time.Time `json:"event_date"`
+	Status         string     `json:"status"`
+	LifecycleState string     `json:"lifecycle_state"`
 }
 
 type SettingsDTO struct {
