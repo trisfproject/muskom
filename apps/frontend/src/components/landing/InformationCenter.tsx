@@ -36,8 +36,8 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
         <SlideUp className="text-center max-w-2xl mx-auto mb-16 lg:mb-24">
           <p className="text-info text-xs font-semibold tracking-widest uppercase mb-3">Pusat Informasi</p>
           <SectionHeader 
-            title="Informasi & Dokumen" 
-            description="Pembaruan terbaru, pengumuman resmi, dan dokumen panduan penting terkait pelaksanaan musyawarah."
+            title="Pusat Informasi" 
+            description="Pembaruan terbaru, pengumuman resmi, dan panduan penting terkait pelaksanaan musyawarah."
             centered
           />
         </SlideUp>
@@ -99,12 +99,12 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
               {loadingPages ? (
                 <div className="p-8 text-center text-slate-500">
                   <div className="w-6 h-6 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                  <p className="text-sm">Memuat dokumen...</p>
+                  <p className="text-sm">Memuat informasi...</p>
                 </div>
               ) : pages.length === 0 ? (
                 <div className="p-8 text-center text-slate-500">
                   <FileText className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                  <p className="text-sm">Belum ada dokumen tersedia.</p>
+                  <p className="text-sm">Belum ada informasi tersedia.</p>
                 </div>
               ) : (
                 <ul className="divide-y divide-white/[0.05]">
@@ -123,7 +123,7 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
                               <p className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">
                                 {p.title}
                               </p>
-                              <p className="text-xs text-slate-500 mt-0.5">Lihat dokumen &rarr;</p>
+                              <p className="text-xs text-slate-500 mt-0.5">Lihat detail &rarr;</p>
                             </div>
                           </div>
                           <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-primary transition-colors transform group-hover:translate-x-1" />

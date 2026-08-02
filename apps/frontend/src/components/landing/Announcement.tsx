@@ -14,7 +14,7 @@ export function Announcement({ data }: { data: HomeResponse | null }) {
           <p className="text-info text-xs font-semibold tracking-widest uppercase mb-3">Informasi</p>
           <SectionHeader 
             title="Pusat Informasi" 
-            description="Pembaruan terbaru, pengumuman resmi, dan dokumen penting terkait pelaksanaan musyawarah."
+            description="Pembaruan terbaru, pengumuman resmi, dan panduan penting terkait pelaksanaan musyawarah."
             centered
           />
         </SlideUp>
