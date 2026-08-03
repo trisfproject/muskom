@@ -29,13 +29,27 @@ export interface CandidateResponse {
 export const candidateRegistrationService = {
   async registerCandidate(payload: CandidateRegistrationPayload): Promise<CandidateResponse> {
     const res = await publicApi.post('/candidates', payload);
-    return res.data || res;
+    return res.data?.data || res.data || res;
+  },
+
+  async getDraft(id: string): Promise<CandidateResponse> {
+    const res = await publicApi.get(`/candidates/${id}`);
+    return res.data?.data || res.data || res;
+  },
+
+  async patchDraft(id: string, payload: Partial<CandidateRegistrationPayload>): Promise<CandidateResponse> {
+    const res = await publicApi.patch(`/candidates/${id}`, payload);
+    return res.data?.data || res.data || res;
+  },
+
+  async deleteDraft(id: string): Promise<void> {
+    await publicApi.delete(`/candidates/${id}`);
   },
 
   async submitCandidate(id: string): Promise<CandidateResponse> {
     const res = await publicApi.patch(`/candidates/${id}`, {
       status: 'Submitted'
     });
-    return res.data || res;
+    return res.data?.data || res.data || res;
   }
 };

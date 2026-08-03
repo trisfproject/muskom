@@ -1,22 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, CheckCircle2, Download, Save, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Download, Save, AlertCircle, RefreshCw, Trash2, Lock } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { candidateSchema, CandidateFormData } from "./schema";
 import { candidateRegistrationService } from "@/services/candidate-registration";
 import { landingService } from "@/services/landing";
 
-const DRAFT_KEY = "muskom_candidate_draft";
+const LOCAL_DRAFT_KEY = "muskom_candidate_local_draft";
+const ID_DRAFT_KEY = "muskom_candidate_id";
+
+type SaveStatus = "Idle" | "Saving..." | "Saved" | "Failed";
 
 export default function CandidateRegisterPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [musyawarahId, setMusyawarahId] = useState<string | null>(null);
+  
+  // Backend Sync State
+  const [candidateId, setCandidateId] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("Idle");
+  const [isLocked, setIsLocked] = useState(false);
+  
   const [successData, setSuccessData] = useState<{ regNumber: string; name: string } | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -25,40 +34,148 @@ export default function CandidateRegisterPage() {
     mode: "onTouched"
   });
 
-  useEffect(() => {
-    // 1. Fetch Active Musyawarah ID
-    landingService.getPublicHome().then((res) => {
-      if (res?.event?.id) {
-        setMusyawarahId(res.event.id);
-      }
-    }).catch(console.error);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedData = useRef<string>("");
 
-    // 2. Load Draft from LocalStorage
-    const draft = localStorage.getItem(DRAFT_KEY);
-    if (draft) {
+  // 1. Initial Load & Hydration
+  useEffect(() => {
+    const initialize = async () => {
       try {
-        const parsed = JSON.parse(draft);
-        reset(parsed);
-      } catch (e) {
-        console.error("Failed to parse draft", e);
+        // Fetch Event ID
+        const res = await landingService.getPublicHome();
+        if (res?.event?.id) setMusyawarahId(res.event.id);
+
+        // Check if there is an active backend draft
+        const savedId = localStorage.getItem(ID_DRAFT_KEY);
+        if (savedId) {
+          try {
+            const draft = await candidateRegistrationService.getDraft(savedId);
+            if (draft.status === "Submitted") {
+              setIsLocked(true);
+              setSuccessData({ regNumber: draft.registration_number, name: draft.full_name });
+              setStep(5);
+            } else {
+              setCandidateId(draft.id);
+              reset(draft as unknown as CandidateFormData);
+              // Start at step 2 if we have a valid draft
+              setStep(2);
+            }
+          } catch (e) {
+            console.error("Failed to fetch draft from backend", e);
+            localStorage.removeItem(ID_DRAFT_KEY);
+          }
+        } else {
+          // If no backend draft, try local draft for Step 1
+          const localDraft = localStorage.getItem(LOCAL_DRAFT_KEY);
+          if (localDraft) reset(JSON.parse(localDraft));
+        }
+      } finally {
+        setIsLoaded(true);
       }
-    }
-    setIsLoaded(true);
+    };
+    initialize();
   }, [reset]);
 
+  // 2. Prevent accidental exit if saving or failed
   useEffect(() => {
-    // Auto-save to localStorage whenever formData changes, if loaded
-    const subscription = watch((value) => {
-      if (isLoaded) {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(value));
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (saveStatus === "Saving..." || saveStatus === "Failed") {
+        e.preventDefault();
+        e.returnValue = "";
       }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [saveStatus]);
+
+  // 3. Auto-Save Logic (Local for Step 1, Backend for Step 2+)
+  useEffect(() => {
+    const subscription = watch((value) => {
+      if (!isLoaded || isLocked || step === 5) return;
+
+      const currentString = JSON.stringify(value);
+      if (currentString === lastSavedData.current) return;
+
+      // If we don't have a candidateId, save locally (Step 1)
+      if (!candidateId) {
+        localStorage.setItem(LOCAL_DRAFT_KEY, currentString);
+        return;
+      }
+
+      // If we do have a candidateId, debounce a PATCH to the backend
+      setSaveStatus("Saving...");
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      
+      saveTimeoutRef.current = setTimeout(async () => {
+        try {
+          // Clean empty optional fields for PATCH
+          const payload = { ...value } as any;
+          Object.keys(payload).forEach((key) => {
+            if (payload[key] === "") payload[key] = undefined;
+          });
+
+          await candidateRegistrationService.patchDraft(candidateId, payload);
+          setSaveStatus("Saved");
+          lastSavedData.current = currentString;
+        } catch (e) {
+          console.error("Draft Auto-Save Failed", e);
+          setSaveStatus("Failed");
+        }
+      }, 1500); // 1.5s debounce
     });
     return () => subscription.unsubscribe();
-  }, [watch, isLoaded]);
+  }, [watch, isLoaded, isLocked, candidateId, step]);
+
+  const handleDeleteDraft = async () => {
+    if (!confirm("Apakah Anda yakin ingin menghapus draft ini? Semua data yang belum disubmit akan hilang.")) return;
+    try {
+      setLoading(true);
+      if (candidateId) {
+        await candidateRegistrationService.deleteDraft(candidateId);
+      }
+      localStorage.removeItem(ID_DRAFT_KEY);
+      localStorage.removeItem(LOCAL_DRAFT_KEY);
+      window.location.reload();
+    } catch (e) {
+      alert("Gagal menghapus draft. Silakan coba lagi.");
+      setLoading(false);
+    }
+  };
 
   const onNextStep1 = async () => {
     const valid = await trigger(["full_name", "nickname", "email", "phone", "gender", "birth_place", "birth_date"]);
-    if (valid) setStep(2);
+    if (valid) {
+      // If valid, transition from Local Draft to Backend Draft
+      if (!candidateId) {
+        if (!musyawarahId) return setError("Sistem gagal memuat ID Acara. Coba refresh halaman.");
+        
+        setSaveStatus("Saving...");
+        try {
+          const data = getValues();
+          const cand = await candidateRegistrationService.registerCandidate({
+            musyawarah_id: musyawarahId,
+            full_name: data.full_name,
+            nickname: data.nickname || undefined,
+            email: data.email,
+            phone: data.phone,
+            gender: data.gender,
+            birth_place: data.birth_place || undefined,
+            birth_date: data.birth_date || undefined,
+          });
+          setCandidateId(cand.id);
+          localStorage.setItem(ID_DRAFT_KEY, cand.id);
+          localStorage.removeItem(LOCAL_DRAFT_KEY);
+          setSaveStatus("Saved");
+          lastSavedData.current = JSON.stringify(getValues());
+        } catch (e: any) {
+          console.error(e);
+          setSaveStatus("Failed");
+          setError(e?.response?.data?.message || "Gagal membuat draft pendaftaran di server.");
+          return;
+        }
+      }
+      setStep(2);
+    }
   };
 
   const onNextStep2 = async () => {
@@ -68,50 +185,37 @@ export default function CandidateRegisterPage() {
 
   const onNextStep3 = async () => {
     const valid = await trigger(["biography", "motivation", "vision", "mission"]);
-    if (valid) setStep(4);
+    if (valid) {
+      // Ensure any pending save completes before previewing
+      if (saveStatus === "Saving...") {
+        // Just wait for auto-save to finish or fail
+        setTimeout(onNextStep3, 500);
+        return;
+      }
+      setStep(4);
+    }
   };
 
-  const onSubmit = async (data: CandidateFormData) => {
-    if (!musyawarahId) {
-      setError("Data event (Musyawarah) tidak ditemukan. Silakan refresh halaman.");
-      return;
-    }
+  const onSubmit = async () => {
+    if (!candidateId) return;
 
     setLoading(true);
     setError(null);
     try {
-      // 1. Create candidate (status: Draft)
-      const cand = await candidateRegistrationService.registerCandidate({
-        musyawarah_id: musyawarahId,
-        full_name: data.full_name,
-        nickname: data.nickname || undefined,
-        email: data.email,
-        phone: data.phone,
-        gender: data.gender,
-        birth_place: data.birth_place || undefined,
-        birth_date: data.birth_date || undefined,
-        occupation: data.occupation || undefined,
-        organization: data.organization || undefined,
-        address: data.address || undefined,
-        biography: data.biography || undefined,
-        motivation: data.motivation || undefined,
-        vision: data.vision || undefined,
-        mission: data.mission || undefined,
-      });
+      const submitted = await candidateRegistrationService.submitCandidate(candidateId);
 
-      // 2. Submit candidate (status: Submitted)
-      const submitted = await candidateRegistrationService.submitCandidate(cand.id);
-
-      // Clear draft on success
-      localStorage.removeItem(DRAFT_KEY);
+      // Lock local storage
+      localStorage.removeItem(ID_DRAFT_KEY);
+      localStorage.removeItem(LOCAL_DRAFT_KEY);
       
+      setIsLocked(true);
       setSuccessData({ 
         regNumber: submitted.registration_number, 
         name: submitted.full_name
       });
       setStep(5);
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || "Terjadi kesalahan sistem saat mendaftar.");
+      setError(err?.response?.data?.message || err?.message || "Terjadi kesalahan sistem saat submit.");
     } finally {
       setLoading(false);
     }
@@ -119,7 +223,22 @@ export default function CandidateRegisterPage() {
 
   const v = getValues();
 
-  if (!isLoaded) return null; // Avoid hydration mismatch
+  if (!isLoaded) return null; // Prevent hydration mismatch
+
+  if (isLocked && step < 5) {
+    return (
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
+         <div className="bg-white border border-slate-200 rounded-3xl p-10 max-w-lg shadow-sm">
+            <Lock className="w-16 h-16 text-slate-400 mx-auto mb-6" />
+            <h1 className="text-2xl font-black mb-3">Pendaftaran Dikunci</h1>
+            <p className="text-slate-500 mb-6">Pendaftaran Anda telah di-submit dan sedang menunggu verifikasi panitia. Form ini tidak dapat diubah lagi.</p>
+            <Link href="/" className="bg-slate-900 text-white font-bold py-3.5 px-6 rounded-xl hover:bg-slate-800">
+              Kembali ke Beranda
+            </Link>
+         </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 pb-24">
@@ -129,9 +248,28 @@ export default function CandidateRegisterPage() {
           <Link href="/" className="text-sm font-semibold text-slate-500 hover:text-slate-900 flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" /> Batal
           </Link>
-          <span className="font-bold text-slate-900 text-sm tracking-tight">Pendaftaran Bakal Calon</span>
-          <div className="flex items-center gap-2 text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
-            <Save className="w-3.5 h-3.5" /> Draft Tersimpan
+          <span className="font-bold text-slate-900 text-sm tracking-tight hidden sm:block">Pendaftaran Bakal Calon</span>
+          
+          <div className="flex items-center gap-4">
+            {candidateId && step < 5 && (
+              <button onClick={handleDeleteDraft} disabled={loading} className="text-red-500 hover:text-red-600 text-sm font-semibold flex items-center gap-1.5 transition-colors">
+                <Trash2 className="w-4 h-4" /> <span className="hidden sm:inline">Hapus Draft</span>
+              </button>
+            )}
+            {step < 5 && (
+              <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border ${
+                saveStatus === "Saved" ? "text-emerald-700 bg-emerald-50 border-emerald-200" :
+                saveStatus === "Saving..." ? "text-amber-700 bg-amber-50 border-amber-200" :
+                saveStatus === "Failed" ? "text-red-700 bg-red-50 border-red-200" :
+                "text-slate-600 bg-slate-100 border-slate-200"
+              }`}>
+                {saveStatus === "Saved" && <Save className="w-3.5 h-3.5" />}
+                {saveStatus === "Saving..." && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                {saveStatus === "Failed" && <AlertCircle className="w-3.5 h-3.5" />}
+                {saveStatus === "Idle" && <Save className="w-3.5 h-3.5" />}
+                {saveStatus === "Idle" ? (candidateId ? "Draft Lokal" : "Belum Disimpan") : saveStatus}
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -151,14 +289,20 @@ export default function CandidateRegisterPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
           <AnimatePresence mode="wait">
             
             {/* STEP 1: PERSONAL INFORMATION */}
             {step === 1 && (
               <motion.div key="step1" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
                 <h1 className="text-3xl font-black tracking-tight mb-2">Informasi Personal</h1>
-                <p className="text-slate-500 mb-8">Mohon lengkapi data diri Anda sesuai dengan identitas resmi.</p>
+                <p className="text-slate-500 mb-8">Lengkapi identitas Anda. Data akan dibuatkan Draft otomatis setelah tahap ini selesai.</p>
+
+                {error && (
+                  <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100">
+                    {error}
+                  </div>
+                )}
 
                 <div className="space-y-6 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
                   <InputGroup label="Nama Lengkap" error={errors.full_name?.message}>
@@ -193,8 +337,8 @@ export default function CandidateRegisterPage() {
                 </div>
 
                 <div className="mt-8 flex justify-end">
-                  <button type="button" onClick={onNextStep1} className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-10 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors">
-                    Lanjutkan <ArrowRight className="w-5 h-5" />
+                  <button type="button" onClick={onNextStep1} disabled={saveStatus === "Saving..."} className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-10 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
+                    {saveStatus === "Saving..." ? "Membuat Draft..." : "Lanjutkan"} <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
               </motion.div>
@@ -204,7 +348,7 @@ export default function CandidateRegisterPage() {
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
                 <h1 className="text-3xl font-black tracking-tight mb-2">Informasi Profesional</h1>
-                <p className="text-slate-500 mb-8">Lengkapi data pekerjaan dan alamat tempat tinggal Anda saat ini.</p>
+                <p className="text-slate-500 mb-8">Draft otomatis tersimpan saat Anda mengetik. Anda bisa keluar dan melanjutkannya nanti.</p>
 
                 <div className="space-y-6 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -330,7 +474,7 @@ export default function CandidateRegisterPage() {
                   <button type="button" onClick={() => setStep(3)} disabled={loading} className="w-full sm:w-auto bg-slate-100 text-slate-700 font-bold py-4 px-10 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50">
                     Kembali
                   </button>
-                  <button type="submit" disabled={loading} className="w-full sm:w-auto bg-emerald-600 text-white font-bold py-4 px-10 rounded-xl hover:bg-emerald-700 flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-600/20">
+                  <button type="button" onClick={onSubmit} disabled={loading || saveStatus === "Saving..."} className="w-full sm:w-auto bg-emerald-600 text-white font-bold py-4 px-10 rounded-xl hover:bg-emerald-700 flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-600/20">
                     {loading ? "Memproses..." : "Kirim Pendaftaran"}
                   </button>
                 </div>
