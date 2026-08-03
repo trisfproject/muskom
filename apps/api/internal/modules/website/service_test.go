@@ -123,12 +123,30 @@ func (m *mockRepository) UpdateCandidateSettings(ctx context.Context, c *Website
 func (m *mockRepository) GetCandidates(ctx context.Context) ([]CandidateEntity, error) {
 	return []CandidateEntity{}, nil
 }
+func (m *mockRepository) GetCandidateByID(ctx context.Context, id string) (*CandidateEntity, error) {
+	return nil, nil
+}
 func (m *mockRepository) GetFooter(ctx context.Context) (*WebsiteFooterSettings, error) {
 	return m.footer, nil
 }
 func (m *mockRepository) UpdateFooter(ctx context.Context, f *WebsiteFooterSettings) (*WebsiteFooterSettings, error) {
 	m.footer = f
 	return m.footer, nil
+}
+func (m *mockRepository) GetInformationPages(ctx context.Context, onlyPublished bool) ([]WebsiteInformationPage, error) {
+	return []WebsiteInformationPage{}, nil
+}
+func (m *mockRepository) GetInformationPage(ctx context.Context, idOrSlug string) (*WebsiteInformationPage, error) {
+	return nil, nil
+}
+func (m *mockRepository) CreateInformationPage(ctx context.Context, p *WebsiteInformationPage) (*WebsiteInformationPage, error) {
+	return p, nil
+}
+func (m *mockRepository) UpdateInformationPage(ctx context.Context, id string, p *WebsiteInformationPage) (*WebsiteInformationPage, error) {
+	return p, nil
+}
+func (m *mockRepository) DeleteInformationPage(ctx context.Context, id string) error {
+	return nil
 }
 
 func TestGetPublicHome(t *testing.T) {

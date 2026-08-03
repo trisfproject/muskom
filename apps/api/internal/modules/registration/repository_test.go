@@ -342,15 +342,21 @@ func TestRepository_CreateRegistration(t *testing.T) {
 			ParticipantCategory: &cat,
 			Source:              &source,
 			Status:              "PENDING",
+			QrToken:             nil,
+			Region:              nil,
+			Community:           nil,
+			SpecialNotes:        nil,
 		}
 
 		mock.ExpectQuery("^INSERT INTO registrations").
-			WithArgs(reg.EventID, reg.PersonID, reg.ParticipantCategory, reg.Source, reg.Status).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "status"}).AddRow("reg1", "PENDING"))
+			WithArgs(reg.EventID, reg.PersonID, reg.ParticipantCategory, reg.Source, reg.Status, reg.QrToken, reg.Region, reg.Community, reg.SpecialNotes).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "status", "registration_number"}).AddRow("reg1", "PENDING", "MUSKOM-2026-000001"))
 
 		err = repo.CreateRegistration(ctx, tx, reg)
 		assert.NoError(t, err)
 		assert.Equal(t, "reg1", reg.ID)
+		assert.NotNil(t, reg.RegistrationNumber)
+		assert.Equal(t, "MUSKOM-2026-000001", *reg.RegistrationNumber)
 	})
 }
 

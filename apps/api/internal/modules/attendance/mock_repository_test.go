@@ -57,3 +57,16 @@ func (m *MockRepository) GetAttendanceByID(ctx context.Context, attendanceID str
 	}
 	return nil, args.Error(1)
 }
+
+func (m *MockRepository) UndoCheckIn(ctx context.Context, tx *sqlx.Tx, checkInID string, operatorID string, reason string) error {
+	args := m.Called(ctx, tx, checkInID, operatorID, reason)
+	return args.Error(0)
+}
+
+func (m *MockRepository) GetSummaryByEvent(ctx context.Context, eventID string) (*AttendanceSummary, error) {
+	args := m.Called(ctx, eventID)
+	if args.Get(0) != nil {
+		return args.Get(0).(*AttendanceSummary), args.Error(1)
+	}
+	return nil, args.Error(1)
+}

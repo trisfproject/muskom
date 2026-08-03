@@ -26,7 +26,7 @@ func (m *MockService) GetAttendance(ctx context.Context, registrationID string) 
 	return nil, args.Error(1)
 }
 
-func (m *MockService) ListAttendances(ctx context.Context, filter AttendanceListRequest) ([]AttendanceItemResponse, int, error) {
+func (m *MockService) Search(ctx context.Context, filter AttendanceListRequest) ([]AttendanceItemResponse, int, error) {
 	args := m.Called(ctx, filter)
 	if args.Get(0) != nil {
 		return args.Get(0).([]AttendanceItemResponse), args.Int(1), args.Error(2)
@@ -42,7 +42,15 @@ func (m *MockService) GetAttendanceByID(ctx context.Context, id string) (*Attend
 	return nil, args.Error(1)
 }
 
-func (m *MockService) CorrectAttendance(ctx context.Context, id string, req *CorrectAttendanceRequest, operatorID string) error {
-	args := m.Called(ctx, id, req, operatorID)
+func (m *MockService) UndoCheckIn(ctx context.Context, checkInID string, operatorID string, req *UndoCheckInRequest) error {
+	args := m.Called(ctx, checkInID, operatorID, req)
 	return args.Error(0)
+}
+
+func (m *MockService) GetSummary(ctx context.Context, eventID string) (*AttendanceSummary, error) {
+	args := m.Called(ctx, eventID)
+	if args.Get(0) != nil {
+		return args.Get(0).(*AttendanceSummary), args.Error(1)
+	}
+	return nil, args.Error(1)
 }

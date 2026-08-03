@@ -165,15 +165,15 @@ func TestHandler_GetAttendance(t *testing.T) {
 	})
 }
 
-func TestHandler_ListAttendances(t *testing.T) {
+func TestHandler_Search(t *testing.T) {
 	app := fiber.New()
 	mockSvc := new(MockService)
 	handler := NewHandler(mockSvc)
 
-	app.Get("/attendance", handler.ListAttendances)
+	app.Get("/attendance", handler.Search)
 
 	t.Run("Success", func(t *testing.T) {
-		mockSvc.On("ListAttendances", mock.Anything, mock.Anything).Return([]AttendanceItemResponse{}, 0, nil).Once()
+		mockSvc.On("Search", mock.Anything, mock.Anything).Return([]AttendanceItemResponse{}, 0, nil).Once()
 
 		req := httptest.NewRequest("GET", "/attendance?page=1&limit=10", nil)
 		resp, _ := app.Test(req)
@@ -189,7 +189,7 @@ func TestHandler_ListAttendances(t *testing.T) {
 	})
 
 	t.Run("ValidationError", func(t *testing.T) {
-		mockSvc.On("ListAttendances", mock.Anything, mock.Anything).Return(([]AttendanceItemResponse)(nil), 0, &ValidationError{}).Once()
+		mockSvc.On("Search", mock.Anything, mock.Anything).Return(([]AttendanceItemResponse)(nil), 0, &ValidationError{}).Once()
 
 		req := httptest.NewRequest("GET", "/attendance", nil)
 		resp, _ := app.Test(req)
@@ -198,7 +198,7 @@ func TestHandler_ListAttendances(t *testing.T) {
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		mockSvc.On("ListAttendances", mock.Anything, mock.Anything).Return(([]AttendanceItemResponse)(nil), 0, errors.New("db err")).Once()
+		mockSvc.On("Search", mock.Anything, mock.Anything).Return(([]AttendanceItemResponse)(nil), 0, errors.New("db err")).Once()
 
 		req := httptest.NewRequest("GET", "/attendance", nil)
 		resp, _ := app.Test(req)
@@ -241,7 +241,7 @@ func TestHandler_GetAttendanceByID(t *testing.T) {
 	})
 }
 
-func TestHandler_CorrectAttendance(t *testing.T) {
+func TestHandler_UndoCheckIn(t *testing.T) {
 	app := fiber.New()
 	mockSvc := new(MockService)
 	handler := NewHandler(mockSvc)
@@ -250,27 +250,27 @@ func TestHandler_CorrectAttendance(t *testing.T) {
 		c.Locals("user_id", "admin1")
 		return c.Next()
 	})
-	app.Patch("/attendance/:id", handler.CorrectAttendance)
-	app.Patch("/attendance/", handler.CorrectAttendance)
+	app.Patch("/attendance/:id", handler.UndoCheckIn)
+	app.Patch("/attendance/", handler.UndoCheckIn)
 
-	t.Run("Success_ButRejected", func(t *testing.T) {
-		reqBody := CorrectAttendanceRequest{Notes: "test"}
+	t.Run("NotFoundOrAlreadyUndone", func(t *testing.T) {
+		reqBody := UndoCheckInRequest{Notes: "test"}
 		body, _ := json.Marshal(reqBody)
 
-		mockSvc.On("CorrectAttendance", mock.Anything, "att1", &reqBody, "admin1").Return(errors.New("attendance correction is not supported by the current database schema")).Once()
+		mockSvc.On("UndoCheckIn", mock.Anything, "att1", "admin1", &reqBody).Return(errors.New("check-in not found or already undone")).Once()
 
 		req := httptest.NewRequest("PATCH", "/attendance/att1", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		resp, _ := app.Test(req)
 
-		assert.Equal(t, 409, resp.StatusCode)
+		assert.Equal(t, 404, resp.StatusCode)
 	})
 
 	t.Run("ValidationError", func(t *testing.T) {
-		reqBody := CorrectAttendanceRequest{Notes: "test"}
+		reqBody := UndoCheckInRequest{Notes: "test"}
 		body, _ := json.Marshal(reqBody)
 
-		mockSvc.On("CorrectAttendance", mock.Anything, "att1", &reqBody, "admin1").Return(&ValidationError{}).Once()
+		mockSvc.On("UndoCheckIn", mock.Anything, "att1", "admin1", &reqBody).Return(&ValidationError{}).Once()
 
 		req := httptest.NewRequest("PATCH", "/attendance/att1", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -280,10 +280,10 @@ func TestHandler_CorrectAttendance(t *testing.T) {
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		reqBody := CorrectAttendanceRequest{Notes: "test"}
+		reqBody := UndoCheckInRequest{Notes: "test"}
 		body, _ := json.Marshal(reqBody)
 
-		mockSvc.On("CorrectAttendance", mock.Anything, "att1", &reqBody, "admin1").Return(errors.New("db err")).Once()
+		mockSvc.On("UndoCheckIn", mock.Anything, "att1", "admin1", &reqBody).Return(errors.New("db err")).Once()
 
 		req := httptest.NewRequest("PATCH", "/attendance/att1", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -308,15 +308,15 @@ func TestHandler_CorrectAttendance(t *testing.T) {
 	})
 }
 
-func TestHandler_CorrectAttendance_Unauthorized(t *testing.T) {
+func TestHandler_UndoCheckIn_Unauthorized(t *testing.T) {
 	app := fiber.New()
 	mockSvc := new(MockService)
 	handler := NewHandler(mockSvc)
 
-	app.Patch("/attendance/:id", handler.CorrectAttendance)
+	app.Patch("/attendance/:id", handler.UndoCheckIn)
 
 	t.Run("Unauthorized", func(t *testing.T) {
-		reqBody := CorrectAttendanceRequest{Notes: "test"}
+		reqBody := UndoCheckInRequest{Notes: "test"}
 		body, _ := json.Marshal(reqBody)
 
 		req := httptest.NewRequest("PATCH", "/attendance/att1", bytes.NewReader(body))

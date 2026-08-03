@@ -11,6 +11,48 @@ type MockRepository struct {
 	mock.Mock
 }
 
+func (m *MockRepository) SoftDeleteEvent(ctx context.Context, id string, deletedBy string) error {
+	args := m.Called(ctx, id, deletedBy)
+	return args.Error(0)
+}
+
+func (m *MockRepository) ListEvents(ctx context.Context) ([]MusyawarahEvent, error) {
+	args := m.Called(ctx)
+	if args.Get(0) != nil {
+		return args.Get(0).([]MusyawarahEvent), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockRepository) GetEventByID(ctx context.Context, id string) (*MusyawarahEvent, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) != nil {
+		return args.Get(0).(*MusyawarahEvent), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockRepository) GetEventBySlug(ctx context.Context, slug string) (*MusyawarahEvent, error) {
+	args := m.Called(ctx, slug)
+	if args.Get(0) != nil {
+		return args.Get(0).(*MusyawarahEvent), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockRepository) CreateEvent(ctx context.Context, e *MusyawarahEvent) (*MusyawarahEvent, error) {
+	args := m.Called(ctx, e)
+	if args.Get(0) != nil {
+		return args.Get(0).(*MusyawarahEvent), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockRepository) DeactivateAll(ctx context.Context, tx *sqlx.Tx) error {
+	args := m.Called(ctx, tx)
+	return args.Error(0)
+}
+
 func (m *MockRepository) GetActiveEvent(ctx context.Context) (*MusyawarahEvent, error) {
 	args := m.Called(ctx)
 	if args.Get(0) != nil {
@@ -33,6 +75,16 @@ func (m *MockRepository) GetPhases(ctx context.Context, eventID string) ([]Musya
 		return args.Get(0).([]MusyawarahPhase), args.Error(1)
 	}
 	return nil, args.Error(1)
+}
+
+func (m *MockRepository) SetActive(ctx context.Context, tx *sqlx.Tx, id string) error {
+	args := m.Called(ctx, tx, id)
+	return args.Error(0)
+}
+
+func (m *MockRepository) ArchiveEvent(ctx context.Context, id string) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
 }
 
 func (m *MockRepository) UpdateEvent(ctx context.Context, tx *sqlx.Tx, e *MusyawarahEvent) error {

@@ -51,7 +51,7 @@ func TestHandler_UpdateConfig(t *testing.T) {
 	app.Put("/musyawarah", handler.Update)
 
 	t.Run("Success", func(t *testing.T) {
-		reqBody := UpdateMusyawarahRequest{Name: "Name", Slug: "slug", Status: "DRAFT"}
+		reqBody := UpdateMusyawarahRequest{Name: "Name", Slug: "slug"}
 		body, _ := json.Marshal(reqBody)
 		mockSvc.On("UpdateConfig", mock.Anything, &reqBody).Return(&MusyawarahResponse{}, nil).Once()
 
@@ -69,7 +69,7 @@ func TestHandler_UpdateConfig(t *testing.T) {
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		reqBody := UpdateMusyawarahRequest{Name: "Name", Slug: "slug", Status: "DRAFT"}
+		reqBody := UpdateMusyawarahRequest{Name: "Name", Slug: "slug"}
 		body, _ := json.Marshal(reqBody)
 		mockSvc.On("UpdateConfig", mock.Anything, &reqBody).Return((*MusyawarahResponse)(nil), errors.New("db err")).Once()
 

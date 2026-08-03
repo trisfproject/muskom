@@ -129,7 +129,7 @@ func TestService_GetAttendance(t *testing.T) {
 	})
 }
 
-func TestService_ListAttendances(t *testing.T) {
+func TestService_Search(t *testing.T) {
 	_, mockRepo, svc, sqlxDB := setupTestService(t)
 	defer sqlxDB.Close()
 	ctx := context.Background()
@@ -137,7 +137,7 @@ func TestService_ListAttendances(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		filter := AttendanceListRequest{Page: 1, Limit: 10}
 		mockRepo.On("ListAttendances", mock.Anything, filter).Return([]AttendanceItemResponse{}, 0, nil).Once()
-		res, total, err := svc.ListAttendances(ctx, filter)
+		res, total, err := svc.Search(ctx, filter)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, total)
 		assert.NotNil(t, res)
@@ -162,35 +162,35 @@ func TestService_GetAttendanceByID(t *testing.T) {
 	})
 }
 
-func TestService_CorrectAttendance(t *testing.T) {
+func TestService_UndoCheckIn(t *testing.T) {
 	mockDB, mockRepo, svc, sqlxDB := setupTestService(t)
 	defer sqlxDB.Close()
 	ctx := context.Background()
 
 	t.Run("ValidationFailed", func(t *testing.T) {
-		req := &CorrectAttendanceRequest{}
-		err := svc.CorrectAttendance(ctx, "att1", req, "op1")
+		req := &UndoCheckInRequest{}
+		err := svc.UndoCheckIn(ctx, "att1", "op1", req)
 		assert.Error(t, err)
 	})
 
 	t.Run("BeginTxFailed", func(t *testing.T) {
-		req := &CorrectAttendanceRequest{Notes: "test"}
+		req := &UndoCheckInRequest{Notes: "test"}
 		mockRepo.On("BeginTx", mock.Anything).Return((*sqlx.Tx)(nil), errors.New("tx err")).Once()
-		err := svc.CorrectAttendance(ctx, "att1", req, "op1")
+		err := svc.UndoCheckIn(ctx, "att1", "op1", req)
 		assert.Error(t, err)
 	})
 
 	t.Run("Success_Rejected", func(t *testing.T) {
-		req := &CorrectAttendanceRequest{Notes: "test"}
+		req := &UndoCheckInRequest{Notes: "test"}
 
 		(*mockDB).ExpectBegin()
 		(*mockDB).ExpectCommit()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 
-		mockRepo.On("LogAudit", mock.Anything, tx, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+		mockRepo.On("UndoCheckIn", mock.Anything, tx, mock.Anything, mock.Anything, mock.Anything).Return(errors.New("not supported by the current database schema")).Once()
 
-		err := svc.CorrectAttendance(ctx, "att1", req, "op1")
+		err := svc.UndoCheckIn(ctx, "att1", "op1", req)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "not supported by the current database schema")
 	})

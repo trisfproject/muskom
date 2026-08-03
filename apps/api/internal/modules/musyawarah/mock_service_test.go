@@ -79,3 +79,72 @@ func (m *MockService) DeleteMedia(ctx context.Context, mediaType string) error {
 	args := m.Called(ctx, mediaType)
 	return args.Error(0)
 }
+
+func (m *MockService) ListAll(ctx context.Context) ([]MusyawarahListItem, error) {
+	args := m.Called(ctx)
+	if args.Get(0) != nil {
+		return args.Get(0).([]MusyawarahListItem), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockService) GetByID(ctx context.Context, id string) (*MusyawarahResponse, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) != nil {
+		return args.Get(0).(*MusyawarahResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockService) Create(ctx context.Context, req *CreateMusyawarahRequest) (*MusyawarahResponse, error) {
+	args := m.Called(ctx, req)
+	if args.Get(0) != nil {
+		return args.Get(0).(*MusyawarahResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockService) UpdateByID(ctx context.Context, id string, req *UpdateMusyawarahRequest) (*MusyawarahResponse, error) {
+	args := m.Called(ctx, id, req)
+	if args.Get(0) != nil {
+		return args.Get(0).(*MusyawarahResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockService) Activate(ctx context.Context, id string) (*MusyawarahResponse, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) != nil {
+		return args.Get(0).(*MusyawarahResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockService) Deactivate(ctx context.Context, id string) (*MusyawarahResponse, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) != nil {
+		return args.Get(0).(*MusyawarahResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockService) Archive(ctx context.Context, id string) (*MusyawarahResponse, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) != nil {
+		return args.Get(0).(*MusyawarahResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockService) Publish(ctx context.Context, id string) (*MusyawarahResponse, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) != nil {
+		return args.Get(0).(*MusyawarahResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockService) Delete(ctx context.Context, id string) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
