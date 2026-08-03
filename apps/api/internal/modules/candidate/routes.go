@@ -34,8 +34,8 @@ func RegisterRoutes(api fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 	repo := NewRepository(db)
 	auditRepo := audit.NewRepository(db)
 	auditSvc := audit.NewService(auditRepo, log)
-	service := NewService(repo, auditSvc, st, maxUploadSize, cfg)
-	handler := NewHandler(service, val)
+	service := NewService(repo, auditSvc, st, maxUploadSize, cfg, log)
+	handler := NewHandler(service, val, log)
 
 	candidates := api.Group("/candidates")
 

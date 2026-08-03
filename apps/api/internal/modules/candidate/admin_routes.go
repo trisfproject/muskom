@@ -15,8 +15,8 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 	repo := NewRepository(db)
 	auditSvc := audit.NewService(audit.NewRepository(db), log)
 	// Using default 5MB size limit
-	svc := NewService(repo, auditSvc, st, 5*1024*1024, cfg)
-	h := NewAdminHandler(svc, val)
+	svc := NewService(repo, auditSvc, st, 5*1024*1024, cfg, log)
+	h := NewAdminHandler(svc, val, log)
 
 	// Admin candidate endpoints
 	router.Get("/", h.ListCandidates)

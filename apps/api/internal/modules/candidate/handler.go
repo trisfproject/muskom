@@ -3,24 +3,26 @@ package candidate
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
+	"go.uber.org/zap"
 )
 
 type Handler struct {
 	service Service
 	val     *validator.Validator
+	log     *zap.Logger
 }
 
-func NewHandler(service Service, val *validator.Validator) *Handler {
+func NewHandler(service Service, val *validator.Validator, log *zap.Logger) *Handler {
 	return &Handler{
 		service: service,
 		val:     val,
+		log:     log,
 	}
 }
 
@@ -36,7 +38,7 @@ func (h *Handler) Create(c fiber.Ctx) error {
 
 	res, err := h.service.Create(c.Context(), req)
 	if err != nil {
-		fmt.Printf("Create Candidate Error: %v\n", err)
+		h.log.Error("failed to create candidate", zap.Error(err))
 		if errors.Is(err, ErrDuplicateReg) {
 			return response.SendError(c, fiber.StatusConflict, "registration number already exists", nil)
 		}
@@ -53,6 +55,7 @@ func (h *Handler) GetByID(c fiber.Ctx) error {
 	id := c.Params("id")
 	res, err := h.service.GetByID(c.Context(), id)
 	if err != nil {
+		h.log.Error("failed to get candidate by id", zap.Error(err), zap.String("candidate_id", id))
 		if errors.Is(err, ErrNotFound) {
 			return response.SendError(c, fiber.StatusNotFound, "candidate not found", nil)
 		}
@@ -75,6 +78,7 @@ func (h *Handler) Update(c fiber.Ctx) error {
 
 	res, err := h.service.Update(c.Context(), id, req)
 	if err != nil {
+		h.log.Error("failed to update candidate", zap.Error(err), zap.String("candidate_id", id))
 		if errors.Is(err, ErrNotFound) {
 			return response.SendError(c, fiber.StatusNotFound, "candidate not found", nil)
 		}
@@ -110,6 +114,7 @@ func (h *Handler) Delete(c fiber.Ctx) error {
 	id := c.Params("id")
 	err := h.service.Delete(c.Context(), id)
 	if err != nil {
+		h.log.Error("failed to delete candidate", zap.Error(err), zap.String("candidate_id", id))
 		if errors.Is(err, ErrNotFound) {
 			return response.SendError(c, fiber.StatusNotFound, "candidate not found", nil)
 		}
@@ -151,6 +156,7 @@ func (h *Handler) UploadDocument(c fiber.Ctx) error {
 
 	res, err := h.service.UploadDocument(c.Context(), candidateID, docType, file.Filename, actualMimeType, file.Size, fileReader)
 	if err != nil {
+		h.log.Error("failed to upload document", zap.Error(err), zap.String("candidate_id", candidateID))
 		if err.Error() == "cannot upload documents for a non-draft candidate" {
 			return response.SendError(c, fiber.StatusForbidden, err.Error(), nil)
 		}

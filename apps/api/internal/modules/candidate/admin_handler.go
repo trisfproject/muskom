@@ -4,17 +4,20 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
+	"go.uber.org/zap"
 )
 
 type AdminHandler struct {
 	service   Service
 	validator *validator.Validator
+	log       *zap.Logger
 }
 
-func NewAdminHandler(service Service, validator *validator.Validator) *AdminHandler {
+func NewAdminHandler(service Service, validator *validator.Validator, log *zap.Logger) *AdminHandler {
 	return &AdminHandler{
 		service:   service,
 		validator: validator,
+		log:       log,
 	}
 }
 
@@ -25,6 +28,7 @@ func (h *AdminHandler) ListCandidates(c fiber.Ctx) error {
 
 	candidates, err := h.service.AdminListCandidates(c.Context(), status, musyawarahID, search)
 	if err != nil {
+		h.log.Error("failed to list candidates", zap.Error(err))
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve candidates", nil)
 	}
 
@@ -36,6 +40,7 @@ func (h *AdminHandler) GetCandidateDetail(c fiber.Ctx) error {
 
 	candidate, err := h.service.GetByID(c.Context(), id)
 	if err != nil {
+		h.log.Error("failed to retrieve candidate detail", zap.Error(err), zap.String("candidate_id", id))
 		if err.Error() == "candidate not found" {
 			return response.SendError(c, fiber.StatusNotFound, "Candidate not found", nil)
 		}
@@ -67,6 +72,7 @@ func (h *AdminHandler) VerifyCandidate(c fiber.Ctx) error {
 
 	err := h.service.AdminVerifyCandidate(c.Context(), id, req, adminUserID)
 	if err != nil {
+		h.log.Error("failed to verify candidate", zap.Error(err), zap.String("candidate_id", id))
 		if err.Error() == "candidate not found" {
 			return response.SendError(c, fiber.StatusNotFound, "Candidate not found", nil)
 		}

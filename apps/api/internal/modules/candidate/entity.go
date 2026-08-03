@@ -4,6 +4,24 @@ import (
 	"time"
 )
 
+// Candidate Status Constants
+const (
+	StatusDraft            = "Draft"
+	StatusSubmitted        = "Submitted"
+	StatusUnderReview      = "Under Review"
+	StatusRevisionRequired = "Revision Required"
+	StatusVerified         = "Verified"
+	StatusRejected         = "Rejected"
+	StatusPublished        = "Published"
+)
+
+// Document Verification Status Constants
+const (
+	DocStatusPending = "Pending"
+	DocStatusValid   = "Valid"
+	DocStatusInvalid = "Invalid"
+)
+
 // Candidate represents a candidate for Musyawarah.
 type Candidate struct {
 	ID                 string     `db:"id"`
@@ -37,6 +55,7 @@ type Candidate struct {
 	ShowVision         bool       `db:"show_vision"`
 	ShowMission        bool       `db:"show_mission"`
 	ShowPhoto          bool       `db:"show_photo"`
+	Documents          []CandidateDocument
 }
 
 // CandidateDocument represents an uploaded document for a candidate.

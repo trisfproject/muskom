@@ -14,6 +14,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
+	"go.uber.org/zap"
 )
 
 type Service interface {
@@ -39,21 +40,25 @@ type Service interface {
 	AdminReorderCandidates(ctx context.Context, req AdminReorderCandidatesRequest, adminUserID string) error
 }
 
+const candidateStoragePathFormat = "candidates/%s/%s"
+
 type service struct {
 	repo          Repository
 	auditService  audit.AuditService
 	storage       storage.Storage
 	maxUploadSize int64
 	cfg           *config.Config
+	log           *zap.Logger
 }
 
-func NewService(repo Repository, auditService audit.AuditService, st storage.Storage, maxUploadSize int64, cfg *config.Config) Service {
+func NewService(repo Repository, auditService audit.AuditService, st storage.Storage, maxUploadSize int64, cfg *config.Config, log *zap.Logger) Service {
 	return &service{
 		repo:          repo,
 		auditService:  auditService,
 		storage:       st,
 		maxUploadSize: maxUploadSize,
 		cfg:           cfg,
+		log:           log,
 	}
 }
 
@@ -77,7 +82,7 @@ func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*Cand
 		Motivation:         req.Motivation,
 		Vision:             req.Vision,
 		Mission:            req.Mission,
-		Status:             "Draft",
+		Status:             StatusDraft,
 	}
 
 	if req.BirthDate != nil {
@@ -148,7 +153,7 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 	if err != nil {
 		return nil, err
 	}
-	if c.Status != "Draft" && c.Status != "Revision Required" {
+	if c.Status != StatusDraft && c.Status != StatusRevisionRequired {
 		return nil, errors.New("cannot modify candidate: not in draft state")
 	}
 	
@@ -207,7 +212,7 @@ func (s *service) Patch(ctx context.Context, id string, req PatchCandidateReques
 	if err != nil {
 		return nil, err
 	}
-	if c.Status != "Draft" && c.Status != "Revision Required" {
+	if c.Status != StatusDraft && c.Status != StatusRevisionRequired {
 		return nil, errors.New("cannot modify candidate: not in draft state")
 	}
 
@@ -290,8 +295,8 @@ func (s *service) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	if c.Status != "Draft" {
-		return errors.New("cannot delete candidate: not in draft state")
+	if c.Status != StatusDraft {
+		return errors.New("cannot delete a candidate that is not in draft state")
 	}
 
 	err = s.repo.Delete(ctx, id)
@@ -369,7 +374,7 @@ func (s *service) UploadDocument(ctx context.Context, candidateID string, docTyp
 	if err != nil {
 		return nil, err
 	}
-	if c.Status != "Draft" {
+	if c.Status != StatusDraft {
 		return nil, errors.New("cannot upload documents for a non-draft candidate")
 	}
 
@@ -400,7 +405,7 @@ func (s *service) UploadDocument(ctx context.Context, candidateID string, docTyp
 	// Generate a unique filename for storage
 	ext := filepath.Ext(filename)
 	storedFilename := fmt.Sprintf("candidate_%s_%s_%s%s", candidateID, strings.ReplaceAll(strings.ToLower(docType), " ", "_"), uuid.New().String()[:8], ext)
-	storagePath := fmt.Sprintf("candidates/%s/%s", candidateID, storedFilename)
+	storagePath := fmt.Sprintf(candidateStoragePathFormat, candidateID, storedFilename)
 
 	// Upload to storage
 	_, err = s.storage.Upload(ctx, file, storagePath)
@@ -468,7 +473,7 @@ func (s *service) DeleteDocument(ctx context.Context, candidateID string, docID 
 	if err != nil {
 		return err
 	}
-	if c.Status != "Draft" {
+	if c.Status != StatusDraft {
 		return errors.New("cannot delete documents for a non-draft candidate")
 	}
 
