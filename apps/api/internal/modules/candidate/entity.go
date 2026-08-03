@@ -29,3 +29,20 @@ type Candidate struct {
 	UpdatedAt          time.Time  `db:"updated_at"`
 	DeletedAt          *time.Time `db:"deleted_at"`
 }
+
+// CandidateDocument represents an uploaded document for a candidate.
+type CandidateDocument struct {
+	ID               string     `db:"id"`
+	CandidateID      string     `db:"candidate_id"`
+	DocumentType     string     `db:"document_type"`
+	OriginalFilename string     `db:"original_filename"`
+	StoredFilename   string     `db:"stored_filename"`
+	MimeType         string     `db:"mime_type"`
+	FileSize         int64      `db:"file_size"`
+	Checksum         *string    `db:"checksum"`
+	StorageProvider  string     `db:"storage_provider"`
+	StoragePath      string     `db:"storage_path"`
+	UploadedAt       time.Time  `db:"uploaded_at"`
+	UpdatedAt        time.Time  `db:"updated_at"`
+	DeletedAt        *time.Time `db:"deleted_at"`
+}

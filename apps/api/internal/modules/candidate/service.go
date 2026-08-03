@@ -2,12 +2,16 @@ package candidate
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/platform/storage"
 )
 
 type Service interface {
@@ -17,17 +21,26 @@ type Service interface {
 	Update(ctx context.Context, id string, req UpdateCandidateRequest) (*CandidateResponse, error)
 	Patch(ctx context.Context, id string, req PatchCandidateRequest) (*CandidateResponse, error)
 	Delete(ctx context.Context, id string) error
+
+	UploadDocument(ctx context.Context, candidateID string, docType string, filename string, mimeType string, size int64, file io.Reader) (*CandidateDocumentResponse, error)
+	ListDocuments(ctx context.Context, candidateID string) ([]CandidateDocumentResponse, error)
+	DeleteDocument(ctx context.Context, candidateID string, docID string) error
+	StreamDocument(ctx context.Context, candidateID string, docID string) (io.ReadCloser, string, error)
 }
 
 type service struct {
-	repo         Repository
-	auditService audit.AuditService
+	repo          Repository
+	auditService  audit.AuditService
+	storage       storage.Storage
+	maxUploadSize int64
 }
 
-func NewService(repo Repository, auditService audit.AuditService) Service {
+func NewService(repo Repository, auditService audit.AuditService, st storage.Storage, maxUploadSize int64) Service {
 	return &service{
-		repo:         repo,
-		auditService: auditService,
+		repo:          repo,
+		auditService:  auditService,
+		storage:       st,
+		maxUploadSize: maxUploadSize,
 	}
 }
 
@@ -294,4 +307,154 @@ func mapToResponse(c *Candidate) CandidateResponse {
 		CreatedAt:          c.CreatedAt,
 		UpdatedAt:          c.UpdatedAt,
 	}
+}
+
+func mapToDocumentResponse(d *CandidateDocument) CandidateDocumentResponse {
+	return CandidateDocumentResponse{
+		ID:               d.ID,
+		CandidateID:      d.CandidateID,
+		DocumentType:     d.DocumentType,
+		OriginalFilename: d.OriginalFilename,
+		MimeType:         d.MimeType,
+		FileSize:         d.FileSize,
+		UploadedAt:       d.UploadedAt,
+	}
+}
+
+func (s *service) UploadDocument(ctx context.Context, candidateID string, docType string, filename string, mimeType string, size int64, file io.Reader) (*CandidateDocumentResponse, error) {
+	c, err := s.repo.GetByID(ctx, candidateID)
+	if err != nil {
+		return nil, err
+	}
+	if c.Status != "Draft" {
+		return nil, errors.New("cannot upload documents for a non-draft candidate")
+	}
+
+	if size > s.maxUploadSize {
+		return nil, errors.New("file size exceeds maximum allowed size")
+	}
+
+	allowedTypes := map[string]bool{
+		"image/jpeg":      true,
+		"image/png":       true,
+		"image/webp":      true,
+		"application/pdf": true,
+	}
+	if !allowedTypes[mimeType] {
+		return nil, errors.New("invalid mime type")
+	}
+
+	// Generate a unique filename for storage
+	ext := filepath.Ext(filename)
+	storedFilename := fmt.Sprintf("candidate_%s_%s_%s%s", candidateID, strings.ReplaceAll(strings.ToLower(docType), " ", "_"), uuid.New().String()[:8], ext)
+	storagePath := fmt.Sprintf("candidates/%s/%s", candidateID, storedFilename)
+
+	// Upload to storage
+	_, err = s.storage.Upload(ctx, file, storagePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload to storage: %w", err)
+	}
+
+	doc := &CandidateDocument{
+		CandidateID:      candidateID,
+		DocumentType:     docType,
+		OriginalFilename: filename,
+		StoredFilename:   storedFilename,
+		MimeType:         mimeType,
+		FileSize:         size,
+		StorageProvider:  "local", // Can be dynamic based on config
+		StoragePath:      storagePath,
+	}
+
+	err = s.repo.SaveDocument(ctx, doc)
+	if err != nil {
+		return nil, err
+	}
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleCandidate,
+		Entity:   "candidate_documents",
+		EntityID: doc.ID, // We might not have ID returned nicely if ON CONFLICT happens, but for audit it's okay
+		Action:   "UPLOAD_DOCUMENT",
+	})
+
+	// Fetch to get exact details
+	docs, _ := s.repo.FindDocumentsByCandidateID(ctx, candidateID)
+	var finalDoc *CandidateDocument
+	for _, d := range docs {
+		if d.DocumentType == docType {
+			finalDoc = &d
+			break
+		}
+	}
+	if finalDoc == nil {
+		return nil, errors.New("failed to retrieve saved document")
+	}
+
+	res := mapToDocumentResponse(finalDoc)
+	return &res, nil
+}
+
+func (s *service) ListDocuments(ctx context.Context, candidateID string) ([]CandidateDocumentResponse, error) {
+	docs, err := s.repo.FindDocumentsByCandidateID(ctx, candidateID)
+	if err != nil {
+		return nil, err
+	}
+	var res []CandidateDocumentResponse
+	for _, d := range docs {
+		res = append(res, mapToDocumentResponse(&d))
+	}
+	return res, nil
+}
+
+func (s *service) DeleteDocument(ctx context.Context, candidateID string, docID string) error {
+	c, err := s.repo.GetByID(ctx, candidateID)
+	if err != nil {
+		return err
+	}
+	if c.Status != "Draft" {
+		return errors.New("cannot delete documents for a non-draft candidate")
+	}
+
+	doc, err := s.repo.GetDocumentByID(ctx, docID)
+	if err != nil {
+		return err
+	}
+	if doc.CandidateID != candidateID {
+		return errors.New("unauthorized to delete this document")
+	}
+
+	err = s.repo.DeleteDocument(ctx, docID)
+	if err != nil {
+		return err
+	}
+
+	_ = s.storage.Delete(ctx, doc.StoragePath)
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleCandidate,
+		Entity:   "candidate_documents",
+		EntityID: docID,
+		Action:   "DELETE_DOCUMENT",
+	})
+
+	return nil
+}
+
+func (s *service) StreamDocument(ctx context.Context, candidateID string, docID string) (io.ReadCloser, string, error) {
+	// Security Check: Candidate must own document
+	doc, err := s.repo.GetDocumentByID(ctx, docID)
+	if err != nil {
+		return nil, "", err
+	}
+	if doc.CandidateID != candidateID {
+		return nil, "", errors.New("unauthorized to access this document")
+	}
+
+	reader, err := s.storage.Download(ctx, doc.StoragePath)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return reader, doc.MimeType, nil
 }

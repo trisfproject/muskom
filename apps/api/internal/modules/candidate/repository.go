@@ -20,6 +20,11 @@ type Repository interface {
 	Update(ctx context.Context, candidate *Candidate) error
 	Delete(ctx context.Context, id string) error
 	CountByMusyawarah(ctx context.Context, musyawarahID string) (int, error)
+
+	SaveDocument(ctx context.Context, doc *CandidateDocument) error
+	GetDocumentByID(ctx context.Context, id string) (*CandidateDocument, error)
+	FindDocumentsByCandidateID(ctx context.Context, candidateID string) ([]CandidateDocument, error)
+	DeleteDocument(ctx context.Context, id string) error
 }
 
 type repository struct {
@@ -144,4 +149,75 @@ func (r *repository) CountByMusyawarah(ctx context.Context, musyawarahID string)
 	var count int
 	err := r.db.GetContext(ctx, &count, query, musyawarahID)
 	return count, err
+}
+
+func (r *repository) SaveDocument(ctx context.Context, doc *CandidateDocument) error {
+	query := `
+		INSERT INTO candidate_documents (
+			candidate_id, document_type, original_filename, stored_filename, mime_type, file_size, checksum, storage_provider, storage_path
+		) VALUES (
+			:candidate_id, :document_type, :original_filename, :stored_filename, :mime_type, :file_size, :checksum, :storage_provider, :storage_path
+		)
+		ON CONFLICT (candidate_id, document_type) WHERE deleted_at IS NULL
+		DO UPDATE SET
+			original_filename = EXCLUDED.original_filename,
+			stored_filename = EXCLUDED.stored_filename,
+			mime_type = EXCLUDED.mime_type,
+			file_size = EXCLUDED.file_size,
+			checksum = EXCLUDED.checksum,
+			storage_provider = EXCLUDED.storage_provider,
+			storage_path = EXCLUDED.storage_path,
+			updated_at = NOW()
+		RETURNING id, uploaded_at, updated_at
+	`
+	
+	stmt, err := r.db.PrepareNamedContext(ctx, query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	return stmt.GetContext(ctx, doc, doc)
+}
+
+func (r *repository) GetDocumentByID(ctx context.Context, id string) (*CandidateDocument, error) {
+	query := `SELECT * FROM candidate_documents WHERE id = $1 AND deleted_at IS NULL`
+	var doc CandidateDocument
+	err := r.db.GetContext(ctx, &doc, query, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &doc, nil
+}
+
+func (r *repository) FindDocumentsByCandidateID(ctx context.Context, candidateID string) ([]CandidateDocument, error) {
+	query := `SELECT * FROM candidate_documents WHERE candidate_id = $1 AND deleted_at IS NULL ORDER BY uploaded_at ASC`
+	var docs []CandidateDocument
+	err := r.db.SelectContext(ctx, &docs, query, candidateID)
+	if err != nil {
+		return nil, err
+	}
+	if docs == nil {
+		docs = []CandidateDocument{}
+	}
+	return docs, nil
+}
+
+func (r *repository) DeleteDocument(ctx context.Context, id string) error {
+	query := `UPDATE candidate_documents SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL`
+	res, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
 }

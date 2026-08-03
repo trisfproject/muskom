@@ -158,3 +158,99 @@ func (h *Handler) Delete(c fiber.Ctx) error {
 
 	return c.SendStatus(http.StatusNoContent)
 }
+
+func (h *Handler) UploadDocument(c fiber.Ctx) error {
+	candidateID := c.Params("id")
+	docType := c.FormValue("document_type")
+	if docType == "" {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "document_type is required",
+		})
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
+			"error": "file is required",
+		})
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to open uploaded file",
+		})
+	}
+	defer f.Close()
+
+	// Extract mime type manually since we trust it slightly more if we verify, but for now rely on file.Header
+	mimeType := file.Header.Get("Content-Type")
+
+	res, err := h.service.UploadDocument(c.Context(), candidateID, docType, file.Filename, mimeType, file.Size, f)
+	if err != nil {
+		if err.Error() == "cannot upload documents for a non-draft candidate" {
+			return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+		}
+		if err.Error() == "invalid mime type" || err.Error() == "file size exceeds maximum allowed size" {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(http.StatusCreated).JSON(res)
+}
+
+func (h *Handler) ListDocuments(c fiber.Ctx) error {
+	candidateID := c.Params("id")
+	res, err := h.service.ListDocuments(c.Context(), candidateID)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to fetch documents",
+		})
+	}
+	return c.Status(http.StatusOK).JSON(res)
+}
+
+func (h *Handler) DeleteDocument(c fiber.Ctx) error {
+	candidateID := c.Params("id")
+	docID := c.Params("doc_id")
+
+	err := h.service.DeleteDocument(c.Context(), candidateID, docID)
+	if err != nil {
+		if err.Error() == "cannot delete documents for a non-draft candidate" || err.Error() == "unauthorized to delete this document" {
+			return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+		}
+		if errors.Is(err, ErrNotFound) {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "document not found"})
+		}
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to delete document",
+		})
+	}
+
+	return c.SendStatus(http.StatusNoContent)
+}
+
+func (h *Handler) StreamDocument(c fiber.Ctx) error {
+	candidateID := c.Params("id")
+	docID := c.Params("doc_id")
+
+	reader, mimeType, err := h.service.StreamDocument(c.Context(), candidateID, docID)
+	if err != nil {
+		if err.Error() == "unauthorized to access this document" {
+			return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+		}
+		if errors.Is(err, ErrNotFound) || err.Error() == "file not found" {
+			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "document not found"})
+		}
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to stream document",
+		})
+	}
+	defer reader.Close()
+
+	c.Set("Content-Type", mimeType)
+	return c.SendStream(reader)
+}

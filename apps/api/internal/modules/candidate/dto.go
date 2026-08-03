@@ -82,8 +82,20 @@ type CandidateResponse struct {
 	Motivation         *string    `json:"motivation,omitempty"`
 	Vision             *string    `json:"vision,omitempty"`
 	Mission            *string    `json:"mission,omitempty"`
-	ProfilePhoto       *string    `json:"profile_photo,omitempty"`
-	Status             string     `json:"status"`
-	CreatedAt          time.Time  `json:"created_at"`
-	UpdatedAt          time.Time  `json:"updated_at"`
+	ProfilePhoto       *string                     `json:"profile_photo,omitempty"`
+	Status             string                      `json:"status"`
+	CreatedAt          time.Time                   `json:"created_at"`
+	UpdatedAt          time.Time                   `json:"updated_at"`
+	Documents          []CandidateDocumentResponse `json:"documents,omitempty"`
+}
+
+// CandidateDocumentResponse represents the response payload for a candidate document.
+type CandidateDocumentResponse struct {
+	ID               string    `json:"id"`
+	CandidateID      string    `json:"candidate_id"`
+	DocumentType     string    `json:"document_type"`
+	OriginalFilename string    `json:"original_filename"`
+	MimeType         string    `json:"mime_type"`
+	FileSize         int64     `json:"file_size"`
+	UploadedAt       time.Time `json:"uploaded_at"`
 }

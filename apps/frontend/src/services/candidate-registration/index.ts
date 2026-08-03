@@ -51,5 +51,41 @@ export const candidateRegistrationService = {
       status: 'Submitted'
     });
     return res.data?.data || res.data || res;
+  },
+
+  async getDocuments(id: string): Promise<CandidateDocumentResponse[]> {
+    const res = await publicApi.get(`/candidates/${id}/documents`);
+    return res.data?.data || res.data || res;
+  },
+
+  async uploadDocument(id: string, docType: string, file: File): Promise<CandidateDocumentResponse> {
+    const formData = new FormData();
+    formData.append('document_type', docType);
+    formData.append('file', file);
+    
+    const res = await publicApi.post(`/candidates/${id}/documents`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return res.data?.data || res.data || res;
+  },
+
+  async deleteDocument(id: string, docId: string): Promise<void> {
+    await publicApi.delete(`/candidates/${id}/documents/${docId}`);
+  },
+
+  getDocumentStreamUrl(id: string, docId: string): string {
+    return `${publicApi.defaults.baseURL}/candidates/${id}/documents/${docId}/stream`;
   }
 };
+
+export interface CandidateDocumentResponse {
+  id: string;
+  candidate_id: string;
+  document_type: string;
+  original_filename: string;
+  mime_type: string;
+  file_size: number;
+  uploaded_at: string;
+}

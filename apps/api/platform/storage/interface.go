@@ -13,6 +13,7 @@ type FileInfo struct {
 
 type Storage interface {
 	Upload(ctx context.Context, file io.Reader, filename string) (*FileInfo, error)
+	Download(ctx context.Context, path string) (io.ReadCloser, error)
 	Delete(ctx context.Context, path string) error
 	Exists(ctx context.Context, path string) (bool, error)
 	URL(path string) string

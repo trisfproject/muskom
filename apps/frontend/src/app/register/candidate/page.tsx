@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ArrowRight, CheckCircle2, Download, Save, AlertCircle, RefreshCw, Trash2, Lock } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Download, Save, AlertCircle, RefreshCw, Trash2, Lock, Upload, FileText, FileImage, Eye, X } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { candidateSchema, CandidateFormData } from "./schema";
-import { candidateRegistrationService } from "@/services/candidate-registration";
+import { candidateRegistrationService, CandidateDocumentResponse } from "@/services/candidate-registration";
 import { landingService } from "@/services/landing";
 
 const LOCAL_DRAFT_KEY = "muskom_candidate_local_draft";
@@ -16,13 +16,15 @@ const ID_DRAFT_KEY = "muskom_candidate_id";
 type SaveStatus = "Idle" | "Saving..." | "Saved" | "Failed";
 
 export default function CandidateRegisterPage() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [musyawarahId, setMusyawarahId] = useState<string | null>(null);
   
   // Backend Sync State
   const [candidateId, setCandidateId] = useState<string | null>(null);
+  const [documents, setDocuments] = useState<CandidateDocumentResponse[]>([]);
+  const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("Idle");
   const [isLocked, setIsLocked] = useState(false);
   
@@ -53,10 +55,12 @@ export default function CandidateRegisterPage() {
             if (draft.status === "Submitted") {
               setIsLocked(true);
               setSuccessData({ regNumber: draft.registration_number, name: draft.full_name });
-              setStep(5);
+              setStep(6);
             } else {
               setCandidateId(draft.id);
               reset(draft as unknown as CandidateFormData);
+              const docs = await candidateRegistrationService.getDocuments(draft.id);
+              setDocuments(docs);
               // Start at step 2 if we have a valid draft
               setStep(2);
             }
@@ -91,7 +95,7 @@ export default function CandidateRegisterPage() {
   // 3. Auto-Save Logic (Local for Step 1, Backend for Step 2+)
   useEffect(() => {
     const subscription = watch((value) => {
-      if (!isLoaded || isLocked || step === 5) return;
+      if (!isLoaded || isLocked || step === 6) return;
 
       const currentString = JSON.stringify(value);
       if (currentString === lastSavedData.current) return;
@@ -196,6 +200,56 @@ export default function CandidateRegisterPage() {
     }
   };
 
+  const onNextStep4 = () => {
+    // Validation for documents
+    const requiredTypes = ["Profile Photo", "Identity Card (KTP)", "Curriculum Vitae (CV)", "Statement Letter"];
+    const uploadedTypes = documents.map(d => d.document_type);
+    const missing = requiredTypes.filter(t => !uploadedTypes.includes(t));
+    
+    if (missing.length > 0) {
+      setError(`Harap unggah dokumen wajib: ${missing.join(", ")}`);
+      return;
+    }
+    setError(null);
+    setStep(5);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, docType: string) => {
+    const file = e.target.files?.[0];
+    if (!file || !candidateId) return;
+
+    // Optional: add client-side file size validation (e.g. 5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Ukuran file maksimal 5MB.");
+      e.target.value = '';
+      return;
+    }
+
+    setUploadingDoc(docType);
+    try {
+      await candidateRegistrationService.uploadDocument(candidateId, docType, file);
+      const docs = await candidateRegistrationService.getDocuments(candidateId);
+      setDocuments(docs);
+      setError(null);
+    } catch (err: any) {
+      alert(err?.response?.data?.error || err?.message || "Gagal mengunggah dokumen");
+    } finally {
+      setUploadingDoc(null);
+      e.target.value = ''; // reset input
+    }
+  };
+
+  const handleDeleteDoc = async (docId: string) => {
+    if (!candidateId || !confirm("Yakin hapus dokumen ini?")) return;
+    try {
+      await candidateRegistrationService.deleteDocument(candidateId, docId);
+      const docs = await candidateRegistrationService.getDocuments(candidateId);
+      setDocuments(docs);
+    } catch (err: any) {
+      alert("Gagal menghapus dokumen");
+    }
+  };
+
   const onSubmit = async () => {
     if (!candidateId) return;
 
@@ -213,7 +267,7 @@ export default function CandidateRegisterPage() {
         regNumber: submitted.registration_number, 
         name: submitted.full_name
       });
-      setStep(5);
+      setStep(6);
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || "Terjadi kesalahan sistem saat submit.");
     } finally {
@@ -225,7 +279,7 @@ export default function CandidateRegisterPage() {
 
   if (!isLoaded) return null; // Prevent hydration mismatch
 
-  if (isLocked && step < 5) {
+  if (isLocked && step < 6) {
     return (
       <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
          <div className="bg-white border border-slate-200 rounded-3xl p-10 max-w-lg shadow-sm">
@@ -251,12 +305,12 @@ export default function CandidateRegisterPage() {
           <span className="font-bold text-slate-900 text-sm tracking-tight hidden sm:block">Pendaftaran Bakal Calon</span>
           
           <div className="flex items-center gap-4">
-            {candidateId && step < 5 && (
+            {candidateId && step < 6 && (
               <button onClick={handleDeleteDraft} disabled={loading} className="text-red-500 hover:text-red-600 text-sm font-semibold flex items-center gap-1.5 transition-colors">
                 <Trash2 className="w-4 h-4" /> <span className="hidden sm:inline">Hapus Draft</span>
               </button>
             )}
-            {step < 5 && (
+            {step < 6 && (
               <div className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full border ${
                 saveStatus === "Saved" ? "text-emerald-700 bg-emerald-50 border-emerald-200" :
                 saveStatus === "Saving..." ? "text-amber-700 bg-amber-50 border-amber-200" :
@@ -275,7 +329,7 @@ export default function CandidateRegisterPage() {
       </header>
 
       <div className="max-w-[800px] mx-auto px-6 pt-10">
-        {step < 5 && (
+        {step < 6 && (
           <div className="mb-10 overflow-x-auto pb-4 hide-scrollbar">
             <div className="flex items-center text-xs font-semibold uppercase tracking-widest text-slate-400 min-w-max">
               <span className={step >= 1 ? "text-primary" : ""}>1. Personal</span>
@@ -284,7 +338,9 @@ export default function CandidateRegisterPage() {
               <span className="w-8 border-t border-slate-200 mx-3" />
               <span className={step >= 3 ? "text-primary" : ""}>3. Profil</span>
               <span className="w-8 border-t border-slate-200 mx-3" />
-              <span className={step >= 4 ? "text-primary" : ""}>4. Preview</span>
+              <span className={step >= 4 ? "text-primary" : ""}>4. Dokumen</span>
+              <span className="w-8 border-t border-slate-200 mx-3" />
+              <span className={step >= 5 ? "text-primary" : ""}>5. Preview</span>
             </div>
           </div>
         )}
@@ -401,15 +457,150 @@ export default function CandidateRegisterPage() {
                     Kembali
                   </button>
                   <button type="button" onClick={onNextStep3} className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-10 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors">
+                    Lanjutkan <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* STEP 4: DOCUMENTS */}
+            {step === 4 && (
+              <motion.div key="step4" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
+                <h1 className="text-3xl font-black tracking-tight mb-2">Unggah Dokumen</h1>
+                <p className="text-slate-500 mb-8">Unggah dokumen persyaratan. Maksimal ukuran file 5MB.</p>
+
+                {error && (
+                  <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100">
+                    {error}
+                  </div>
+                )}
+
+                <div className="space-y-6">
+                  {/* Wajib */}
+                  <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <h3 className="font-bold text-lg text-slate-800 mb-6 flex items-center gap-2">
+                      Dokumen Wajib <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded font-semibold">Harus Diisi</span>
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      {[
+                        { type: "Profile Photo", label: "Pas Foto Berwarna", accept: "image/*" },
+                        { type: "Identity Card (KTP)", label: "KTP Asli", accept: "image/*,application/pdf" },
+                        { type: "Curriculum Vitae (CV)", label: "Daftar Riwayat Hidup (CV)", accept: "application/pdf" },
+                        { type: "Statement Letter", label: "Surat Pernyataan", accept: "application/pdf" }
+                      ].map(docType => {
+                        const existingDoc = documents.find(d => d.document_type === docType.type);
+                        const isUploading = uploadingDoc === docType.type;
+
+                        return (
+                          <div key={docType.type} className="border border-slate-200 rounded-2xl p-5 bg-slate-50 relative group">
+                            <p className="text-sm font-bold text-slate-700 mb-1">{docType.label}</p>
+                            
+                            {existingDoc ? (
+                              <div className="mt-3 flex items-center justify-between bg-white border border-emerald-200 p-3 rounded-xl shadow-sm">
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                  <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle2 className="w-5 h-5" />
+                                  </div>
+                                  <div className="truncate">
+                                    <p className="text-sm font-semibold text-slate-800 truncate">{existingDoc.original_filename}</p>
+                                    <p className="text-xs text-slate-500">{(existingDoc.file_size / 1024).toFixed(1)} KB</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <a href={candidateRegistrationService.getDocumentStreamUrl(candidateId!, existingDoc.id)} target="_blank" rel="noreferrer" className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-slate-100 rounded-md transition-colors" title="Lihat">
+                                    <Eye className="w-4 h-4" />
+                                  </a>
+                                  <button type="button" onClick={() => handleDeleteDoc(existingDoc.id)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Hapus">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="mt-3 relative">
+                                <label className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-xl bg-white hover:bg-slate-50 hover:border-primary transition-colors cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                    {isUploading ? <RefreshCw className="w-6 h-6 text-primary animate-spin mb-2" /> : <Upload className="w-6 h-6 text-slate-400 mb-2 group-hover:text-primary" />}
+                                    <p className="text-xs text-slate-500 font-medium">{isUploading ? 'Mengunggah...' : 'Klik untuk memilih file'}</p>
+                                  </div>
+                                  <input type="file" className="hidden" accept={docType.accept} disabled={isUploading} onChange={(e) => handleFileUpload(e, docType.type)} />
+                                </label>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Opsional */}
+                  <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
+                    <h3 className="font-bold text-lg text-slate-800 mb-6 flex items-center gap-2">
+                      Dokumen Opsional <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-semibold">Tidak Wajib</span>
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      {[
+                        { type: "Certificates", label: "Sertifikat/Piagam", accept: "image/*,application/pdf" },
+                        { type: "Supporting Documents", label: "Dokumen Pendukung Lain", accept: "application/pdf" }
+                      ].map(docType => {
+                        const existingDoc = documents.find(d => d.document_type === docType.type);
+                        const isUploading = uploadingDoc === docType.type;
+
+                        return (
+                          <div key={docType.type} className="border border-slate-200 rounded-2xl p-5 bg-slate-50 relative group">
+                            <p className="text-sm font-bold text-slate-700 mb-1">{docType.label}</p>
+                            
+                            {existingDoc ? (
+                              <div className="mt-3 flex items-center justify-between bg-white border border-emerald-200 p-3 rounded-xl shadow-sm">
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                  <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle2 className="w-5 h-5" />
+                                  </div>
+                                  <div className="truncate">
+                                    <p className="text-sm font-semibold text-slate-800 truncate">{existingDoc.original_filename}</p>
+                                    <p className="text-xs text-slate-500">{(existingDoc.file_size / 1024).toFixed(1)} KB</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <a href={candidateRegistrationService.getDocumentStreamUrl(candidateId!, existingDoc.id)} target="_blank" rel="noreferrer" className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-slate-100 rounded-md transition-colors" title="Lihat">
+                                    <Eye className="w-4 h-4" />
+                                  </a>
+                                  <button type="button" onClick={() => handleDeleteDoc(existingDoc.id)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Hapus">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="mt-3 relative">
+                                <label className={`flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-xl bg-white hover:bg-slate-50 hover:border-primary transition-colors cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                    {isUploading ? <RefreshCw className="w-6 h-6 text-primary animate-spin mb-2" /> : <Upload className="w-6 h-6 text-slate-400 mb-2 group-hover:text-primary" />}
+                                    <p className="text-xs text-slate-500 font-medium">{isUploading ? 'Mengunggah...' : 'Klik untuk memilih file'}</p>
+                                  </div>
+                                  <input type="file" className="hidden" accept={docType.accept} disabled={isUploading} onChange={(e) => handleFileUpload(e, docType.type)} />
+                                </label>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4">
+                  <button type="button" onClick={() => setStep(3)} className="w-full sm:w-auto bg-slate-100 text-slate-700 font-bold py-4 px-10 rounded-xl hover:bg-slate-200 transition-colors">
+                    Kembali
+                  </button>
+                  <button type="button" onClick={onNextStep4} className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-10 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors">
                     Preview Data <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
               </motion.div>
             )}
 
-            {/* STEP 4: PREVIEW */}
-            {step === 4 && (
-              <motion.div key="step4" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
+            {/* STEP 5: PREVIEW */}
+            {step === 5 && (
+              <motion.div key="step5" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
                 <h1 className="text-3xl font-black tracking-tight mb-2">Preview Data</h1>
                 <p className="text-slate-500 mb-8">Pastikan seluruh data pendaftaran Bakal Calon Anda sudah benar. Setelah disubmit, data tidak dapat diubah lagi.</p>
 
@@ -471,7 +662,7 @@ export default function CandidateRegisterPage() {
                 )}
 
                 <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4">
-                  <button type="button" onClick={() => setStep(3)} disabled={loading} className="w-full sm:w-auto bg-slate-100 text-slate-700 font-bold py-4 px-10 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50">
+                  <button type="button" onClick={() => setStep(4)} disabled={loading} className="w-full sm:w-auto bg-slate-100 text-slate-700 font-bold py-4 px-10 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50">
                     Kembali
                   </button>
                   <button type="button" onClick={onSubmit} disabled={loading || saveStatus === "Saving..."} className="w-full sm:w-auto bg-emerald-600 text-white font-bold py-4 px-10 rounded-xl hover:bg-emerald-700 flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-600/20">
@@ -481,9 +672,9 @@ export default function CandidateRegisterPage() {
               </motion.div>
             )}
 
-            {/* STEP 5: SUCCESS */}
-            {step === 5 && successData && (
-              <motion.div key="step5" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+            {/* STEP 6: SUCCESS */}
+            {step === 6 && successData && (
+              <motion.div key="step6" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
                 <div className="bg-white border border-slate-200 rounded-[2rem] p-8 sm:p-14 text-center shadow-xl shadow-slate-200/50">
                   <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle2 className="w-12 h-12 text-emerald-600" />

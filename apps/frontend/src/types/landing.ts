@@ -116,6 +116,7 @@ export interface HomeResponse {
 
 // Backward compatibility helper if needed
 export type PublicEventDTO = {
+  id?: string;
   name: string;
   theme?: string;
   location?: string;

@@ -49,6 +49,23 @@ func (s *localStorage) Upload(ctx context.Context, file io.Reader, filename stri
 	}, nil
 }
 
+func (s *localStorage) Download(ctx context.Context, path string) (io.ReadCloser, error) {
+	cleanName := filepath.Clean(path)
+	if strings.Contains(cleanName, "..") {
+		return nil, ErrInvalidPath
+	}
+
+	fullPath := filepath.Join(s.rootDir, cleanName)
+	file, err := os.Open(fullPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, ErrFileNotFound
+		}
+		return nil, err
+	}
+	return file, nil
+}
+
 func (s *localStorage) Delete(ctx context.Context, path string) error {
 	cleanName := filepath.Clean(path)
 	if strings.Contains(cleanName, "..") {
