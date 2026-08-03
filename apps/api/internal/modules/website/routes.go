@@ -19,6 +19,8 @@ func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, redisClient *redis.Clie
 	handler := NewHandler(svc, val)
 
 	router.Get("/home", handler.GetPublicHome)
+	router.Get("/candidates", handler.GetPublicCandidates)
+	router.Get("/candidates/:id", handler.GetPublicCandidateByID)
 	router.Get("/timeline", handler.GetPublicTimeline)
 	router.Get("/announcements", handler.GetPublicAnnouncements)
 	router.Get("/announcements/:slug", handler.GetPublicAnnouncementBySlug)

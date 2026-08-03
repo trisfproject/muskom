@@ -14,6 +14,10 @@ type CandidateEntity struct {
 	Name           *string `db:"name"`
 	Title          *string `db:"title"`
 	Vision         *string `db:"vision"`
+	Biography      *string `db:"biography"`
+	Mission        *string `db:"mission"`
+	Organization   *string `db:"organization"`
+	MusyawarahID   *string `db:"musyawarah_id"`
 	PhotoPath      *string `db:"photo_path"`
 }
 
@@ -46,6 +50,7 @@ type Repository interface {
 	GetCandidateSettings(ctx context.Context) (*WebsiteCandidateSettings, error)
 	UpdateCandidateSettings(ctx context.Context, c *WebsiteCandidateSettings) (*WebsiteCandidateSettings, error)
 	GetCandidates(ctx context.Context) ([]CandidateEntity, error)
+	GetCandidateByID(ctx context.Context, id string) (*CandidateEntity, error)
 
 	// Footer
 	GetFooter(ctx context.Context) (*WebsiteFooterSettings, error)
@@ -428,6 +433,10 @@ func (r *repository) GetCandidates(ctx context.Context) ([]CandidateEntity, erro
 			full_name as name,
 			COALESCE(occupation, '') as title,
 			CASE WHEN show_vision THEN COALESCE(vision, '') ELSE '' END as vision,
+			CASE WHEN show_biography THEN COALESCE(biography, '') ELSE '' END as biography,
+			CASE WHEN show_mission THEN COALESCE(mission, '') ELSE '' END as mission,
+			COALESCE(organization, '') as organization,
+			COALESCE(musyawarah_id::text, '') as musyawarah_id,
 			CASE WHEN show_photo THEN COALESCE(profile_photo, '') ELSE '' END as photo_path
 		FROM candidates
 		WHERE deleted_at IS NULL AND publication_status = 'Published'
@@ -439,6 +448,30 @@ func (r *repository) GetCandidates(ctx context.Context) ([]CandidateEntity, erro
 		list = []CandidateEntity{}
 	}
 	return list, err
+}
+
+func (r *repository) GetCandidateByID(ctx context.Context, id string) (*CandidateEntity, error) {
+	query := `
+		SELECT 
+			id,
+			candidate_number,
+			full_name as name,
+			COALESCE(occupation, '') as title,
+			CASE WHEN show_vision THEN COALESCE(vision, '') ELSE '' END as vision,
+			CASE WHEN show_biography THEN COALESCE(biography, '') ELSE '' END as biography,
+			CASE WHEN show_mission THEN COALESCE(mission, '') ELSE '' END as mission,
+			COALESCE(organization, '') as organization,
+			COALESCE(musyawarah_id::text, '') as musyawarah_id,
+			CASE WHEN show_photo THEN COALESCE(profile_photo, '') ELSE '' END as photo_path
+		FROM candidates
+		WHERE id = $1 AND deleted_at IS NULL AND publication_status = 'Published'
+	`
+	var entity CandidateEntity
+	err := r.db.GetContext(ctx, &entity, query, id)
+	if err != nil {
+		return nil, err
+	}
+	return &entity, nil
 }
 
 // ----------------------------------------------------------------------------

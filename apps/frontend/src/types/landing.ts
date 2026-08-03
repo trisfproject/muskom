@@ -89,6 +89,10 @@ export interface PublicCandidateDTO {
   name?: string;
   title?: string;
   vision?: string;
+  biography?: string;
+  mission?: string;
+  organization?: string;
+  musyawarah_id?: string;
   photo_url?: string;
 }
 

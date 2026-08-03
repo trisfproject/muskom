@@ -10,6 +10,8 @@ import (
 type Service interface {
 	// Public
 	GetPublicHome(ctx context.Context) (*PublicHomeResponse, error)
+	GetPublicCandidates(ctx context.Context) ([]PublicCandidateDTO, error)
+	GetPublicCandidateByID(ctx context.Context, id string) (*PublicCandidateDTO, error)
 	GetPublicTimeline(ctx context.Context) ([]PublicTimelineDTO, error)
 	GetPublicAnnouncements(ctx context.Context) ([]PublicAnnouncementDTO, error)
 	GetPublicAnnouncementBySlug(ctx context.Context, slug string) (*PublicAnnouncementDTO, error)
@@ -395,6 +397,27 @@ func (s *service) GetPublicFooter(ctx context.Context) (*WebsiteFooterDTO, error
 		OfficialBadge:    f.OfficialBadge,
 		Tagline:          f.Tagline,
 	}, nil
+}
+
+func (s *service) GetPublicCandidates(ctx context.Context) ([]PublicCandidateDTO, error) {
+	candidates, err := s.repo.GetCandidates(ctx)
+	if err != nil {
+		return nil, err
+	}
+	candDTOs := make([]PublicCandidateDTO, len(candidates))
+	for i, c := range candidates {
+		candDTOs[i] = s.mapper.MapCandidate(&c)
+	}
+	return candDTOs, nil
+}
+
+func (s *service) GetPublicCandidateByID(ctx context.Context, id string) (*PublicCandidateDTO, error) {
+	c, err := s.repo.GetCandidateByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	dto := s.mapper.MapCandidate(c)
+	return &dto, nil
 }
 
 // ----------------------------------------------------------------------------

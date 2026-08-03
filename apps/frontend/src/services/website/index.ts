@@ -238,4 +238,44 @@ export const websiteService = {
       throw err;
     }
   },
+  // Public Candidates
+  async getPublicCandidates(): Promise<import("@/types/landing").PublicCandidateDTO[]> {
+    try {
+      const isServer = typeof window === 'undefined';
+      const baseUrl = isServer
+        ? process.env.INTERNAL_API_URL || 'http://api:8080/api/v1'
+        : process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+
+      const res = await fetch(`${baseUrl}/public/candidates`, {
+        next: { revalidate: 30 }
+      });
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      const json = await res.json();
+      return json.data || [];
+    } catch (err) {
+      console.error("Failed to fetch public candidates:", err);
+      throw err;
+    }
+  },
+  async getPublicCandidateDetail(id: string): Promise<import("@/types/landing").PublicCandidateDTO | null> {
+    try {
+      const isServer = typeof window === 'undefined';
+      const baseUrl = isServer
+        ? process.env.INTERNAL_API_URL || 'http://api:8080/api/v1'
+        : process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+
+      const res = await fetch(`${baseUrl}/public/candidates/${id}`, {
+        next: { revalidate: 30 }
+      });
+      if (!res.ok) {
+        if (res.status === 404) return null;
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      const json = await res.json();
+      return json.data || null;
+    } catch (err) {
+      console.error(`Failed to fetch public candidate [${id}]:`, err);
+      throw err;
+    }
+  },
 };

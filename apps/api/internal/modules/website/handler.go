@@ -30,6 +30,23 @@ func (h *Handler) GetPublicHome(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Public home data retrieved", res, nil)
 }
 
+func (h *Handler) GetPublicCandidates(c fiber.Ctx) error {
+	res, err := h.service.GetPublicCandidates(c.Context())
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve candidates", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Candidates retrieved", res, nil)
+}
+
+func (h *Handler) GetPublicCandidateByID(c fiber.Ctx) error {
+	id := c.Params("id")
+	res, err := h.service.GetPublicCandidateByID(c.Context(), id)
+	if err != nil {
+		return response.SendError(c, fiber.StatusNotFound, "Candidate not found", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Candidate retrieved", res, nil)
+}
+
 func (h *Handler) GetPublicTimeline(c fiber.Ctx) error {
 	res, err := h.service.GetPublicTimeline(c.Context())
 	if err != nil {

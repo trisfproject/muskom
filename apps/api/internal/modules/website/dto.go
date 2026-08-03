@@ -127,6 +127,10 @@ type PublicCandidateDTO struct {
 	Title          *string `json:"title"`
 	Vision         *string `json:"vision"`
 	PhotoURL       *string `json:"photo_url"`
+	Biography      *string `json:"biography,omitempty"`
+	Mission        *string `json:"mission,omitempty"`
+	Organization   *string `json:"organization,omitempty"`
+	MusyawarahID   *string `json:"musyawarah_id,omitempty"`
 }
 
 type WebsiteFooterDTO struct {

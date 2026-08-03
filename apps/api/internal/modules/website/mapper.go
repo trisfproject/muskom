@@ -170,19 +170,7 @@ func (m *Mapper) MapCandidates(settings *WebsiteCandidateSettings, candidates []
 
 	candDTOs := make([]PublicCandidateDTO, len(candidates))
 	for i, c := range candidates {
-		var photoURL *string
-		if c.PhotoPath != nil && *c.PhotoPath != "" && m.storage != nil {
-			url := m.storage.URL(*c.PhotoPath)
-			photoURL = &url
-		}
-		candDTOs[i] = PublicCandidateDTO{
-			ID:             c.ID,
-			SequenceNumber: c.SequenceNumber,
-			Name:           c.Name,
-			Title:          c.Title,
-			Vision:         c.Vision,
-			PhotoURL:       photoURL,
-		}
+		candDTOs[i] = m.MapCandidate(&c)
 	}
 
 	sectionDTO := PublicCandidateSectionDTO{
@@ -195,6 +183,27 @@ func (m *Mapper) MapCandidates(settings *WebsiteCandidateSettings, candidates []
 	}
 
 	return cmsDTO, candDTOs, sectionDTO
+}
+
+// MapCandidate maps a single CandidateEntity to PublicCandidateDTO.
+func (m *Mapper) MapCandidate(c *CandidateEntity) PublicCandidateDTO {
+	var photoURL *string
+	if c.PhotoPath != nil && *c.PhotoPath != "" && m.storage != nil {
+		url := m.storage.URL(*c.PhotoPath)
+		photoURL = &url
+	}
+	return PublicCandidateDTO{
+		ID:             c.ID,
+		SequenceNumber: c.SequenceNumber,
+		Name:           c.Name,
+		Title:          c.Title,
+		Vision:         c.Vision,
+		Biography:      c.Biography,
+		Mission:        c.Mission,
+		Organization:   c.Organization,
+		MusyawarahID:   c.MusyawarahID,
+		PhotoURL:       photoURL,
+	}
 }
 
 // MapFooter maps WebsiteFooterSettings entity to WebsiteFooterDTO.
