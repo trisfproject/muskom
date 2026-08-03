@@ -12,6 +12,7 @@ import (
 var (
 	ErrNotFound      = errors.New("candidate not found")
 	ErrDuplicateReg  = errors.New("registration number already exists")
+	ErrDuplicateEmail = errors.New("candidate with this email already registered for this event")
 )
 
 type Repository interface {
@@ -68,6 +69,9 @@ func (r *repository) Create(ctx context.Context, c *Candidate) error {
 		// Basic check for unique constraint violation
 		if err.Error() == "pq: duplicate key value violates unique constraint \"candidates_registration_number_key\"" {
 			return ErrDuplicateReg
+		}
+		if err.Error() == "pq: duplicate key value violates unique constraint \"idx_candidates_unique_email\"" {
+			return ErrDuplicateEmail
 		}
 		return err
 	}

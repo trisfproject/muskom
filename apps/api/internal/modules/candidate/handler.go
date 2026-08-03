@@ -1,11 +1,14 @@
 package candidate
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 )
 
@@ -24,32 +27,26 @@ func NewHandler(service Service, val *validator.Validator) *Handler {
 func (h *Handler) Create(c fiber.Ctx) error {
 	var req CreateCandidateRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid request body",
-		})
+		return response.SendError(c, fiber.StatusBadRequest, "invalid request body", nil)
 	}
 
 	if errs := h.val.ValidateStruct(req); len(errs) > 0 {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error":   "validation failed",
-			"details": errs,
-		})
+		return response.SendError(c, fiber.StatusBadRequest, "validation failed", errs)
 	}
 
 	res, err := h.service.Create(c.Context(), req)
 	if err != nil {
 		fmt.Printf("Create Candidate Error: %v\n", err)
 		if errors.Is(err, ErrDuplicateReg) {
-			return c.Status(http.StatusConflict).JSON(fiber.Map{
-				"error": "registration number already exists",
-			})
+			return response.SendError(c, fiber.StatusConflict, "registration number already exists", nil)
 		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to create candidate",
-		})
+		if errors.Is(err, ErrDuplicateEmail) {
+			return response.SendError(c, fiber.StatusConflict, "candidate with this email already registered for this event", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "failed to create candidate", nil)
 	}
 
-	return c.Status(http.StatusCreated).JSON(res)
+	return response.SendSuccess(c, fiber.StatusCreated, "candidate created successfully", res, nil)
 }
 
 func (h *Handler) GetByID(c fiber.Ctx) error {
@@ -57,89 +54,56 @@ func (h *Handler) GetByID(c fiber.Ctx) error {
 	res, err := h.service.GetByID(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{
-				"error": "candidate not found",
-			})
+			return response.SendError(c, fiber.StatusNotFound, "candidate not found", nil)
 		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to fetch candidate",
-		})
+		return response.SendError(c, fiber.StatusInternalServerError, "failed to fetch candidate", nil)
 	}
 
-	return c.Status(http.StatusOK).JSON(res)
-}
-
-func (h *Handler) GetAll(c fiber.Ctx) error {
-	res, err := h.service.GetAll(c.Context())
-	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to fetch candidates",
-		})
-	}
-
-	return c.Status(http.StatusOK).JSON(res)
+	return response.SendSuccess(c, fiber.StatusOK, "candidate fetched successfully", res, nil)
 }
 
 func (h *Handler) Update(c fiber.Ctx) error {
 	id := c.Params("id")
 	var req UpdateCandidateRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid request body",
-		})
+		return response.SendError(c, fiber.StatusBadRequest, "invalid request body", nil)
 	}
 
 	if errs := h.val.ValidateStruct(req); len(errs) > 0 {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error":   "validation failed",
-			"details": errs,
-		})
+		return response.SendError(c, fiber.StatusBadRequest, "validation failed", errs)
 	}
 
 	res, err := h.service.Update(c.Context(), id, req)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{
-				"error": "candidate not found",
-			})
+			return response.SendError(c, fiber.StatusNotFound, "candidate not found", nil)
 		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to update candidate",
-		})
+		return response.SendError(c, fiber.StatusInternalServerError, "failed to update candidate", nil)
 	}
 
-	return c.Status(http.StatusOK).JSON(res)
+	return response.SendSuccess(c, fiber.StatusOK, "candidate updated successfully", res, nil)
 }
 
 func (h *Handler) Patch(c fiber.Ctx) error {
 	id := c.Params("id")
 	var req PatchCandidateRequest
 	if err := c.Bind().Body(&req); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid request body",
-		})
+		return response.SendError(c, fiber.StatusBadRequest, "invalid request body", nil)
 	}
 
 	if errs := h.val.ValidateStruct(req); len(errs) > 0 {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error":   "validation failed",
-			"details": errs,
-		})
+		return response.SendError(c, fiber.StatusBadRequest, "validation failed", errs)
 	}
 
 	res, err := h.service.Patch(c.Context(), id, req)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{
-				"error": "candidate not found",
-			})
+			return response.SendError(c, fiber.StatusNotFound, "candidate not found", nil)
 		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to patch candidate",
-		})
+		return response.SendError(c, fiber.StatusInternalServerError, "failed to patch candidate", nil)
 	}
 
-	return c.Status(http.StatusOK).JSON(res)
+	return response.SendSuccess(c, fiber.StatusOK, "candidate patched successfully", res, nil)
 }
 
 func (h *Handler) Delete(c fiber.Ctx) error {
@@ -147,70 +111,65 @@ func (h *Handler) Delete(c fiber.Ctx) error {
 	err := h.service.Delete(c.Context(), id)
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{
-				"error": "candidate not found",
-			})
+			return response.SendError(c, fiber.StatusNotFound, "candidate not found", nil)
 		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to delete candidate",
-		})
+		return response.SendError(c, fiber.StatusInternalServerError, "failed to delete candidate", nil)
 	}
 
-	return c.SendStatus(http.StatusNoContent)
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 func (h *Handler) UploadDocument(c fiber.Ctx) error {
 	candidateID := c.Params("id")
 	docType := c.FormValue("document_type")
 	if docType == "" {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "document_type is required",
-		})
+		return response.SendError(c, fiber.StatusBadRequest, "document_type is required", nil)
 	}
 
 	file, err := c.FormFile("file")
 	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{
-			"error": "file is required",
-		})
+		return response.SendError(c, fiber.StatusBadRequest, "file is required", nil)
 	}
 
 	f, err := file.Open()
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to open uploaded file",
-		})
+		return response.SendError(c, fiber.StatusInternalServerError, "failed to open uploaded file", nil)
 	}
 	defer f.Close()
 
-	// Extract mime type manually since we trust it slightly more if we verify, but for now rely on file.Header
-	mimeType := file.Header.Get("Content-Type")
+	// P1-1: Server-side MIME validation
+	buffer := make([]byte, 512)
+	n, err := f.Read(buffer)
+	if err != nil && err.Error() != "EOF" {
+		return response.SendError(c, fiber.StatusInternalServerError, "failed to read file content for validation", nil)
+	}
+	actualMimeType := http.DetectContentType(buffer[:n])
 
-	res, err := h.service.UploadDocument(c.Context(), candidateID, docType, file.Filename, mimeType, file.Size, f)
+	// Reconstruct the reader
+	importBytes := bytes.NewReader(buffer[:n])
+	fileReader := io.MultiReader(importBytes, f)
+
+	res, err := h.service.UploadDocument(c.Context(), candidateID, docType, file.Filename, actualMimeType, file.Size, fileReader)
 	if err != nil {
 		if err.Error() == "cannot upload documents for a non-draft candidate" {
-			return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+			return response.SendError(c, fiber.StatusForbidden, err.Error(), nil)
 		}
 		if err.Error() == "invalid mime type" || err.Error() == "file size exceeds maximum allowed size" {
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+			return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
 		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return response.SendError(c, fiber.StatusInternalServerError, err.Error(), nil)
 	}
 
-	return c.Status(http.StatusCreated).JSON(res)
+	return response.SendSuccess(c, fiber.StatusCreated, "document uploaded successfully", res, nil)
 }
 
 func (h *Handler) ListDocuments(c fiber.Ctx) error {
 	candidateID := c.Params("id")
 	res, err := h.service.ListDocuments(c.Context(), candidateID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to fetch documents",
-		})
+		return response.SendError(c, fiber.StatusInternalServerError, "failed to fetch documents", nil)
 	}
-	return c.Status(http.StatusOK).JSON(res)
+	return response.SendSuccess(c, fiber.StatusOK, "documents fetched successfully", res, nil)
 }
 
 func (h *Handler) DeleteDocument(c fiber.Ctx) error {
@@ -220,17 +179,15 @@ func (h *Handler) DeleteDocument(c fiber.Ctx) error {
 	err := h.service.DeleteDocument(c.Context(), candidateID, docID)
 	if err != nil {
 		if err.Error() == "cannot delete documents for a non-draft candidate" || err.Error() == "unauthorized to delete this document" {
-			return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+			return response.SendError(c, fiber.StatusForbidden, err.Error(), nil)
 		}
 		if errors.Is(err, ErrNotFound) {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "document not found"})
+			return response.SendError(c, fiber.StatusNotFound, "document not found", nil)
 		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to delete document",
-		})
+		return response.SendError(c, fiber.StatusInternalServerError, "failed to delete document", nil)
 	}
 
-	return c.SendStatus(http.StatusNoContent)
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 func (h *Handler) StreamDocument(c fiber.Ctx) error {
@@ -240,14 +197,12 @@ func (h *Handler) StreamDocument(c fiber.Ctx) error {
 	reader, mimeType, err := h.service.StreamDocument(c.Context(), candidateID, docID)
 	if err != nil {
 		if err.Error() == "unauthorized to access this document" {
-			return c.Status(http.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+			return response.SendError(c, fiber.StatusForbidden, err.Error(), nil)
 		}
 		if errors.Is(err, ErrNotFound) || err.Error() == "file not found" {
-			return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": "document not found"})
+			return response.SendError(c, fiber.StatusNotFound, "document not found", nil)
 		}
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": "failed to stream document",
-		})
+		return response.SendError(c, fiber.StatusInternalServerError, "failed to stream document", nil)
 	}
 	defer reader.Close()
 

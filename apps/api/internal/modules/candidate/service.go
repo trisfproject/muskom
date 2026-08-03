@@ -387,6 +387,16 @@ func (s *service) UploadDocument(ctx context.Context, candidateID string, docTyp
 		return nil, errors.New("invalid mime type")
 	}
 
+	// Check if document already exists to determine REPLACE vs UPLOAD
+	existingDocs, _ := s.repo.FindDocumentsByCandidateID(ctx, candidateID)
+	action := audit.AuditAction("UPLOAD_DOCUMENT")
+	for _, d := range existingDocs {
+		if d.DocumentType == docType {
+			action = audit.AuditAction("REPLACE_DOCUMENT")
+			break
+		}
+	}
+
 	// Generate a unique filename for storage
 	ext := filepath.Ext(filename)
 	storedFilename := fmt.Sprintf("candidate_%s_%s_%s%s", candidateID, strings.ReplaceAll(strings.ToLower(docType), " ", "_"), uuid.New().String()[:8], ext)
@@ -405,7 +415,7 @@ func (s *service) UploadDocument(ctx context.Context, candidateID string, docTyp
 		StoredFilename:   storedFilename,
 		MimeType:         mimeType,
 		FileSize:         size,
-		StorageProvider:  "local", // Can be dynamic based on config
+		StorageProvider:  "local",
 		StoragePath:      storagePath,
 	}
 
@@ -414,14 +424,7 @@ func (s *service) UploadDocument(ctx context.Context, candidateID string, docTyp
 		return nil, err
 	}
 
-	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
-		Module:   audit.ModuleCandidate,
-		Entity:   "candidate_documents",
-		EntityID: doc.ID, // We might not have ID returned nicely if ON CONFLICT happens, but for audit it's okay
-		Action:   "UPLOAD_DOCUMENT",
-	})
-
-	// Fetch to get exact details
+	// Fetch to get exact details including the ID
 	docs, _ := s.repo.FindDocumentsByCandidateID(ctx, candidateID)
 	var finalDoc *CandidateDocument
 	for _, d := range docs {
@@ -433,6 +436,16 @@ func (s *service) UploadDocument(ctx context.Context, candidateID string, docTyp
 	if finalDoc == nil {
 		return nil, errors.New("failed to retrieve saved document")
 	}
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleCandidate,
+		Entity:   "candidate_documents",
+		EntityID: finalDoc.ID,
+		Action:   action,
+		Metadata: map[string]interface{}{
+			"DocumentType": docType,
+		},
+	})
 
 	res := mapToDocumentResponse(finalDoc)
 	return &res, nil
@@ -479,6 +492,9 @@ func (s *service) DeleteDocument(ctx context.Context, candidateID string, docID 
 		Entity:   "candidate_documents",
 		EntityID: docID,
 		Action:   "DELETE_DOCUMENT",
+		Metadata: map[string]interface{}{
+			"DocumentType": doc.DocumentType,
+		},
 	})
 
 	return nil
@@ -496,8 +512,18 @@ func (s *service) StreamDocument(ctx context.Context, candidateID string, docID 
 
 	reader, err := s.storage.Download(ctx, doc.StoragePath)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("failed to download from storage: %w", err)
 	}
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleCandidate,
+		Entity:   "candidate_documents",
+		EntityID: docID,
+		Action:   "DOWNLOAD_DOCUMENT",
+		Metadata: map[string]interface{}{
+			"DocumentType": doc.DocumentType,
+		},
+	})
 
 	return reader, doc.MimeType, nil
 }
