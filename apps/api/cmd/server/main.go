@@ -17,6 +17,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/dashboard"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/participant"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/rbac"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/registration"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/reporting"
@@ -136,6 +137,7 @@ func main() {
 	user.SetupRoutes(adminGroup.Group("/users", checker.RequirePermission("system.manage")), db, log, val)
 	candidate.RegisterRoutes(v1, db, log, val, strg, cfg.MaxUploadSize)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), db, log, val, strg)
+	participant.SetupAdminRoutes(adminGroup.Group("/participants"), db, log, val)
 
 	// 8. Graceful Shutdown
 	go func() {
