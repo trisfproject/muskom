@@ -18,6 +18,17 @@ export interface AdminParticipantResponse {
   updated_at: string;
 }
 
+export interface ParticipantAuditEntry {
+  id: string;
+  action: string;
+  actor_id?: string;
+  actor_role?: string;
+  reason?: string;
+  previous_value?: { status?: string };
+  new_value?: { status?: string };
+  created_at: string;
+}
+
 export const adminParticipantService = {
   async listParticipants(params?: {
     page?: number;
@@ -26,8 +37,6 @@ export const adminParticipantService = {
     search?: string;
   }): Promise<AdminParticipantResponse[]> {
     const response = await api.get('/admin/participants', { params });
-    // If backend returns data in data.data or directly in data
-    // Usually it returns { message: "...", data: [...] }
     return response.data.data || response.data;
   },
 
@@ -38,5 +47,13 @@ export const adminParticipantService = {
 
   async updateStatus(id: string, payload: { status: string }): Promise<void> {
     await api.patch(`/admin/participants/${id}/status`, payload);
-  }
+  },
+
+  async getAuditLogs(entityId: string): Promise<ParticipantAuditEntry[]> {
+    const response = await api.get(`/admin/audit`, {
+      params: { entity_id: entityId, module: 'participant', limit: 50 },
+    });
+    // API returns { data: { items: [...], total: n } }
+    return response.data?.data?.items || response.data?.data || [];
+  },
 };
