@@ -74,22 +74,15 @@ func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*Cand
 		Email:              req.Email,
 		Phone:              req.Phone,
 
-		BirthPlace:         req.BirthPlace,
-		Occupation:         req.Occupation,
-		Organization:       req.Organization,
-		Address:            req.Address,
+		CompanyName:        req.CompanyName,
+		IndustrialArea:     req.IndustrialArea,
+		JobTitle:           req.JobTitle,
+		Department:         req.Department,
 		Biography:          req.Biography,
 		Motivation:         req.Motivation,
 		Vision:             req.Vision,
 		Mission:            req.Mission,
 		Status:             StatusDraft,
-	}
-
-	if req.BirthDate != nil {
-		bd, err := time.Parse("2006-01-02", *req.BirthDate)
-		if err == nil {
-			c.BirthDate = &bd
-		}
 	}
 
 	err := s.repo.Create(ctx, c)
@@ -164,24 +157,17 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 	c.Email = req.Email
 	c.Phone = req.Phone
 
-	c.BirthPlace = req.BirthPlace
-	c.Occupation = req.Occupation
-	c.Organization = req.Organization
-	c.Address = req.Address
+	c.CompanyName = req.CompanyName
+	c.IndustrialArea = req.IndustrialArea
+	c.JobTitle = req.JobTitle
+	c.Department = req.Department
 	c.Biography = req.Biography
 	c.Motivation = req.Motivation
 	c.Vision = req.Vision
 	c.Mission = req.Mission
 	c.ProfilePhoto = req.ProfilePhoto
 
-	if req.BirthDate != nil {
-		bd, err := time.Parse("2006-01-02", *req.BirthDate)
-		if err == nil {
-			c.BirthDate = &bd
-		}
-	} else {
-		c.BirthDate = nil
-	}
+
 
 	if req.Status != nil {
 		c.Status = *req.Status
@@ -231,23 +217,17 @@ func (s *service) Patch(ctx context.Context, id string, req PatchCandidateReques
 		c.Phone = *req.Phone
 	}
 
-	if req.BirthPlace != nil {
-		c.BirthPlace = req.BirthPlace
+	if req.CompanyName != nil {
+		c.CompanyName = req.CompanyName
 	}
-	if req.BirthDate != nil {
-		bd, err := time.Parse("2006-01-02", *req.BirthDate)
-		if err == nil {
-			c.BirthDate = &bd
-		}
+	if req.IndustrialArea != nil {
+		c.IndustrialArea = req.IndustrialArea
 	}
-	if req.Occupation != nil {
-		c.Occupation = req.Occupation
+	if req.JobTitle != nil {
+		c.JobTitle = req.JobTitle
 	}
-	if req.Organization != nil {
-		c.Organization = req.Organization
-	}
-	if req.Address != nil {
-		c.Address = req.Address
+	if req.Department != nil {
+		c.Department = req.Department
 	}
 	if req.Biography != nil {
 		c.Biography = req.Biography
@@ -314,11 +294,6 @@ func (s *service) Delete(ctx context.Context, id string) error {
 }
 
 func mapToResponse(c *Candidate) CandidateResponse {
-	var bdStr *string
-	if c.BirthDate != nil {
-		str := c.BirthDate.Format("2006-01-02")
-		bdStr = &str
-	}
 	return CandidateResponse{
 		ID:                 c.ID,
 		MusyawarahID:       c.MusyawarahID,
@@ -328,11 +303,10 @@ func mapToResponse(c *Candidate) CandidateResponse {
 		Email:              c.Email,
 		Phone:              c.Phone,
 
-		BirthPlace:         c.BirthPlace,
-		BirthDate:          bdStr,
-		Occupation:         c.Occupation,
-		Organization:       c.Organization,
-		Address:            c.Address,
+		CompanyName:        c.CompanyName,
+		IndustrialArea:     c.IndustrialArea,
+		JobTitle:           c.JobTitle,
+		Department:         c.Department,
 		Biography:          c.Biography,
 		Motivation:         c.Motivation,
 		Vision:             c.Vision,

@@ -155,7 +155,7 @@ export default function CandidateRegisterPage() {
   };
 
   const onNextStep1 = async () => {
-    const valid = await trigger(["full_name", "nickname", "email", "phone", "birth_place", "birth_date"]);
+    const valid = await trigger(["full_name", "nickname", "email", "phone"]);
     if (valid) {
       // If valid, transition from Local Draft to Backend Draft
       if (!candidateId) {
@@ -171,8 +171,6 @@ export default function CandidateRegisterPage() {
             email: data.email,
             phone: data.phone,
 
-            birth_place: data.birth_place || undefined,
-            birth_date: data.birth_date || undefined,
           });
           setCandidateId(cand.id);
           localStorage.setItem(ID_DRAFT_KEY, cand.id);
@@ -191,7 +189,7 @@ export default function CandidateRegisterPage() {
   };
 
   const onNextStep2 = async () => {
-    const valid = await trigger(["occupation", "organization", "address"]);
+    const valid = await trigger(["company_name", "industrial_area", "other_industrial_area", "job_title", "department"]);
     if (valid) setStep(3);
   };
 
@@ -394,14 +392,7 @@ export default function CandidateRegisterPage() {
                     </InputGroup>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <InputGroup label="Tempat Lahir" error={errors.birth_place?.message}>
-                      <input {...register("birth_place")} type="text" className="input-lg" placeholder="Kota Kelahiran" />
-                    </InputGroup>
-                    <InputGroup label="Tanggal Lahir" error={errors.birth_date?.message}>
-                      <input {...register("birth_date")} type="date" className="input-lg" />
-                    </InputGroup>
-                  </div>
+
                 </div>
 
                 <div className="mt-8 flex justify-end">
@@ -419,17 +410,36 @@ export default function CandidateRegisterPage() {
                 <p className="text-slate-500 mb-8">Draft otomatis tersimpan saat Anda mengetik. Anda bisa keluar dan melanjutkannya nanti.</p>
 
                 <div className="space-y-6 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <InputGroup label="Pekerjaan / Jabatan" error={errors.occupation?.message}>
-                      <input {...register("occupation")} type="text" className="input-lg" placeholder="Contoh: Direktur Utama" />
+                  <InputGroup label="Nama Perusahaan" error={errors.company_name?.message}>
+                    <input {...register("company_name")} type="text" className="input-lg" placeholder="Nama Perusahaan" />
+                  </InputGroup>
+                  <InputGroup label="Kawasan Industri" error={errors.industrial_area?.message}>
+                    <select {...register("industrial_area")} className="input-lg bg-white">
+                      <option value="">Pilih Kawasan Industri</option>
+                      <option value="Jababeka">Jababeka</option>
+                      <option value="EJIP">EJIP</option>
+                      <option value="MM2100">MM2100</option>
+                      <option value="Delta Silicon">Delta Silicon</option>
+                      <option value="GIIC">GIIC</option>
+                      <option value="Hyundai">Hyundai</option>
+                      <option value="Lippo Cikarang">Lippo Cikarang</option>
+                      <option value="Bekasi Fajar">Bekasi Fajar</option>
+                      <option value="Other">Lainnya (Sebutkan)</option>
+                    </select>
+                  </InputGroup>
+                  {watch("industrial_area") === "Other" && (
+                    <InputGroup label="Sebutkan Kawasan Industri" error={errors.other_industrial_area?.message}>
+                      <input {...register("other_industrial_area")} type="text" className="input-lg" placeholder="Kawasan Industri" />
                     </InputGroup>
-                    <InputGroup label="Instansi / Organisasi" error={errors.organization?.message}>
-                      <input {...register("organization")} type="text" className="input-lg" placeholder="Contoh: PT Teknologi Indonesia" />
+                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <InputGroup label="Jabatan" error={errors.job_title?.message}>
+                      <input {...register("job_title")} type="text" className="input-lg" placeholder="Contoh: Direktur Utama" />
+                    </InputGroup>
+                    <InputGroup label="Departemen (Opsional)" error={errors.department?.message}>
+                      <input {...register("department")} type="text" className="input-lg" placeholder="Contoh: Board of Directors" />
                     </InputGroup>
                   </div>
-                  <InputGroup label="Alamat Lengkap" error={errors.address?.message}>
-                    <textarea {...register("address")} rows={4} className="input-lg resize-none" placeholder="Masukkan alamat lengkap sesuai domisili" />
-                  </InputGroup>
                 </div>
 
                 <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4">
@@ -628,8 +638,6 @@ export default function CandidateRegisterPage() {
                       <ReviewItem label="Nama Panggilan" value={v.nickname || "-"} />
                       <ReviewItem label="Email" value={v.email} />
                       <ReviewItem label="No. Telepon" value={v.phone} />
-
-                      <ReviewItem label="Tempat, Tgl Lahir" value={`${v.birth_place}, ${v.birth_date}`} />
                     </div>
                   </div>
 
@@ -640,11 +648,10 @@ export default function CandidateRegisterPage() {
                       <button type="button" onClick={() => setStep(2)} className="text-sm font-bold text-primary hover:underline">Ubah</button>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
-                      <ReviewItem label="Pekerjaan" value={v.occupation || "-"} />
-                      <ReviewItem label="Organisasi" value={v.organization || "-"} />
-                      <div className="sm:col-span-2">
-                        <ReviewItem label="Alamat" value={v.address || "-"} />
-                      </div>
+                      <ReviewItem label="Nama Perusahaan" value={v.company_name || "-"} />
+                      <ReviewItem label="Kawasan Industri" value={(v.industrial_area === "Other" ? v.other_industrial_area : v.industrial_area) || "-"} />
+                      <ReviewItem label="Jabatan" value={v.job_title || "-"} />
+                      <ReviewItem label="Departemen" value={v.department || "-"} />
                     </div>
                   </div>
 

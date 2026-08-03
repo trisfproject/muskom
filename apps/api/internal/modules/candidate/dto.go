@@ -12,11 +12,10 @@ type CreateCandidateRequest struct {
 	Email        string  `json:"email" validate:"required,email,max=255"`
 	Phone        string  `json:"phone" validate:"required,max=50"`
 
-	BirthPlace   *string `json:"birth_place" validate:"omitempty,max=100"`
-	BirthDate    *string `json:"birth_date" validate:"omitempty,datetime=2006-01-02"`
-	Occupation   *string `json:"occupation" validate:"omitempty,max=255"`
-	Organization *string `json:"organization" validate:"omitempty,max=255"`
-	Address      *string `json:"address"`
+	CompanyName    *string `json:"company_name" validate:"omitempty,max=255"`
+	IndustrialArea *string `json:"industrial_area" validate:"omitempty,max=255"`
+	JobTitle       *string `json:"job_title" validate:"omitempty,max=255"`
+	Department     *string `json:"department" validate:"omitempty,max=255"`
 	Biography    *string `json:"biography"`
 	Motivation   *string `json:"motivation"`
 	Vision       *string `json:"vision"`
@@ -30,11 +29,10 @@ type UpdateCandidateRequest struct {
 	Email        string  `json:"email" validate:"required,email,max=255"`
 	Phone        string  `json:"phone" validate:"required,max=50"`
 
-	BirthPlace   *string `json:"birth_place" validate:"omitempty,max=100"`
-	BirthDate    *string `json:"birth_date" validate:"omitempty,datetime=2006-01-02"`
-	Occupation   *string `json:"occupation" validate:"omitempty,max=255"`
-	Organization *string `json:"organization" validate:"omitempty,max=255"`
-	Address      *string `json:"address"`
+	CompanyName    *string `json:"company_name" validate:"omitempty,max=255"`
+	IndustrialArea *string `json:"industrial_area" validate:"omitempty,max=255"`
+	JobTitle       *string `json:"job_title" validate:"omitempty,max=255"`
+	Department     *string `json:"department" validate:"omitempty,max=255"`
 	Biography    *string `json:"biography"`
 	Motivation   *string `json:"motivation"`
 	Vision       *string `json:"vision"`
@@ -50,11 +48,10 @@ type PatchCandidateRequest struct {
 	Email        *string `json:"email" validate:"omitempty,email,max=255"`
 	Phone        *string `json:"phone" validate:"omitempty,max=50"`
 
-	BirthPlace   *string `json:"birth_place" validate:"omitempty,max=100"`
-	BirthDate    *string `json:"birth_date" validate:"omitempty,datetime=2006-01-02"`
-	Occupation   *string `json:"occupation" validate:"omitempty,max=255"`
-	Organization *string `json:"organization" validate:"omitempty,max=255"`
-	Address      *string `json:"address"`
+	CompanyName    *string `json:"company_name" validate:"omitempty,max=255"`
+	IndustrialArea *string `json:"industrial_area" validate:"omitempty,max=255"`
+	JobTitle       *string `json:"job_title" validate:"omitempty,max=255"`
+	Department     *string `json:"department" validate:"omitempty,max=255"`
 	Biography    *string `json:"biography"`
 	Motivation   *string `json:"motivation"`
 	Vision       *string `json:"vision"`
@@ -73,11 +70,10 @@ type CandidateResponse struct {
 	Email              string                           `json:"email"`
 	Phone              string                           `json:"phone"`
 
-	BirthPlace         *string                          `json:"birth_place,omitempty"`
-	BirthDate          *string                          `json:"birth_date,omitempty"`
-	Occupation         *string                          `json:"occupation,omitempty"`
-	Organization       *string                          `json:"organization,omitempty"`
-	Address            *string                          `json:"address,omitempty"`
+	CompanyName        *string                          `json:"company_name,omitempty"`
+	IndustrialArea     *string                          `json:"industrial_area,omitempty"`
+	JobTitle           *string                          `json:"job_title,omitempty"`
+	Department         *string                          `json:"department,omitempty"`
 	Biography          *string                          `json:"biography,omitempty"`
 	Motivation         *string                          `json:"motivation,omitempty"`
 	Vision             *string                          `json:"vision,omitempty"`

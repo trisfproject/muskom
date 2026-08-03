@@ -6,19 +6,26 @@ export const candidateSchema = z.object({
   nickname: z.string().optional(),
   email: z.string().email("Format email tidak valid"),
   phone: z.string().min(10, "Nomor telepon harus diisi (min. 10 angka)"),
-  birth_place: z.string().min(3, "Tempat lahir harus diisi"),
-  birth_date: z.string().min(10, "Tanggal lahir harus diisi (YYYY-MM-DD)"),
-
   // Step 2
-  occupation: z.string().min(1, "Pekerjaan/Jabatan harus diisi"),
-  organization: z.string().min(1, "Instansi/Organisasi harus diisi"),
-  address: z.string().min(10, "Alamat lengkap harus diisi"),
+  company_name: z.string().min(1, "Nama perusahaan harus diisi"),
+  industrial_area: z.string().min(1, "Kawasan industri harus dipilih"),
+  other_industrial_area: z.string().optional(),
+  job_title: z.string().min(1, "Jabatan harus diisi"),
+  department: z.string().optional(),
 
   // Step 3
   biography: z.string().min(50, "Biografi singkat harus diisi (min. 50 karakter)"),
   motivation: z.string().min(50, "Motivasi pencalonan harus diisi (min. 50 karakter)"),
   vision: z.string().min(20, "Visi harus diisi"),
   mission: z.string().min(20, "Misi harus diisi"),
+}).refine((data) => {
+  if (data.industrial_area === "Other" && (!data.other_industrial_area || data.other_industrial_area.trim() === "")) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Kawasan industri lainnya harus diisi",
+  path: ["other_industrial_area"],
 });
 
 export type CandidateFormData = z.infer<typeof candidateSchema>;

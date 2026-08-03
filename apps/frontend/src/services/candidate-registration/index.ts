@@ -7,11 +7,11 @@ export interface CandidateRegistrationPayload {
   email: string;
   phone: string;
 
-  birth_place?: string;
-  birth_date?: string;
-  occupation?: string;
-  organization?: string;
-  address?: string;
+  company_name?: string;
+  industrial_area?: string;
+  job_title?: string;
+  department?: string;
+
   biography?: string;
   motivation?: string;
   vision?: string;

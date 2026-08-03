@@ -171,9 +171,8 @@ export default function CandidateDetailPage() {
                 <h1 className="text-2xl font-bold text-slate-900">{candidate.full_name}</h1>
                 <p className="text-slate-500">{candidate.registration_number}</p>
                 <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-600">
-                  <div className="flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-slate-400" /> {candidate.occupation || '-'} di {candidate.organization || '-'}</div>
-                  <div className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-slate-400" /> {candidate.birth_place || '-'}</div>
-                  <div className="flex items-center gap-1.5"><Calendar className="w-4 h-4 text-slate-400" /> {candidate.birth_date ? new Date(candidate.birth_date).toLocaleDateString('id-ID') : '-'}</div>
+                  <div className="flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-slate-400" /> {candidate.job_title || '-'} di {candidate.company_name || '-'}</div>
+                  <div className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-slate-400" /> {candidate.industrial_area || '-'}</div>
                 </div>
               </div>
             </div>
@@ -188,8 +187,8 @@ export default function CandidateDetailPage() {
                 <p className="font-medium text-slate-900">{candidate.phone}</p>
               </div>
               <div className="md:col-span-2">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Alamat</label>
-                <p className="font-medium text-slate-900 whitespace-pre-wrap">{candidate.address || '-'}</p>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Departemen</label>
+                <p className="font-medium text-slate-900 whitespace-pre-wrap">{candidate.department || '-'}</p>
               </div>
             </div>
           </div>
