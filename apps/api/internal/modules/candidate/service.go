@@ -2,488 +2,296 @@ package candidate
 
 import (
 	"context"
-	"errors"
-
 	"fmt"
-	"mime/multipart"
-	"net/http"
-	"path/filepath"
 	"strings"
+	"time"
 
-	"github.com/trisfproject/muskom/apps/api/platform/storage"
-	"github.com/trisfproject/muskom/apps/api/platform/validator"
-	"go.uber.org/zap"
-)
-
-var (
-	ErrCandidateRegistrationClosed = errors.New("candidate registration period is not open")
-	ErrEventStatusInvalid          = errors.New("musyawarah status does not allow candidate registration")
-	ErrRegistrationNotApproved     = errors.New("participant registration must be APPROVED to register as a candidate")
+	"github.com/google/uuid"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 )
 
 type Service interface {
-	RegisterCandidate(ctx context.Context, req *RegisterCandidateRequest) (*RegisterCandidateResponse, error)
-	GetCandidateStatus(ctx context.Context, candidateCode string) (*CandidateStatusResponse, error)
-	UploadDocuments(ctx context.Context, candidateCode string, photo, document *multipart.FileHeader) (*CandidateDocumentsResponse, error)
-	GetDocuments(ctx context.Context, candidateCode string) (*CandidateDocumentsResponse, error)
-	DeleteDocuments(ctx context.Context, candidateCode string, req *DeleteDocumentsRequest) error
-
-	AdminListCandidates(ctx context.Context, filter CandidateAdminListRequest) ([]CandidateAdminListResponse, int, error)
-	PublicListCandidates(ctx context.Context) ([]CandidatePublicResponse, error)
-	AdminGetCandidateDetail(ctx context.Context, candidateCode string) (*CandidateAdminDetailResponse, error)
-	AdminUpdateCandidateDetails(ctx context.Context, candidateCode string, req *CandidateAdminUpdateRequest, reviewerID string) error
-	AdminUpdateCandidateStatus(ctx context.Context, candidateCode string, req *CandidateUpdateStatusRequest, reviewerID string) error
+	Create(ctx context.Context, req CreateCandidateRequest) (*CandidateResponse, error)
+	GetByID(ctx context.Context, id string) (*CandidateResponse, error)
+	GetAll(ctx context.Context) ([]CandidateResponse, error)
+	Update(ctx context.Context, id string, req UpdateCandidateRequest) (*CandidateResponse, error)
+	Patch(ctx context.Context, id string, req PatchCandidateRequest) (*CandidateResponse, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type service struct {
-	repo          Repository
-	logger        *zap.Logger
-	validator     *validator.Validator
-	storage       storage.Storage
-	maxUploadSize int64
+	repo         Repository
+	auditService audit.AuditService
 }
 
-func NewService(repo Repository, logger *zap.Logger, val *validator.Validator, strg storage.Storage, maxUploadSize int64) Service {
+func NewService(repo Repository, auditService audit.AuditService) Service {
 	return &service{
-		repo:          repo,
-		logger:        logger,
-		validator:     val,
-		storage:       strg,
-		maxUploadSize: maxUploadSize,
+		repo:         repo,
+		auditService: auditService,
 	}
 }
 
-func (s *service) RegisterCandidate(ctx context.Context, req *RegisterCandidateRequest) (*RegisterCandidateResponse, error) {
-	if err := s.validator.ValidateStruct(req); err != nil {
-		return nil, &ValidationError{Details: err}
+func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*CandidateResponse, error) {
+	// Generate unique registration number
+	regNum := fmt.Sprintf("CAN-%s-%s", strings.ToUpper(req.MusyawarahID[:4]), strings.ToUpper(uuid.New().String()[:8]))
+
+	c := &Candidate{
+		MusyawarahID:       req.MusyawarahID,
+		RegistrationNumber: regNum,
+		FullName:           req.FullName,
+		Nickname:           req.Nickname,
+		Email:              req.Email,
+		Phone:              req.Phone,
+		Gender:             req.Gender,
+		BirthPlace:         req.BirthPlace,
+		Occupation:         req.Occupation,
+		Organization:       req.Organization,
+		Address:            req.Address,
+		Biography:          req.Biography,
+		Motivation:         req.Motivation,
+		Vision:             req.Vision,
+		Mission:            req.Mission,
+		Status:             "Draft",
 	}
 
-	// 1. Get Registration and Event Details
-	details, err := s.repo.GetRegistrationDetails(ctx, req.RegistrationID)
+	if req.BirthDate != nil {
+		bd, err := time.Parse("2006-01-02", *req.BirthDate)
+		if err == nil {
+			c.BirthDate = &bd
+		}
+	}
+
+	err := s.repo.Create(ctx, c)
 	if err != nil {
 		return nil, err
 	}
 
-	// 2. Validate Participant Registration Status (Eligibility defined by schema)
-	if details.RegistrationStatus != "APPROVED" {
-		return nil, ErrRegistrationNotApproved
-	}
-
-	// 3. Validate Musyawarah Status
-	if details.EventStatus != "UPCOMING" && details.EventStatus != "ONGOING" {
-		return nil, ErrEventStatusInvalid
-	}
-
-	// 4. Check Candidate Registration Period
-	isOpen, err := s.repo.GetEventActivePhase(ctx, details.EventID, "candidate_registration")
-	if err != nil {
-		return nil, err
-	}
-	if !isOpen {
-		return nil, ErrCandidateRegistrationClosed
-	}
-
-	// 6. Prevent duplicate applications
-	exists, err := s.repo.CheckExistingApplication(ctx, req.RegistrationID)
-	if err != nil {
-		return nil, err
-	}
-	if exists {
-		return nil, ErrDuplicateApplication
-	}
-
-	// 4. Create Application (Status: SUBMITTED)
-	app := &CandidateApplication{
-		RegistrationID: req.RegistrationID,
-		Vision:         req.Vision,
-		Mission:        req.Mission,
-		WorkProgram:    req.WorkProgram,
-		Status:         "SUBMITTED",
-	}
-
-	tx, err := s.repo.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	candidateCode, err := s.repo.CreateCandidateApplication(ctx, app)
+	// Fetch newly created record to get all fields including ID and timestamps
+	c, err = s.repo.GetByID(ctx, c.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Log audit
-	err = s.repo.LogAudit(ctx, tx, "candidate", "REGISTER", "candidate_applications", candidateCode, `{"source":"public","status":"SUBMITTED"}`)
-	if err != nil {
-		return nil, err
-	}
+	// Audit Log
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleCandidate,
+		Entity:   "candidates",
+		EntityID: c.ID,
+		Action:   "CREATE",
+		NewValue: c,
+	})
 
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	return &RegisterCandidateResponse{
-		CandidateCode: candidateCode,
-		Status:        app.Status,
-	}, nil
+	res := mapToResponse(c)
+	return &res, nil
 }
 
-func (s *service) GetCandidateStatus(ctx context.Context, candidateCode string) (*CandidateStatusResponse, error) {
-	app, err := s.repo.GetCandidateApplicationByID(ctx, candidateCode)
+func (s *service) GetByID(ctx context.Context, id string) (*CandidateResponse, error) {
+	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-
-	return &CandidateStatusResponse{
-		CandidateCode: app.ID,
-		Status:        app.Status,
-		SubmittedAt:   app.CreatedAt,
-	}, nil
+	res := mapToResponse(c)
+	return &res, nil
 }
 
-func (s *service) UploadDocuments(ctx context.Context, candidateCode string, photo, document *multipart.FileHeader) (*CandidateDocumentsResponse, error) {
-	app, err := s.repo.GetCandidateApplicationByID(ctx, candidateCode)
+func (s *service) GetAll(ctx context.Context) ([]CandidateResponse, error) {
+	candidates, err := s.repo.FindAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if app.Status != "SUBMITTED" {
-		return nil, errors.New("candidate application status does not allow document upload")
+	var res []CandidateResponse
+	for _, c := range candidates {
+		res = append(res, mapToResponse(&c))
 	}
-
-	if photo == nil && document == nil {
-		return nil, errors.New("no files provided for upload")
-	}
-
-	var newPhotoPath, newDocPath *string
-	var photoURL, docURL string
-
-	if photo != nil {
-		if err := s.validateFile(photo, []string{".jpg", ".jpeg", ".png", ".webp"}, []string{"image/jpeg", "image/png", "image/webp"}); err != nil {
-			return nil, fmt.Errorf("photo validation failed: %w", err)
-		}
-		src, err := photo.Open()
-		if err != nil {
-			return nil, fmt.Errorf("failed to open photo file: %w", err)
-		}
-		defer src.Close()
-
-		path := fmt.Sprintf("candidates/%s/photo%s", candidateCode, filepath.Ext(photo.Filename))
-		_, err = s.storage.Upload(ctx, src, path)
-		if err != nil {
-			return nil, fmt.Errorf("failed to upload photo: %w", err)
-		}
-		newPhotoPath = &path
-		photoURL = s.storage.URL(path)
-	}
-
-	if document != nil {
-		if err := s.validateFile(document, []string{".pdf"}, []string{"application/pdf"}); err != nil {
-			// Rollback photo if document fails
-			if newPhotoPath != nil {
-				_ = s.storage.Delete(ctx, *newPhotoPath)
-			}
-			return nil, fmt.Errorf("document validation failed: %w", err)
-		}
-		src, err := document.Open()
-		if err != nil {
-			if newPhotoPath != nil {
-				_ = s.storage.Delete(ctx, *newPhotoPath)
-			}
-			return nil, fmt.Errorf("failed to open document file: %w", err)
-		}
-		defer src.Close()
-
-		path := fmt.Sprintf("candidates/%s/document%s", candidateCode, filepath.Ext(document.Filename))
-		_, err = s.storage.Upload(ctx, src, path)
-		if err != nil {
-			if newPhotoPath != nil {
-				_ = s.storage.Delete(ctx, *newPhotoPath)
-			}
-			return nil, fmt.Errorf("failed to upload document: %w", err)
-		}
-		newDocPath = &path
-		docURL = s.storage.URL(path)
-	}
-
-	// Delete old files asynchronously if they are being replaced
-	if newPhotoPath != nil && app.PhotoPath != nil {
-		go func(path string) {
-			_ = s.storage.Delete(context.Background(), path)
-		}(*app.PhotoPath)
-	}
-	if newDocPath != nil && app.DocumentPath != nil {
-		go func(path string) {
-			_ = s.storage.Delete(context.Background(), path)
-		}(*app.DocumentPath)
-	}
-
-	tx, err := s.repo.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	if err := s.repo.UpdateDocumentPaths(ctx, tx, candidateCode, newPhotoPath, newDocPath); err != nil {
-		return nil, err
-	}
-
-	if err := s.repo.LogAudit(ctx, tx, "candidate", "UPLOAD_DOCUMENTS", "candidate_applications", candidateCode, ""); err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	// Fetch existing URLs if not updated
-	if newPhotoPath == nil && app.PhotoPath != nil {
-		photoURL = s.storage.URL(*app.PhotoPath)
-	}
-	if newDocPath == nil && app.DocumentPath != nil {
-		docURL = s.storage.URL(*app.DocumentPath)
-	}
-
-	return &CandidateDocumentsResponse{
-		PhotoURL:    photoURL,
-		DocumentURL: docURL,
-	}, nil
+	return res, nil
 }
 
-func (s *service) validateFile(file *multipart.FileHeader, allowedExts []string, allowedMimeTypes []string) error {
-	if file.Size > s.maxUploadSize {
-		return fmt.Errorf("file size exceeds maximum limit of %d bytes", s.maxUploadSize)
+func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequest) (*CandidateResponse, error) {
+	c, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	
+	oldVal := *c
+
+	c.FullName = req.FullName
+	c.Nickname = req.Nickname
+	c.Email = req.Email
+	c.Phone = req.Phone
+	c.Gender = req.Gender
+	c.BirthPlace = req.BirthPlace
+	c.Occupation = req.Occupation
+	c.Organization = req.Organization
+	c.Address = req.Address
+	c.Biography = req.Biography
+	c.Motivation = req.Motivation
+	c.Vision = req.Vision
+	c.Mission = req.Mission
+	c.ProfilePhoto = req.ProfilePhoto
+
+	if req.BirthDate != nil {
+		bd, err := time.Parse("2006-01-02", *req.BirthDate)
+		if err == nil {
+			c.BirthDate = &bd
+		}
+	} else {
+		c.BirthDate = nil
 	}
 
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	validExt := false
-	for _, e := range allowedExts {
-		if ext == e {
-			validExt = true
-			break
+	if req.Status != nil {
+		c.Status = *req.Status
+	}
+
+	err = s.repo.Update(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+
+	c, _ = s.repo.GetByID(ctx, id)
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:        audit.ModuleCandidate,
+		Entity:        "candidates",
+		EntityID:      c.ID,
+		Action:        "UPDATE",
+		PreviousValue: oldVal,
+		NewValue:      c,
+	})
+
+	res := mapToResponse(c)
+	return &res, nil
+}
+
+func (s *service) Patch(ctx context.Context, id string, req PatchCandidateRequest) (*CandidateResponse, error) {
+	c, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldVal := *c
+
+	if req.FullName != nil {
+		c.FullName = *req.FullName
+	}
+	if req.Nickname != nil {
+		c.Nickname = req.Nickname
+	}
+	if req.Email != nil {
+		c.Email = *req.Email
+	}
+	if req.Phone != nil {
+		c.Phone = *req.Phone
+	}
+	if req.Gender != nil {
+		c.Gender = *req.Gender
+	}
+	if req.BirthPlace != nil {
+		c.BirthPlace = req.BirthPlace
+	}
+	if req.BirthDate != nil {
+		bd, err := time.Parse("2006-01-02", *req.BirthDate)
+		if err == nil {
+			c.BirthDate = &bd
 		}
 	}
-	if !validExt {
-		return fmt.Errorf("invalid file extension: %s", ext)
+	if req.Occupation != nil {
+		c.Occupation = req.Occupation
+	}
+	if req.Organization != nil {
+		c.Organization = req.Organization
+	}
+	if req.Address != nil {
+		c.Address = req.Address
+	}
+	if req.Biography != nil {
+		c.Biography = req.Biography
+	}
+	if req.Motivation != nil {
+		c.Motivation = req.Motivation
+	}
+	if req.Vision != nil {
+		c.Vision = req.Vision
+	}
+	if req.Mission != nil {
+		c.Mission = req.Mission
+	}
+	if req.ProfilePhoto != nil {
+		c.ProfilePhoto = req.ProfilePhoto
+	}
+	if req.Status != nil {
+		c.Status = *req.Status
 	}
 
-	f, err := file.Open()
+	err = s.repo.Update(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+
+	c, _ = s.repo.GetByID(ctx, id)
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:        audit.ModuleCandidate,
+		Entity:        "candidates",
+		EntityID:      c.ID,
+		Action:        "UPDATE",
+		PreviousValue: oldVal,
+		NewValue:      c,
+	})
+
+	res := mapToResponse(c)
+	return &res, nil
+}
+
+func (s *service) Delete(ctx context.Context, id string) error {
+	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 
-	buffer := make([]byte, 512)
-	_, _ = f.Read(buffer)
-	mimeType := http.DetectContentType(buffer)
+	err = s.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
 
-	validMime := false
-	for _, m := range allowedMimeTypes {
-		if mimeType == m {
-			validMime = true
-			break
-		}
-	}
-	if !validMime {
-		return fmt.Errorf("invalid file content type: %s", mimeType)
-	}
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:        audit.ModuleCandidate,
+		Entity:        "candidates",
+		EntityID:      id,
+		Action:        "DELETE",
+		PreviousValue: c,
+	})
 
 	return nil
 }
 
-func (s *service) GetDocuments(ctx context.Context, candidateCode string) (*CandidateDocumentsResponse, error) {
-	app, err := s.repo.GetCandidateApplicationByID(ctx, candidateCode)
-	if err != nil {
-		return nil, err
+func mapToResponse(c *Candidate) CandidateResponse {
+	var bdStr *string
+	if c.BirthDate != nil {
+		str := c.BirthDate.Format("2006-01-02")
+		bdStr = &str
 	}
-
-	res := &CandidateDocumentsResponse{}
-	if app.PhotoPath != nil {
-		res.PhotoURL = s.storage.URL(*app.PhotoPath)
+	return CandidateResponse{
+		ID:                 c.ID,
+		MusyawarahID:       c.MusyawarahID,
+		RegistrationNumber: c.RegistrationNumber,
+		FullName:           c.FullName,
+		Nickname:           c.Nickname,
+		Email:              c.Email,
+		Phone:              c.Phone,
+		Gender:             c.Gender,
+		BirthPlace:         c.BirthPlace,
+		BirthDate:          bdStr,
+		Occupation:         c.Occupation,
+		Organization:       c.Organization,
+		Address:            c.Address,
+		Biography:          c.Biography,
+		Motivation:         c.Motivation,
+		Vision:             c.Vision,
+		Mission:            c.Mission,
+		ProfilePhoto:       c.ProfilePhoto,
+		Status:             c.Status,
+		CreatedAt:          c.CreatedAt,
+		UpdatedAt:          c.UpdatedAt,
 	}
-	if app.DocumentPath != nil {
-		res.DocumentURL = s.storage.URL(*app.DocumentPath)
-	}
-
-	return res, nil
-}
-
-func (s *service) DeleteDocuments(ctx context.Context, candidateCode string, req *DeleteDocumentsRequest) error {
-	app, err := s.repo.GetCandidateApplicationByID(ctx, candidateCode)
-	if err != nil {
-		return err
-	}
-
-	if app.Status != "SUBMITTED" {
-		return errors.New("candidate application status does not allow document deletion")
-	}
-
-	if !req.Photo && !req.Document {
-		return errors.New("no documents specified for deletion")
-	}
-
-	if req.Photo {
-		if app.PhotoPath != nil {
-			go func(p string) {
-				_ = s.storage.Delete(context.Background(), p)
-			}(*app.PhotoPath)
-		}
-	}
-
-	if req.Document {
-		if app.DocumentPath != nil {
-			go func(p string) {
-				_ = s.storage.Delete(context.Background(), p)
-			}(*app.DocumentPath)
-		}
-	}
-
-	tx, err := s.repo.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	// Need a specific query to set to NULL, as COALESCE in UpdateDocumentPaths won't work for NULL updates.
-	// We'll write a small custom execution here since it's targeted.
-	query := `UPDATE candidate_applications SET updated_at = NOW()`
-	args := []interface{}{}
-	argId := 1
-	if req.Photo {
-		query += fmt.Sprintf(", photo_path = $%d", argId)
-		args = append(args, nil)
-		argId++
-	}
-	if req.Document {
-		query += fmt.Sprintf(", document_path = $%d", argId)
-		args = append(args, nil)
-		argId++
-	}
-	query += fmt.Sprintf(" WHERE id = $%d", argId)
-	args = append(args, candidateCode)
-
-	_, err = tx.ExecContext(ctx, query, args...)
-	if err != nil {
-		return err
-	}
-
-	if err := s.repo.LogAudit(ctx, tx, "candidate", "DELETE_DOCUMENTS", "candidate_applications", candidateCode, ""); err != nil {
-		return err
-	}
-
-	return tx.Commit()
-}
-
-func (s *service) AdminListCandidates(ctx context.Context, filter CandidateAdminListRequest) ([]CandidateAdminListResponse, int, error) {
-	return s.repo.GetAdminCandidateList(ctx, filter)
-}
-
-func (s *service) PublicListCandidates(ctx context.Context) ([]CandidatePublicResponse, error) {
-	list, err := s.repo.GetPublicCandidateList(ctx)
-	if err != nil {
-		return nil, err
-	}
-	for i, c := range list {
-		if c.PhotoURL != "" {
-			list[i].PhotoURL = s.storage.URL(c.PhotoURL)
-		}
-	}
-	return list, nil
-}
-
-func (s *service) AdminGetCandidateDetail(ctx context.Context, candidateCode string) (*CandidateAdminDetailResponse, error) {
-	detail, err := s.repo.GetAdminCandidateDetail(ctx, candidateCode)
-	if err != nil {
-		return nil, err
-	}
-
-	if detail.PhotoURL != "" {
-		detail.PhotoURL = s.storage.URL(detail.PhotoURL)
-	}
-	if detail.DocumentURL != "" {
-		detail.DocumentURL = s.storage.URL(detail.DocumentURL)
-	}
-
-	history, err := s.repo.GetCandidateAuditHistory(ctx, candidateCode)
-	if err == nil {
-		detail.AuditHistory = history
-	} else {
-		detail.AuditHistory = []CandidateAuditLogResponse{}
-	}
-
-	return detail, nil
-}
-
-func (s *service) AdminUpdateCandidateDetails(ctx context.Context, candidateCode string, req *CandidateAdminUpdateRequest, reviewerID string) error {
-	if err := s.validator.ValidateStruct(req); err != nil {
-		return &ValidationError{Details: err}
-	}
-
-	// Verify candidate exists
-	_, err := s.repo.GetCandidateApplicationByID(ctx, candidateCode)
-	if err != nil {
-		return err
-	}
-
-	tx, err := s.repo.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	if err := s.repo.UpdateCandidateDetails(ctx, tx, candidateCode, req); err != nil {
-		return err
-	}
-
-	// Log audit
-	if err := s.repo.LogAudit(ctx, tx, "candidate", "UPDATE_DETAILS", "candidate_applications", candidateCode, "{}"); err != nil {
-		return err
-	}
-
-	return tx.Commit()
-}
-
-func (s *service) AdminUpdateCandidateStatus(ctx context.Context, candidateCode string, req *CandidateUpdateStatusRequest, reviewerID string) error {
-	if err := s.validator.ValidateStruct(req); err != nil {
-		return &ValidationError{Details: err}
-	}
-
-	app, err := s.repo.GetCandidateApplicationByID(ctx, candidateCode)
-	if err != nil {
-		return err
-	}
-
-	// State Transition Validator
-	validTransition := false
-	switch app.Status {
-	case "SUBMITTED":
-		if req.Status == "REVIEWING" || req.Status == "ACCEPTED" || req.Status == "REJECTED" {
-			validTransition = true
-		}
-	case "REVIEWING":
-		if req.Status == "ACCEPTED" || req.Status == "REJECTED" {
-			validTransition = true
-		}
-	}
-
-	if !validTransition {
-		return fmt.Errorf("invalid state transition from %s to %s", app.Status, req.Status)
-	}
-
-	tx, err := s.repo.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	if err := s.repo.UpdateCandidateStatus(ctx, tx, candidateCode, req.Status, reviewerID); err != nil {
-		return err
-	}
-
-	metadata := fmt.Sprintf(`{"old_status":"%s", "new_status":"%s"}`, app.Status, req.Status)
-	if err := s.repo.LogAudit(ctx, tx, "candidate", "VERIFY", "candidate_applications", candidateCode, metadata); err != nil {
-		return err
-	}
-
-	return tx.Commit()
 }

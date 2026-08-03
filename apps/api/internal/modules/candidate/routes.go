@@ -3,34 +3,25 @@ package candidate
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
-	"github.com/trisfproject/muskom/apps/api/platform/storage"
-	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"go.uber.org/zap"
+	
+	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/platform/validator"
 )
 
-func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, strg storage.Storage, maxUploadSize int64) {
+func RegisterRoutes(api fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator) {
 	repo := NewRepository(db)
-	svc := NewService(repo, log, val, strg, maxUploadSize)
-	h := NewHandler(svc)
+	auditRepo := audit.NewRepository(db)
+	auditSvc := audit.NewService(auditRepo, log)
+	service := NewService(repo, auditSvc)
+	handler := NewHandler(service, val)
 
-	candidates := router.Group("/candidates")
+	candidates := api.Group("/candidates")
 
-	// Public routes
-	candidates.Get("/", h.PublicList)
-	candidates.Post("/", h.RegisterCandidate)
-	candidates.Get("/:id", h.GetCandidateStatus)
-	candidates.Post("/:id/documents", h.UploadDocuments)
-	candidates.Get("/:id/documents", h.GetDocuments)
-	candidates.Delete("/:id/documents", h.DeleteDocuments)
-}
-
-func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, strg storage.Storage, maxUploadSize int64) {
-	repo := NewRepository(db)
-	svc := NewService(repo, log, val, strg, maxUploadSize)
-	h := NewHandler(svc)
-
-	router.Get("/", h.AdminList)
-	router.Get("/:id", h.AdminGet)
-	router.Patch("/:id", h.AdminUpdateDetails)
-	router.Patch("/:id/status", h.AdminUpdateStatus)
+	candidates.Post("/", handler.Create)
+	candidates.Get("/", handler.GetAll)
+	candidates.Get("/:id", handler.GetByID)
+	candidates.Put("/:id", handler.Update)
+	candidates.Patch("/:id", handler.Patch)
+	candidates.Delete("/:id", handler.Delete)
 }

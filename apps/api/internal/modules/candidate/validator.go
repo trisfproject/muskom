@@ -1,9 +1,4 @@
 package candidate
 
-type ValidationError struct {
-	Details interface{}
-}
-
-func (v *ValidationError) Error() string {
-	return "validation failed"
-}
+// All validation rules are embedded in dto.go struct tags.
+// The standard validator package handles them.

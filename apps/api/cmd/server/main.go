@@ -112,7 +112,6 @@ func main() {
 	rbac.SetupAuthRoutes(authGroup.Group("/", auth.JWTMiddleware(cfg, log)), authSvc)
 	
 	registration.SetupRoutes(v1.Group("/public/register"), db, log, val, strg, cfg.MaxUploadSize)
-	candidate.SetupRoutes(v1.Group("/public"), db, log, val, strg, cfg.MaxUploadSize)
 	musyawarah.SetupPublicRoutes(v1.Group("/public/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
@@ -127,7 +126,6 @@ func main() {
 	website.SetupAdminRoutes(adminGroup.Group("/website"), db, redisClient, strg, val, log)
 	musyawarah.SetupRoutes(adminGroup.Group("/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 	registration.SetupAdminRoutes(adminGroup.Group("/registrations"), db, log, val, strg, cfg.MaxUploadSize)
-	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), db, log, val, strg, cfg.MaxUploadSize)
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications"), db, log, val)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance"), db, log, val)
 	notification.SetupAdminRoutes(adminGroup.Group("/notifications"), db, log)
@@ -136,6 +134,7 @@ func main() {
 	voting.SetupAdminRoutes(adminGroup.Group("/votes"), db, log, bus)
 	result.SetupAdminRoutes(adminGroup, db, log)
 	user.SetupRoutes(adminGroup.Group("/users", checker.RequirePermission("system.manage")), db, log, val)
+	candidate.RegisterRoutes(v1, db, log, val)
 
 	// 8. Graceful Shutdown
 	go func() {

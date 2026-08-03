@@ -1,95 +1,89 @@
 package candidate
 
-import "time"
+import (
+	"time"
+)
 
-type RegisterCandidateRequest struct {
-	RegistrationID string `json:"registration_id" validate:"required,uuid"`
-	Vision         string `json:"vision" validate:"required"`
-	Mission        string `json:"mission" validate:"required"`
-	WorkProgram    string `json:"work_program" validate:"required"`
+// CreateCandidateRequest represents the payload for creating a new candidate.
+type CreateCandidateRequest struct {
+	MusyawarahID string  `json:"musyawarah_id" validate:"required,uuid"`
+	FullName     string  `json:"full_name" validate:"required,max=255"`
+	Nickname     *string `json:"nickname" validate:"omitempty,max=100"`
+	Email        string  `json:"email" validate:"required,email,max=255"`
+	Phone        string  `json:"phone" validate:"required,max=50"`
+	Gender       string  `json:"gender" validate:"required,oneof=MALE FEMALE"`
+	BirthPlace   *string `json:"birth_place" validate:"omitempty,max=100"`
+	BirthDate    *string `json:"birth_date" validate:"omitempty,datetime=2006-01-02"`
+	Occupation   *string `json:"occupation" validate:"omitempty,max=255"`
+	Organization *string `json:"organization" validate:"omitempty,max=255"`
+	Address      *string `json:"address"`
+	Biography    *string `json:"biography"`
+	Motivation   *string `json:"motivation"`
+	Vision       *string `json:"vision"`
+	Mission      *string `json:"mission"`
 }
 
-type RegisterCandidateResponse struct {
-	CandidateCode string `json:"candidate_code"`
-	Status        string `json:"status"`
+// UpdateCandidateRequest represents the payload for fully updating a candidate.
+type UpdateCandidateRequest struct {
+	FullName     string  `json:"full_name" validate:"required,max=255"`
+	Nickname     *string `json:"nickname" validate:"omitempty,max=100"`
+	Email        string  `json:"email" validate:"required,email,max=255"`
+	Phone        string  `json:"phone" validate:"required,max=50"`
+	Gender       string  `json:"gender" validate:"required,oneof=MALE FEMALE"`
+	BirthPlace   *string `json:"birth_place" validate:"omitempty,max=100"`
+	BirthDate    *string `json:"birth_date" validate:"omitempty,datetime=2006-01-02"`
+	Occupation   *string `json:"occupation" validate:"omitempty,max=255"`
+	Organization *string `json:"organization" validate:"omitempty,max=255"`
+	Address      *string `json:"address"`
+	Biography    *string `json:"biography"`
+	Motivation   *string `json:"motivation"`
+	Vision       *string `json:"vision"`
+	Mission      *string `json:"mission"`
+	ProfilePhoto *string `json:"profile_photo"`
+	Status       *string `json:"status" validate:"omitempty,oneof=Draft Submitted Verified Rejected Published"`
 }
 
-type CandidateStatusResponse struct {
-	CandidateCode string    `json:"candidate_code"`
-	Status        string    `json:"status"`
-	SubmittedAt   time.Time `json:"submitted_at"`
+// PatchCandidateRequest represents the payload for partially updating a candidate.
+type PatchCandidateRequest struct {
+	FullName     *string `json:"full_name" validate:"omitempty,max=255"`
+	Nickname     *string `json:"nickname" validate:"omitempty,max=100"`
+	Email        *string `json:"email" validate:"omitempty,email,max=255"`
+	Phone        *string `json:"phone" validate:"omitempty,max=50"`
+	Gender       *string `json:"gender" validate:"omitempty,oneof=MALE FEMALE"`
+	BirthPlace   *string `json:"birth_place" validate:"omitempty,max=100"`
+	BirthDate    *string `json:"birth_date" validate:"omitempty,datetime=2006-01-02"`
+	Occupation   *string `json:"occupation" validate:"omitempty,max=255"`
+	Organization *string `json:"organization" validate:"omitempty,max=255"`
+	Address      *string `json:"address"`
+	Biography    *string `json:"biography"`
+	Motivation   *string `json:"motivation"`
+	Vision       *string `json:"vision"`
+	Mission      *string `json:"mission"`
+	ProfilePhoto *string `json:"profile_photo"`
+	Status       *string `json:"status" validate:"omitempty,oneof=Draft Submitted Verified Rejected Published"`
 }
 
-type CandidateDocumentsResponse struct {
-	PhotoURL    string `json:"photo_url,omitempty"`
-	DocumentURL string `json:"document_url,omitempty"`
-}
-
-type CandidatePublicResponse struct {
-	ID           string `json:"id" db:"id"`
-	Name         string `json:"name" db:"name"`
-	Number       int    `json:"number" db:"number"`
-	Organization string `json:"organization" db:"organization"`
-	Motto        string `json:"motto" db:"motto"`
-	Vision       string `json:"vision" db:"vision"`
-	PhotoURL     string `json:"photo_url" db:"photo_url"`
-}
-
-type DeleteDocumentsRequest struct {
-	Photo    bool `json:"photo"`
-	Document bool `json:"document"`
-}
-
-type CandidateAdminListRequest struct {
-	EventID        string `query:"event_id"`
-	Status         string `query:"status"`
-	Search         string `query:"search"`
-	CandidateID    string `query:"candidate_id"`
-	RegistrationID string `query:"registration_id"`
-	SubmissionDate string `query:"submission_date"`
-	SortBy         string `query:"sort_by"`
-	SortOrder      string `query:"sort_order"`
-	Page           int    `query:"page"`
-	Limit          int    `query:"limit"`
-}
-
-type CandidateAdminListResponse struct {
-	ID                  string    `json:"id" db:"id"`
-	CandidateCode       string    `json:"candidate_code" db:"candidate_code"`
-	RegistrationID      string    `json:"registration_id" db:"registration_id"`
-	Name                string    `json:"name" db:"name"`
-	ParticipantCategory string    `json:"participant_category" db:"participant_category"`
-	Status              string    `json:"status" db:"status"`
-	CreatedAt           time.Time `json:"created_at" db:"created_at"`
-}
-
-type CandidateAdminDetailResponse struct {
-	CandidateAdminListResponse
-	Vision       string                      `json:"vision" db:"vision"`
-	Mission      string                      `json:"mission" db:"mission"`
-	WorkProgram  string                      `json:"work_program" db:"work_program"`
-	PhotoURL     string                      `json:"photo_url,omitempty" db:"-"`
-	DocumentURL  string                      `json:"document_url,omitempty" db:"-"`
-	ReviewedBy   *string                     `json:"reviewed_by,omitempty" db:"reviewed_by"`
-	ReviewedAt   *time.Time                  `json:"reviewed_at,omitempty" db:"reviewed_at"`
-	ReviewerName *string                     `json:"reviewer_name,omitempty" db:"reviewer_name"`
-	AuditHistory []CandidateAuditLogResponse `json:"audit_history,omitempty" db:"-"`
-}
-
-type CandidateAuditLogResponse struct {
-	ID        string    `json:"id" db:"id"`
-	Action    string    `json:"action" db:"action"`
-	Metadata  string    `json:"metadata" db:"metadata"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UserName  *string   `json:"user_name,omitempty" db:"user_name"`
-}
-
-type CandidateUpdateStatusRequest struct {
-	Status string `json:"status" validate:"required,oneof=REVIEWING ACCEPTED REJECTED"`
-}
-
-type CandidateAdminUpdateRequest struct {
-	Vision      *string `json:"vision" validate:"omitempty"`
-	Mission     *string `json:"mission" validate:"omitempty"`
-	WorkProgram *string `json:"work_program" validate:"omitempty"`
+// CandidateResponse represents the response payload for a candidate.
+type CandidateResponse struct {
+	ID                 string     `json:"id"`
+	MusyawarahID       string     `json:"musyawarah_id"`
+	RegistrationNumber string     `json:"registration_number"`
+	FullName           string     `json:"full_name"`
+	Nickname           *string    `json:"nickname,omitempty"`
+	Email              string     `json:"email"`
+	Phone              string     `json:"phone"`
+	Gender             string     `json:"gender"`
+	BirthPlace         *string    `json:"birth_place,omitempty"`
+	BirthDate          *string    `json:"birth_date,omitempty"`
+	Occupation         *string    `json:"occupation,omitempty"`
+	Organization       *string    `json:"organization,omitempty"`
+	Address            *string    `json:"address,omitempty"`
+	Biography          *string    `json:"biography,omitempty"`
+	Motivation         *string    `json:"motivation,omitempty"`
+	Vision             *string    `json:"vision,omitempty"`
+	Mission            *string    `json:"mission,omitempty"`
+	ProfilePhoto       *string    `json:"profile_photo,omitempty"`
+	Status             string     `json:"status"`
+	CreatedAt          time.Time  `json:"created_at"`
+	UpdatedAt          time.Time  `json:"updated_at"`
 }
