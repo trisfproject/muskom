@@ -104,7 +104,7 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
         {/* Not Found State */}
         {data && candidates && candidates.length > 0 && filteredCandidates.length === 0 && (
            <div className="text-center py-12 px-4 bg-white/30 dark:bg-slate-900/30 rounded-3xl border border-slate-200/50 dark:border-slate-800/50">
-             <p className="text-slate-500 dark:text-slate-400">Tidak ada kandidat yang cocok dengan pencarian "{searchQuery}".</p>
+             <p className="text-slate-500 dark:text-slate-400">Tidak ada kandidat yang cocok dengan pencarian &quot;{searchQuery}&quot;.</p>
            </div>
         )}
 

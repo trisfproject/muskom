@@ -60,7 +60,7 @@ func TestHandler_Create_Success(t *testing.T) {
 		FullName:     "John Doe",
 		Email:        "test@test.com",
 		Phone:        "123",
-		Gender:       "MALE",
+
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 

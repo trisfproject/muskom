@@ -9,7 +9,7 @@ type Participant struct {
 	RegistrationNumber string     `db:"registration_number" json:"registration_number"`
 	FullName           string     `db:"full_name" json:"full_name"`
 	Nickname           *string    `db:"nickname" json:"nickname"`
-	Gender             string     `db:"gender" json:"gender"`
+
 	Email              string     `db:"email" json:"email"`
 	Phone              string     `db:"phone" json:"phone"`
 	CompanyName        string     `db:"company_name" json:"company_name"`
@@ -28,7 +28,7 @@ type CreateParticipantRequest struct {
 	RegistrationNumber string  `json:"registration_number" validate:"required"`
 	FullName           string  `json:"full_name" validate:"required"`
 	Nickname           *string `json:"nickname"`
-	Gender             string  `json:"gender" validate:"required"`
+
 	Email              string  `json:"email" validate:"required,email"`
 	Phone              string  `json:"phone" validate:"required"`
 	CompanyName        string  `json:"company_name" validate:"required"`
@@ -43,7 +43,7 @@ type UpdateParticipantRequest struct {
 	RegistrationNumber string  `json:"registration_number" validate:"required"`
 	FullName           string  `json:"full_name" validate:"required"`
 	Nickname           *string `json:"nickname"`
-	Gender             string  `json:"gender" validate:"required"`
+
 	Email              string  `json:"email" validate:"required,email"`
 	Phone              string  `json:"phone" validate:"required"`
 	CompanyName        string  `json:"company_name" validate:"required"`
@@ -62,7 +62,7 @@ type PublicRegisterParticipantRequest struct {
 	MusyawarahID   string  `json:"musyawarah_id" validate:"required,uuid"`
 	FullName       string  `json:"full_name" validate:"required,max=255"`
 	Nickname       *string `json:"nickname" validate:"omitempty,max=255"`
-	Gender         string  `json:"gender" validate:"required,max=50"`
+
 	Email          string  `json:"email" validate:"required,email,max=255"`
 	Phone          string  `json:"phone" validate:"required,max=50"`
 	CompanyName    string  `json:"company_name" validate:"required,max=255"`

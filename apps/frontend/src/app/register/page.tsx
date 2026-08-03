@@ -14,8 +14,7 @@ const registerSchema = z.object({
   full_name: z.string().min(3, "Nama lengkap harus diisi (min. 3 karakter)"),
   nickname: z.string().optional(),
   email: z.string().email("Format email tidak valid"),
-  phone: z.string().min(10, "Nomor telepon harus diisi (min. 10 angka)"),
-  gender: z.string().min(1, "Jenis kelamin harus dipilih"),
+  phone: z.string().min(1, "Nomor WhatsApp harus diisi"),
   company_name: z.string().min(1, "Nama perusahaan harus diisi"),
   industrial_area: z.string().min(1, "Kawasan industri harus dipilih"),
   other_industrial_area: z.string().optional(),
@@ -74,7 +73,7 @@ export default function RegisterPage() {
   }, [watch, isLoaded]);
 
   const onNextStep1 = async () => {
-    const valid = await trigger(["full_name", "email", "phone", "gender"]);
+    const valid = await trigger(["full_name", "email", "phone"]);
     if (valid) setStep(2);
   };
 
@@ -97,7 +96,6 @@ export default function RegisterPage() {
       const res = await participantRegistrationService.register({
         full_name: data.full_name,
         nickname: data.nickname,
-        gender: data.gender,
         email: data.email,
         phone: data.phone,
         company_name: data.company_name,
@@ -181,13 +179,7 @@ export default function RegisterPage() {
                     </InputGroup>
                   </div>
                   <div className="grid grid-cols-1 gap-5">
-                    <InputGroup label="Jenis Kelamin" error={errors.gender?.message}>
-                      <select {...register("gender")} className="input-lg bg-white">
-                        <option value="">Pilih Jenis Kelamin</option>
-                        <option value="Male">Laki-Laki</option>
-                        <option value="Female">Perempuan</option>
-                      </select>
-                    </InputGroup>
+
                   </div>
                 </div>
 
@@ -256,7 +248,7 @@ export default function RegisterPage() {
                 <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6">
                   <ReviewRow label="Nama Lengkap" value={v.full_name} onClick={() => setStep(1)} />
                   <ReviewRow label="Nama Panggilan" value={v.nickname || "-"} onClick={() => setStep(1)} />
-                  <ReviewRow label="Jenis Kelamin" value={v.gender === "Male" ? "Laki-Laki" : v.gender === "Female" ? "Perempuan" : "-"} onClick={() => setStep(1)} />
+
                   <ReviewRow label="Email" value={v.email} onClick={() => setStep(1)} />
                   <ReviewRow label="Nomor Telepon" value={v.phone} onClick={() => setStep(1)} />
                   

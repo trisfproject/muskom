@@ -22,7 +22,7 @@ func TestIntegration_CandidateFlow(t *testing.T) {
 		FullName:           "John Doe",
 		Email:              "john@example.com",
 		Phone:              "123",
-		Gender:             "MALE",
+
 		Status:             StatusDraft,
 	}
 
@@ -83,7 +83,7 @@ func TestIntegration_CandidateFlow(t *testing.T) {
 		FullName:     "John Doe",
 		Email:        "john@example.com",
 		Phone:        "123",
-		Gender:       "MALE",
+
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 	req1 := httptest.NewRequest("POST", "/candidates", bytes.NewReader(bodyBytes))
@@ -99,7 +99,7 @@ func TestIntegration_CandidateFlow(t *testing.T) {
 		FullName: "John Doe Updated",
 		Email:    "john@example.com",
 		Phone:    "123",
-		Gender:   "MALE",
+
 		Status:   &statusSubmit,
 	}
 	bodyBytes2, _ := json.Marshal(reqUpdate)

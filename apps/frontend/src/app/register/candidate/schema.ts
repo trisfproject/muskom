@@ -6,7 +6,6 @@ export const candidateSchema = z.object({
   nickname: z.string().optional(),
   email: z.string().email("Format email tidak valid"),
   phone: z.string().min(10, "Nomor telepon harus diisi (min. 10 angka)"),
-  gender: z.enum(["MALE", "FEMALE"], { required_error: "Jenis kelamin harus dipilih" }),
   birth_place: z.string().min(3, "Tempat lahir harus diisi"),
   birth_date: z.string().min(10, "Tanggal lahir harus diisi (YYYY-MM-DD)"),
 

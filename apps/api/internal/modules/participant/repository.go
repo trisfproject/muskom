@@ -34,10 +34,10 @@ func NewRepository(db *sqlx.DB) Repository {
 func (r *repository) Create(ctx context.Context, p *Participant) error {
 	query := `
 		INSERT INTO participants (
-			musyawarah_id, registration_number, full_name, nickname, gender, email, phone, 
+			musyawarah_id, registration_number, full_name, nickname, email, phone, 
 			company_name, industrial_area, job_title, department, status
 		) VALUES (
-			:musyawarah_id, :registration_number, :full_name, :nickname, :gender, :email, :phone, 
+			:musyawarah_id, :registration_number, :full_name, :nickname, :email, :phone, 
 			:company_name, :industrial_area, :job_title, :department, :status
 		) RETURNING id, created_at, updated_at
 	`
@@ -90,7 +90,7 @@ func (r *repository) Update(ctx context.Context, p *Participant) error {
 			registration_number = :registration_number,
 			full_name = :full_name,
 			nickname = :nickname,
-			gender = :gender,
+
 			email = :email,
 			phone = :phone,
 			company_name = :company_name,

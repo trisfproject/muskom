@@ -42,7 +42,7 @@ func (s *service) Create(ctx context.Context, req CreateParticipantRequest) (*Pa
 		RegistrationNumber: req.RegistrationNumber,
 		FullName:           req.FullName,
 		Nickname:           req.Nickname,
-		Gender:             req.Gender,
+
 		Email:              req.Email,
 		Phone:              req.Phone,
 		CompanyName:        req.CompanyName,
@@ -93,7 +93,7 @@ func (s *service) Update(ctx context.Context, id string, req UpdateParticipantRe
 	p.RegistrationNumber = req.RegistrationNumber
 	p.FullName = req.FullName
 	p.Nickname = req.Nickname
-	p.Gender = req.Gender
+
 	p.Email = req.Email
 	p.Phone = req.Phone
 	p.CompanyName = req.CompanyName
@@ -186,7 +186,7 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 		RegistrationNumber: regNum,
 		FullName:           req.FullName,
 		Nickname:           req.Nickname,
-		Gender:             req.Gender,
+
 		Email:              req.Email,
 		Phone:              req.Phone,
 		CompanyName:        req.CompanyName,

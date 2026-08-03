@@ -11,7 +11,7 @@ type CreateCandidateRequest struct {
 	Nickname     *string `json:"nickname" validate:"omitempty,max=100"`
 	Email        string  `json:"email" validate:"required,email,max=255"`
 	Phone        string  `json:"phone" validate:"required,max=50"`
-	Gender       string  `json:"gender" validate:"required,oneof=MALE FEMALE"`
+
 	BirthPlace   *string `json:"birth_place" validate:"omitempty,max=100"`
 	BirthDate    *string `json:"birth_date" validate:"omitempty,datetime=2006-01-02"`
 	Occupation   *string `json:"occupation" validate:"omitempty,max=255"`
@@ -29,7 +29,7 @@ type UpdateCandidateRequest struct {
 	Nickname     *string `json:"nickname" validate:"omitempty,max=100"`
 	Email        string  `json:"email" validate:"required,email,max=255"`
 	Phone        string  `json:"phone" validate:"required,max=50"`
-	Gender       string  `json:"gender" validate:"required,oneof=MALE FEMALE"`
+
 	BirthPlace   *string `json:"birth_place" validate:"omitempty,max=100"`
 	BirthDate    *string `json:"birth_date" validate:"omitempty,datetime=2006-01-02"`
 	Occupation   *string `json:"occupation" validate:"omitempty,max=255"`
@@ -49,7 +49,7 @@ type PatchCandidateRequest struct {
 	Nickname     *string `json:"nickname" validate:"omitempty,max=100"`
 	Email        *string `json:"email" validate:"omitempty,email,max=255"`
 	Phone        *string `json:"phone" validate:"omitempty,max=50"`
-	Gender       *string `json:"gender" validate:"omitempty,oneof=MALE FEMALE"`
+
 	BirthPlace   *string `json:"birth_place" validate:"omitempty,max=100"`
 	BirthDate    *string `json:"birth_date" validate:"omitempty,datetime=2006-01-02"`
 	Occupation   *string `json:"occupation" validate:"omitempty,max=255"`
@@ -72,7 +72,7 @@ type CandidateResponse struct {
 	Nickname           *string                          `json:"nickname,omitempty"`
 	Email              string                           `json:"email"`
 	Phone              string                           `json:"phone"`
-	Gender             string                           `json:"gender"`
+
 	BirthPlace         *string                          `json:"birth_place,omitempty"`
 	BirthDate          *string                          `json:"birth_date,omitempty"`
 	Occupation         *string                          `json:"occupation,omitempty"`

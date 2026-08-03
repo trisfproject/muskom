@@ -6,7 +6,7 @@ export interface CandidateRegistrationPayload {
   nickname?: string;
   email: string;
   phone: string;
-  gender: string;
+
   birth_place?: string;
   birth_date?: string;
   occupation?: string;

@@ -293,7 +293,7 @@ export default function CandidateDetailPage() {
                 placeholder="Tulis alasan penolakan, catatan internal, atau catatan revisi untuk kandidat..."
                 className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-primary min-h-[100px]"
               />
-              <p className="text-[10px] text-slate-500 mt-1">Jika status diubah ke 'Revision Required', catatan ini akan ditampilkan kepada kandidat.</p>
+              <p className="text-[10px] text-slate-500 mt-1">Jika status diubah ke &apos;Revision Required&apos;, catatan ini akan ditampilkan kepada kandidat.</p>
             </div>
 
             <button

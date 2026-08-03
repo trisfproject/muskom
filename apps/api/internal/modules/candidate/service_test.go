@@ -98,7 +98,7 @@ func TestService_Create(t *testing.T) {
 				FullName:           "John Doe",
 				Email:              "john@example.com",
 				Phone:              "123",
-				Gender:             "MALE",
+
 				Status:             StatusDraft,
 			}, nil
 		},
@@ -115,7 +115,7 @@ func TestService_Create(t *testing.T) {
 		FullName:     "John Doe",
 		Email:        "john@example.com",
 		Phone:        "123",
-		Gender:       "MALE",
+
 	}
 
 	res, err := svc.Create(context.Background(), req)

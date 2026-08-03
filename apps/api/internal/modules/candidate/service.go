@@ -73,7 +73,7 @@ func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*Cand
 		Nickname:           req.Nickname,
 		Email:              req.Email,
 		Phone:              req.Phone,
-		Gender:             req.Gender,
+
 		BirthPlace:         req.BirthPlace,
 		Occupation:         req.Occupation,
 		Organization:       req.Organization,
@@ -163,7 +163,7 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 	c.Nickname = req.Nickname
 	c.Email = req.Email
 	c.Phone = req.Phone
-	c.Gender = req.Gender
+
 	c.BirthPlace = req.BirthPlace
 	c.Occupation = req.Occupation
 	c.Organization = req.Organization
@@ -230,9 +230,7 @@ func (s *service) Patch(ctx context.Context, id string, req PatchCandidateReques
 	if req.Phone != nil {
 		c.Phone = *req.Phone
 	}
-	if req.Gender != nil {
-		c.Gender = *req.Gender
-	}
+
 	if req.BirthPlace != nil {
 		c.BirthPlace = req.BirthPlace
 	}
@@ -329,7 +327,7 @@ func mapToResponse(c *Candidate) CandidateResponse {
 		Nickname:           c.Nickname,
 		Email:              c.Email,
 		Phone:              c.Phone,
-		Gender:             c.Gender,
+
 		BirthPlace:         c.BirthPlace,
 		BirthDate:          bdStr,
 		Occupation:         c.Occupation,

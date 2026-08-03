@@ -31,7 +31,7 @@ type Candidate struct {
 	Nickname           *string    `db:"nickname"`
 	Email              string     `db:"email"`
 	Phone              string     `db:"phone"`
-	Gender             string     `db:"gender"`
+
 	BirthPlace         *string    `db:"birth_place"`
 	BirthDate          *time.Time `db:"birth_date"`
 	Occupation         *string    `db:"occupation"`

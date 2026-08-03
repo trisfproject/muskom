@@ -48,11 +48,11 @@ func NewRepository(db *sqlx.DB) Repository {
 func (r *repository) Create(ctx context.Context, c *Candidate) error {
 	query := `
 		INSERT INTO candidates (
-			musyawarah_id, registration_number, full_name, nickname, email, phone, gender,
+			musyawarah_id, registration_number, full_name, nickname, email, phone,
 			birth_place, birth_date, occupation, organization, address, biography,
 			motivation, vision, mission, profile_photo, status
 		) VALUES (
-			:musyawarah_id, :registration_number, :full_name, :nickname, :email, :phone, :gender,
+			:musyawarah_id, :registration_number, :full_name, :nickname, :email, :phone,
 			:birth_place, :birth_date, :occupation, :organization, :address, :biography,
 			:motivation, :vision, :mission, :profile_photo, :status
 		) RETURNING id, created_at, updated_at
@@ -108,7 +108,7 @@ func (r *repository) Update(ctx context.Context, c *Candidate) error {
 			nickname = :nickname,
 			email = :email,
 			phone = :phone,
-			gender = :gender,
+
 			birth_place = :birth_place,
 			birth_date = :birth_date,
 			occupation = :occupation,

@@ -155,7 +155,7 @@ export default function CandidateRegisterPage() {
   };
 
   const onNextStep1 = async () => {
-    const valid = await trigger(["full_name", "nickname", "email", "phone", "gender", "birth_place", "birth_date"]);
+    const valid = await trigger(["full_name", "nickname", "email", "phone", "birth_place", "birth_date"]);
     if (valid) {
       // If valid, transition from Local Draft to Backend Draft
       if (!candidateId) {
@@ -170,7 +170,7 @@ export default function CandidateRegisterPage() {
             nickname: data.nickname || undefined,
             email: data.email,
             phone: data.phone,
-            gender: data.gender,
+
             birth_place: data.birth_place || undefined,
             birth_date: data.birth_date || undefined,
           });
@@ -393,13 +393,7 @@ export default function CandidateRegisterPage() {
                       <input {...register("phone")} type="tel" className="input-lg" placeholder="0812..." />
                     </InputGroup>
                   </div>
-                  <InputGroup label="Jenis Kelamin" error={errors.gender?.message}>
-                    <select {...register("gender")} className="input-lg bg-white">
-                      <option value="">Pilih Jenis Kelamin</option>
-                      <option value="MALE">Laki-Laki</option>
-                      <option value="FEMALE">Perempuan</option>
-                    </select>
-                  </InputGroup>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <InputGroup label="Tempat Lahir" error={errors.birth_place?.message}>
                       <input {...register("birth_place")} type="text" className="input-lg" placeholder="Kota Kelahiran" />
@@ -634,7 +628,7 @@ export default function CandidateRegisterPage() {
                       <ReviewItem label="Nama Panggilan" value={v.nickname || "-"} />
                       <ReviewItem label="Email" value={v.email} />
                       <ReviewItem label="No. Telepon" value={v.phone} />
-                      <ReviewItem label="Jenis Kelamin" value={v.gender === "MALE" ? "Laki-Laki" : "Perempuan"} />
+
                       <ReviewItem label="Tempat, Tgl Lahir" value={`${v.birth_place}, ${v.birth_date}`} />
                     </div>
                   </div>

@@ -6,7 +6,7 @@ export interface AdminParticipantResponse {
   registration_number: string;
   full_name: string;
   nickname?: string;
-  gender: string;
+
   email: string;
   phone: string;
   company_name: string;
