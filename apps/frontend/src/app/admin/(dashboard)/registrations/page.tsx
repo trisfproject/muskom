@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { Search, Download, CheckCircle2, XCircle, Clock } from "lucide-react";
-import { adminRegistrationService } from "@/services/registration/admin";
-import { AdminRegistrationResponse } from "@/types/registration";
+import { adminParticipantService, AdminParticipantResponse } from "@/services/participant-admin";
 
 export default function AdminRegistrationsPage() {
-  const [data, setData] = useState<AdminRegistrationResponse[]>([]);
+  const [data, setData] = useState<AdminParticipantResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
@@ -14,11 +13,11 @@ export default function AdminRegistrationsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await adminRegistrationService.listRegistrations({
+      const res = await adminParticipantService.listParticipants({
         status: statusFilter,
-        participant_name: search,
+        search: search,
       });
-      setData(res.data);
+      setData(res);
     } catch (err) {
       console.error(err);
     } finally {
@@ -31,10 +30,10 @@ export default function AdminRegistrationsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, search]);
 
-  const handleStatusUpdate = async (id: string, status: "APPROVED" | "REJECTED") => {
+  const handleStatusUpdate = async (id: string, status: string) => {
     if (!confirm(`Are you sure you want to ${status} this registration?`)) return;
     try {
-      await adminRegistrationService.updateRegistrationStatus(id, { status });
+      await adminParticipantService.updateStatus(id, { status });
       fetchData();
     } catch (err) {
       console.error(err);
@@ -47,7 +46,7 @@ export default function AdminRegistrationsPage() {
     const csvContent = [
       headers.join(","),
       ...data.map(r => 
-        `"${r.id}","${r.participant_name}","${r.email}","${r.phone || ''}","${r.company || ''}","${r.participant_category}","${r.status}","${new Date(r.created_at).toLocaleDateString()}"`
+        `"${r.registration_number}","${r.full_name}","${r.email}","${r.phone || ''}","${r.company_name || ''}","${r.industrial_area}","${r.status}","${new Date(r.created_at).toLocaleDateString()}"`
       )
     ].join("\n");
     
@@ -92,9 +91,9 @@ export default function AdminRegistrationsPage() {
             className="px-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-[var(--color-primary)] bg-white"
           >
             <option value="">Semua Status</option>
-            <option value="PENDING">Menunggu</option>
-            <option value="APPROVED">Disetujui</option>
-            <option value="REJECTED">Ditolak</option>
+            <option value="Pending">Menunggu</option>
+            <option value="Verified">Terverifikasi</option>
+            <option value="Rejected">Ditolak</option>
           </select>
         </div>
 
@@ -103,8 +102,8 @@ export default function AdminRegistrationsPage() {
             <thead className="bg-slate-50 border-b border-slate-200 pg-muted font-semibold">
               <tr>
                 <th className="px-6 py-4">Peserta</th>
-                <th className="px-6 py-4">Instansi</th>
-                <th className="px-6 py-4">Kategori</th>
+                <th className="px-6 py-4">Perusahaan</th>
+                <th className="px-6 py-4">Area Industri</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4">Tanggal</th>
                 <th className="px-6 py-4 text-right">Aksi</th>
@@ -123,29 +122,30 @@ export default function AdminRegistrationsPage() {
                 data.map((row) => (
                   <tr key={row.id} className="hover:bg-slate-50/50">
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900">{row.participant_name}</div>
-                      <div className="text-xs pg-muted">{row.email}</div>
+                      <div className="font-semibold text-slate-900">{row.full_name} {row.nickname ? `(${row.nickname})` : ''}</div>
+                      <div className="text-xs pg-muted">{row.email} • {row.phone}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div>{row.company || '-'}</div>
-                      <div className="text-xs pg-muted">{row.job_title}</div>
+                      <div className="font-semibold">{row.company_name || '-'}</div>
+                      <div className="text-xs pg-muted">{row.job_title} {row.department ? `- ${row.department}` : ''}</div>
                     </td>
-                    <td className="px-6 py-4">{row.participant_category}</td>
+                    <td className="px-6 py-4 text-sm font-medium">{row.industrial_area}</td>
                     <td className="px-6 py-4">
-                      {row.status === 'PENDING' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-200/50"><Clock className="w-3.5 h-3.5"/> Menunggu</span>}
-                      {row.status === 'APPROVED' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200/50"><CheckCircle2 className="w-3.5 h-3.5"/> Disetujui</span>}
-                      {row.status === 'REJECTED' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200/50"><XCircle className="w-3.5 h-3.5"/> Ditolak</span>}
+                      {row.status === 'Pending' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-200/50"><Clock className="w-3.5 h-3.5"/> Menunggu</span>}
+                      {row.status === 'Verified' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200/50"><CheckCircle2 className="w-3.5 h-3.5"/> Terverifikasi</span>}
+                      {row.status === 'Rejected' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200/50"><XCircle className="w-3.5 h-3.5"/> Ditolak</span>}
+                      {row.status === 'Eligible' && <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200/50"><CheckCircle2 className="w-3.5 h-3.5"/> Eligible</span>}
                     </td>
                     <td className="px-6 py-4 text-xs pg-muted">
                       {new Date(row.created_at).toLocaleDateString('id-ID')}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {row.status === 'PENDING' && (
+                      {row.status === 'Pending' && (
                         <div className="flex justify-end gap-2">
-                          <button onClick={() => handleStatusUpdate(row.id, "APPROVED")} className="text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 p-2 rounded-lg transition-colors" title="Setujui">
+                          <button onClick={() => handleStatusUpdate(row.id, "Verified")} className="text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 p-2 rounded-lg transition-colors" title="Setujui">
                             <CheckCircle2 className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleStatusUpdate(row.id, "REJECTED")} className="text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors" title="Tolak">
+                          <button onClick={() => handleStatusUpdate(row.id, "Rejected")} className="text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors" title="Tolak">
                             <XCircle className="w-4 h-4" />
                           </button>
                         </div>

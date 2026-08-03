@@ -140,9 +140,6 @@ func (h *Handler) PublicRegister(c fiber.Ctx) error {
 		if err == ErrDuplicateEmail {
 			return response.SendError(c, fiber.StatusConflict, "Email already registered", nil)
 		}
-		if err == ErrDuplicateMembershipNumber {
-			return response.SendError(c, fiber.StatusConflict, "Membership number already registered", nil)
-		}
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to register participant", nil)
 	}
 

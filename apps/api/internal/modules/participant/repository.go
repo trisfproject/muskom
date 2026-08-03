@@ -21,7 +21,6 @@ type Repository interface {
 	UpdateStatus(ctx context.Context, id string, status string) error
 	Delete(ctx context.Context, id string) error
 	FindByEmail(ctx context.Context, email string) (*Participant, error)
-	FindByMembershipNumber(ctx context.Context, membershipNumber string) (*Participant, error)
 }
 
 type repository struct {
@@ -35,11 +34,11 @@ func NewRepository(db *sqlx.DB) Repository {
 func (r *repository) Create(ctx context.Context, p *Participant) error {
 	query := `
 		INSERT INTO participants (
-			musyawarah_id, registration_number, full_name, email, phone, 
-			organization, position, membership_number, province, city, status
+			musyawarah_id, registration_number, full_name, nickname, gender, email, phone, 
+			company_name, industrial_area, job_title, department, status
 		) VALUES (
-			:musyawarah_id, :registration_number, :full_name, :email, :phone, 
-			:organization, :position, :membership_number, :province, :city, :status
+			:musyawarah_id, :registration_number, :full_name, :nickname, :gender, :email, :phone, 
+			:company_name, :industrial_area, :job_title, :department, :status
 		) RETURNING id, created_at, updated_at
 	`
 	
@@ -90,13 +89,14 @@ func (r *repository) Update(ctx context.Context, p *Participant) error {
 		UPDATE participants SET
 			registration_number = :registration_number,
 			full_name = :full_name,
+			nickname = :nickname,
+			gender = :gender,
 			email = :email,
 			phone = :phone,
-			organization = :organization,
-			position = :position,
-			membership_number = :membership_number,
-			province = :province,
-			city = :city,
+			company_name = :company_name,
+			industrial_area = :industrial_area,
+			job_title = :job_title,
+			department = :department,
 			updated_at = NOW()
 		WHERE id = :id AND deleted_at IS NULL
 		RETURNING updated_at
@@ -166,15 +166,3 @@ func (r *repository) FindByEmail(ctx context.Context, email string) (*Participan
 	return &p, nil
 }
 
-func (r *repository) FindByMembershipNumber(ctx context.Context, membershipNumber string) (*Participant, error) {
-	query := `SELECT * FROM participants WHERE membership_number = $1 AND deleted_at IS NULL LIMIT 1`
-	var p Participant
-	err := r.db.GetContext(ctx, &p, query, membershipNumber)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
-		}
-		return nil, err
-	}
-	return &p, nil
-}

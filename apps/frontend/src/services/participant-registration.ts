@@ -3,13 +3,14 @@ import publicApi from '@/lib/public-api';
 export interface PublicParticipantRegistrationPayload {
   musyawarah_id: string;
   full_name: string;
+  nickname?: string;
+  gender: string;
   email: string;
   phone: string;
-  organization: string;
-  position: string;
-  membership_number: string;
-  province: string;
-  city: string;
+  company_name: string;
+  industrial_area: string;
+  job_title: string;
+  department?: string;
 }
 
 export interface PublicParticipantRegistrationResponse {

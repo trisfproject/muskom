@@ -8,13 +8,14 @@ type Participant struct {
 	MusyawarahID       string     `db:"musyawarah_id" json:"musyawarah_id"`
 	RegistrationNumber string     `db:"registration_number" json:"registration_number"`
 	FullName           string     `db:"full_name" json:"full_name"`
+	Nickname           *string    `db:"nickname" json:"nickname"`
+	Gender             string     `db:"gender" json:"gender"`
 	Email              string     `db:"email" json:"email"`
 	Phone              string     `db:"phone" json:"phone"`
-	Organization       string     `db:"organization" json:"organization"`
-	Position           string     `db:"position" json:"position"`
-	MembershipNumber   string     `db:"membership_number" json:"membership_number"`
-	Province           string     `db:"province" json:"province"`
-	City               string     `db:"city" json:"city"`
+	CompanyName        string     `db:"company_name" json:"company_name"`
+	IndustrialArea     string     `db:"industrial_area" json:"industrial_area"`
+	JobTitle           string     `db:"job_title" json:"job_title"`
+	Department         *string    `db:"department" json:"department"`
 	Status             string     `db:"status" json:"status"`
 	CreatedAt          time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt          time.Time  `db:"updated_at" json:"updated_at"`
@@ -23,30 +24,32 @@ type Participant struct {
 
 // CreateParticipantRequest represents the payload for creating a new participant
 type CreateParticipantRequest struct {
-	MusyawarahID       string `json:"musyawarah_id" validate:"required,uuid"`
-	RegistrationNumber string `json:"registration_number" validate:"required"`
-	FullName           string `json:"full_name" validate:"required"`
-	Email              string `json:"email" validate:"required,email"`
-	Phone              string `json:"phone" validate:"required"`
-	Organization       string `json:"organization" validate:"required"`
-	Position           string `json:"position" validate:"required"`
-	MembershipNumber   string `json:"membership_number" validate:"required"`
-	Province           string `json:"province" validate:"required"`
-	City               string `json:"city" validate:"required"`
-	Status             string `json:"status" validate:"required,oneof=Pending Verified Rejected Eligible"`
+	MusyawarahID       string  `json:"musyawarah_id" validate:"required,uuid"`
+	RegistrationNumber string  `json:"registration_number" validate:"required"`
+	FullName           string  `json:"full_name" validate:"required"`
+	Nickname           *string `json:"nickname"`
+	Gender             string  `json:"gender" validate:"required"`
+	Email              string  `json:"email" validate:"required,email"`
+	Phone              string  `json:"phone" validate:"required"`
+	CompanyName        string  `json:"company_name" validate:"required"`
+	IndustrialArea     string  `json:"industrial_area" validate:"required"`
+	JobTitle           string  `json:"job_title" validate:"required"`
+	Department         *string `json:"department"`
+	Status             string  `json:"status" validate:"required,oneof=Pending Verified Rejected Eligible"`
 }
 
 // UpdateParticipantRequest represents the payload for updating an existing participant
 type UpdateParticipantRequest struct {
-	RegistrationNumber string `json:"registration_number" validate:"required"`
-	FullName           string `json:"full_name" validate:"required"`
-	Email              string `json:"email" validate:"required,email"`
-	Phone              string `json:"phone" validate:"required"`
-	Organization       string `json:"organization" validate:"required"`
-	Position           string `json:"position" validate:"required"`
-	MembershipNumber   string `json:"membership_number" validate:"required"`
-	Province           string `json:"province" validate:"required"`
-	City               string `json:"city" validate:"required"`
+	RegistrationNumber string  `json:"registration_number" validate:"required"`
+	FullName           string  `json:"full_name" validate:"required"`
+	Nickname           *string `json:"nickname"`
+	Gender             string  `json:"gender" validate:"required"`
+	Email              string  `json:"email" validate:"required,email"`
+	Phone              string  `json:"phone" validate:"required"`
+	CompanyName        string  `json:"company_name" validate:"required"`
+	IndustrialArea     string  `json:"industrial_area" validate:"required"`
+	JobTitle           string  `json:"job_title" validate:"required"`
+	Department         *string `json:"department"`
 }
 
 // UpdateStatusRequest represents the payload for updating a participant's status
@@ -56,15 +59,16 @@ type UpdateStatusRequest struct {
 
 // PublicRegisterParticipantRequest represents the payload for the public registration wizard
 type PublicRegisterParticipantRequest struct {
-	MusyawarahID     string `json:"musyawarah_id" validate:"required,uuid"`
-	FullName         string `json:"full_name" validate:"required,max=255"`
-	Email            string `json:"email" validate:"required,email,max=255"`
-	Phone            string `json:"phone" validate:"required,max=50"`
-	Organization     string `json:"organization" validate:"required,max=255"`
-	Position         string `json:"position" validate:"required,max=255"`
-	MembershipNumber string `json:"membership_number" validate:"required,max=100"`
-	Province         string `json:"province" validate:"required,max=100"`
-	City             string `json:"city" validate:"required,max=100"`
+	MusyawarahID   string  `json:"musyawarah_id" validate:"required,uuid"`
+	FullName       string  `json:"full_name" validate:"required,max=255"`
+	Nickname       *string `json:"nickname" validate:"omitempty,max=255"`
+	Gender         string  `json:"gender" validate:"required,max=50"`
+	Email          string  `json:"email" validate:"required,email,max=255"`
+	Phone          string  `json:"phone" validate:"required,max=50"`
+	CompanyName    string  `json:"company_name" validate:"required,max=255"`
+	IndustrialArea string  `json:"industrial_area" validate:"required,max=255"`
+	JobTitle       string  `json:"job_title" validate:"required,max=255"`
+	Department     *string `json:"department" validate:"omitempty,max=255"`
 }
 
 // PublicRegisterParticipantResponse represents the response after successful public registration

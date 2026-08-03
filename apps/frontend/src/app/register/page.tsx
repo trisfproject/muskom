@@ -12,13 +12,23 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const registerSchema = z.object({
   full_name: z.string().min(3, "Nama lengkap harus diisi (min. 3 karakter)"),
+  nickname: z.string().optional(),
   email: z.string().email("Format email tidak valid"),
   phone: z.string().min(10, "Nomor telepon harus diisi (min. 10 angka)"),
-  province: z.string().min(1, "Provinsi harus diisi"),
-  city: z.string().min(1, "Kota/Kabupaten harus diisi"),
-  organization: z.string().min(1, "Instansi / Organisasi harus diisi"),
-  membership_number: z.string().min(1, "Nomor Keanggotaan harus diisi"),
-  position: z.string().min(1, "Jabatan harus diisi")
+  gender: z.string().min(1, "Jenis kelamin harus dipilih"),
+  company_name: z.string().min(1, "Nama perusahaan harus diisi"),
+  industrial_area: z.string().min(1, "Kawasan industri harus dipilih"),
+  other_industrial_area: z.string().optional(),
+  job_title: z.string().min(1, "Jabatan harus diisi"),
+  department: z.string().optional()
+}).refine((data) => {
+  if (data.industrial_area === "Other" && (!data.other_industrial_area || data.other_industrial_area.trim() === "")) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Kawasan industri lainnya harus diisi",
+  path: ["other_industrial_area"],
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -64,12 +74,12 @@ export default function RegisterPage() {
   }, [watch, isLoaded]);
 
   const onNextStep1 = async () => {
-    const valid = await trigger(["full_name", "email", "phone", "province", "city"]);
+    const valid = await trigger(["full_name", "email", "phone", "gender"]);
     if (valid) setStep(2);
   };
 
   const onNextStep2 = async () => {
-    const valid = await trigger(["organization", "membership_number", "position"]);
+    const valid = await trigger(["company_name", "industrial_area", "other_industrial_area", "job_title"]);
     if (valid) setStep(3);
   };
 
@@ -82,8 +92,18 @@ export default function RegisterPage() {
     setLoading(true);
     setError(null);
     try {
+      const payloadIndustrialArea = data.industrial_area === "Other" ? (data.other_industrial_area || "Other") : data.industrial_area;
+      
       const res = await participantRegistrationService.register({
-        ...data,
+        full_name: data.full_name,
+        nickname: data.nickname,
+        gender: data.gender,
+        email: data.email,
+        phone: data.phone,
+        company_name: data.company_name,
+        industrial_area: payloadIndustrialArea,
+        job_title: data.job_title,
+        department: data.department,
         musyawarah_id: musyawarahId
       });
       if (res && res.registration_number) {
@@ -129,7 +149,7 @@ export default function RegisterPage() {
             <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">
               <span className={step === 1 ? "text-primary" : ""}>Personal</span>
               <span className="flex-1 border-t border-slate-200 mx-4" />
-              <span className={step === 2 ? "text-primary" : ""}>Keanggotaan</span>
+              <span className={step === 2 ? "text-primary" : ""}>Pekerjaan</span>
               <span className="flex-1 border-t border-slate-200 mx-4" />
               <span className={step === 3 ? "text-primary" : ""}>Review</span>
             </div>
@@ -144,9 +164,14 @@ export default function RegisterPage() {
                 <p className="text-slate-500 mb-8">Mohon lengkapi data diri Anda dengan benar.</p>
 
                 <div className="space-y-5">
-                  <InputGroup label="Nama Lengkap" error={errors.full_name?.message}>
-                    <input {...register("full_name")} type="text" className="input-lg" placeholder="Sesuai KTP" />
-                  </InputGroup>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <InputGroup label="Nama Lengkap" error={errors.full_name?.message}>
+                      <input {...register("full_name")} type="text" className="input-lg" placeholder="Sesuai KTP" />
+                    </InputGroup>
+                    <InputGroup label="Nama Panggilan (Opsional)" error={errors.nickname?.message}>
+                      <input {...register("nickname")} type="text" className="input-lg" placeholder="Panggilan" />
+                    </InputGroup>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <InputGroup label="Email" error={errors.email?.message}>
                       <input {...register("email")} type="email" className="input-lg" placeholder="email@contoh.com" />
@@ -155,12 +180,13 @@ export default function RegisterPage() {
                       <input {...register("phone")} type="tel" className="input-lg" placeholder="0812..." />
                     </InputGroup>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <InputGroup label="Provinsi" error={errors.province?.message}>
-                      <input {...register("province")} type="text" className="input-lg" placeholder="Contoh: Jawa Barat" />
-                    </InputGroup>
-                    <InputGroup label="Kota/Kabupaten" error={errors.city?.message}>
-                      <input {...register("city")} type="text" className="input-lg" placeholder="Contoh: Bandung" />
+                  <div className="grid grid-cols-1 gap-5">
+                    <InputGroup label="Jenis Kelamin" error={errors.gender?.message}>
+                      <select {...register("gender")} className="input-lg bg-white">
+                        <option value="">Pilih Jenis Kelamin</option>
+                        <option value="Male">Laki-Laki</option>
+                        <option value="Female">Perempuan</option>
+                      </select>
                     </InputGroup>
                   </div>
                 </div>
@@ -175,19 +201,40 @@ export default function RegisterPage() {
 
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
-                <h1 className="text-3xl font-black tracking-tight mb-2">Informasi Keanggotaan</h1>
-                <p className="text-slate-500 mb-8">Lengkapi data organisasi dan keanggotaan Anda.</p>
+                <h1 className="text-3xl font-black tracking-tight mb-2">Informasi Pekerjaan</h1>
+                <p className="text-slate-500 mb-8">Lengkapi data pekerjaan Anda.</p>
 
                 <div className="space-y-5">
-                  <InputGroup label="Instansi / Organisasi" error={errors.organization?.message}>
-                    <input {...register("organization")} type="text" className="input-lg" placeholder="Nama Instansi/Organisasi" />
+                  <InputGroup label="Nama Perusahaan" error={errors.company_name?.message}>
+                    <input {...register("company_name")} type="text" className="input-lg" placeholder="Nama Perusahaan" />
                   </InputGroup>
-                  <InputGroup label="Nomor Keanggotaan" error={errors.membership_number?.message}>
-                    <input {...register("membership_number")} type="text" className="input-lg" placeholder="Nomor Anggota" />
+                  <InputGroup label="Kawasan Industri" error={errors.industrial_area?.message}>
+                    <select {...register("industrial_area")} className="input-lg bg-white">
+                      <option value="">Pilih Kawasan Industri</option>
+                      <option value="Jababeka">Jababeka</option>
+                      <option value="EJIP">EJIP</option>
+                      <option value="MM2100">MM2100</option>
+                      <option value="Delta Silicon">Delta Silicon</option>
+                      <option value="GIIC">GIIC</option>
+                      <option value="Hyundai">Hyundai</option>
+                      <option value="Lippo Cikarang">Lippo Cikarang</option>
+                      <option value="Bekasi Fajar">Bekasi Fajar</option>
+                      <option value="Other">Lainnya (Sebutkan)</option>
+                    </select>
                   </InputGroup>
-                  <InputGroup label="Jabatan" error={errors.position?.message}>
-                    <input {...register("position")} type="text" className="input-lg" placeholder="Contoh: Ketua Cabang" />
-                  </InputGroup>
+                  {watch("industrial_area") === "Other" && (
+                    <InputGroup label="Sebutkan Kawasan Industri" error={errors.other_industrial_area?.message}>
+                      <input {...register("other_industrial_area")} type="text" className="input-lg" placeholder="Kawasan Industri" />
+                    </InputGroup>
+                  )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <InputGroup label="Jabatan" error={errors.job_title?.message}>
+                      <input {...register("job_title")} type="text" className="input-lg" placeholder="Contoh: HR Manager" />
+                    </InputGroup>
+                    <InputGroup label="Departemen (Opsional)" error={errors.department?.message}>
+                      <input {...register("department")} type="text" className="input-lg" placeholder="Contoh: Human Resources" />
+                    </InputGroup>
+                  </div>
                 </div>
 
                 <div className="mt-10 fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 sm:relative sm:p-0 sm:border-0 sm:bg-transparent flex flex-col sm:flex-row gap-3">
@@ -208,14 +255,16 @@ export default function RegisterPage() {
 
                 <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6">
                   <ReviewRow label="Nama Lengkap" value={v.full_name} onClick={() => setStep(1)} />
+                  <ReviewRow label="Nama Panggilan" value={v.nickname || "-"} onClick={() => setStep(1)} />
+                  <ReviewRow label="Jenis Kelamin" value={v.gender === "Male" ? "Laki-Laki" : v.gender === "Female" ? "Perempuan" : "-"} onClick={() => setStep(1)} />
                   <ReviewRow label="Email" value={v.email} onClick={() => setStep(1)} />
                   <ReviewRow label="Nomor Telepon" value={v.phone} onClick={() => setStep(1)} />
-                  <ReviewRow label="Provinsi & Kota" value={`${v.province} - ${v.city}`} onClick={() => setStep(1)} />
                   
                   <div className="border-t border-slate-100 pt-6 space-y-6">
-                    <ReviewRow label="Organisasi" value={v.organization} onClick={() => setStep(2)} />
-                    <ReviewRow label="Nomor Keanggotaan" value={v.membership_number} onClick={() => setStep(2)} />
-                    <ReviewRow label="Jabatan" value={v.position} onClick={() => setStep(2)} />
+                    <ReviewRow label="Perusahaan" value={v.company_name} onClick={() => setStep(2)} />
+                    <ReviewRow label="Kawasan Industri" value={v.industrial_area === "Other" ? (v.other_industrial_area || "-") : v.industrial_area} onClick={() => setStep(2)} />
+                    <ReviewRow label="Jabatan" value={v.job_title} onClick={() => setStep(2)} />
+                    <ReviewRow label="Departemen" value={v.department || "-"} onClick={() => setStep(2)} />
                   </div>
                 </div>
 

@@ -12,7 +12,6 @@ import (
 
 var (
 	ErrDuplicateEmail            = errors.New("email already registered")
-	ErrDuplicateMembershipNumber = errors.New("membership number already registered")
 )
 
 type Service interface {
@@ -42,13 +41,14 @@ func (s *service) Create(ctx context.Context, req CreateParticipantRequest) (*Pa
 		MusyawarahID:       req.MusyawarahID,
 		RegistrationNumber: req.RegistrationNumber,
 		FullName:           req.FullName,
+		Nickname:           req.Nickname,
+		Gender:             req.Gender,
 		Email:              req.Email,
 		Phone:              req.Phone,
-		Organization:       req.Organization,
-		Position:           req.Position,
-		MembershipNumber:   req.MembershipNumber,
-		Province:           req.Province,
-		City:               req.City,
+		CompanyName:        req.CompanyName,
+		IndustrialArea:     req.IndustrialArea,
+		JobTitle:           req.JobTitle,
+		Department:         req.Department,
 		Status:             req.Status,
 	}
 
@@ -92,13 +92,14 @@ func (s *service) Update(ctx context.Context, id string, req UpdateParticipantRe
 
 	p.RegistrationNumber = req.RegistrationNumber
 	p.FullName = req.FullName
+	p.Nickname = req.Nickname
+	p.Gender = req.Gender
 	p.Email = req.Email
 	p.Phone = req.Phone
-	p.Organization = req.Organization
-	p.Position = req.Position
-	p.MembershipNumber = req.MembershipNumber
-	p.Province = req.Province
-	p.City = req.City
+	p.CompanyName = req.CompanyName
+	p.IndustrialArea = req.IndustrialArea
+	p.JobTitle = req.JobTitle
+	p.Department = req.Department
 
 	err = s.repo.Update(ctx, p)
 	if err != nil {
@@ -177,14 +178,6 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 		return nil, err
 	}
 
-	// Check for duplicate membership number
-	_, err = s.repo.FindByMembershipNumber(ctx, req.MembershipNumber)
-	if err == nil {
-		return nil, ErrDuplicateMembershipNumber
-	} else if err != ErrNotFound {
-		return nil, err
-	}
-
 	// Generate unique registration number
 	regNum := fmt.Sprintf("PAR-%s-%s", strings.ToUpper(req.MusyawarahID[:4]), strings.ToUpper(uuid.New().String()[:8]))
 
@@ -192,13 +185,14 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 		MusyawarahID:       req.MusyawarahID,
 		RegistrationNumber: regNum,
 		FullName:           req.FullName,
+		Nickname:           req.Nickname,
+		Gender:             req.Gender,
 		Email:              req.Email,
 		Phone:              req.Phone,
-		Organization:       req.Organization,
-		Position:           req.Position,
-		MembershipNumber:   req.MembershipNumber,
-		Province:           req.Province,
-		City:               req.City,
+		CompanyName:        req.CompanyName,
+		IndustrialArea:     req.IndustrialArea,
+		JobTitle:           req.JobTitle,
+		Department:         req.Department,
 		Status:             "Pending",
 	}
 
