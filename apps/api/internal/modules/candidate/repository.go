@@ -31,6 +31,9 @@ type Repository interface {
 	AdminListCandidates(ctx context.Context, statusFilter string, musyawarahFilter string, search string) ([]Candidate, error)
 	AdminUpdateStatus(ctx context.Context, id string, status string, notes *string) error
 	AdminUpdateDocumentStatus(ctx context.Context, docID string, status string, notes *string) error
+	AdminUpdatePublicationStatus(ctx context.Context, id string, status string) error
+	AdminUpdatePublicationSettings(ctx context.Context, id string, num *int, order int, bio, vis, mis, photo bool) error
+	AdminReorderCandidates(ctx context.Context, items []ReorderCandidateItem) error
 }
 
 type repository struct {
@@ -251,7 +254,7 @@ func (r *repository) AdminListCandidates(ctx context.Context, statusFilter strin
 		argID++
 	}
 
-	query += ` ORDER BY created_at DESC`
+	query += ` ORDER BY display_order ASC, created_at DESC`
 	var candidates []Candidate
 	err := r.db.SelectContext(ctx, &candidates, query, args...)
 	if err != nil {
@@ -293,4 +296,64 @@ func (r *repository) AdminUpdateDocumentStatus(ctx context.Context, docID string
 		return ErrNotFound
 	}
 	return nil
+}
+
+func (r *repository) AdminUpdatePublicationStatus(ctx context.Context, id string, status string) error {
+	var query string
+	if status == "Published" {
+		query = `UPDATE candidates SET publication_status = $1, published_at = NOW(), updated_at = NOW() WHERE id = $2 AND deleted_at IS NULL`
+	} else {
+		query = `UPDATE candidates SET publication_status = $1, updated_at = NOW() WHERE id = $2 AND deleted_at IS NULL`
+	}
+	res, err := r.db.ExecContext(ctx, query, status, id)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) AdminUpdatePublicationSettings(ctx context.Context, id string, num *int, order int, bio, vis, mis, photo bool) error {
+	query := `
+		UPDATE candidates SET 
+			candidate_number = $1, display_order = $2, 
+			show_biography = $3, show_vision = $4, show_mission = $5, show_photo = $6,
+			updated_at = NOW()
+		WHERE id = $7 AND deleted_at IS NULL
+	`
+	res, err := r.db.ExecContext(ctx, query, num, order, bio, vis, mis, photo, id)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) AdminReorderCandidates(ctx context.Context, items []ReorderCandidateItem) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	for _, item := range items {
+		_, err := tx.ExecContext(ctx, `UPDATE candidates SET display_order = $1, updated_at = NOW() WHERE id = $2 AND deleted_at IS NULL`, item.DisplayOrder, item.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
 }

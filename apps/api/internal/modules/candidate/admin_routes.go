@@ -23,4 +23,10 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 	router.Patch("/:id/verify", h.VerifyCandidate)
 	router.Get("/:id/documents/:doc_id/stream", h.StreamDocument)
 	router.Patch("/:id/documents/:doc_id/verify", h.VerifyDocument)
+
+	// Publication endpoints
+	router.Post("/:id/publish", h.PublishCandidate)
+	router.Post("/:id/unpublish", h.UnpublishCandidate)
+	router.Put("/:id/publication", h.UpdatePublicationSettings)
+	router.Put("/reorder", h.ReorderCandidates)
 }

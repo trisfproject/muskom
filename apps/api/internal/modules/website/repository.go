@@ -423,17 +423,15 @@ func (r *repository) UpdateCandidateSettings(ctx context.Context, c *WebsiteCand
 func (r *repository) GetCandidates(ctx context.Context) ([]CandidateEntity, error) {
 	query := `
 		SELECT 
-			c.id,
-			c.candidate_number,
-			p.full_name as name,
-			COALESCE(p.company, '') as title,
-			COALESCE(ca.vision, '') as vision,
-			COALESCE(ca.photo_path, '') as photo_path
-		FROM candidates c
-		JOIN registrations reg ON c.registration_id = reg.id
-		JOIN persons p ON reg.person_id = p.id
-		LEFT JOIN candidate_applications ca ON ca.registration_id = reg.id
-		ORDER BY c.candidate_number ASC
+			id,
+			candidate_number,
+			full_name as name,
+			COALESCE(occupation, '') as title,
+			CASE WHEN show_vision THEN COALESCE(vision, '') ELSE '' END as vision,
+			CASE WHEN show_photo THEN COALESCE(profile_photo, '') ELSE '' END as photo_path
+		FROM candidates
+		WHERE deleted_at IS NULL AND publication_status = 'Published'
+		ORDER BY display_order ASC, candidate_number ASC
 	`
 	var list []CandidateEntity
 	err := r.db.SelectContext(ctx, &list, query)

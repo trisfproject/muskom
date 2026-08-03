@@ -23,6 +23,16 @@ export default function CandidateDetailPage() {
   const [selectedDoc, setSelectedDoc] = useState<any>(null);
   const [docNotes, setDocNotes] = useState("");
 
+  // Publication state
+  const [pubStatus, setPubStatus] = useState("");
+  const [displayOrder, setDisplayOrder] = useState(0);
+  const [candidateNumber, setCandidateNumber] = useState<number | "">("");
+  const [showBio, setShowBio] = useState(true);
+  const [showVis, setShowVis] = useState(true);
+  const [showMis, setShowMis] = useState(true);
+  const [showPhoto, setShowPhoto] = useState(true);
+  const [savingPub, setSavingPub] = useState(false);
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -30,6 +40,13 @@ export default function CandidateDetailPage() {
       setCandidate(res);
       setVerifyStatus(res.status);
       setVerifyNotes(res.verification_notes || "");
+      setPubStatus(res.publication_status || "Hidden");
+      setDisplayOrder(res.display_order || 0);
+      setCandidateNumber(res.candidate_number ?? "");
+      setShowBio(res.show_biography ?? true);
+      setShowVis(res.show_vision ?? true);
+      setShowMis(res.show_mission ?? true);
+      setShowPhoto(res.show_photo ?? true);
 
       // Fetch audit logs manually since we don't have a specific client mapped easily
       const auditRes = await api.get<{ data: { items: any[] } }>(`/admin/audit?entity_id=${id}`);
@@ -61,6 +78,48 @@ export default function CandidateDetailPage() {
       alert(err?.response?.data?.message || "Failed to update status");
     } finally {
       setVerifying(false);
+    }
+  };
+
+  const handlePublishToggle = async () => {
+    if (candidate?.status !== "Verified") {
+      return alert("Kandidat harus diverifikasi sebelum dapat dipublikasikan.");
+    }
+    setSavingPub(true);
+    try {
+      if (pubStatus === "Published") {
+        await candidateAdminService.unpublishCandidate(id);
+      } else {
+        await candidateAdminService.publishCandidate(id);
+      }
+      alert("Status publikasi berhasil diubah");
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.response?.data?.message || "Gagal mengubah status publikasi");
+    } finally {
+      setSavingPub(false);
+    }
+  };
+
+  const handleSavePubSettings = async () => {
+    setSavingPub(true);
+    try {
+      await candidateAdminService.updatePublicationSettings(id, {
+        candidate_number: candidateNumber === "" ? undefined : Number(candidateNumber),
+        display_order: displayOrder,
+        show_biography: showBio,
+        show_vision: showVis,
+        show_mission: showMis,
+        show_photo: showPhoto,
+      });
+      alert("Pengaturan publikasi berhasil disimpan");
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.response?.data?.message || "Gagal menyimpan pengaturan publikasi");
+    } finally {
+      setSavingPub(false);
     }
   };
 
@@ -244,6 +303,83 @@ export default function CandidateDetailPage() {
             >
               {verifying ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
               Simpan Perubahan
+            </button>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+            <h2 className="text-base font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">Pengaturan Publikasi</h2>
+            
+            <div className="mb-4">
+              <label className="block text-xs font-semibold text-slate-700 mb-2">Status Publikasi</label>
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2.5 h-2.5 rounded-full ${pubStatus === 'Published' ? 'bg-emerald-500' : pubStatus === 'Unpublished' ? 'bg-amber-500' : 'bg-slate-400'}`}></div>
+                  <span className="text-sm font-semibold text-slate-900">{pubStatus}</span>
+                </div>
+                <button
+                  onClick={handlePublishToggle}
+                  disabled={savingPub || candidate.status !== 'Verified'}
+                  className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${
+                    pubStatus === 'Published' 
+                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                    : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                  }`}
+                >
+                  {pubStatus === 'Published' ? 'Unpublish' : 'Publish'}
+                </button>
+              </div>
+              {candidate.status !== 'Verified' && <p className="text-[10px] text-amber-600 mt-1">Kandidat harus berstatus Verified untuk dipublikasikan.</p>}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Nomor Urut</label>
+                <input
+                  type="number"
+                  value={candidateNumber}
+                  onChange={(e) => setCandidateNumber(e.target.value === "" ? "" : parseInt(e.target.value))}
+                  placeholder="-"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Display Order</label>
+                <input
+                  type="number"
+                  value={displayOrder}
+                  onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-primary"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 mb-6">
+              <label className="block text-xs font-semibold text-slate-700">Tampilkan ke Publik</label>
+              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                <input type="checkbox" checked={showPhoto} onChange={(e) => setShowPhoto(e.target.checked)} className="rounded border-slate-300 text-primary focus:ring-primary" />
+                Foto Profil
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                <input type="checkbox" checked={showBio} onChange={(e) => setShowBio(e.target.checked)} className="rounded border-slate-300 text-primary focus:ring-primary" />
+                Biografi Singkat
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                <input type="checkbox" checked={showVis} onChange={(e) => setShowVis(e.target.checked)} className="rounded border-slate-300 text-primary focus:ring-primary" />
+                Visi
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                <input type="checkbox" checked={showMis} onChange={(e) => setShowMis(e.target.checked)} className="rounded border-slate-300 text-primary focus:ring-primary" />
+                Misi
+              </label>
+            </div>
+
+            <button
+              onClick={handleSavePubSettings}
+              disabled={savingPub}
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+            >
+              {savingPub ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+              Simpan Pengaturan
             </button>
           </div>
 

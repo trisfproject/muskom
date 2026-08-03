@@ -31,6 +31,10 @@ type Service interface {
 	AdminListCandidates(ctx context.Context, statusFilter string, musyawarahFilter string, search string) ([]CandidateResponse, error)
 	AdminVerifyCandidate(ctx context.Context, id string, req AdminVerifyCandidateRequest, adminUserID string) error
 	AdminVerifyDocument(ctx context.Context, id string, docID string, req AdminVerifyDocumentRequest, adminUserID string) error
+	AdminPublishCandidate(ctx context.Context, id string, adminUserID string) error
+	AdminUnpublishCandidate(ctx context.Context, id string, adminUserID string) error
+	AdminUpdatePublicationSettings(ctx context.Context, id string, req AdminPublicationRequest, adminUserID string) error
+	AdminReorderCandidates(ctx context.Context, req AdminReorderCandidatesRequest, adminUserID string) error
 }
 
 type service struct {
@@ -310,6 +314,14 @@ func mapToResponse(c *Candidate) CandidateResponse {
 		ProfilePhoto:       c.ProfilePhoto,
 		Status:             c.Status,
 		VerificationNotes:  c.VerificationNotes,
+		CandidateNumber:    c.CandidateNumber,
+		DisplayOrder:       c.DisplayOrder,
+		PublicationStatus:  c.PublicationStatus,
+		PublishedAt:        c.PublishedAt,
+		ShowBiography:      c.ShowBiography,
+		ShowVision:         c.ShowVision,
+		ShowMission:        c.ShowMission,
+		ShowPhoto:          c.ShowPhoto,
 		CreatedAt:          c.CreatedAt,
 		UpdatedAt:          c.UpdatedAt,
 	}
@@ -559,6 +571,123 @@ func (s *service) AdminVerifyDocument(ctx context.Context, id string, docID stri
 			"verification_status": req.VerificationStatus,
 			"verification_notes":  req.VerificationNotes,
 		},
+		ActorID: &adminUserID,
+	})
+
+	return nil
+}
+
+func (s *service) AdminPublishCandidate(ctx context.Context, id string, adminUserID string) error {
+	c, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if c.Status != "Verified" {
+		return errors.New("only verified candidates can be published")
+	}
+
+	if c.PublicationStatus == "Published" {
+		return nil // already published
+	}
+
+	err = s.repo.AdminUpdatePublicationStatus(ctx, id, "Published")
+	if err != nil {
+		return err
+	}
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleCandidate,
+		Entity:   "candidates",
+		EntityID: id,
+		Action:   "ADMIN_PUBLISH",
+		PreviousValue: map[string]interface{}{
+			"publication_status": c.PublicationStatus,
+		},
+		NewValue: map[string]interface{}{
+			"publication_status": "Published",
+		},
+		ActorID: &adminUserID,
+	})
+
+	return nil
+}
+
+func (s *service) AdminUnpublishCandidate(ctx context.Context, id string, adminUserID string) error {
+	c, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if c.PublicationStatus != "Published" {
+		return nil
+	}
+
+	err = s.repo.AdminUpdatePublicationStatus(ctx, id, "Unpublished")
+	if err != nil {
+		return err
+	}
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleCandidate,
+		Entity:   "candidates",
+		EntityID: id,
+		Action:   "ADMIN_UNPUBLISH",
+		PreviousValue: map[string]interface{}{
+			"publication_status": c.PublicationStatus,
+		},
+		NewValue: map[string]interface{}{
+			"publication_status": "Unpublished",
+		},
+		ActorID: &adminUserID,
+	})
+
+	return nil
+}
+
+func (s *service) AdminUpdatePublicationSettings(ctx context.Context, id string, req AdminPublicationRequest, adminUserID string) error {
+	c, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.AdminUpdatePublicationSettings(ctx, id, req.CandidateNumber, req.DisplayOrder, req.ShowBiography, req.ShowVision, req.ShowMission, req.ShowPhoto)
+	if err != nil {
+		return err
+	}
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleCandidate,
+		Entity:   "candidates",
+		EntityID: id,
+		Action:   "ADMIN_UPDATE_PUBLICATION_SETTINGS",
+		PreviousValue: map[string]interface{}{
+			"candidate_number": c.CandidateNumber,
+			"display_order":    c.DisplayOrder,
+			"show_biography":   c.ShowBiography,
+			"show_vision":      c.ShowVision,
+			"show_mission":     c.ShowMission,
+			"show_photo":       c.ShowPhoto,
+		},
+		NewValue: req,
+		ActorID: &adminUserID,
+	})
+
+	return nil
+}
+
+func (s *service) AdminReorderCandidates(ctx context.Context, req AdminReorderCandidatesRequest, adminUserID string) error {
+	err := s.repo.AdminReorderCandidates(ctx, req.Items)
+	if err != nil {
+		return err
+	}
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleCandidate,
+		Entity:   "candidates",
+		EntityID: "bulk",
+		Action:   "ADMIN_REORDER_CANDIDATES",
+		NewValue: req.Items,
 		ActorID: &adminUserID,
 	})
 

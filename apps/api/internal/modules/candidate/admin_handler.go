@@ -112,3 +112,68 @@ func (h *AdminHandler) StreamDocument(c fiber.Ctx) error {
 	c.Set("Content-Type", mimeType)
 	return c.SendStream(reader)
 }
+
+func (h *AdminHandler) PublishCandidate(c fiber.Ctx) error {
+	id := c.Params("id")
+	adminUserID := c.Locals("user_id").(string)
+
+	err := h.service.AdminPublishCandidate(c.Context(), id, adminUserID)
+	if err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Candidate published successfully", nil, nil)
+}
+
+func (h *AdminHandler) UnpublishCandidate(c fiber.Ctx) error {
+	id := c.Params("id")
+	adminUserID := c.Locals("user_id").(string)
+
+	err := h.service.AdminUnpublishCandidate(c.Context(), id, adminUserID)
+	if err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Candidate unpublished successfully", nil, nil)
+}
+
+func (h *AdminHandler) UpdatePublicationSettings(c fiber.Ctx) error {
+	id := c.Params("id")
+	var req AdminPublicationRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request body", nil)
+	}
+
+	if errs := h.validator.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusBadRequest, "Validation error", errs)
+	}
+
+	adminUserID := c.Locals("user_id").(string)
+
+	err := h.service.AdminUpdatePublicationSettings(c.Context(), id, req, adminUserID)
+	if err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Publication settings updated", nil, nil)
+}
+
+func (h *AdminHandler) ReorderCandidates(c fiber.Ctx) error {
+	var req AdminReorderCandidatesRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request body", nil)
+	}
+
+	if errs := h.validator.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusBadRequest, "Validation error", errs)
+	}
+
+	adminUserID := c.Locals("user_id").(string)
+
+	err := h.service.AdminReorderCandidates(c.Context(), req, adminUserID)
+	if err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Candidates reordered successfully", nil, nil)
+}

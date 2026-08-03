@@ -29,6 +29,14 @@ type Candidate struct {
 	UpdatedAt          time.Time  `db:"updated_at"`
 	DeletedAt          *time.Time `db:"deleted_at"`
 	VerificationNotes  *string    `db:"verification_notes"`
+	CandidateNumber    *int       `db:"candidate_number"`
+	DisplayOrder       int        `db:"display_order"`
+	PublicationStatus  string     `db:"publication_status"`
+	PublishedAt        *time.Time `db:"published_at"`
+	ShowBiography      bool       `db:"show_biography"`
+	ShowVision         bool       `db:"show_vision"`
+	ShowMission        bool       `db:"show_mission"`
+	ShowPhoto          bool       `db:"show_photo"`
 }
 
 // CandidateDocument represents an uploaded document for a candidate.

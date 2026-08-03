@@ -69,9 +69,20 @@ export default function AdminCandidatesPage() {
       case "Rejected":
         return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200/50"><XCircle className="w-3.5 h-3.5"/> Rejected</span>;
       case "Published":
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-600 border border-indigo-200/50"><Users className="w-3.5 h-3.5"/> Published</span>;
+        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-600 border border-indigo-200/50"><Users className="w-3.5 h-3.5"/> Verified & Published</span>;
       default:
         return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">{status}</span>;
+    }
+  };
+
+  const PubBadge = ({ pubStatus }: { pubStatus: string }) => {
+    switch (pubStatus) {
+      case "Published":
+        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200/50">Published</span>;
+      case "Unpublished":
+        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-200/50">Unpublished</span>;
+      default:
+        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200/50">Hidden</span>;
     }
   };
 
@@ -119,10 +130,10 @@ export default function AdminCandidatesPage() {
             <thead className="bg-slate-50 border-b border-slate-200 pg-muted font-semibold">
               <tr>
                 <th className="px-6 py-4">Registration #</th>
+                <th className="px-6 py-4">No. / Urut</th>
                 <th className="px-6 py-4">Kandidat</th>
-                <th className="px-6 py-4">Latar Belakang</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Tanggal Daftar</th>
+                <th className="px-6 py-4">Verifikasi</th>
+                <th className="px-6 py-4">Publikasi</th>
                 <th className="px-6 py-4 text-right">Aksi</th>
               </tr>
             </thead>
@@ -140,18 +151,18 @@ export default function AdminCandidatesPage() {
                   <tr key={row.id} className="hover:bg-slate-50/50">
                     <td className="px-6 py-4 font-mono text-xs">{row.registration_number}</td>
                     <td className="px-6 py-4">
+                      <div className="text-xs font-medium text-slate-700">Kandidat: <span className="font-bold">{row.candidate_number || '-'}</span></div>
+                      <div className="text-xs pg-muted">Urutan Tampil: {row.display_order}</div>
+                    </td>
+                    <td className="px-6 py-4">
                       <div className="font-semibold text-slate-900">{row.full_name}</div>
                       <div className="text-xs pg-muted">{row.email} • {row.phone}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-medium text-slate-700 max-w-[200px] truncate">{row.occupation || '-'}</div>
-                      <div className="text-xs pg-muted max-w-[200px] truncate">{row.organization || '-'}</div>
-                    </td>
-                    <td className="px-6 py-4">
                       <StatusBadge status={row.status} />
                     </td>
-                    <td className="px-6 py-4 text-xs pg-muted">
-                      {new Date(row.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    <td className="px-6 py-4">
+                      <PubBadge pubStatus={row.publication_status} />
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link 

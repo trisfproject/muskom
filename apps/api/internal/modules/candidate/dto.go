@@ -65,29 +65,37 @@ type PatchCandidateRequest struct {
 
 // CandidateResponse represents the response payload for a candidate.
 type CandidateResponse struct {
-	ID                 string     `json:"id"`
-	MusyawarahID       string     `json:"musyawarah_id"`
-	RegistrationNumber string     `json:"registration_number"`
-	FullName           string     `json:"full_name"`
-	Nickname           *string    `json:"nickname,omitempty"`
-	Email              string     `json:"email"`
-	Phone              string     `json:"phone"`
-	Gender             string     `json:"gender"`
-	BirthPlace         *string    `json:"birth_place,omitempty"`
-	BirthDate          *string    `json:"birth_date,omitempty"`
-	Occupation         *string    `json:"occupation,omitempty"`
-	Organization       *string    `json:"organization,omitempty"`
-	Address            *string    `json:"address,omitempty"`
-	Biography          *string    `json:"biography,omitempty"`
-	Motivation         *string    `json:"motivation,omitempty"`
-	Vision             *string    `json:"vision,omitempty"`
-	Mission            *string    `json:"mission,omitempty"`
-	ProfilePhoto       *string                     `json:"profile_photo,omitempty"`
-	Status             string                      `json:"status"`
-	VerificationNotes  *string                     `json:"verification_notes,omitempty"`
-	CreatedAt          time.Time                   `json:"created_at"`
-	UpdatedAt          time.Time                   `json:"updated_at"`
-	Documents          []CandidateDocumentResponse `json:"documents,omitempty"`
+	ID                 string                           `json:"id"`
+	MusyawarahID       string                           `json:"musyawarah_id"`
+	RegistrationNumber string                           `json:"registration_number"`
+	FullName           string                           `json:"full_name"`
+	Nickname           *string                          `json:"nickname,omitempty"`
+	Email              string                           `json:"email"`
+	Phone              string                           `json:"phone"`
+	Gender             string                           `json:"gender"`
+	BirthPlace         *string                          `json:"birth_place,omitempty"`
+	BirthDate          *string                          `json:"birth_date,omitempty"`
+	Occupation         *string                          `json:"occupation,omitempty"`
+	Organization       *string                          `json:"organization,omitempty"`
+	Address            *string                          `json:"address,omitempty"`
+	Biography          *string                          `json:"biography,omitempty"`
+	Motivation         *string                          `json:"motivation,omitempty"`
+	Vision             *string                          `json:"vision,omitempty"`
+	Mission            *string                          `json:"mission,omitempty"`
+	ProfilePhoto       *string                          `json:"profile_photo,omitempty"`
+	Status             string                           `json:"status"`
+	VerificationNotes  *string                          `json:"verification_notes,omitempty"`
+	CandidateNumber    *int                             `json:"candidate_number"`
+	DisplayOrder       int                              `json:"display_order"`
+	PublicationStatus  string                           `json:"publication_status"`
+	PublishedAt        *time.Time                       `json:"published_at,omitempty"`
+	ShowBiography      bool                             `json:"show_biography"`
+	ShowVision         bool                             `json:"show_vision"`
+	ShowMission        bool                             `json:"show_mission"`
+	ShowPhoto          bool                             `json:"show_photo"`
+	CreatedAt          time.Time                        `json:"created_at"`
+	UpdatedAt          time.Time                        `json:"updated_at"`
+	Documents          []CandidateDocumentResponse      `json:"documents,omitempty"`
 }
 
 // CandidateDocumentResponse represents the response payload for a candidate document.
@@ -113,4 +121,22 @@ type AdminVerifyCandidateRequest struct {
 type AdminVerifyDocumentRequest struct {
 	VerificationStatus string  `json:"verification_status" validate:"required,oneof=Valid Invalid"`
 	VerificationNotes  *string `json:"verification_notes"`
+}
+
+type AdminPublicationRequest struct {
+	CandidateNumber *int `json:"candidate_number" validate:"omitempty,min=1"`
+	DisplayOrder    int  `json:"display_order"`
+	ShowBiography   bool `json:"show_biography"`
+	ShowVision      bool `json:"show_vision"`
+	ShowMission     bool `json:"show_mission"`
+	ShowPhoto       bool `json:"show_photo"`
+}
+
+type AdminReorderCandidatesRequest struct {
+	Items []ReorderCandidateItem `json:"items" validate:"required,dive"`
+}
+
+type ReorderCandidateItem struct {
+	ID           string `json:"id" validate:"required,uuid"`
+	DisplayOrder int    `json:"display_order"`
 }
