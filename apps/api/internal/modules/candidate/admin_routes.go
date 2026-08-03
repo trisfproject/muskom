@@ -4,17 +4,18 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"go.uber.org/zap"
 )
 
 // SetupAdminRoutes registers candidate verification routes for the admin portal.
-func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, st storage.Storage) {
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, st storage.Storage, cfg *config.Config) {
 	repo := NewRepository(db)
 	auditSvc := audit.NewService(audit.NewRepository(db), log)
 	// Using default 5MB size limit
-	svc := NewService(repo, auditSvc, st, 5*1024*1024)
+	svc := NewService(repo, auditSvc, st, 5*1024*1024, cfg)
 	h := NewAdminHandler(svc, val)
 
 	// Admin candidate endpoints

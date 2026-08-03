@@ -136,8 +136,8 @@ func main() {
 	voting.SetupAdminRoutes(adminGroup.Group("/votes"), db, log, bus)
 	result.SetupAdminRoutes(adminGroup, db, log)
 	user.SetupRoutes(adminGroup.Group("/users", checker.RequirePermission("system.manage")), db, log, val)
-	candidate.RegisterRoutes(v1, db, log, val, strg, cfg.MaxUploadSize)
-	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), db, log, val, strg)
+	candidate.RegisterRoutes(v1, db, log, val, strg, cfg.MaxUploadSize, cfg)
+	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, log, val, strg, cfg)
 	participant.SetupAdminRoutes(adminGroup.Group("/participants"), db, log, val)
 
 	// 8. Graceful Shutdown

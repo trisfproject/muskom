@@ -85,12 +85,18 @@ func (r *repository) GetAnnouncements(ctx context.Context, eventID string) ([]Pu
 }
 
 func (r *repository) GetCandidates(ctx context.Context) ([]PublicCandidate, error) {
-	// Only fetch approved candidates if we want to show them publicly
+	// Only fetch published candidates to show them publicly
 	query := `
-		SELECT id, sequence_number, name, title, vision, photo_path 
+		SELECT 
+			id, 
+			candidate_number as sequence_number, 
+			full_name as name, 
+			occupation as title, 
+			vision, 
+			profile_photo as photo_path 
 		FROM candidates 
-		WHERE status = 'APPROVED' AND deleted_at IS NULL
-		ORDER BY sequence_number ASC
+		WHERE publication_status = 'Published' AND deleted_at IS NULL
+		ORDER BY display_order ASC, created_at ASC
 	`
 	var c []PublicCandidate
 	err := r.db.SelectContext(ctx, &c, query)

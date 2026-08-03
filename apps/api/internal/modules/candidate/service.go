@@ -9,8 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
 )
 
@@ -42,14 +44,16 @@ type service struct {
 	auditService  audit.AuditService
 	storage       storage.Storage
 	maxUploadSize int64
+	cfg           *config.Config
 }
 
-func NewService(repo Repository, auditService audit.AuditService, st storage.Storage, maxUploadSize int64) Service {
+func NewService(repo Repository, auditService audit.AuditService, st storage.Storage, maxUploadSize int64, cfg *config.Config) Service {
 	return &service{
 		repo:          repo,
 		auditService:  auditService,
 		storage:       st,
 		maxUploadSize: maxUploadSize,
+		cfg:           cfg,
 	}
 }
 
@@ -104,6 +108,16 @@ func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*Cand
 	})
 
 	res := mapToResponse(c)
+
+	// Generate Candidate Token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub":  res.ID,
+		"role": "candidate",
+		"exp":  time.Now().Add(72 * time.Hour).Unix(),
+	})
+	tokenString, _ := token.SignedString([]byte(s.cfg.JWTSecret))
+	res.Token = tokenString
+
 	return &res, nil
 }
 
@@ -133,6 +147,9 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+	if c.Status != "Draft" && c.Status != "Revision Required" {
+		return nil, errors.New("cannot modify candidate: not in draft state")
 	}
 	
 	oldVal := *c
@@ -189,6 +206,9 @@ func (s *service) Patch(ctx context.Context, id string, req PatchCandidateReques
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+	if c.Status != "Draft" && c.Status != "Revision Required" {
+		return nil, errors.New("cannot modify candidate: not in draft state")
 	}
 
 	oldVal := *c
@@ -269,6 +289,9 @@ func (s *service) Delete(ctx context.Context, id string) error {
 	c, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return err
+	}
+	if c.Status != "Draft" {
+		return errors.New("cannot delete candidate: not in draft state")
 	}
 
 	err = s.repo.Delete(ctx, id)

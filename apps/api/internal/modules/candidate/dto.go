@@ -96,6 +96,7 @@ type CandidateResponse struct {
 	CreatedAt          time.Time                        `json:"created_at"`
 	UpdatedAt          time.Time                        `json:"updated_at"`
 	Documents          []CandidateDocumentResponse      `json:"documents,omitempty"`
+	Token              string                           `json:"token,omitempty"`
 }
 
 // CandidateDocumentResponse represents the response payload for a candidate document.

@@ -14,17 +14,22 @@ import (
 // JWTMiddleware creates a fiber Handler that intercepts and validates the Authorization Bearer token.
 func JWTMiddleware(cfg *config.Config, log *zap.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
+		var tokenString string
 		authHeader := c.Get("Authorization")
-		if authHeader == "" {
-			return response.SendError(c, fiber.StatusUnauthorized, "Missing authorization header", nil)
+		if authHeader != "" {
+			parts := strings.Split(authHeader, " ")
+			if len(parts) == 2 && strings.ToLower(parts[0]) == "bearer" {
+				tokenString = parts[1]
+			}
 		}
 
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			return response.SendError(c, fiber.StatusUnauthorized, "Invalid authorization format", nil)
+		if tokenString == "" {
+			tokenString = c.Query("token")
 		}
 
-		tokenString := parts[1]
+		if tokenString == "" {
+			return response.SendError(c, fiber.StatusUnauthorized, "Missing authorization token", nil)
+		}
 
 		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {

@@ -4,31 +4,55 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
-	
+
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
+	"github.com/trisfproject/muskom/apps/api/platform/config"
+	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 )
 
-func RegisterRoutes(api fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, st storage.Storage, maxUploadSize int64) {
+// CandidateOwnerMiddleware ensures that the authenticated candidate can only access their own data
+func CandidateOwnerMiddleware() fiber.Handler {
+	return func(c fiber.Ctx) error {
+		role, ok := c.Locals("role").(string)
+		if !ok || role != "candidate" {
+			return response.SendError(c, fiber.StatusForbidden, "Forbidden: Invalid role", nil)
+		}
+
+		userID, ok := c.Locals("user_id").(string)
+		if !ok || userID != c.Params("id") {
+			return response.SendError(c, fiber.StatusForbidden, "Forbidden: You don't own this candidate", nil)
+		}
+
+		return c.Next()
+	}
+}
+
+func RegisterRoutes(api fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, st storage.Storage, maxUploadSize int64, cfg *config.Config) {
 	repo := NewRepository(db)
 	auditRepo := audit.NewRepository(db)
 	auditSvc := audit.NewService(auditRepo, log)
-	service := NewService(repo, auditSvc, st, maxUploadSize)
+	service := NewService(repo, auditSvc, st, maxUploadSize, cfg)
 	handler := NewHandler(service, val)
 
 	candidates := api.Group("/candidates")
 
+	// Public creation endpoint
 	candidates.Post("/", handler.Create)
-	candidates.Get("/", handler.GetAll)
-	candidates.Get("/:id", handler.GetByID)
-	candidates.Put("/:id", handler.Update)
-	candidates.Patch("/:id", handler.Patch)
-	candidates.Delete("/:id", handler.Delete)
-	
+
+	// Protected endpoints (Requires Candidate JWT)
+	protected := candidates.Group("/", auth.JWTMiddleware(cfg, log), CandidateOwnerMiddleware())
+
+	protected.Get("/:id", handler.GetByID)
+	protected.Put("/:id", handler.Update)
+	protected.Patch("/:id", handler.Patch)
+	protected.Delete("/:id", handler.Delete)
+
 	// Document endpoints
-	candidates.Post("/:id/documents", handler.UploadDocument)
-	candidates.Get("/:id/documents", handler.ListDocuments)
-	candidates.Delete("/:id/documents/:doc_id", handler.DeleteDocument)
-	candidates.Get("/:id/documents/:doc_id/stream", handler.StreamDocument)
+	protected.Post("/:id/documents", handler.UploadDocument)
+	protected.Get("/:id/documents", handler.ListDocuments)
+	protected.Delete("/:id/documents/:doc_id", handler.DeleteDocument)
+	protected.Get("/:id/documents/:doc_id/stream", handler.StreamDocument)
 }
