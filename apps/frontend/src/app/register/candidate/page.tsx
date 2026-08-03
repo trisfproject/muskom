@@ -8,7 +8,10 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { candidateSchema, CandidateFormData } from "./schema";
 import { candidateRegistrationService, CandidateDocumentResponse } from "@/services/candidate-registration";
+import { publicMasterDataService, IndustrialArea, Company, JobTitle, Department } from "@/services/master-data";
 import { landingService } from "@/services/landing";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Controller } from "react-hook-form";
 
 const LOCAL_DRAFT_KEY = "muskom_candidate_local_draft";
 const ID_DRAFT_KEY = "muskom_candidate_id";
@@ -33,7 +36,13 @@ export default function CandidateRegisterPage() {
   const [successData, setSuccessData] = useState<{ regNumber: string; name: string } | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const { register, handleSubmit, trigger, getValues, watch, reset, formState: { errors } } = useForm<CandidateFormData>({
+  // Master Data States
+  const [masterAreas, setMasterAreas] = useState<IndustrialArea[]>([]);
+  const [masterCompanies, setMasterCompanies] = useState<Company[]>([]);
+  const [masterJobTitles, setMasterJobTitles] = useState<JobTitle[]>([]);
+  const [masterDepartments, setMasterDepartments] = useState<Department[]>([]);
+
+  const { register, handleSubmit, trigger, getValues, watch, reset, control, formState: { errors } } = useForm<CandidateFormData>({
     resolver: zodResolver(candidateSchema),
     mode: "onTouched"
   });
@@ -48,6 +57,18 @@ export default function CandidateRegisterPage() {
         // Fetch Event ID
         const res = await landingService.getPublicHome();
         if (res?.event?.id) setMusyawarahId(res.event.id);
+
+        // Fetch Master Data
+        const [areas, comps, jobs, depts] = await Promise.all([
+          publicMasterDataService.getIndustrialAreas(),
+          publicMasterDataService.getCompanies(),
+          publicMasterDataService.getJobTitles(),
+          publicMasterDataService.getDepartments()
+        ]);
+        setMasterAreas(areas);
+        setMasterCompanies(comps);
+        setMasterJobTitles(jobs);
+        setMasterDepartments(depts);
 
         // Check if there is an active backend draft
         const savedId = localStorage.getItem(ID_DRAFT_KEY);
@@ -189,7 +210,7 @@ export default function CandidateRegisterPage() {
   };
 
   const onNextStep2 = async () => {
-    const valid = await trigger(["company_name", "industrial_area", "other_industrial_area", "job_title", "department"]);
+    const valid = await trigger(["company_name", "industrial_area", "job_title", "department"]);
     if (valid) setStep(3);
   };
 
@@ -410,34 +431,76 @@ export default function CandidateRegisterPage() {
                 <p className="text-slate-500 mb-8">Draft otomatis tersimpan saat Anda mengetik. Anda bisa keluar dan melanjutkannya nanti.</p>
 
                 <div className="space-y-6 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
-                  <InputGroup label="Nama Perusahaan" error={errors.company_name?.message}>
-                    <input {...register("company_name")} type="text" className="input-lg" placeholder="Nama Perusahaan" />
-                  </InputGroup>
                   <InputGroup label="Kawasan Industri" error={errors.industrial_area?.message}>
-                    <select {...register("industrial_area")} className="input-lg bg-white">
-                      <option value="">Pilih Kawasan Industri</option>
-                      <option value="Jababeka">Jababeka</option>
-                      <option value="EJIP">EJIP</option>
-                      <option value="MM2100">MM2100</option>
-                      <option value="Delta Silicon">Delta Silicon</option>
-                      <option value="GIIC">GIIC</option>
-                      <option value="Hyundai">Hyundai</option>
-                      <option value="Lippo Cikarang">Lippo Cikarang</option>
-                      <option value="Bekasi Fajar">Bekasi Fajar</option>
-                      <option value="Other">Lainnya (Sebutkan)</option>
-                    </select>
+                    <Controller
+                      name="industrial_area"
+                      control={control}
+                      render={({ field }) => (
+                        <SearchableSelect
+                          id="industrial_area"
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          options={masterAreas.map(a => a.name)}
+                          placeholder="Pilih Kawasan Industri"
+                          hasError={!!errors.industrial_area}
+                        />
+                      )}
+                    />
                   </InputGroup>
-                  {watch("industrial_area") === "Other" && (
-                    <InputGroup label="Sebutkan Kawasan Industri" error={errors.other_industrial_area?.message}>
-                      <input {...register("other_industrial_area")} type="text" className="input-lg" placeholder="Kawasan Industri" />
-                    </InputGroup>
-                  )}
+                  <InputGroup label="Nama Perusahaan" error={errors.company_name?.message}>
+                    <Controller
+                      name="company_name"
+                      control={control}
+                      render={({ field }) => (
+                        <SearchableSelect
+                          id="company_name"
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          options={masterCompanies
+                            .filter(c => {
+                              const selectedArea = watch("industrial_area");
+                              if (!selectedArea) return true;
+                              return c.industrial_area === selectedArea;
+                            })
+                            .map(c => c.name)}
+                          placeholder="Pilih Perusahaan"
+                          hasError={!!errors.company_name}
+                        />
+                      )}
+                    />
+                  </InputGroup>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <InputGroup label="Jabatan" error={errors.job_title?.message}>
-                      <input {...register("job_title")} type="text" className="input-lg" placeholder="Contoh: Direktur Utama" />
+                      <Controller
+                        name="job_title"
+                        control={control}
+                        render={({ field }) => (
+                          <SearchableSelect
+                            id="job_title"
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            options={masterJobTitles.map(j => j.name)}
+                            placeholder="Pilih Jabatan"
+                            hasError={!!errors.job_title}
+                          />
+                        )}
+                      />
                     </InputGroup>
                     <InputGroup label="Departemen (Opsional)" error={errors.department?.message}>
-                      <input {...register("department")} type="text" className="input-lg" placeholder="Contoh: Board of Directors" />
+                      <Controller
+                        name="department"
+                        control={control}
+                        render={({ field }) => (
+                          <SearchableSelect
+                            id="department"
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            options={masterDepartments.map(d => d.name)}
+                            placeholder="Pilih Departemen"
+                            hasError={!!errors.department}
+                          />
+                        )}
+                      />
                     </InputGroup>
                   </div>
                 </div>
@@ -649,7 +712,7 @@ export default function CandidateRegisterPage() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
                       <ReviewItem label="Nama Perusahaan" value={v.company_name || "-"} />
-                      <ReviewItem label="Kawasan Industri" value={(v.industrial_area === "Other" ? v.other_industrial_area : v.industrial_area) || "-"} />
+                      <ReviewItem label="Kawasan Industri" value={v.industrial_area || "-"} />
                       <ReviewItem label="Jabatan" value={v.job_title || "-"} />
                       <ReviewItem label="Departemen" value={v.department || "-"} />
                     </div>

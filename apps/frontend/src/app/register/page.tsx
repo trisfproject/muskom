@@ -9,18 +9,9 @@ import { landingService } from "@/services/landing";
 import { participantRegistrationService } from "@/services/participant-registration";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
-const INDUSTRIAL_AREAS = [
-  "Jababeka",
-  "EJIP",
-  "MM2100",
-  "Delta Silicon",
-  "GIIC",
-  "Hyundai",
-  "Lippo Cikarang",
-  "Bekasi Fajar",
-  "Other",
-];
+import { publicMasterDataService, IndustrialArea, Company, JobTitle, Department } from "@/services/master-data";
 
 const registerSchema = z
   .object({
@@ -33,25 +24,9 @@ const registerSchema = z
       .regex(/^[0-9+\-\s()]+$/, "Format nomor tidak valid"),
     company_name: z.string().min(1, "Nama perusahaan harus diisi"),
     industrial_area: z.string().min(1, "Kawasan industri harus dipilih"),
-    other_industrial_area: z.string().optional(),
     job_title: z.string().min(1, "Jabatan harus diisi"),
     department: z.string().optional(),
-  })
-  .refine(
-    (data) => {
-      if (
-        data.industrial_area === "Other" &&
-        (!data.other_industrial_area || data.other_industrial_area.trim() === "")
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Kawasan industri lainnya harus diisi",
-      path: ["other_industrial_area"],
-    }
-  );
+  });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -80,6 +55,12 @@ export default function RegisterPage() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Master Data States
+  const [masterAreas, setMasterAreas] = useState<IndustrialArea[]>([]);
+  const [masterCompanies, setMasterCompanies] = useState<Company[]>([]);
+  const [masterJobTitles, setMasterJobTitles] = useState<JobTitle[]>([]);
+  const [masterDepartments, setMasterDepartments] = useState<Department[]>([]);
+
   const {
     register,
     handleSubmit,
@@ -98,6 +79,19 @@ export default function RegisterPage() {
     landingService.getPublicHome().then((data) => {
       if (data?.event?.id) setMusyawarahId(data.event.id);
       if (data?.event?.name) setMusyawarahName(data.event.name);
+    });
+
+    // Fetch Master Data
+    Promise.all([
+      publicMasterDataService.getIndustrialAreas(),
+      publicMasterDataService.getCompanies(),
+      publicMasterDataService.getJobTitles(),
+      publicMasterDataService.getDepartments()
+    ]).then(([areas, comps, jobs, depts]) => {
+      setMasterAreas(areas);
+      setMasterCompanies(comps);
+      setMasterJobTitles(jobs);
+      setMasterDepartments(depts);
     });
 
     const saved = localStorage.getItem("participant_registration_draft");
@@ -138,7 +132,6 @@ export default function RegisterPage() {
     const valid = await trigger([
       "company_name",
       "industrial_area",
-      "other_industrial_area",
       "job_title",
     ]);
     if (valid) setStep(3);
@@ -153,18 +146,13 @@ export default function RegisterPage() {
     setLoading(true);
     setError(null);
     try {
-      const payloadIndustrialArea =
-        data.industrial_area === "Other"
-          ? data.other_industrial_area || "Other"
-          : data.industrial_area;
-
       const res = await participantRegistrationService.register({
         full_name: data.full_name,
         nickname: data.nickname,
         email: data.email,
         phone: data.phone,
         company_name: data.company_name,
-        industrial_area: payloadIndustrialArea,
+        industrial_area: data.industrial_area,
         job_title: data.job_title,
         department: data.department,
         musyawarah_id: musyawarahId,
@@ -392,17 +380,6 @@ export default function RegisterPage() {
                 </p>
 
                 <div className="space-y-5">
-                  <InputGroup label="Nama Perusahaan" required error={errors.company_name?.message}>
-                    <input
-                      {...register("company_name")}
-                      type="text"
-                      id="company_name"
-                      className="input-lg"
-                      placeholder="PT / CV / Instansi"
-                    />
-                  </InputGroup>
-
-                  {/* Searchable Industrial Area Dropdown */}
                   <InputGroup label="Kawasan Industri" required error={errors.industrial_area?.message}>
                     <Controller
                       name="industrial_area"
@@ -412,54 +389,69 @@ export default function RegisterPage() {
                           id="industrial_area"
                           value={field.value || ""}
                           onChange={field.onChange}
-                          options={INDUSTRIAL_AREAS}
-                          placeholder="Cari atau pilih kawasan industri..."
+                          options={masterAreas.map(a => a.name)}
+                          placeholder="Pilih kawasan industri..."
                           hasError={!!errors.industrial_area}
                         />
                       )}
                     />
                   </InputGroup>
 
-                  {watch("industrial_area") === "Other" && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                    >
-                      <InputGroup
-                        label="Sebutkan Kawasan Industri"
-                        required
-                        error={errors.other_industrial_area?.message}
-                      >
-                        <input
-                          {...register("other_industrial_area")}
-                          type="text"
-                          id="other_industrial_area"
-                          className="input-lg"
-                          placeholder="Nama kawasan industri"
-                          autoFocus
+                  <InputGroup label="Nama Perusahaan" required error={errors.company_name?.message}>
+                    <Controller
+                      name="company_name"
+                      control={control}
+                      render={({ field }) => (
+                        <SearchableSelect
+                          id="company_name"
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          options={masterCompanies
+                            .filter(c => {
+                              // Filter by selected industrial area if any
+                              const selectedArea = watch("industrial_area");
+                              if (!selectedArea) return true;
+                              return c.industrial_area === selectedArea;
+                            })
+                            .map(c => c.name)}
+                          placeholder="Pilih perusahaan..."
+                          hasError={!!errors.company_name}
                         />
-                      </InputGroup>
-                    </motion.div>
-                  )}
+                      )}
+                    />
+                  </InputGroup>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <InputGroup label="Jabatan" required error={errors.job_title?.message}>
-                      <input
-                        {...register("job_title")}
-                        type="text"
-                        id="job_title"
-                        className="input-lg"
-                        placeholder="Contoh: HR Manager"
+                      <Controller
+                        name="job_title"
+                        control={control}
+                        render={({ field }) => (
+                          <SearchableSelect
+                            id="job_title"
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            options={masterJobTitles.map(j => j.name)}
+                            placeholder="Pilih jabatan..."
+                            hasError={!!errors.job_title}
+                          />
+                        )}
                       />
                     </InputGroup>
                     <InputGroup label="Departemen" error={errors.department?.message}>
-                      <input
-                        {...register("department")}
-                        type="text"
-                        id="department"
-                        className="input-lg"
-                        placeholder="Opsional"
+                      <Controller
+                        name="department"
+                        control={control}
+                        render={({ field }) => (
+                          <SearchableSelect
+                            id="department"
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            options={masterDepartments.map(d => d.name)}
+                            placeholder="Pilih departemen... (Opsional)"
+                            hasError={!!errors.department}
+                          />
+                        )}
                       />
                     </InputGroup>
                   </div>
@@ -526,11 +518,7 @@ export default function RegisterPage() {
                       <ReviewRow label="Perusahaan" value={v.company_name} />
                       <ReviewRow
                         label="Kawasan Industri"
-                        value={
-                          v.industrial_area === "Other"
-                            ? v.other_industrial_area || "—"
-                            : v.industrial_area
-                        }
+                        value={v.industrial_area}
                       />
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <ReviewRow label="Jabatan" value={v.job_title} />
@@ -721,151 +709,6 @@ export default function RegisterPage() {
     </main>
   );
 }
-
-// ─── SearchableSelect Component ───────────────────────────────────────────────
-function SearchableSelect({
-  id,
-  value,
-  onChange,
-  options,
-  placeholder,
-  hasError,
-}: {
-  id: string;
-  value: string;
-  onChange: (val: string) => void;
-  options: string[];
-  placeholder: string;
-  hasError?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const filtered = options.filter((o) =>
-    o.toLowerCase().includes(query.toLowerCase())
-  );
-
-  const displayValue =
-    value === "Other" ? "Lainnya (Sebutkan)" : value || "";
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-        setQuery("");
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  useEffect(() => {
-    if (open && inputRef.current) inputRef.current.focus();
-  }, [open]);
-
-  const handleSelect = (option: string) => {
-    onChange(option);
-    setOpen(false);
-    setQuery("");
-  };
-
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange("");
-    setQuery("");
-    setOpen(false);
-  };
-
-  const optionLabel = (o: string) => (o === "Other" ? "Lainnya (Sebutkan)" : o);
-
-  return (
-    <div ref={containerRef} className="relative" id={id}>
-      {/* Trigger button */}
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className={`input-lg flex items-center justify-between text-left ${
-          hasError ? "input-lg-error" : ""
-        } ${!value ? "text-slate-400" : "text-slate-900"}`}
-      >
-        <span className="truncate">{displayValue || placeholder}</span>
-        <div className="flex items-center gap-1 flex-shrink-0 ml-2">
-          {value && (
-            <span
-              onClick={handleClear}
-              className="w-4 h-4 flex items-center justify-center text-slate-400 hover:text-slate-600 cursor-pointer"
-            >
-              <X className="w-3.5 h-3.5" />
-            </span>
-          )}
-          <ChevronDown
-            className={`w-4 h-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`}
-          />
-        </div>
-      </button>
-
-      {/* Dropdown */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.12 }}
-            className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden"
-          >
-            {/* Search box */}
-            <div className="flex items-center gap-2 px-3 py-2.5 border-b border-slate-100">
-              <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Cari kawasan..."
-                className="flex-1 text-sm outline-none bg-transparent text-slate-900 placeholder-slate-400"
-              />
-              {query && (
-                <button type="button" onClick={() => setQuery("")} className="text-slate-400 hover:text-slate-600">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-
-            {/* Options list */}
-            <ul className="max-h-52 overflow-y-auto py-1">
-              {filtered.length === 0 ? (
-                <li className="px-4 py-3 text-sm text-slate-400 text-center">
-                  Tidak ditemukan
-                </li>
-              ) : (
-                filtered.map((option) => (
-                  <li key={option}>
-                    <button
-                      type="button"
-                      onClick={() => handleSelect(option)}
-                      className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
-                        value === option
-                          ? "bg-primary/10 text-primary font-semibold"
-                          : "text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      {optionLabel(option)}
-                      {value === option && <CheckCircle2 className="w-4 h-4" />}
-                    </button>
-                  </li>
-                ))
-              )}
-            </ul>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
 // ─── Helper Components ────────────────────────────────────────────────────────
 function InputGroup({
   label,

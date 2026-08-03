@@ -26,6 +26,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/voting"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/system/configuration"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/masterdata"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/user"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
@@ -117,6 +118,7 @@ func main() {
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
 	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, log, val)
+	masterdata.SetupPublicRoutes(v1.Group("/public/master"), db, log)
 
 	// Protected Participant Routes
 	participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
@@ -139,6 +141,7 @@ func main() {
 	candidate.RegisterRoutes(v1, db, log, val, strg, cfg.MaxUploadSize, cfg)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, log, val, strg, cfg)
 	participant.SetupAdminRoutes(adminGroup.Group("/participants"), db, log, val)
+	masterdata.SetupAdminRoutes(adminGroup.Group("/master"), db, log)
 
 	// 8. Graceful Shutdown
 	go func() {

@@ -9,7 +9,6 @@ export const candidateSchema = z.object({
   // Step 2
   company_name: z.string().min(1, "Nama perusahaan harus diisi"),
   industrial_area: z.string().min(1, "Kawasan industri harus dipilih"),
-  other_industrial_area: z.string().optional(),
   job_title: z.string().min(1, "Jabatan harus diisi"),
   department: z.string().optional(),
 
@@ -18,14 +17,6 @@ export const candidateSchema = z.object({
   motivation: z.string().min(50, "Motivasi pencalonan harus diisi (min. 50 karakter)"),
   vision: z.string().min(20, "Visi harus diisi"),
   mission: z.string().min(20, "Misi harus diisi"),
-}).refine((data) => {
-  if (data.industrial_area === "Other" && (!data.other_industrial_area || data.other_industrial_area.trim() === "")) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Kawasan industri lainnya harus diisi",
-  path: ["other_industrial_area"],
 });
 
 export type CandidateFormData = z.infer<typeof candidateSchema>;
