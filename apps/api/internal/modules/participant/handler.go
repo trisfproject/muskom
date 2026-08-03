@@ -145,3 +145,11 @@ func (h *Handler) PublicRegister(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusCreated, "Registration successful", res, nil)
 }
+
+func (h *Handler) GetStats(c fiber.Ctx) error {
+	stats, err := h.service.GetStats(c.Context())
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve participant statistics", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Participant statistics retrieved", stats, nil)
+}

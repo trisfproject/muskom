@@ -22,6 +22,7 @@ type Service interface {
 	UpdateStatus(ctx context.Context, id string, req UpdateStatusRequest) (*Participant, error)
 	Delete(ctx context.Context, id string) error
 	PublicRegister(ctx context.Context, req PublicRegisterParticipantRequest) (*PublicRegisterParticipantResponse, error)
+	GetStats(ctx context.Context) (*ParticipantStats, error)
 }
 
 type service struct {
@@ -211,6 +212,10 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 
 	return &PublicRegisterParticipantResponse{
 		RegistrationNumber: regNum,
-		QRToken:            regNum, // Simple QR token using registration number
+		QRToken:            regNum,
 	}, nil
+}
+
+func (s *service) GetStats(ctx context.Context) (*ParticipantStats, error) {
+	return s.repo.GetStats(ctx)
 }

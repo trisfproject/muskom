@@ -2,6 +2,49 @@ package participant
 
 import "time"
 
+// ─── Stats DTOs ───────────────────────────────────────────────────────────────
+
+// LabelCount is a generic key-value count pair used for breakdown charts.
+type LabelCount struct {
+	Label string `db:"label" json:"label"`
+	Count int    `db:"count" json:"count"`
+}
+
+// DailyCount represents registrations grouped by calendar date.
+type DailyCount struct {
+	Date  string `db:"date" json:"date"`
+	Count int    `db:"count" json:"count"`
+}
+
+// RecentParticipant is a lightweight summary for the recent-registrations list.
+type RecentParticipant struct {
+	ID                 string    `db:"id" json:"id"`
+	RegistrationNumber string    `db:"registration_number" json:"registration_number"`
+	FullName           string    `db:"full_name" json:"full_name"`
+	CompanyName        string    `db:"company_name" json:"company_name"`
+	IndustrialArea     string    `db:"industrial_area" json:"industrial_area"`
+	Status             string    `db:"status" json:"status"`
+	CreatedAt          time.Time `db:"created_at" json:"created_at"`
+}
+
+// ParticipantStats is the aggregated response for the dashboard stats endpoint.
+type ParticipantStats struct {
+	// Summary counts
+	Total    int `json:"total"`
+	Pending  int `json:"pending"`
+	Verified int `json:"verified"`
+	Rejected int `json:"rejected"`
+	Today    int `json:"today"`
+
+	// Chart breakdowns
+	ByIndustrialArea []LabelCount `json:"by_industrial_area"`
+	ByCompany        []LabelCount `json:"by_company"`
+	ByDate           []DailyCount `json:"by_date"`
+
+	// Recent registrations (latest 10)
+	Recent []RecentParticipant `json:"recent"`
+}
+
 // Participant represents the participants table in the database
 type Participant struct {
 	ID                 string     `db:"id" json:"id"`

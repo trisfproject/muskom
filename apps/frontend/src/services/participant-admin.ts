@@ -29,6 +29,42 @@ export interface ParticipantAuditEntry {
   created_at: string;
 }
 
+// ─── Dashboard / Stats types ──────────────────────────────────────────────────
+
+export interface LabelCount {
+  label: string;
+  count: number;
+}
+
+export interface DailyCount {
+  date: string;  // "YYYY-MM-DD"
+  count: number;
+}
+
+export interface RecentParticipant {
+  id: string;
+  registration_number: string;
+  full_name: string;
+  company_name: string;
+  industrial_area: string;
+  status: string;
+  created_at: string;
+}
+
+export interface ParticipantStats {
+  total: number;
+  pending: number;
+  verified: number;
+  rejected: number;
+  today: number;
+  by_industrial_area: LabelCount[];
+  by_company: LabelCount[];
+  by_date: DailyCount[];
+  recent: RecentParticipant[];
+}
+
+// ─── Service ──────────────────────────────────────────────────────────────────
+
 export const adminParticipantService = {
   async listParticipants(params?: {
     page?: number;
@@ -55,5 +91,11 @@ export const adminParticipantService = {
     });
     // API returns { data: { items: [...], total: n } }
     return response.data?.data?.items || response.data?.data || [];
+  },
+
+  /** Aggregated dashboard stats — single round-trip, no N+1 */
+  async getStats(): Promise<ParticipantStats> {
+    const response = await api.get('/admin/participants/stats');
+    return response.data.data;
   },
 };

@@ -21,6 +21,7 @@ type Repository interface {
 	UpdateStatus(ctx context.Context, id string, status string) error
 	Delete(ctx context.Context, id string) error
 	FindByEmail(ctx context.Context, email string) (*Participant, error)
+	GetStats(ctx context.Context) (*ParticipantStats, error)
 }
 
 type repository struct {
@@ -166,3 +167,85 @@ func (r *repository) FindByEmail(ctx context.Context, email string) (*Participan
 	return &p, nil
 }
 
+func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
+	stats := &ParticipantStats{
+		ByIndustrialArea: []LabelCount{},
+		ByCompany:        []LabelCount{},
+		ByDate:           []DailyCount{},
+		Recent:           []RecentParticipant{},
+	}
+
+	// 1. Summary counts (single query, avoid N+1)
+	var rows []struct {
+		Status string `db:"status"`
+		Count  int    `db:"count"`
+		Today  int    `db:"today"`
+	}
+	err := r.db.SelectContext(ctx, &rows, `
+		SELECT
+			status,
+			COUNT(*) AS count,
+			COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE) AS today
+		FROM participants
+		WHERE deleted_at IS NULL
+		GROUP BY status
+	`)
+	if err != nil {
+		return nil, err
+	}
+	for _, r := range rows {
+		stats.Total += r.Count
+		stats.Today += r.Today
+		switch r.Status {
+		case "Pending":
+			stats.Pending = r.Count
+		case "Verified":
+			stats.Verified = r.Count
+		case "Rejected":
+			stats.Rejected = r.Count
+		}
+	}
+
+	// 2. By Industrial Area (top 10)
+	_ = r.db.SelectContext(ctx, &stats.ByIndustrialArea, `
+		SELECT industrial_area AS label, COUNT(*) AS count
+		FROM participants
+		WHERE deleted_at IS NULL
+		GROUP BY industrial_area
+		ORDER BY count DESC
+		LIMIT 10
+	`)
+
+	// 3. By Company (top 10)
+	_ = r.db.SelectContext(ctx, &stats.ByCompany, `
+		SELECT company_name AS label, COUNT(*) AS count
+		FROM participants
+		WHERE deleted_at IS NULL
+		GROUP BY company_name
+		ORDER BY count DESC
+		LIMIT 10
+	`)
+
+	// 4. Registrations by date — last 14 days
+	_ = r.db.SelectContext(ctx, &stats.ByDate, `
+		SELECT
+			TO_CHAR(created_at::date, 'YYYY-MM-DD') AS date,
+			COUNT(*) AS count
+		FROM participants
+		WHERE deleted_at IS NULL
+		  AND created_at >= CURRENT_DATE - INTERVAL '13 days'
+		GROUP BY date
+		ORDER BY date ASC
+	`)
+
+	// 5. 10 most recent participants
+	_ = r.db.SelectContext(ctx, &stats.Recent, `
+		SELECT id, registration_number, full_name, company_name, industrial_area, status, created_at
+		FROM participants
+		WHERE deleted_at IS NULL
+		ORDER BY created_at DESC
+		LIMIT 10
+	`)
+
+	return stats, nil
+}

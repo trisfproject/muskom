@@ -19,6 +19,7 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 
 	// Routes
 	router.Get("/", handler.GetAll)
+	router.Get("/stats", handler.GetStats) // aggregated dashboard stats — before /:id
 	router.Post("/", handler.Create)
 	router.Get("/:id", handler.GetByID)
 	router.Put("/:id", handler.Update)

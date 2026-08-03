@@ -23,7 +23,8 @@ import {
   MapPin,
   UserPlus,
   ShieldCheck,
-  Activity
+  Activity,
+  BarChart3
 } from "lucide-react";
 import Cookies from "js-cookie";
 
@@ -78,6 +79,7 @@ export function AdminSidebar() {
       title: "Registrasi",
       items: [
         { label: "Bakal Calon", href: "/admin/candidates", icon: UserPlus, exact: false },
+        { label: "Dashboard Peserta", href: "/admin/participants", icon: BarChart3, exact: false },
         { label: "Peserta", href: "/admin/registrations", icon: Users, exact: false },
         { label: "Verifikasi", href: "#coming-soon-verification", icon: ShieldCheck, comingSoon: true },
       ],
