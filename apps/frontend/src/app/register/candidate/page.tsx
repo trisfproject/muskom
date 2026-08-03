@@ -27,6 +27,8 @@ export default function CandidateRegisterPage() {
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("Idle");
   const [isLocked, setIsLocked] = useState(false);
+  const [candidateStatus, setCandidateStatus] = useState<string>("Draft");
+  const [revisionNotes, setRevisionNotes] = useState<string>("");
   
   const [successData, setSuccessData] = useState<{ regNumber: string; name: string } | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -52,13 +54,19 @@ export default function CandidateRegisterPage() {
         if (savedId) {
           try {
             const draft = await candidateRegistrationService.getDraft(savedId);
-            if (draft.status === "Submitted") {
+            if (draft.status !== "Draft" && draft.status !== "Revision Required") {
               setIsLocked(true);
               setSuccessData({ regNumber: draft.registration_number, name: draft.full_name });
+              // We'll store the full draft in a ref or state if needed, but let's just set step 6
               setStep(6);
+              // Store full draft status to show custom locked messages if needed
+              setCandidateId(draft.id);
             } else {
               setCandidateId(draft.id);
+              // We need to keep the status to show revision notes
               reset(draft as unknown as CandidateFormData);
+              setCandidateStatus(draft.status);
+              setRevisionNotes(draft.verification_notes || "");
               const docs = await candidateRegistrationService.getDocuments(draft.id);
               setDocuments(docs);
               // Start at step 2 if we have a valid draft
@@ -282,10 +290,10 @@ export default function CandidateRegisterPage() {
   if (isLocked && step < 6) {
     return (
       <main className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
-         <div className="bg-white border border-slate-200 rounded-3xl p-10 max-w-lg shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-3xl p-10 max-w-lg shadow-sm">
             <Lock className="w-16 h-16 text-slate-400 mx-auto mb-6" />
             <h1 className="text-2xl font-black mb-3">Pendaftaran Dikunci</h1>
-            <p className="text-slate-500 mb-6">Pendaftaran Anda telah di-submit dan sedang menunggu verifikasi panitia. Form ini tidak dapat diubah lagi.</p>
+            <p className="text-slate-500 mb-6">Pendaftaran Anda saat ini dalam status <strong>{candidateStatus || 'Submitted'}</strong> dan tidak dapat diubah.</p>
             <Link href="/" className="bg-slate-900 text-white font-bold py-3.5 px-6 rounded-xl hover:bg-slate-800">
               Kembali ke Beranda
             </Link>
@@ -341,6 +349,16 @@ export default function CandidateRegisterPage() {
               <span className={step >= 4 ? "text-primary" : ""}>4. Dokumen</span>
               <span className="w-8 border-t border-slate-200 mx-3" />
               <span className={step >= 5 ? "text-primary" : ""}>5. Preview</span>
+            </div>
+          </div>
+        )}
+
+        {candidateStatus === "Revision Required" && !isLocked && step < 6 && (
+          <div className="mb-8 p-4 bg-orange-50 border border-orange-200 rounded-xl flex items-start gap-3 text-orange-800">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-orange-500" />
+            <div>
+              <h4 className="font-bold text-sm">Revisi Diperlukan</h4>
+              <p className="text-sm mt-1 whitespace-pre-wrap">{revisionNotes || "Panitia meminta Anda untuk merevisi beberapa data pendaftaran. Silakan periksa kembali formulir dan dokumen Anda."}</p>
             </div>
           </div>
         )}

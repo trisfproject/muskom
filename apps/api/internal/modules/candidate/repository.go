@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strconv"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -25,6 +26,11 @@ type Repository interface {
 	GetDocumentByID(ctx context.Context, id string) (*CandidateDocument, error)
 	FindDocumentsByCandidateID(ctx context.Context, candidateID string) ([]CandidateDocument, error)
 	DeleteDocument(ctx context.Context, id string) error
+
+	// Admin operations
+	AdminListCandidates(ctx context.Context, statusFilter string, musyawarahFilter string, search string) ([]Candidate, error)
+	AdminUpdateStatus(ctx context.Context, id string, status string, notes *string) error
+	AdminUpdateDocumentStatus(ctx context.Context, docID string, status string, notes *string) error
 }
 
 type repository struct {
@@ -209,6 +215,73 @@ func (r *repository) FindDocumentsByCandidateID(ctx context.Context, candidateID
 func (r *repository) DeleteDocument(ctx context.Context, id string) error {
 	query := `UPDATE candidate_documents SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL`
 	res, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) AdminListCandidates(ctx context.Context, statusFilter string, musyawarahFilter string, search string) ([]Candidate, error) {
+	query := `SELECT * FROM candidates WHERE deleted_at IS NULL`
+	args := []interface{}{}
+	argID := 1
+
+	if statusFilter != "" {
+		query += ` AND status = $` + strconv.Itoa(argID)
+		args = append(args, statusFilter)
+		argID++
+	}
+
+	if musyawarahFilter != "" {
+		query += ` AND musyawarah_id = $` + strconv.Itoa(argID)
+		args = append(args, musyawarahFilter)
+		argID++
+	}
+
+	if search != "" {
+		query += ` AND (full_name ILIKE $` + strconv.Itoa(argID) + ` OR registration_number ILIKE $` + strconv.Itoa(argID) + `)`
+		args = append(args, "%"+search+"%")
+		argID++
+	}
+
+	query += ` ORDER BY created_at DESC`
+	var candidates []Candidate
+	err := r.db.SelectContext(ctx, &candidates, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if candidates == nil {
+		candidates = []Candidate{}
+	}
+	return candidates, nil
+}
+
+func (r *repository) AdminUpdateStatus(ctx context.Context, id string, status string, notes *string) error {
+	query := `UPDATE candidates SET status = $1, verification_notes = $2, updated_at = NOW() WHERE id = $3 AND deleted_at IS NULL`
+	res, err := r.db.ExecContext(ctx, query, status, notes, id)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) AdminUpdateDocumentStatus(ctx context.Context, docID string, status string, notes *string) error {
+	query := `UPDATE candidate_documents SET verification_status = $1, verification_notes = $2, updated_at = NOW() WHERE id = $3 AND deleted_at IS NULL`
+	res, err := r.db.ExecContext(ctx, query, status, notes, docID)
 	if err != nil {
 		return err
 	}

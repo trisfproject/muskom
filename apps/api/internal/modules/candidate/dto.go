@@ -84,6 +84,7 @@ type CandidateResponse struct {
 	Mission            *string    `json:"mission,omitempty"`
 	ProfilePhoto       *string                     `json:"profile_photo,omitempty"`
 	Status             string                      `json:"status"`
+	VerificationNotes  *string                     `json:"verification_notes,omitempty"`
 	CreatedAt          time.Time                   `json:"created_at"`
 	UpdatedAt          time.Time                   `json:"updated_at"`
 	Documents          []CandidateDocumentResponse `json:"documents,omitempty"`
@@ -91,11 +92,25 @@ type CandidateResponse struct {
 
 // CandidateDocumentResponse represents the response payload for a candidate document.
 type CandidateDocumentResponse struct {
-	ID               string    `json:"id"`
-	CandidateID      string    `json:"candidate_id"`
-	DocumentType     string    `json:"document_type"`
-	OriginalFilename string    `json:"original_filename"`
-	MimeType         string    `json:"mime_type"`
-	FileSize         int64     `json:"file_size"`
-	UploadedAt       time.Time `json:"uploaded_at"`
+	ID                 string    `json:"id"`
+	CandidateID        string    `json:"candidate_id"`
+	DocumentType       string    `json:"document_type"`
+	OriginalFilename   string    `json:"original_filename"`
+	MimeType           string    `json:"mime_type"`
+	FileSize           int64     `json:"file_size"`
+	UploadedAt         time.Time `json:"uploaded_at"`
+	VerificationStatus string    `json:"verification_status"`
+	VerificationNotes  *string   `json:"verification_notes,omitempty"`
+}
+
+// AdminVerifyCandidateRequest represents the payload for verifying a candidate
+type AdminVerifyCandidateRequest struct {
+	Status             string  `json:"status" validate:"required,oneof='Under Review' 'Revision Required' Verified Rejected"`
+	VerificationNotes  *string `json:"verification_notes"`
+}
+
+// AdminVerifyDocumentRequest represents the payload for verifying a candidate document
+type AdminVerifyDocumentRequest struct {
+	VerificationStatus string  `json:"verification_status" validate:"required,oneof=Valid Invalid"`
+	VerificationNotes  *string `json:"verification_notes"`
 }

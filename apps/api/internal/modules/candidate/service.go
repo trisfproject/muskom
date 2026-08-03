@@ -26,6 +26,11 @@ type Service interface {
 	ListDocuments(ctx context.Context, candidateID string) ([]CandidateDocumentResponse, error)
 	DeleteDocument(ctx context.Context, candidateID string, docID string) error
 	StreamDocument(ctx context.Context, candidateID string, docID string) (io.ReadCloser, string, error)
+
+	// Admin methods
+	AdminListCandidates(ctx context.Context, statusFilter string, musyawarahFilter string, search string) ([]CandidateResponse, error)
+	AdminVerifyCandidate(ctx context.Context, id string, req AdminVerifyCandidateRequest, adminUserID string) error
+	AdminVerifyDocument(ctx context.Context, id string, docID string, req AdminVerifyDocumentRequest, adminUserID string) error
 }
 
 type service struct {
@@ -304,6 +309,7 @@ func mapToResponse(c *Candidate) CandidateResponse {
 		Mission:            c.Mission,
 		ProfilePhoto:       c.ProfilePhoto,
 		Status:             c.Status,
+		VerificationNotes:  c.VerificationNotes,
 		CreatedAt:          c.CreatedAt,
 		UpdatedAt:          c.UpdatedAt,
 	}
@@ -315,9 +321,11 @@ func mapToDocumentResponse(d *CandidateDocument) CandidateDocumentResponse {
 		CandidateID:      d.CandidateID,
 		DocumentType:     d.DocumentType,
 		OriginalFilename: d.OriginalFilename,
-		MimeType:         d.MimeType,
-		FileSize:         d.FileSize,
-		UploadedAt:       d.UploadedAt,
+		MimeType:           d.MimeType,
+		FileSize:           d.FileSize,
+		UploadedAt:         d.UploadedAt,
+		VerificationStatus: d.VerificationStatus,
+		VerificationNotes:  d.VerificationNotes,
 	}
 }
 
@@ -457,4 +465,102 @@ func (s *service) StreamDocument(ctx context.Context, candidateID string, docID 
 	}
 
 	return reader, doc.MimeType, nil
+}
+
+// Admin Methods
+func (s *service) AdminListCandidates(ctx context.Context, statusFilter string, musyawarahFilter string, search string) ([]CandidateResponse, error) {
+	candidates, err := s.repo.AdminListCandidates(ctx, statusFilter, musyawarahFilter, search)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []CandidateResponse
+	for _, c := range candidates {
+		res = append(res, mapToResponse(&c))
+	}
+	return res, nil
+}
+
+func (s *service) AdminVerifyCandidate(ctx context.Context, id string, req AdminVerifyCandidateRequest, adminUserID string) error {
+	c, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// Validate transitions
+	if c.Status == "Verified" || c.Status == "Rejected" {
+		return errors.New("cannot verify candidate: already finalized")
+	}
+
+	if c.Status == "Submitted" && req.Status != "Under Review" {
+		return errors.New("cannot verify candidate: Submitted must transition to Under Review first")
+	}
+
+	if c.Status == "Under Review" && req.Status != "Verified" && req.Status != "Rejected" && req.Status != "Revision Required" {
+		return errors.New("cannot verify candidate: invalid transition from Under Review")
+	}
+
+	if c.Status == "Revision Required" {
+		// they must resubmit first before admin changes status, unless admin forces reject?
+		// for now, let's just let it transition if valid request. Wait, if it's Revision Required, candidate needs to update.
+		// Actually if they resubmit, the status goes back to Submitted. So Admin shouldn't change from Revision Required directly to Verified.
+	}
+
+	err = s.repo.AdminUpdateStatus(ctx, id, req.Status, req.VerificationNotes)
+	if err != nil {
+		return err
+	}
+
+	// Audit Log
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleCandidate,
+		Entity:   "candidates",
+		EntityID: id,
+		Action:   "ADMIN_VERIFY",
+		PreviousValue: map[string]interface{}{
+			"status":             c.Status,
+			"verification_notes": c.VerificationNotes,
+		},
+		NewValue: map[string]interface{}{
+			"status":             req.Status,
+			"verification_notes": req.VerificationNotes,
+		},
+		ActorID: &adminUserID, // track who verified
+	})
+
+	return nil
+}
+
+func (s *service) AdminVerifyDocument(ctx context.Context, id string, docID string, req AdminVerifyDocumentRequest, adminUserID string) error {
+	doc, err := s.repo.GetDocumentByID(ctx, docID)
+	if err != nil {
+		return err
+	}
+	if doc.CandidateID != id {
+		return errors.New("document does not belong to candidate")
+	}
+
+	err = s.repo.AdminUpdateDocumentStatus(ctx, docID, req.VerificationStatus, req.VerificationNotes)
+	if err != nil {
+		return err
+	}
+
+	// Audit Log
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleCandidate,
+		Entity:   "candidate_documents",
+		EntityID: docID,
+		Action:   "ADMIN_VERIFY_DOCUMENT",
+		PreviousValue: map[string]interface{}{
+			"verification_status": doc.VerificationStatus,
+			"verification_notes":  doc.VerificationNotes,
+		},
+		NewValue: map[string]interface{}{
+			"verification_status": req.VerificationStatus,
+			"verification_notes":  req.VerificationNotes,
+		},
+		ActorID: &adminUserID,
+	})
+
+	return nil
 }

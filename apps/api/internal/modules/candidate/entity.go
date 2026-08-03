@@ -28,6 +28,7 @@ type Candidate struct {
 	CreatedAt          time.Time  `db:"created_at"`
 	UpdatedAt          time.Time  `db:"updated_at"`
 	DeletedAt          *time.Time `db:"deleted_at"`
+	VerificationNotes  *string    `db:"verification_notes"`
 }
 
 // CandidateDocument represents an uploaded document for a candidate.
@@ -43,6 +44,8 @@ type CandidateDocument struct {
 	StorageProvider  string     `db:"storage_provider"`
 	StoragePath      string     `db:"storage_path"`
 	UploadedAt       time.Time  `db:"uploaded_at"`
-	UpdatedAt        time.Time  `db:"updated_at"`
-	DeletedAt        *time.Time `db:"deleted_at"`
+	UpdatedAt          time.Time  `db:"updated_at"`
+	DeletedAt          *time.Time `db:"deleted_at"`
+	VerificationStatus string     `db:"verification_status"`
+	VerificationNotes  *string    `db:"verification_notes"`
 }

@@ -24,6 +24,7 @@ export interface CandidateResponse {
   registration_number: string;
   full_name: string;
   status: string;
+  verification_notes?: string;
 }
 
 export const candidateRegistrationService = {

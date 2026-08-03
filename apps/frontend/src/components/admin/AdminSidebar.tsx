@@ -77,7 +77,7 @@ export function AdminSidebar() {
     {
       title: "Registrasi",
       items: [
-        { label: "Bakal Calon", href: "#coming-soon-candidate", icon: UserPlus, comingSoon: true },
+        { label: "Bakal Calon", href: "/admin/candidates", icon: UserPlus, exact: false },
         { label: "Peserta", href: "/admin/registrations", icon: Users, exact: false },
         { label: "Verifikasi", href: "#coming-soon-verification", icon: ShieldCheck, comingSoon: true },
       ],
