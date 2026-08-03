@@ -17,8 +17,18 @@ export function Hero({ data }: { data: HomeResponse | null }) {
   const description = data?.hero?.hero_description || identity?.website_description || "Platform pemilihan resmi. Membangun proses kepemimpinan yang transparan, terpercaya, dan akuntabel.";
 
   let ctaList = [
-    data?.cta?.candidate_registration,
-    data?.cta?.participant_registration,
+    data?.hero?.primary_cta_enabled ? {
+      label: data?.hero?.primary_cta_label,
+      url: data?.hero?.primary_cta_url,
+      open: true,
+      style: "primary"
+    } : null,
+    data?.hero?.secondary_cta_enabled ? {
+      label: data?.hero?.secondary_cta_label,
+      url: data?.hero?.secondary_cta_url,
+      open: true,
+      style: "outline"
+    } : null,
   ].filter(Boolean);
 
   if (config?.feature_flags && !config.feature_flags.enable_registration) {

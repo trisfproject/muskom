@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { websiteService, HeroSettings } from "@/services/website";
 import { Save, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AdminWebsiteHeroPage() {
   const [formData, setFormData] = useState<HeroSettings>({
@@ -22,7 +23,6 @@ export default function AdminWebsiteHeroPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -33,6 +33,7 @@ export default function AdminWebsiteHeroPage() {
         }
       } catch (err: unknown) {
         console.error("Failed to load hero settings:", err);
+        toast.error("Gagal mengambil konfigurasi hero");
       } finally {
         setLoading(false);
       }
@@ -43,13 +44,12 @@ export default function AdminWebsiteHeroPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    setMessage(null);
     try {
       const updated = await websiteService.updateHero(formData);
       setFormData(updated);
-      setMessage({ type: "success", text: "Hero section berhasil diperbarui." });
+      toast.success("Hero section berhasil diperbarui.");
     } catch (err: unknown) {
-      setMessage({ type: "error", text: "Gagal memperbarui hero section." });
+      toast.error("Gagal memperbarui hero section.");
     } finally {
       setSaving(false);
     }
@@ -73,22 +73,7 @@ export default function AdminWebsiteHeroPage() {
         </p>
       </div>
 
-      {message && (
-        <div
-          className={`mb-6 p-4 rounded-xl flex items-center gap-3 text-sm ${
-            message.type === "success"
-              ? "bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 text-primary"
-              : "bg-rose-500/10 border border-rose-500/20 text-rose-400"
-          }`}
-        >
-          {message.type === "success" ? (
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
-          ) : (
-            <AlertCircle className="w-5 h-5 shrink-0" />
-          )}
-          <span>{message.text}</span>
-        </div>
-      )}
+
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Main Content */}
