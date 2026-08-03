@@ -53,3 +53,22 @@ type UpdateParticipantRequest struct {
 type UpdateStatusRequest struct {
 	Status string `json:"status" validate:"required,oneof=Pending Verified Rejected Eligible"`
 }
+
+// PublicRegisterParticipantRequest represents the payload for the public registration wizard
+type PublicRegisterParticipantRequest struct {
+	MusyawarahID     string `json:"musyawarah_id" validate:"required,uuid"`
+	FullName         string `json:"full_name" validate:"required,max=255"`
+	Email            string `json:"email" validate:"required,email,max=255"`
+	Phone            string `json:"phone" validate:"required,max=50"`
+	Organization     string `json:"organization" validate:"required,max=255"`
+	Position         string `json:"position" validate:"required,max=255"`
+	MembershipNumber string `json:"membership_number" validate:"required,max=100"`
+	Province         string `json:"province" validate:"required,max=100"`
+	City             string `json:"city" validate:"required,max=100"`
+}
+
+// PublicRegisterParticipantResponse represents the response after successful public registration
+type PublicRegisterParticipantResponse struct {
+	RegistrationNumber string `json:"registration_number"`
+	QRToken            string `json:"qr_token"`
+}

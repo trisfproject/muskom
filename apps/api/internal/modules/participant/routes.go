@@ -25,3 +25,14 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 	router.Patch("/:id/status", handler.UpdateStatus)
 	router.Delete("/:id", handler.Delete)
 }
+
+// SetupPublicRoutes registers public participant endpoints
+func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator) {
+	repo := NewRepository(db)
+	auditRepo := audit.NewRepository(db)
+	auditSvc := audit.NewService(auditRepo, log)
+	svc := NewService(repo, auditSvc)
+	handler := NewHandler(svc, val)
+
+	router.Post("/register", handler.PublicRegister)
+}

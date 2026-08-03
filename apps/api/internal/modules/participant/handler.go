@@ -124,3 +124,27 @@ func (h *Handler) Delete(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusOK, "Participant deleted successfully", nil, nil)
 }
+
+func (h *Handler) PublicRegister(c fiber.Ctx) error {
+	var req PublicRegisterParticipantRequest
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+
+	if errs := ValidatePublicRegisterRequest(h.val, &req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	res, err := h.service.PublicRegister(c.Context(), req)
+	if err != nil {
+		if err == ErrDuplicateEmail {
+			return response.SendError(c, fiber.StatusConflict, "Email already registered", nil)
+		}
+		if err == ErrDuplicateMembershipNumber {
+			return response.SendError(c, fiber.StatusConflict, "Membership number already registered", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to register participant", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusCreated, "Registration successful", res, nil)
+}

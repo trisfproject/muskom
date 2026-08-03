@@ -19,3 +19,8 @@ func ValidateUpdateRequest(v *validator.Validator, req *UpdateParticipantRequest
 func ValidateStatusRequest(v *validator.Validator, req *UpdateStatusRequest) []response.ErrorDetail {
 	return v.ValidateStruct(req)
 }
+
+// ValidatePublicRegisterRequest validates the PublicRegisterParticipantRequest payload
+func ValidatePublicRegisterRequest(v *validator.Validator, req *PublicRegisterParticipantRequest) []response.ErrorDetail {
+	return v.ValidateStruct(req)
+}

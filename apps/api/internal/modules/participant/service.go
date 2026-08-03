@@ -2,8 +2,17 @@ package participant
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+)
+
+var (
+	ErrDuplicateEmail            = errors.New("email already registered")
+	ErrDuplicateMembershipNumber = errors.New("membership number already registered")
 )
 
 type Service interface {
@@ -13,6 +22,7 @@ type Service interface {
 	Update(ctx context.Context, id string, req UpdateParticipantRequest) (*Participant, error)
 	UpdateStatus(ctx context.Context, id string, req UpdateStatusRequest) (*Participant, error)
 	Delete(ctx context.Context, id string) error
+	PublicRegister(ctx context.Context, req PublicRegisterParticipantRequest) (*PublicRegisterParticipantResponse, error)
 }
 
 type service struct {
@@ -156,4 +166,57 @@ func (s *service) Delete(ctx context.Context, id string) error {
 	})
 
 	return nil
+}
+
+func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticipantRequest) (*PublicRegisterParticipantResponse, error) {
+	// Check for duplicate email
+	_, err := s.repo.FindByEmail(ctx, req.Email)
+	if err == nil {
+		return nil, ErrDuplicateEmail
+	} else if err != ErrNotFound {
+		return nil, err
+	}
+
+	// Check for duplicate membership number
+	_, err = s.repo.FindByMembershipNumber(ctx, req.MembershipNumber)
+	if err == nil {
+		return nil, ErrDuplicateMembershipNumber
+	} else if err != ErrNotFound {
+		return nil, err
+	}
+
+	// Generate unique registration number
+	regNum := fmt.Sprintf("PAR-%s-%s", strings.ToUpper(req.MusyawarahID[:4]), strings.ToUpper(uuid.New().String()[:8]))
+
+	p := &Participant{
+		MusyawarahID:       req.MusyawarahID,
+		RegistrationNumber: regNum,
+		FullName:           req.FullName,
+		Email:              req.Email,
+		Phone:              req.Phone,
+		Organization:       req.Organization,
+		Position:           req.Position,
+		MembershipNumber:   req.MembershipNumber,
+		Province:           req.Province,
+		City:               req.City,
+		Status:             "Pending",
+	}
+
+	err = s.repo.Create(ctx, p)
+	if err != nil {
+		return nil, err
+	}
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleParticipant,
+		Entity:   "participants",
+		EntityID: p.ID,
+		Action:   "PUBLIC_REGISTER",
+		NewValue: p,
+	})
+
+	return &PublicRegisterParticipantResponse{
+		RegistrationNumber: regNum,
+		QRToken:            regNum, // Simple QR token using registration number
+	}, nil
 }

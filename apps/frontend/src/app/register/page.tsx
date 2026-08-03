@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { ArrowLeft, ArrowRight, CheckCircle2, Download } from "lucide-react";
 import { landingService } from "@/services/landing";
+import { participantRegistrationService } from "@/services/participant-registration";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -13,12 +14,11 @@ const registerSchema = z.object({
   full_name: z.string().min(3, "Nama lengkap harus diisi (min. 3 karakter)"),
   email: z.string().email("Format email tidak valid"),
   phone: z.string().min(10, "Nomor telepon harus diisi (min. 10 angka)"),
-  company: z.string().min(1, "Perusahaan/Instansi harus diisi"),
-  job_title: z.string().min(1, "Jabatan harus diisi"),
-  participant_category: z.string().min(1, "Status keanggotaan harus dipilih"),
-  region: z.string().min(1, "Wilayah/Cabang harus diisi"),
-  community: z.string().min(1, "Nama komunitas/organisasi harus diisi"),
-  special_notes: z.string().optional(),
+  province: z.string().min(1, "Provinsi harus diisi"),
+  city: z.string().min(1, "Kota/Kabupaten harus diisi"),
+  organization: z.string().min(1, "Instansi / Organisasi harus diisi"),
+  membership_number: z.string().min(1, "Nomor Keanggotaan harus diisi"),
+  position: z.string().min(1, "Jabatan harus diisi")
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -28,32 +28,70 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successData, setSuccessData] = useState<{ regNumber: string; qr: string } | null>(null);
+  const [musyawarahId, setMusyawarahId] = useState<string>("");
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  const { register, handleSubmit, trigger, getValues, formState: { errors } } = useForm<RegisterFormData>({
+  const { register, handleSubmit, trigger, getValues, watch, reset, formState: { errors } } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     mode: "onTouched"
   });
 
+  useEffect(() => {
+    landingService.getPublicHome().then(data => {
+      if (data?.event?.id) {
+        setMusyawarahId(data.event.id);
+      }
+    });
+
+    const saved = localStorage.getItem('participant_registration_draft');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        reset(parsed);
+      } catch (e) {
+        console.error("Failed to parse draft", e);
+      }
+    }
+    setIsLoaded(true);
+  }, [reset]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    const subscription = watch((value) => {
+      localStorage.setItem('participant_registration_draft', JSON.stringify(value));
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, isLoaded]);
+
   const onNextStep1 = async () => {
-    const valid = await trigger(["full_name", "email", "phone", "company", "job_title", "participant_category"]);
+    const valid = await trigger(["full_name", "email", "phone", "province", "city"]);
     if (valid) setStep(2);
   };
 
   const onNextStep2 = async () => {
-    const valid = await trigger(["region", "community"]);
+    const valid = await trigger(["organization", "membership_number", "position"]);
     if (valid) setStep(3);
   };
 
   const onSubmit = async (data: RegisterFormData) => {
+    if (!musyawarahId) {
+      setError("Data acara belum dimuat. Mohon muat ulang halaman.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const res = await landingService.registerParticipant(data);
+      const res = await participantRegistrationService.register({
+        ...data,
+        musyawarah_id: musyawarahId
+      });
       if (res && res.registration_number) {
         setSuccessData({ 
-          regNumber: res.registration_number as string, 
-          qr: (res.qr_token as string) || "" 
+          regNumber: res.registration_number, 
+          qr: res.qr_token || "" 
         });
+        localStorage.removeItem('participant_registration_draft');
         setStep(4);
       } else {
         throw new Error("Gagal mendapatkan nomor registrasi");
@@ -67,6 +105,10 @@ export default function RegisterPage() {
   };
 
   const v = getValues();
+
+  if (!isLoaded) {
+    return null; // Prevents hydration mismatch
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 pb-24">
@@ -114,21 +156,13 @@ export default function RegisterPage() {
                     </InputGroup>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <InputGroup label="Instansi / Perusahaan" error={errors.company?.message}>
-                      <input {...register("company")} type="text" className="input-lg" placeholder="Nama Perusahaan" />
+                    <InputGroup label="Provinsi" error={errors.province?.message}>
+                      <input {...register("province")} type="text" className="input-lg" placeholder="Contoh: Jawa Barat" />
                     </InputGroup>
-                    <InputGroup label="Jabatan" error={errors.job_title?.message}>
-                      <input {...register("job_title")} type="text" className="input-lg" placeholder="CTO, Manager, dll" />
+                    <InputGroup label="Kota/Kabupaten" error={errors.city?.message}>
+                      <input {...register("city")} type="text" className="input-lg" placeholder="Contoh: Bandung" />
                     </InputGroup>
                   </div>
-                  <InputGroup label="Status Keanggotaan KOMITKABE" error={errors.participant_category?.message}>
-                    <select {...register("participant_category")} className="input-lg bg-white">
-                      <option value="">Pilih Status</option>
-                      <option value="MEMBER">Anggota Aktif</option>
-                      <option value="NON_MEMBER">Non-Anggota / Umum</option>
-                      <option value="VIP">Tamu Undangan (VIP)</option>
-                    </select>
-                  </InputGroup>
                 </div>
 
                 <div className="mt-10 fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 sm:relative sm:p-0 sm:border-0 sm:bg-transparent">
@@ -142,17 +176,17 @@ export default function RegisterPage() {
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
                 <h1 className="text-3xl font-black tracking-tight mb-2">Informasi Keanggotaan</h1>
-                <p className="text-slate-500 mb-8">Lengkapi data asal wilayah dan komunitas Anda.</p>
+                <p className="text-slate-500 mb-8">Lengkapi data organisasi dan keanggotaan Anda.</p>
 
                 <div className="space-y-5">
-                  <InputGroup label="Wilayah / Cabang" error={errors.region?.message}>
-                    <input {...register("region")} type="text" className="input-lg" placeholder="Contoh: Jakarta Pusat" />
+                  <InputGroup label="Instansi / Organisasi" error={errors.organization?.message}>
+                    <input {...register("organization")} type="text" className="input-lg" placeholder="Nama Instansi/Organisasi" />
                   </InputGroup>
-                  <InputGroup label="Nama Komunitas" error={errors.community?.message}>
-                    <input {...register("community")} type="text" className="input-lg" placeholder="Contoh: IT Security Club" />
+                  <InputGroup label="Nomor Keanggotaan" error={errors.membership_number?.message}>
+                    <input {...register("membership_number")} type="text" className="input-lg" placeholder="Nomor Anggota" />
                   </InputGroup>
-                  <InputGroup label="Catatan Tambahan (Opsional)" error={errors.special_notes?.message}>
-                    <textarea {...register("special_notes")} rows={3} className="input-lg resize-none" placeholder="Kebutuhan diet, aksesibilitas, dll" />
+                  <InputGroup label="Jabatan" error={errors.position?.message}>
+                    <input {...register("position")} type="text" className="input-lg" placeholder="Contoh: Ketua Cabang" />
                   </InputGroup>
                 </div>
 
@@ -176,12 +210,12 @@ export default function RegisterPage() {
                   <ReviewRow label="Nama Lengkap" value={v.full_name} onClick={() => setStep(1)} />
                   <ReviewRow label="Email" value={v.email} onClick={() => setStep(1)} />
                   <ReviewRow label="Nomor Telepon" value={v.phone} onClick={() => setStep(1)} />
-                  <ReviewRow label="Instansi & Jabatan" value={`${v.company} - ${v.job_title}`} onClick={() => setStep(1)} />
-                  <ReviewRow label="Status Keanggotaan" value={v.participant_category} onClick={() => setStep(1)} />
+                  <ReviewRow label="Provinsi & Kota" value={`${v.province} - ${v.city}`} onClick={() => setStep(1)} />
+                  
                   <div className="border-t border-slate-100 pt-6 space-y-6">
-                    <ReviewRow label="Wilayah" value={v.region} onClick={() => setStep(2)} />
-                    <ReviewRow label="Komunitas" value={v.community} onClick={() => setStep(2)} />
-                    <ReviewRow label="Catatan Tambahan" value={v.special_notes || "-"} onClick={() => setStep(2)} />
+                    <ReviewRow label="Organisasi" value={v.organization} onClick={() => setStep(2)} />
+                    <ReviewRow label="Nomor Keanggotaan" value={v.membership_number} onClick={() => setStep(2)} />
+                    <ReviewRow label="Jabatan" value={v.position} onClick={() => setStep(2)} />
                   </div>
                 </div>
 

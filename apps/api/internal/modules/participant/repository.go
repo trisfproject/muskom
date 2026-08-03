@@ -20,6 +20,8 @@ type Repository interface {
 	Update(ctx context.Context, p *Participant) error
 	UpdateStatus(ctx context.Context, id string, status string) error
 	Delete(ctx context.Context, id string) error
+	FindByEmail(ctx context.Context, email string) (*Participant, error)
+	FindByMembershipNumber(ctx context.Context, membershipNumber string) (*Participant, error)
 }
 
 type repository struct {
@@ -149,4 +151,30 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 		return ErrNotFound
 	}
 	return nil
+}
+
+func (r *repository) FindByEmail(ctx context.Context, email string) (*Participant, error) {
+	query := `SELECT * FROM participants WHERE email = $1 AND deleted_at IS NULL LIMIT 1`
+	var p Participant
+	err := r.db.GetContext(ctx, &p, query, email)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r *repository) FindByMembershipNumber(ctx context.Context, membershipNumber string) (*Participant, error) {
+	query := `SELECT * FROM participants WHERE membership_number = $1 AND deleted_at IS NULL LIMIT 1`
+	var p Participant
+	err := r.db.GetContext(ctx, &p, query, membershipNumber)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &p, nil
 }
