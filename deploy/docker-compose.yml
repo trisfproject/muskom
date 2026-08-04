@@ -52,6 +52,11 @@ services:
     container_name: muskom-frontend
     restart: unless-stopped
     env_file: .env
+    environment:
+      # Override PORT from .env (which is 8080 for the API).
+      # Next.js standalone server must always bind on 3000 to match nginx upstream.
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
     depends_on:
       - api
 

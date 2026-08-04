@@ -24,9 +24,7 @@ import {
   UserPlus,
   ShieldCheck,
   Activity,
-  BarChart3,
-  Building2,
-  Briefcase
+  BarChart3
 } from "lucide-react";
 import Cookies from "js-cookie";
 
@@ -84,15 +82,6 @@ export function AdminSidebar() {
         { label: "Dashboard Peserta", href: "/admin/participants", icon: BarChart3, exact: false },
         { label: "Peserta", href: "/admin/registrations", icon: Users, exact: false },
         { label: "Verifikasi", href: "#coming-soon-verification", icon: ShieldCheck, comingSoon: true },
-      ],
-    },
-    {
-      title: "Master Data",
-      items: [
-        { label: "Kawasan Industri", href: "/admin/master/industrial-areas", icon: MapPin, exact: false },
-        { label: "Perusahaan", href: "/admin/master/companies", icon: Building2, exact: false },
-        { label: "Jabatan", href: "/admin/master/job-titles", icon: Briefcase, exact: false },
-        { label: "Departemen", href: "/admin/master/departments", icon: Building2, exact: false },
       ],
     },
     {
