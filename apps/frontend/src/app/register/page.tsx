@@ -40,7 +40,7 @@ interface SuccessInfo {
 
 const STEPS = [
   { id: 1, label: "Personal" },
-  { id: 2, label: "Pekerjaan" },
+  { id: 2, label: "Profesi" },
   { id: 3, label: "Review" },
 ];
 
@@ -206,8 +206,8 @@ export default function RegisterPage() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 pb-32">
       {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200">
-        <div className="max-w-[680px] mx-auto px-5 h-14 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200">
+        <div className="max-w-[800px] mx-auto px-6 h-16 flex items-center justify-between">
           <Link
             href="/"
             className="text-sm font-semibold text-slate-500 hover:text-slate-900 flex items-center gap-1.5 transition-colors"
@@ -248,50 +248,16 @@ export default function RegisterPage() {
         </div>
       </header>
 
-      <div className="max-w-[680px] mx-auto px-5 pt-8">
+      <div className="max-w-[800px] mx-auto px-6 pt-10">
         {/* PROGRESS STEPPER */}
         {step < 4 && (
-          <div className="mb-8">
-            <div className="flex items-center">
-              {STEPS.map((s, idx) => (
-                <div key={s.id} className="flex items-center flex-1 last:flex-none">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-                        step > s.id
-                          ? "bg-emerald-500 text-white"
-                          : step === s.id
-                          ? "bg-primary text-white ring-4 ring-primary/20"
-                          : "bg-slate-200 text-slate-400"
-                      }`}
-                    >
-                      {step > s.id ? (
-                        <CheckCircle2 className="w-4 h-4" />
-                      ) : (
-                        s.id
-                      )}
-                    </div>
-                    <span
-                      className={`mt-1.5 text-xs font-semibold transition-colors ${
-                        step === s.id
-                          ? "text-primary"
-                          : step > s.id
-                          ? "text-emerald-600"
-                          : "text-slate-400"
-                      }`}
-                    >
-                      {s.label}
-                    </span>
-                  </div>
-                  {idx < STEPS.length - 1 && (
-                    <div
-                      className={`flex-1 h-0.5 mb-5 mx-2 transition-colors duration-300 ${
-                        step > s.id ? "bg-emerald-400" : "bg-slate-200"
-                      }`}
-                    />
-                  )}
-                </div>
-              ))}
+          <div className="mb-10 overflow-x-auto pb-4 hide-scrollbar">
+            <div className="flex items-center text-xs font-semibold uppercase tracking-widest text-slate-400 min-w-max">
+              <span className={step >= 1 ? "text-primary" : ""}>1. Personal</span>
+              <span className="w-8 border-t border-slate-200 mx-3" />
+              <span className={step >= 2 ? "text-primary" : ""}>2. Profesi</span>
+              <span className="w-8 border-t border-slate-200 mx-3" />
+              <span className={step >= 3 ? "text-primary" : ""}>3. Review</span>
             </div>
           </div>
         )}
@@ -307,14 +273,14 @@ export default function RegisterPage() {
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.2 }}
               >
-                <h1 className="text-2xl font-black tracking-tight mb-1">
+                <h1 className="text-3xl font-black tracking-tight mb-2">
                   Informasi Personal
                 </h1>
-                <p className="text-slate-500 text-sm mb-7">
+                <p className="text-slate-500 mb-8">
                   Mohon isi data diri Anda dengan benar.
                 </p>
 
-                <div className="space-y-5">
+                <div className="space-y-6 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <InputGroup label="Nama Lengkap" required error={errors.full_name?.message}>
                       <input
@@ -360,6 +326,12 @@ export default function RegisterPage() {
                     </InputGroup>
                   </div>
                 </div>
+
+                <div className="mt-8 flex justify-end">
+                  <button type="button" onClick={onNextStep1} disabled={saveStatus === "saving"} className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-10 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
+                    {saveStatus === "saving" ? "Membuat Draft..." : "Lanjutkan"} <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
               </motion.div>
             )}
 
@@ -372,14 +344,14 @@ export default function RegisterPage() {
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.2 }}
               >
-                <h1 className="text-2xl font-black tracking-tight mb-1">
-                  Informasi Pekerjaan
+                <h1 className="text-3xl font-black tracking-tight mb-2">
+                  Informasi Profesional
                 </h1>
-                <p className="text-slate-500 text-sm mb-7">
+                <p className="text-slate-500 mb-8">
                   Lengkapi data pekerjaan Anda saat ini.
                 </p>
 
-                <div className="space-y-5">
+                <div className="space-y-6 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
                   <InputGroup label="Kawasan Industri" required error={errors.industrial_area?.message}>
                     <Controller
                       name="industrial_area"
@@ -456,6 +428,15 @@ export default function RegisterPage() {
                     </InputGroup>
                   </div>
                 </div>
+
+                <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4">
+                  <button type="button" onClick={() => setStep(1)} className="w-full sm:w-auto bg-slate-100 text-slate-700 font-bold py-4 px-10 rounded-xl hover:bg-slate-200 transition-colors">
+                    Kembali
+                  </button>
+                  <button type="button" onClick={onNextStep2} className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-10 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors">
+                    Lanjutkan <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
               </motion.div>
             )}
 
@@ -468,10 +449,10 @@ export default function RegisterPage() {
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.2 }}
               >
-                <h1 className="text-2xl font-black tracking-tight mb-1">
+                <h1 className="text-3xl font-black tracking-tight mb-2">
                   Review Data
                 </h1>
-                <p className="text-slate-500 text-sm mb-7">
+                <p className="text-slate-500 mb-8">
                   Pastikan seluruh data sudah benar sebelum mendaftar.
                 </p>
 
@@ -504,7 +485,7 @@ export default function RegisterPage() {
                   <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                     <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50 border-b border-slate-100">
                       <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        Informasi Pekerjaan
+                        Informasi Profesional
                       </h3>
                       <button
                         type="button"
@@ -549,6 +530,15 @@ export default function RegisterPage() {
                     </div>
                   </div>
                 )}
+
+                <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4">
+                  <button type="button" onClick={() => setStep(2)} disabled={loading} className="w-full sm:w-auto bg-slate-100 text-slate-700 font-bold py-4 px-10 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50">
+                    Kembali
+                  </button>
+                  <button type="button" onClick={handleSubmit(onSubmit)} disabled={loading || saveStatus === "saving"} className="w-full sm:w-auto bg-emerald-600 text-white font-bold py-4 px-10 rounded-xl hover:bg-emerald-700 flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shadow-lg shadow-emerald-600/20">
+                    {loading ? "Memproses..." : "Kirim Pendaftaran"}
+                  </button>
+                </div>
               </motion.div>
             )}
 
@@ -560,7 +550,7 @@ export default function RegisterPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-12 text-center shadow-sm">
+                <div className="bg-white border border-slate-200 rounded-[2rem] p-8 sm:p-14 text-center shadow-xl shadow-slate-200/50">
                   <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
                     <CheckCircle2 className="w-9 h-9 text-emerald-600" />
                   </div>
@@ -587,18 +577,18 @@ export default function RegisterPage() {
                     </div>
                   </div>
 
-                  <div className="mt-8 flex flex-col sm:flex-row items-stretch gap-3">
+                  <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
                     <button
                       type="button"
                       onClick={resetForm}
-                      className="flex-1 flex items-center justify-center gap-2 bg-slate-100 text-slate-700 font-bold py-3.5 px-5 rounded-xl hover:bg-slate-200 transition-colors text-sm"
+                      className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-8 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary/20"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-5 h-5" />
                       Daftarkan Peserta Lain
                     </button>
                     <Link
                       href="/"
-                      className="flex-1 flex items-center justify-center bg-primary text-white font-bold py-3.5 px-5 rounded-xl hover:bg-primary/90 transition-colors text-sm"
+                      className="w-full sm:w-auto bg-slate-100 text-slate-700 font-bold py-4 px-8 rounded-xl hover:bg-slate-200 flex items-center justify-center gap-2 transition-colors"
                     >
                       Kembali ke Beranda
                     </Link>
@@ -610,71 +600,7 @@ export default function RegisterPage() {
         </form>
       </div>
 
-      {/* ─── FIXED BOTTOM ACTION BAR ─── */}
-      <AnimatePresence>
-        {step < 4 && (
-          <motion.div
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-slate-200 p-4"
-          >
-            <div className="max-w-[680px] mx-auto flex gap-3">
-              {step > 1 && (
-                <button
-                  type="button"
-                  onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3 | 4)}
-                  disabled={loading}
-                  className="flex-shrink-0 bg-slate-100 text-slate-700 font-bold py-3.5 px-5 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50 text-sm"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                </button>
-              )}
-
-              {step === 1 && (
-                <button
-                  type="button"
-                  onClick={onNextStep1}
-                  className="flex-1 bg-primary text-white font-bold py-3.5 px-6 rounded-xl hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors text-sm"
-                >
-                  Lanjutkan <ArrowRight className="w-4 h-4" />
-                </button>
-              )}
-              {step === 2 && (
-                <button
-                  type="button"
-                  onClick={onNextStep2}
-                  className="flex-1 bg-primary text-white font-bold py-3.5 px-6 rounded-xl hover:bg-primary/90 flex items-center justify-center gap-2 transition-colors text-sm"
-                >
-                  Review Data <ArrowRight className="w-4 h-4" />
-                </button>
-              )}
-              {step === 3 && (
-                <button
-                  type="submit"
-                  form=""
-                  onClick={handleSubmit(onSubmit)}
-                  disabled={loading}
-                  className="flex-1 bg-emerald-600 text-white font-bold py-3.5 px-6 rounded-xl hover:bg-emerald-700 flex items-center justify-center gap-2 transition-colors disabled:opacity-60 text-sm shadow-lg shadow-emerald-600/20"
-                >
-                  {loading ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      Memproses...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      Selesaikan Pendaftaran
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* (Action bar removed to match candidate UI) */}
 
       <style dangerouslySetInnerHTML={{
         __html: `
