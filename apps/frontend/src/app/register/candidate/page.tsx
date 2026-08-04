@@ -8,10 +8,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { candidateSchema, CandidateFormData } from "./schema";
 import { candidateRegistrationService, CandidateDocumentResponse } from "@/services/candidate-registration";
-import { publicMasterDataService, IndustrialArea, Company, JobTitle, Department } from "@/services/master-data";
 import { landingService } from "@/services/landing";
-import { SearchableSelect } from "@/components/ui/searchable-select";
-import { Controller } from "react-hook-form";
 
 const LOCAL_DRAFT_KEY = "muskom_candidate_local_draft";
 const ID_DRAFT_KEY = "muskom_candidate_id";
@@ -36,12 +33,6 @@ export default function CandidateRegisterPage() {
   const [successData, setSuccessData] = useState<{ regNumber: string; name: string } | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Master Data States
-  const [masterAreas, setMasterAreas] = useState<IndustrialArea[]>([]);
-  const [masterCompanies, setMasterCompanies] = useState<Company[]>([]);
-  const [masterJobTitles, setMasterJobTitles] = useState<JobTitle[]>([]);
-  const [masterDepartments, setMasterDepartments] = useState<Department[]>([]);
-
   const { register, handleSubmit, trigger, getValues, watch, reset, control, formState: { errors } } = useForm<CandidateFormData>({
     resolver: zodResolver(candidateSchema),
     mode: "onTouched"
@@ -57,18 +48,6 @@ export default function CandidateRegisterPage() {
         // Fetch Event ID
         const res = await landingService.getPublicHome();
         if (res?.event?.id) setMusyawarahId(res.event.id);
-
-        // Fetch Master Data
-        const [areas, comps, jobs, depts] = await Promise.all([
-          publicMasterDataService.getIndustrialAreas(),
-          publicMasterDataService.getCompanies(),
-          publicMasterDataService.getJobTitles(),
-          publicMasterDataService.getDepartments()
-        ]);
-        setMasterAreas(areas);
-        setMasterCompanies(comps);
-        setMasterJobTitles(jobs);
-        setMasterDepartments(depts);
 
         // Check if there is an active backend draft
         const savedId = localStorage.getItem(ID_DRAFT_KEY);

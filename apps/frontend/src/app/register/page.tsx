@@ -9,9 +9,6 @@ import { landingService } from "@/services/landing";
 import { participantRegistrationService } from "@/services/participant-registration";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { SearchableSelect } from "@/components/ui/searchable-select";
-
-import { publicMasterDataService, IndustrialArea, Company, JobTitle, Department } from "@/services/master-data";
 
 const registerSchema = z
   .object({
@@ -23,7 +20,7 @@ const registerSchema = z
       .min(9, "Nomor WhatsApp harus diisi (min. 9 angka)")
       .regex(/^[0-9+\-\s()]+$/, "Format nomor tidak valid"),
     company_name: z.string().min(1, "Nama perusahaan harus diisi"),
-    industrial_area: z.string().min(1, "Kawasan industri harus dipilih"),
+    industrial_area: z.string().min(1, "Kawasan industri harus diisi"),
     job_title: z.string().min(1, "Jabatan harus diisi"),
     department: z.string().optional(),
   });
@@ -55,43 +52,10 @@ export default function RegisterPage() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Master Data States
-  const [masterAreas, setMasterAreas] = useState<IndustrialArea[]>([]);
-  const [masterCompanies, setMasterCompanies] = useState<Company[]>([]);
-  const [masterJobTitles, setMasterJobTitles] = useState<JobTitle[]>([]);
-  const [masterDepartments, setMasterDepartments] = useState<Department[]>([]);
-
-  const {
-    register,
-    handleSubmit,
-    trigger,
-    getValues,
-    watch,
-    reset,
-    control,
-    formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    mode: "onTouched",
-  });
-
   useEffect(() => {
     landingService.getPublicHome().then((data) => {
       if (data?.event?.id) setMusyawarahId(data.event.id);
       if (data?.event?.name) setMusyawarahName(data.event.name);
-    });
-
-    // Fetch Master Data
-    Promise.all([
-      publicMasterDataService.getIndustrialAreas(),
-      publicMasterDataService.getCompanies(),
-      publicMasterDataService.getJobTitles(),
-      publicMasterDataService.getDepartments()
-    ]).then(([areas, comps, jobs, depts]) => {
-      setMasterAreas(areas);
-      setMasterCompanies(comps);
-      setMasterJobTitles(jobs);
-      setMasterDepartments(depts);
     });
 
     const saved = localStorage.getItem("participant_registration_draft");
@@ -352,78 +316,43 @@ export default function RegisterPage() {
                 </p>
 
                 <div className="space-y-6 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
-                  <InputGroup label="Kawasan Industri" required error={errors.industrial_area?.message}>
-                    <Controller
-                      name="industrial_area"
-                      control={control}
-                      render={({ field }) => (
-                        <SearchableSelect
-                          id="industrial_area"
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                          options={masterAreas.map(a => a.name)}
-                          placeholder="Pilih kawasan industri..."
-                          hasError={!!errors.industrial_area}
-                        />
-                      )}
+                  <InputGroup label="Nama Perusahaan" required error={errors.company_name?.message}>
+                    <input
+                      {...register("company_name")}
+                      type="text"
+                      id="company_name"
+                      className="input-lg"
+                      placeholder="Masukkan nama perusahaan"
                     />
                   </InputGroup>
 
-                  <InputGroup label="Nama Perusahaan" required error={errors.company_name?.message}>
-                    <Controller
-                      name="company_name"
-                      control={control}
-                      render={({ field }) => (
-                        <SearchableSelect
-                          id="company_name"
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                          options={masterCompanies
-                            .filter(c => {
-                              // Filter by selected industrial area if any
-                              const selectedArea = watch("industrial_area");
-                              if (!selectedArea) return true;
-                              return c.industrial_area === selectedArea;
-                            })
-                            .map(c => c.name)}
-                          placeholder="Pilih perusahaan..."
-                          hasError={!!errors.company_name}
-                        />
-                      )}
+                  <InputGroup label="Kawasan Industri" required error={errors.industrial_area?.message}>
+                    <input
+                      {...register("industrial_area")}
+                      type="text"
+                      id="industrial_area"
+                      className="input-lg"
+                      placeholder="Masukkan kawasan industri"
                     />
                   </InputGroup>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <InputGroup label="Jabatan" required error={errors.job_title?.message}>
-                      <Controller
-                        name="job_title"
-                        control={control}
-                        render={({ field }) => (
-                          <SearchableSelect
-                            id="job_title"
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                            options={masterJobTitles.map(j => j.name)}
-                            placeholder="Pilih jabatan..."
-                            hasError={!!errors.job_title}
-                          />
-                        )}
+                      <input
+                        {...register("job_title")}
+                        type="text"
+                        id="job_title"
+                        className="input-lg"
+                        placeholder="Masukkan jabatan"
                       />
                     </InputGroup>
                     <InputGroup label="Departemen" error={errors.department?.message}>
-                      <Controller
-                        name="department"
-                        control={control}
-                        render={({ field }) => (
-                          <SearchableSelect
-                            id="department"
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                            options={masterDepartments.map(d => d.name)}
-                            placeholder="Pilih departemen... (Opsional)"
-                            hasError={!!errors.department}
-                          />
-                        )}
+                      <input
+                        {...register("department")}
+                        type="text"
+                        id="department"
+                        className="input-lg"
+                        placeholder="Masukkan departemen (Opsional)"
                       />
                     </InputGroup>
                   </div>

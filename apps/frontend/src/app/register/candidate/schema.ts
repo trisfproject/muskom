@@ -8,7 +8,7 @@ export const candidateSchema = z.object({
   phone: z.string().min(10, "Nomor telepon harus diisi (min. 10 angka)"),
   // Step 2
   company_name: z.string().min(1, "Nama perusahaan harus diisi"),
-  industrial_area: z.string().min(1, "Kawasan industri harus dipilih"),
+  industrial_area: z.string().min(1, "Kawasan industri harus diisi"),
   job_title: z.string().min(1, "Jabatan harus diisi"),
   department: z.string().optional(),
 
