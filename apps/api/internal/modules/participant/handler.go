@@ -140,6 +140,9 @@ func (h *Handler) PublicRegister(c fiber.Ctx) error {
 		if err == ErrDuplicateEmail {
 			return response.SendError(c, fiber.StatusConflict, "Email already registered", nil)
 		}
+		if err == ErrQuotaReached {
+			return response.SendError(c, fiber.StatusConflict, "Pendaftaran peserta telah ditutup karena kuota telah terpenuhi.", nil)
+		}
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to register participant", nil)
 	}
 

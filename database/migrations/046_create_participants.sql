@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS participants (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    musyawarah_id UUID NOT NULL REFERENCES musyawarah(id) ON DELETE RESTRICT,
+    musyawarah_id UUID NOT NULL REFERENCES events(id) ON DELETE RESTRICT,
     registration_number VARCHAR(100) NOT NULL UNIQUE,
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,

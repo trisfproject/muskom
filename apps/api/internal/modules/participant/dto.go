@@ -43,6 +43,9 @@ type ParticipantStats struct {
 
 	// Recent registrations (latest 10)
 	Recent []RecentParticipant `json:"recent"`
+
+	// Configuration
+	Limit *int `json:"limit"`
 }
 
 // Participant represents the participants table in the database
@@ -97,7 +100,8 @@ type UpdateParticipantRequest struct {
 
 // UpdateStatusRequest represents the payload for updating a participant's status
 type UpdateStatusRequest struct {
-	Status string `json:"status" validate:"required,oneof=Pending Verified Rejected Eligible"`
+	Status string  `json:"status" validate:"required,oneof=Pending Verified Rejected Eligible"`
+	Reason *string `json:"reason" validate:"omitempty,max=500"`
 }
 
 // PublicRegisterParticipantRequest represents the payload for the public registration wizard

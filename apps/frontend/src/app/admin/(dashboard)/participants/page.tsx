@@ -360,12 +360,27 @@ export default function ParticipantDashboardPage() {
       </div>
 
       {/* STAT CARDS */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <StatCard
-          label="Total Peserta" value={stats.total}
-          icon={Users} colorBg="bg-blue-50 dark:bg-blue-900/20" colorIcon="text-blue-500"
-          href="/admin/registrations"
-        />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        {stats.limit && stats.limit > 0 ? (
+          <>
+            <StatCard
+              label="Kuota Peserta" value={stats.limit}
+              icon={Users} colorBg="bg-indigo-50 dark:bg-indigo-900/20" colorIcon="text-indigo-500"
+            />
+            <StatCard
+              label="Total Terdaftar" value={stats.total}
+              sub={`Sisa ${stats.limit - stats.total}`}
+              icon={Users} colorBg="bg-blue-50 dark:bg-blue-900/20" colorIcon="text-blue-500"
+              href="/admin/registrations"
+            />
+          </>
+        ) : (
+          <StatCard
+            label="Total Peserta" value={stats.total}
+            icon={Users} colorBg="bg-blue-50 dark:bg-blue-900/20" colorIcon="text-blue-500"
+            href="/admin/registrations"
+          />
+        )}
         <StatCard
           label="Pending" value={stats.pending}
           icon={Clock} colorBg="bg-amber-50 dark:bg-amber-900/20" colorIcon="text-amber-500"

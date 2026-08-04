@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
@@ -51,9 +52,17 @@ func TestHandler_UpdateConfig(t *testing.T) {
 	app.Put("/musyawarah", handler.Update)
 
 	t.Run("Success", func(t *testing.T) {
-		reqBody := UpdateMusyawarahRequest{Name: "Name", Slug: "slug"}
+		theme := "Theme"
+		desc := "Desc"
+		loc := "Loc"
+		now := time.Now()
+		reqBody := UpdateMusyawarahRequest{
+			Name: "Name", Slug: "slug", Theme: &theme, Description: &desc, LocationName: &loc,
+			EventDate: &now, RegistrationOpen: &now, RegistrationClose: &now,
+			CandidateRegistrationOpen: &now, CandidateRegistrationClose: &now,
+		}
 		body, _ := json.Marshal(reqBody)
-		mockSvc.On("UpdateConfig", mock.Anything, &reqBody).Return(&MusyawarahResponse{}, nil).Once()
+		mockSvc.On("UpdateConfig", mock.Anything, mock.AnythingOfType("*musyawarah.UpdateMusyawarahRequest")).Return(&MusyawarahResponse{}, nil).Once()
 
 		req := httptest.NewRequest("PUT", "/musyawarah", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -69,9 +78,17 @@ func TestHandler_UpdateConfig(t *testing.T) {
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		reqBody := UpdateMusyawarahRequest{Name: "Name", Slug: "slug"}
+		theme := "Theme"
+		desc := "Desc"
+		loc := "Loc"
+		now := time.Now()
+		reqBody := UpdateMusyawarahRequest{
+			Name: "Name", Slug: "slug", Theme: &theme, Description: &desc, LocationName: &loc,
+			EventDate: &now, RegistrationOpen: &now, RegistrationClose: &now,
+			CandidateRegistrationOpen: &now, CandidateRegistrationClose: &now,
+		}
 		body, _ := json.Marshal(reqBody)
-		mockSvc.On("UpdateConfig", mock.Anything, &reqBody).Return((*MusyawarahResponse)(nil), errors.New("db err")).Once()
+		mockSvc.On("UpdateConfig", mock.Anything, mock.AnythingOfType("*musyawarah.UpdateMusyawarahRequest")).Return((*MusyawarahResponse)(nil), errors.New("db err")).Once()
 
 		req := httptest.NewRequest("PUT", "/musyawarah", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -118,7 +135,7 @@ func TestHandler_UpdateSettings(t *testing.T) {
 			EnableVoting:             true,
 		}
 		body, _ := json.Marshal(reqBody)
-		mockSvc.On("UpdateSettings", mock.Anything, &reqBody).Return(&SettingsResponse{}, nil).Once()
+		mockSvc.On("UpdateSettings", mock.Anything, mock.AnythingOfType("*musyawarah.SettingsRequest")).Return(&SettingsResponse{}, nil).Once()
 
 		req := httptest.NewRequest("PUT", "/musyawarah/settings", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -142,7 +159,7 @@ func TestHandler_UpdateSettings(t *testing.T) {
 			EnableVoting:             true,
 		}
 		body, _ := json.Marshal(reqBody)
-		mockSvc.On("UpdateSettings", mock.Anything, &reqBody).Return((*SettingsResponse)(nil), errors.New("db err")).Once()
+		mockSvc.On("UpdateSettings", mock.Anything, mock.AnythingOfType("*musyawarah.SettingsRequest")).Return((*SettingsResponse)(nil), errors.New("db err")).Once()
 
 		req := httptest.NewRequest("PUT", "/musyawarah/settings", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -183,7 +200,7 @@ func TestHandler_UpdateTimeline(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		reqBody := TimelineRequest{}
 		body, _ := json.Marshal(reqBody)
-		mockSvc.On("UpdateTimeline", mock.Anything, &reqBody).Return(&TimelineResponse{}, nil).Once()
+		mockSvc.On("UpdateTimeline", mock.Anything, mock.AnythingOfType("*musyawarah.TimelineRequest")).Return(&TimelineResponse{}, nil).Once()
 
 		req := httptest.NewRequest("PUT", "/musyawarah/timeline", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -201,7 +218,7 @@ func TestHandler_UpdateTimeline(t *testing.T) {
 	t.Run("InternalError", func(t *testing.T) {
 		reqBody := TimelineRequest{}
 		body, _ := json.Marshal(reqBody)
-		mockSvc.On("UpdateTimeline", mock.Anything, &reqBody).Return((*TimelineResponse)(nil), errors.New("db err")).Once()
+		mockSvc.On("UpdateTimeline", mock.Anything, mock.AnythingOfType("*musyawarah.TimelineRequest")).Return((*TimelineResponse)(nil), errors.New("db err")).Once()
 
 		req := httptest.NewRequest("PUT", "/musyawarah/timeline", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")

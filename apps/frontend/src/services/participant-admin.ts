@@ -61,6 +61,7 @@ export interface ParticipantStats {
   by_company: LabelCount[];
   by_date: DailyCount[];
   recent: RecentParticipant[];
+  limit?: number;
 }
 
 // ─── Service ──────────────────────────────────────────────────────────────────
@@ -81,7 +82,7 @@ export const adminParticipantService = {
     return response.data.data || response.data;
   },
 
-  async updateStatus(id: string, payload: { status: string }): Promise<void> {
+  async updateStatus(id: string, payload: { status: string, reason?: string }): Promise<void> {
     await api.patch(`/admin/participants/${id}/status`, payload);
   },
 

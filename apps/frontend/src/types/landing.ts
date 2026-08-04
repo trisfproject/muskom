@@ -116,6 +116,7 @@ export interface HomeResponse {
   candidates: PublicCandidateDTO[];
   footer: WebsiteFooterDTO;
   event?: PublicEventDTO;
+  settings?: PublicSettingsDTO;
 }
 
 // Backward compatibility helper if needed
@@ -133,4 +134,6 @@ export type PublicSettingsDTO = {
   show_candidate_list: boolean;
   show_timeline: boolean;
   show_announcements: boolean;
+  participant_limit?: number;
+  participant_count?: number;
 };

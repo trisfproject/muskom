@@ -148,3 +148,11 @@ func (m *MockService) Delete(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
+
+func (m *MockService) Clone(ctx context.Context, id string) (*MusyawarahResponse, error) {
+	args := m.Called(ctx, id)
+	if args.Get(0) != nil {
+		return args.Get(0).(*MusyawarahResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}

@@ -5,13 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 )
 
 var (
-	ErrDuplicateEmail            = errors.New("email already registered")
+	ErrDuplicateEmail = errors.New("email already registered")
+	ErrQuotaReached   = errors.New("registration quota reached")
 )
 
 type Service interface {
@@ -28,12 +31,14 @@ type Service interface {
 type service struct {
 	repo         Repository
 	auditService audit.AuditService
+	mailer       mailer.Mailer
 }
 
-func NewService(repo Repository, auditService audit.AuditService) Service {
+func NewService(repo Repository, auditService audit.AuditService, m mailer.Mailer) Service {
 	return &service{
 		repo:         repo,
 		auditService: auditService,
+		mailer:       m,
 	}
 }
 
@@ -44,13 +49,13 @@ func (s *service) Create(ctx context.Context, req CreateParticipantRequest) (*Pa
 		FullName:           req.FullName,
 		Nickname:           req.Nickname,
 
-		Email:              req.Email,
-		Phone:              req.Phone,
-		CompanyName:        req.CompanyName,
-		IndustrialArea:     req.IndustrialArea,
-		JobTitle:           req.JobTitle,
-		Department:         req.Department,
-		Status:             req.Status,
+		Email:          req.Email,
+		Phone:          req.Phone,
+		CompanyName:    req.CompanyName,
+		IndustrialArea: req.IndustrialArea,
+		JobTitle:       req.JobTitle,
+		Department:     req.Department,
+		Status:         req.Status,
 	}
 
 	err := s.repo.Create(ctx, p)
@@ -141,9 +146,28 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 		Entity:        "participants",
 		EntityID:      p.ID,
 		Action:        "UPDATE_STATUS",
+		Reason:        req.Reason,
 		PreviousValue: oldVal,
 		NewValue:      p,
 	})
+
+	go func() {
+		if req.Status == "Verified" {
+			err := s.mailer.SendVerification(p.Email, p.FullName, p.MusyawarahID)
+			if err != nil {
+				_ = err
+			}
+		} else if req.Status == "Rejected" {
+			var rsn string
+			if req.Reason != nil {
+				rsn = *req.Reason
+			}
+			err := s.mailer.SendRejection(p.Email, p.FullName, p.MusyawarahID, rsn)
+			if err != nil {
+				_ = err
+			}
+		}
+	}()
 
 	return p, nil
 }
@@ -179,6 +203,21 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 		return nil, err
 	}
 
+	// Check Registration Limit
+	limit, err := s.repo.GetMusyawarahRegistrationLimit(ctx, req.MusyawarahID)
+	if err != nil {
+		return nil, err
+	}
+	if limit != nil && *limit > 0 {
+		count, err := s.repo.CountActiveByMusyawarah(ctx, req.MusyawarahID)
+		if err != nil {
+			return nil, err
+		}
+		if count >= *limit {
+			return nil, ErrQuotaReached
+		}
+	}
+
 	// Generate unique registration number
 	regNum := fmt.Sprintf("PAR-%s-%s", strings.ToUpper(req.MusyawarahID[:4]), strings.ToUpper(uuid.New().String()[:8]))
 
@@ -188,13 +227,13 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 		FullName:           req.FullName,
 		Nickname:           req.Nickname,
 
-		Email:              req.Email,
-		Phone:              req.Phone,
-		CompanyName:        req.CompanyName,
-		IndustrialArea:     req.IndustrialArea,
-		JobTitle:           req.JobTitle,
-		Department:         req.Department,
-		Status:             "Pending",
+		Email:          req.Email,
+		Phone:          req.Phone,
+		CompanyName:    req.CompanyName,
+		IndustrialArea: req.IndustrialArea,
+		JobTitle:       req.JobTitle,
+		Department:     req.Department,
+		Status:         "Pending",
 	}
 
 	err = s.repo.Create(ctx, p)
@@ -209,6 +248,21 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 		Action:   "PUBLIC_REGISTER",
 		NewValue: p,
 	})
+
+	go func() {
+		err := s.mailer.SendRegistrationConfirmation(
+			req.Email,
+			req.FullName,
+			regNum,
+			req.MusyawarahID,
+			req.CompanyName,
+			time.Now().Format("02 Jan 2006 15:04:05"),
+			"Pending Verifikasi",
+		)
+		if err != nil {
+			_ = err
+		}
+	}()
 
 	return &PublicRegisterParticipantResponse{
 		RegistrationNumber: regNum,

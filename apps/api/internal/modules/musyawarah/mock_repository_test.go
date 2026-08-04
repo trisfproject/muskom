@@ -114,3 +114,11 @@ func (m *MockRepository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
 	}
 	return nil, args.Error(1)
 }
+
+func (m *MockRepository) CloneEvent(ctx context.Context, sourceID string, clonedBy string) (*MusyawarahEvent, error) {
+	args := m.Called(ctx, sourceID, clonedBy)
+	if args.Get(0) != nil {
+		return args.Get(0).(*MusyawarahEvent), args.Error(1)
+	}
+	return nil, args.Error(1)
+}

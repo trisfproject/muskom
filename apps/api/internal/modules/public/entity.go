@@ -12,6 +12,7 @@ type PublicEvent struct {
 }
 
 type PublicSettings struct {
+	RegistrationLimit        *int   `db:"registration_limit"`
 	RegistrationApprovalMode string `db:"registration_approval_mode"`
 	ShowCandidateList        bool   `db:"show_candidate_list"`
 	ShowTimeline             bool   `db:"show_timeline"`

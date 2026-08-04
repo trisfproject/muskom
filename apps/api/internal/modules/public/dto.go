@@ -25,6 +25,8 @@ type SettingsDTO struct {
 	ShowCandidateList        bool   `json:"show_candidate_list"`
 	ShowTimeline             bool   `json:"show_timeline"`
 	ShowAnnouncements        bool   `json:"show_announcements"`
+	ParticipantLimit         int    `json:"participant_limit"`
+	ParticipantCount         int    `json:"participant_count"`
 }
 
 type TimelineDTO struct {

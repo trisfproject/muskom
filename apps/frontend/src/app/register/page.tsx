@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, Search, X, AlertCircle, RefreshCw, Plus } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { landingService } from "@/services/landing";
 import { participantRegistrationService } from "@/services/participant-registration";
 import Link from "next/link";
@@ -49,13 +49,32 @@ export default function RegisterPage() {
   const [musyawarahId, setMusyawarahId] = useState<string>("");
   const [musyawarahName, setMusyawarahName] = useState<string>("MUSKOM");
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isClosed, setIsClosed] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    getValues,
+    trigger,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+  });
 
   useEffect(() => {
     landingService.getPublicHome().then((data) => {
       if (data?.event?.id) setMusyawarahId(data.event.id);
       if (data?.event?.name) setMusyawarahName(data.event.name);
+      
+      const limit = data?.settings?.participant_limit || 0;
+      const count = data?.settings?.participant_count || 0;
+      if (limit > 0 && count >= limit) {
+        setIsClosed(true);
+      }
     });
 
     const saved = localStorage.getItem("participant_registration_draft");
@@ -143,12 +162,17 @@ export default function RegisterPage() {
       }
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } }; message?: string };
-      const msg = e?.response?.data?.message || e?.message || "Terjadi kesalahan sistem";
-      // User-friendly duplicate email message
-      if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("duplicate")) {
-        setError("Email ini sudah terdaftar pada acara ini. Gunakan email lain atau hubungi panitia.");
+      const rawMsg = e?.response?.data?.message || e?.message || "Internal server error.";
+      const msg = rawMsg.toLowerCase();
+      
+      if (msg.includes("already registered") || msg.includes("duplicate")) {
+        setError("Email ini sudah terdaftar. Silakan gunakan email lain.");
+      } else if (msg.includes("closed") || msg.includes("ditutup")) {
+        setError("Pendaftaran sudah ditutup.");
+      } else if (msg.includes("quota") || msg.includes("limit") || msg.includes("penuh")) {
+        setError("Kuota peserta telah terpenuhi.");
       } else {
-        setError(msg);
+        setError(rawMsg);
       }
     } finally {
       setLoading(false);
@@ -214,7 +238,7 @@ export default function RegisterPage() {
 
       <div className="max-w-[800px] mx-auto px-6 pt-10">
         {/* PROGRESS STEPPER */}
-        {step < 4 && (
+        {step < 4 && !isClosed && (
           <div className="mb-10 overflow-x-auto pb-4 hide-scrollbar">
             <div className="flex items-center text-xs font-semibold uppercase tracking-widest text-slate-400 min-w-max">
               <span className={step >= 1 ? "text-primary" : ""}>1. Personal</span>
@@ -226,6 +250,29 @@ export default function RegisterPage() {
           </div>
         )}
 
+        {isClosed ? (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-14 text-center shadow-sm"
+          >
+            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <AlertCircle className="w-9 h-9 text-red-500" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-2">
+              Pendaftaran Ditutup
+            </h1>
+            <p className="text-slate-500 max-w-sm mx-auto mb-8">
+              Kuota peserta telah terpenuhi. Terima kasih atas antusiasmenya.
+            </p>
+            <Link
+              href="/"
+              className="inline-flex bg-slate-100 text-slate-700 font-bold py-3.5 px-8 rounded-xl hover:bg-slate-200 transition-colors"
+            >
+              Kembali ke Beranda
+            </Link>
+          </motion.div>
+        ) : (
         <form onSubmit={handleSubmit(onSubmit)}>
           <AnimatePresence mode="wait">
             {/* ─── STEP 1: PERSONAL ─── */}
@@ -385,69 +432,58 @@ export default function RegisterPage() {
                   Pastikan seluruh data sudah benar sebelum mendaftar.
                 </p>
 
-                <div className="space-y-4">
+                <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-8 shadow-sm">
                   {/* Personal Section */}
-                  <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                    <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50 border-b border-slate-100">
-                      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        Informasi Personal
-                      </h3>
+                  <div>
+                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                      <h3 className="font-bold text-lg text-slate-800">1. Personal</h3>
                       <button
                         type="button"
                         onClick={() => setStep(1)}
-                        className="text-xs font-bold text-primary hover:underline"
+                        className="text-sm font-bold text-primary hover:underline"
                       >
                         Ubah
                       </button>
                     </div>
-                    <div className="p-5 space-y-4">
-                      <ReviewRow label="Nama Lengkap" value={v.full_name} />
-                      <ReviewRow label="Nama Panggilan" value={v.nickname || "—"} />
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <ReviewRow label="Email" value={v.email} />
-                        <ReviewRow label="WhatsApp" value={v.phone} />
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
+                      <ReviewItem label="Nama Lengkap" value={v.full_name} />
+                      <ReviewItem label="Nama Panggilan" value={v.nickname || "-"} />
+                      <ReviewItem label="Email" value={v.email} />
+                      <ReviewItem label="WhatsApp" value={v.phone} />
                     </div>
                   </div>
 
                   {/* Employment Section */}
-                  <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                    <div className="flex items-center justify-between px-5 py-3.5 bg-slate-50 border-b border-slate-100">
-                      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        Informasi Profesional
-                      </h3>
+                  <div>
+                    <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                      <h3 className="font-bold text-lg text-slate-800">2. Profesional</h3>
                       <button
                         type="button"
                         onClick={() => setStep(2)}
-                        className="text-xs font-bold text-primary hover:underline"
+                        className="text-sm font-bold text-primary hover:underline"
                       >
                         Ubah
                       </button>
                     </div>
-                    <div className="p-5 space-y-4">
-                      <ReviewRow label="Perusahaan" value={v.company_name} />
-                      <ReviewRow
-                        label="Kawasan Industri"
-                        value={v.industrial_area}
-                      />
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <ReviewRow label="Jabatan" value={v.job_title} />
-                        <ReviewRow label="Departemen" value={v.department || "—"} />
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
+                      <ReviewItem label="Nama Perusahaan" value={v.company_name} />
+                      <ReviewItem label="Kawasan Industri" value={v.industrial_area} />
+                      <ReviewItem label="Jabatan" value={v.job_title} />
+                      <ReviewItem label="Departemen" value={v.department || "-"} />
                     </div>
                   </div>
+                </div>
 
-                  {/* Summary */}
-                  <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5">
-                    <p className="text-sm text-primary font-semibold">
-                      📋 Ringkasan Pendaftaran
-                    </p>
-                    <p className="text-sm text-slate-600 mt-1">
-                      Pendaftaran sebagai <strong>Peserta</strong> pada acara{" "}
-                      <strong>{musyawarahName || "MUSKOM"}</strong>. Status awal akan
-                      menjadi <span className="font-bold text-amber-600">Pending Verifikasi</span>.
-                    </p>
-                  </div>
+                {/* Summary */}
+                <div className="mt-8 bg-primary/5 border border-primary/20 rounded-2xl p-5">
+                  <p className="text-sm text-primary font-semibold">
+                    📋 Ringkasan Pendaftaran
+                  </p>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Pendaftaran sebagai <strong>Peserta</strong> pada acara{" "}
+                    <strong>{musyawarahName || "MUSKOM"}</strong>. Status awal akan
+                    menjadi <span className="font-bold text-amber-600">Pending Verifikasi</span>.
+                  </p>
                 </div>
 
                 {error && (
@@ -506,18 +542,10 @@ export default function RegisterPage() {
                     </div>
                   </div>
 
-                  <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <button
-                      type="button"
-                      onClick={resetForm}
-                      className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-8 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary/20"
-                    >
-                      <Plus className="w-5 h-5" />
-                      Daftarkan Peserta Lain
-                    </button>
+                  <div className="mt-8 flex justify-center">
                     <Link
                       href="/"
-                      className="w-full sm:w-auto bg-slate-100 text-slate-700 font-bold py-4 px-8 rounded-xl hover:bg-slate-200 flex items-center justify-center gap-2 transition-colors"
+                      className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-10 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary/20"
                     >
                       Kembali ke Beranda
                     </Link>
@@ -527,6 +555,7 @@ export default function RegisterPage() {
             )}
           </AnimatePresence>
         </form>
+        )}
       </div>
 
       {/* (Action bar removed to match candidate UI) */}
@@ -593,11 +622,11 @@ function InputGroup({
   );
 }
 
-function ReviewRow({ label, value }: { label: string; value: string }) {
+function ReviewItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs text-slate-400 font-medium mb-0.5">{label}</p>
-      <p className="text-sm font-semibold text-slate-900 break-words">{value}</p>
+      <p className="text-sm font-semibold text-slate-500 mb-1">{label}</p>
+      <p className="font-medium text-slate-900 whitespace-pre-wrap">{value}</p>
     </div>
   );
 }

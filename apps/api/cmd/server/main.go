@@ -31,6 +31,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
+	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/middleware"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
@@ -90,6 +91,7 @@ func main() {
 	// 6. Common Utilities
 	val := validator.New()
 	bus := eventbus.NewSyncBus(log)
+	mailerSvc := mailer.NewSMTPMailer(cfg, log)
 
 	// 6.5. RBAC Initialization
 	checker, authSvc := rbac.InitRBAC(db, log)
@@ -117,7 +119,7 @@ func main() {
 	musyawarah.SetupPublicRoutes(v1.Group("/public/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
-	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, log, val)
+	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, log, val, mailerSvc)
 	masterdata.SetupPublicRoutes(v1.Group("/public/master"), db, log)
 
 	// Protected Participant Routes
@@ -140,7 +142,7 @@ func main() {
 	user.SetupRoutes(adminGroup.Group("/users", checker.RequirePermission("system.manage")), db, log, val)
 	candidate.RegisterRoutes(v1, db, log, val, strg, cfg.MaxUploadSize, cfg)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, log, val, strg, cfg)
-	participant.SetupAdminRoutes(adminGroup.Group("/participants"), db, log, val)
+	participant.SetupAdminRoutes(adminGroup.Group("/participants"), db, log, val, mailerSvc)
 	masterdata.SetupAdminRoutes(adminGroup.Group("/master"), db, log)
 
 	// 8. Graceful Shutdown

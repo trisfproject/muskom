@@ -65,6 +65,7 @@ export default function ParticipantDetailPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<"Verified" | "Rejected" | "Pending" | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
@@ -89,9 +90,13 @@ export default function ParticipantDetailPage() {
     setActionError(null);
     setActionSuccess(null);
     try {
-      await adminParticipantService.updateStatus(id, { status: newStatus });
+      await adminParticipantService.updateStatus(id, { 
+        status: newStatus,
+        reason: newStatus === "Rejected" && rejectReason.trim() ? rejectReason.trim() : undefined,
+      });
       setActionSuccess(`Status berhasil diubah ke ${newStatus}.`);
       setConfirmAction(null);
+      setRejectReason("");
       await fetchData();
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } }; message?: string };
@@ -272,9 +277,23 @@ export default function ParticipantDetailPage() {
                   Status akan berubah ke <strong>{confirmAction === "Pending" ? "Pending" : confirmAction}</strong>.
                   Tindakan ini tercatat dalam audit log.
                 </p>
+                {confirmAction === "Rejected" && (
+                  <div className="mb-4">
+                    <label className="block text-xs font-bold pg-muted uppercase tracking-wider mb-1.5">
+                      Alasan Penolakan (Opsional)
+                    </label>
+                    <textarea
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                      placeholder="Masukkan alasan penolakan..."
+                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 pg-text focus:outline-none focus:border-red-400"
+                      rows={3}
+                    />
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setConfirmAction(null)}
+                    onClick={() => { setConfirmAction(null); setRejectReason(""); }}
                     disabled={acting}
                     className="flex-1 py-2 text-xs font-semibold rounded-lg border border-slate-200 pg-text hover:bg-slate-50 transition-colors disabled:opacity-50"
                   >

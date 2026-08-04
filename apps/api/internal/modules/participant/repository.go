@@ -22,6 +22,9 @@ type Repository interface {
 	Delete(ctx context.Context, id string) error
 	FindByEmail(ctx context.Context, email string) (*Participant, error)
 	GetStats(ctx context.Context) (*ParticipantStats, error)
+	Count(ctx context.Context) (int, error)
+	CountActiveByMusyawarah(ctx context.Context, musyawarahID string) (int, error)
+	GetMusyawarahRegistrationLimit(ctx context.Context, musyawarahID string) (*int, error)
 }
 
 type repository struct {
@@ -175,6 +178,16 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 		Recent:           []RecentParticipant{},
 	}
 
+	// Fetch Limit from active event
+	var limit *int
+	_ = r.db.GetContext(ctx, &limit, `
+		SELECT s.registration_limit 
+		FROM events e
+		JOIN event_settings s ON e.id = s.event_id
+		WHERE e.is_default_active = true AND e.deleted_at IS NULL
+	`)
+	stats.Limit = limit
+
 	// 1. Summary counts (single query, avoid N+1)
 	var rows []struct {
 		Status string `db:"status"`
@@ -248,4 +261,37 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 	`)
 
 	return stats, nil
+}
+
+func (r *repository) Count(ctx context.Context) (int, error) {
+	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL`
+	var count int
+	err := r.db.GetContext(ctx, &count, query)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *repository) CountActiveByMusyawarah(ctx context.Context, musyawarahID string) (int, error) {
+	query := `SELECT COUNT(*) FROM participants WHERE musyawarah_id = $1 AND deleted_at IS NULL AND status != 'Rejected'`
+	var count int
+	err := r.db.GetContext(ctx, &count, query, musyawarahID)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *repository) GetMusyawarahRegistrationLimit(ctx context.Context, musyawarahID string) (*int, error) {
+	query := `SELECT registration_limit FROM event_settings WHERE event_id = $1`
+	var limit *int
+	err := r.db.GetContext(ctx, &limit, query, musyawarahID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return limit, nil
 }

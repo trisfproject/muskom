@@ -182,6 +182,19 @@ func (s *service) GetPublicHome(ctx context.Context) (*HomeResponse, error) {
 		s.logger.Error("Failed to fetch event phases", zap.Error(err))
 	}
 
+	// Fetch Participant Count
+	participantCount, err := s.repo.GetParticipantCount(ctx, event.ID)
+	if err != nil {
+		s.logger.Error("Failed to fetch participant count", zap.Error(err))
+		// don't fail the whole request, just default to 0
+		participantCount = 0
+	}
+
+	limit := 0
+	if settings.RegistrationLimit != nil {
+		limit = *settings.RegistrationLimit
+	}
+
 	return &HomeResponse{
 		Event: &EventDTO{
 			Name:           event.Name,
@@ -196,6 +209,8 @@ func (s *service) GetPublicHome(ctx context.Context) (*HomeResponse, error) {
 			ShowCandidateList:        settings.ShowCandidateList,
 			ShowTimeline:             settings.ShowTimeline,
 			ShowAnnouncements:        settings.ShowAnnouncements,
+			ParticipantLimit:         limit,
+			ParticipantCount:         participantCount,
 		},
 		Timeline:      timelineDTOs,
 		CurrentPhase:  currentPhase,

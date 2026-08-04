@@ -4,17 +4,18 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"go.uber.org/zap"
 )
 
 // SetupAdminRoutes registers participant module routes for admin
-func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator) {
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, m mailer.Mailer) {
 	// Initialize Dependencies
 	repo := NewRepository(db)
 	auditRepo := audit.NewRepository(db)
 	auditSvc := audit.NewService(auditRepo, log)
-	svc := NewService(repo, auditSvc)
+	svc := NewService(repo, auditSvc, m)
 	handler := NewHandler(svc, val)
 
 	// Routes
@@ -28,11 +29,11 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 }
 
 // SetupPublicRoutes registers public participant endpoints
-func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator) {
+func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, m mailer.Mailer) {
 	repo := NewRepository(db)
 	auditRepo := audit.NewRepository(db)
 	auditSvc := audit.NewService(auditRepo, log)
-	svc := NewService(repo, auditSvc)
+	svc := NewService(repo, auditSvc, m)
 	handler := NewHandler(svc, val)
 
 	router.Post("/register", handler.PublicRegister)

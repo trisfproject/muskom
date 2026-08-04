@@ -15,6 +15,7 @@ type Repository interface {
 	GetAnnouncements(ctx context.Context, eventID string) ([]PublicAnnouncement, error)
 	GetCandidates(ctx context.Context) ([]PublicCandidate, error)
 	GetPhases(ctx context.Context, eventID string) ([]musyawarah.MusyawarahPhase, error)
+	GetParticipantCount(ctx context.Context, eventID string) (int, error)
 }
 
 type repository struct {
@@ -40,7 +41,7 @@ func (r *repository) GetActiveEvent(ctx context.Context) (*PublicEvent, error) {
 func (r *repository) GetSettings(ctx context.Context, eventID string) (*PublicSettings, error) {
 	query := `
 		SELECT 
-			registration_approval_mode, show_candidate_list, show_timeline, show_announcements
+			registration_limit, registration_approval_mode, show_candidate_list, show_timeline, show_announcements
 		FROM event_settings 
 		WHERE event_id = $1
 	`
@@ -113,4 +114,14 @@ func (r *repository) GetPhases(ctx context.Context, eventID string) ([]musyawara
 		p = []musyawarah.MusyawarahPhase{}
 	}
 	return p, err
+}
+
+func (r *repository) GetParticipantCount(ctx context.Context, eventID string) (int, error) {
+	query := `SELECT COUNT(*) FROM participants WHERE musyawarah_id = $1 AND deleted_at IS NULL AND status != 'Rejected'`
+	var count int
+	err := r.db.GetContext(ctx, &count, query, eventID)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }
