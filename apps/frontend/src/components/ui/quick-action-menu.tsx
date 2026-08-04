@@ -35,17 +35,17 @@ export function QuickActionMenu({ items }: QuickActionMenuProps) {
     <div className="relative inline-block text-left" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+        className="p-1.5 rounded-md pg-muted hover:pg-text hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
       >
         <MoreVertical className="w-4 h-4" />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-48 rounded-md bg-slate-900 border border-[var(--color-border)] shadow-lg shadow-black/50 z-50 py-1">
+        <div className="absolute right-0 mt-1 w-48 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg shadow-black/10 dark:shadow-black/50 z-50 py-1">
           {items.map((item, idx) => {
             const Icon = item.icon;
             
-            let colorClass = "text-slate-300 hover:text-white hover:bg-slate-800";
+            let colorClass = "pg-text hover:bg-slate-50 dark:hover:bg-slate-800";
             if (item.variant === "danger") {
               colorClass = "text-[var(--color-danger)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10";
             } else if (item.variant === "success") {
