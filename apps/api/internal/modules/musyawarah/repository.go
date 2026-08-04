@@ -3,6 +3,7 @@ package musyawarah
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -17,6 +18,7 @@ type Repository interface {
 	SetActive(ctx context.Context, tx *sqlx.Tx, id string) error
 	ArchiveEvent(ctx context.Context, id string) error
 	SoftDeleteEvent(ctx context.Context, id string, deletedBy string) error
+	CloneEvent(ctx context.Context, sourceID string, clonedBy string) (*MusyawarahEvent, error)
 
 	// Existing (active event)
 	GetActiveEvent(ctx context.Context) (*MusyawarahEvent, error)
@@ -121,13 +123,13 @@ func (r *repository) SoftDeleteEvent(ctx context.Context, id string, deletedBy s
 }
 
 func (r *repository) DeactivateAll(ctx context.Context, tx *sqlx.Tx) error {
-	query := `UPDATE events SET is_default_active = false, updated_at = NOW() WHERE is_default_active = true`
+	query := `UPDATE events SET is_default_active = false, status = CASE WHEN status = 'ACTIVE' THEN 'SCHEDULED' ELSE status END, updated_at = NOW() WHERE is_default_active = true`
 	_, err := tx.ExecContext(ctx, query)
 	return err
 }
 
 func (r *repository) SetActive(ctx context.Context, tx *sqlx.Tx, id string) error {
-	query := `UPDATE events SET is_default_active = true, updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL`
+	query := `UPDATE events SET is_default_active = true, status = 'ACTIVE', updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL`
 	_, err := tx.ExecContext(ctx, query, id)
 	return err
 }
@@ -135,6 +137,77 @@ func (r *repository) SetActive(ctx context.Context, tx *sqlx.Tx, id string) erro
 func (r *repository) ArchiveEvent(ctx context.Context, id string) error {
 	_, err := r.db.ExecContext(ctx, `UPDATE events SET status = 'ARCHIVED', is_default_active = false, updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL`, id)
 	return err
+}
+
+func (r *repository) CloneEvent(ctx context.Context, sourceID string, clonedBy string) (*MusyawarahEvent, error) {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	// 1. Fetch original event
+	source, err := r.GetEventByID(ctx, sourceID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Insert new event
+	newSlug := source.Slug + "-copy-" + time.Now().Format("20060102150405")
+	newName := source.Name + " (Copy)"
+	
+	insertQuery := `
+		INSERT INTO events (
+			name, slug, theme, description, location, address, google_maps_url, status,
+			period_start, period_end, event_date, registration_open, registration_close,
+			candidate_registration_open, candidate_registration_close,
+			is_default_active, created_by, updated_by, created_at, updated_at
+		) VALUES (
+			$1, $2, $3, $4, $5, $6, $7, 'DRAFT',
+			$8, $9, $10, $11, $12,
+			$13, $14,
+			false, $15, $15, NOW(), NOW()
+		) RETURNING id, name, slug, theme, description, location, address, google_maps_url,
+		       period_start, period_end, event_date, registration_open, registration_close,
+		       candidate_registration_open, candidate_registration_close, banner_path, logo_path, cover_path, status,
+		       is_default_active, created_by, updated_by, created_at, updated_at
+	`
+	var newEvent MusyawarahEvent
+	err = tx.QueryRowxContext(ctx, insertQuery,
+		newName, newSlug, source.Theme, source.Description, source.Location, source.Address, source.GoogleMapsURL,
+		source.PeriodStart, source.PeriodEnd, source.EventDate, source.RegistrationOpen, source.RegistrationClose,
+		source.CandidateRegistrationOpen, source.CandidateRegistrationClose,
+		clonedBy,
+	).StructScan(&newEvent)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Clone Settings
+	settings, err := r.GetSettings(ctx, sourceID)
+	if err == nil && settings != nil {
+		err = r.UpdateSettings(ctx, tx, newEvent.ID, settings)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// 4. Clone Phases
+	phases, err := r.GetPhases(ctx, sourceID)
+	if err == nil && len(phases) > 0 {
+		for _, p := range phases {
+			err = r.UpsertPhase(ctx, tx, newEvent.ID, &p)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return &newEvent, nil
 }
 
 // --- Existing (active event) ---

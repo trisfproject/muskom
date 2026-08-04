@@ -18,14 +18,15 @@ import {
   BookOpen,
   Globe,
   Trash2,
+  Copy,
 } from "lucide-react";
 
 const STATUS_STYLES: Record<string, string> = {
   DRAFT: "bg-slate-500/15 text-slate-400 border-slate-500/20",
-  PUBLISHED: "bg-blue-500/15 text-blue-400 border-blue-500/20",
+  SCHEDULED: "bg-blue-500/15 text-blue-400 border-blue-500/20",
+  ACTIVE: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+  COMPLETED: "bg-indigo-500/15 text-indigo-400 border-indigo-500/20",
   ARCHIVED: "bg-amber-500/15 text-amber-400 border-amber-500/20",
-  COMPLETED: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
-  CANCELLED: "bg-rose-500/15 text-rose-400 border-rose-500/20",
 };
 
 function formatDate(dateStr?: string) {
@@ -96,14 +97,28 @@ export default function MusyawarahListPage() {
   };
 
   const handlePublish = async (id: string, name: string) => {
-    if (!confirm(`Publikasikan "${name}"? Ini akan membuat event dapat dilihat publik.`)) return;
+    if (!confirm(`Jadwalkan "${name}"? Ini akan mengubah status menjadi Dijadwalkan.`)) return;
     setActionLoading(id);
     try {
       await musyawarahAdminService.publish(id);
-      toast.success(`${name} berhasil dipublikasikan`);
+      toast.success(`${name} berhasil dijadwalkan`);
       await fetch();
     } catch {
-      toast.error("Gagal mempublikasikan Musyawarah");
+      toast.error("Gagal menjadwalkan Musyawarah");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleClone = async (id: string, name: string) => {
+    if (!confirm(`Duplikasi "${name}"? Pengaturan dan timeline akan disalin.`)) return;
+    setActionLoading(id);
+    try {
+      await musyawarahAdminService.clone(id);
+      toast.success(`${name} berhasil diduplikasi`);
+      await fetch();
+    } catch {
+      toast.error("Gagal menduplikasi Musyawarah");
     } finally {
       setActionLoading(null);
     }
@@ -227,7 +242,7 @@ export default function MusyawarahListPage() {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-colors disabled:opacity-50"
                     >
                       <Globe className="w-3.5 h-3.5" />
-                      {isLoading ? "..." : "Publikasi"}
+                      {isLoading ? "..." : "Jadwalkan"}
                     </button>
                   )}
 
@@ -274,6 +289,15 @@ export default function MusyawarahListPage() {
                       {isLoading ? "..." : "Hapus"}
                     </button>
                   )}
+
+                  <button
+                    onClick={() => handleClone(item.id, item.name)}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20 transition-colors disabled:opacity-50"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    {isLoading ? "..." : "Duplikasi"}
+                  </button>
                 </div>
               </div>
             );

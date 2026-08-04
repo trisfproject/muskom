@@ -243,7 +243,9 @@ export default function MusyawarahGeneralEditPage() {
                 className="w-full bg-transparent border pg-border rounded-lg px-3 py-2 text-sm pg-text focus:outline-none focus:border-primary"
               >
                 <option value="DRAFT">DRAFT</option>
-                <option value="PUBLISHED">PUBLISHED</option>
+                <option value="SCHEDULED">SCHEDULED</option>
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="COMPLETED">COMPLETED</option>
                 <option value="ARCHIVED">ARCHIVED</option>
               </select>
             </div>

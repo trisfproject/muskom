@@ -35,7 +35,7 @@ export default function PublicationPage() {
     if (!event) return;
     setSaving(true);
     try {
-      if (newStatus === 'PUBLISHED') {
+      if (newStatus === 'SCHEDULED') {
         const updated = await musyawarahAdminService.publish(event.id);
         setEvent(updated);
       } else if (newStatus === 'ARCHIVED') {
@@ -100,15 +100,15 @@ export default function PublicationPage() {
             </button>
 
             <button
-              onClick={() => handleStatusChange('PUBLISHED')}
-              disabled={saving || event.status === 'PUBLISHED'}
+              onClick={() => handleStatusChange('SCHEDULED')}
+              disabled={saving || event.status === 'SCHEDULED'}
               className={`flex-1 p-4 rounded-xl border text-left transition-all ${
-                event.status === 'PUBLISHED' 
+                event.status === 'SCHEDULED' 
                   ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 ring-1 ring-[var(--color-primary)]/50' 
                   : 'pg-border pg-surface-elevated/50 hover:pg-surface-elevated opacity-70'
               }`}
             >
-              <div className="font-semibold pg-text mb-1">Published</div>
+              <div className="font-semibold pg-text mb-1">Scheduled</div>
               <div className="text-xs pg-muted">Musyawarah aktif dan publikasi berjalan.</div>
             </button>
 
@@ -127,7 +127,7 @@ export default function PublicationPage() {
           </div>
         </div>
 
-        {event.status === 'PUBLISHED' && (
+        {event.status === 'SCHEDULED' && (
           <div className="bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 rounded-lg p-5 mt-6">
             <h4 className="text-primary font-semibold mb-2">Musyawarah Aktif & Berjalan</h4>
             <p className="text-sm text-primary/80 mb-4">

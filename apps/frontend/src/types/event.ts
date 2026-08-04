@@ -1,4 +1,4 @@
-export type EventPhase = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+export type EventPhase = 'DRAFT' | 'SCHEDULED' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
 
 export type LifecycleState = 
   | 'DRAFT' 

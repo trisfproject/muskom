@@ -65,7 +65,8 @@ export default function AdminDashboardPage() {
       'RESULT_PUBLICATION': 'Publikasi Hasil',
       'COMPLETED': 'Musyawarah Selesai',
       'ARCHIVED': 'Diarsipkan',
-      'PUBLISHED': 'Berjalan',
+      'SCHEDULED': 'Dijadwalkan',
+      'ACTIVE': 'Berjalan',
     };
     return map[lc] || lc;
   }

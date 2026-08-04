@@ -126,7 +126,7 @@ export default function TimelinePage() {
     }
     
     // Default action if no phase is active but event is published
-    if (event.status === 'PUBLISHED') {
+    if (event.status === 'SCHEDULED' || event.status === 'ACTIVE') {
       return {
         title: "Menunggu Fase Selanjutnya",
         desc: "Tidak ada jadwal operasional yang sedang berjalan pada saat ini.",

@@ -1,4 +1,4 @@
-export type MusyawarahStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | 'UPCOMING' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+export type MusyawarahStatus = 'DRAFT' | 'SCHEDULED' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
 
 export type MusyawarahLifecycle =
   | 'DRAFT'

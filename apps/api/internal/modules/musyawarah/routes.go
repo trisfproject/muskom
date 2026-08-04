@@ -25,6 +25,7 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 	router.Post("/:id/activate", handler.Activate)
 	router.Post("/:id/deactivate", handler.Deactivate)
 	router.Post("/:id/archive", handler.Archive)
+	router.Post("/:id/clone", handler.Clone)
 	router.Post("/:id/publish", handler.Publish)
 
 	// Active event settings & timeline

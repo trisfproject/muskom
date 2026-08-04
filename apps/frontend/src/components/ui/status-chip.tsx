@@ -20,7 +20,7 @@ interface StatusChipProps {
 export function StatusChip({ status, className }: StatusChipProps) {
   const getStatusStyles = (s: string) => {
     switch (s.toUpperCase()) {
-      case "PUBLISHED":
+      case "SCHEDULED":
       case "ACTIVE":
       case "VERIFIED":
       case "COMPLETED":

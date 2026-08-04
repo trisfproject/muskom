@@ -119,6 +119,18 @@ func (h *Handler) Archive(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Musyawarah archived", res, nil)
 }
 
+func (h *Handler) Clone(c fiber.Ctx) error {
+	id := c.Params("id")
+	res, err := h.service.Clone(c.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrMusyawarahNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, "Musyawarah not found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to clone Musyawarah", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusCreated, "Musyawarah cloned", res, nil)
+}
+
 func (h *Handler) Publish(c fiber.Ctx) error {
 	id := c.Params("id")
 	res, err := h.service.Publish(c.Context(), id)

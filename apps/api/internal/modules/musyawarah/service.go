@@ -78,6 +78,7 @@ type Service interface {
 	Activate(ctx context.Context, id string) (*MusyawarahResponse, error)
 	Deactivate(ctx context.Context, id string) (*MusyawarahResponse, error)
 	Archive(ctx context.Context, id string) (*MusyawarahResponse, error)
+	Clone(ctx context.Context, id string) (*MusyawarahResponse, error)
 	Publish(ctx context.Context, id string) (*MusyawarahResponse, error)
 	Delete(ctx context.Context, id string) error
 
@@ -301,7 +302,7 @@ func (s *service) Deactivate(ctx context.Context, id string) (*MusyawarahRespons
 }
 
 func (s *service) Archive(ctx context.Context, id string) (*MusyawarahResponse, error) {
-	evt, err := s.repo.GetEventByID(ctx, id)
+	_, err := s.repo.GetEventByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrMusyawarahNotFound
@@ -313,9 +314,28 @@ func (s *service) Archive(ctx context.Context, id string) (*MusyawarahResponse, 
 		return nil, err
 	}
 
-	s.logger.Info("AuditLog", zap.String("operation", "ARCHIVE"), zap.String("user", "system"), zap.String("id", evt.ID))
+	s.logger.Info("AuditLog", zap.String("operation", "ARCHIVE"), zap.String("user", "system"), zap.String("id", id))
 
 	return s.GetByID(ctx, id)
+}
+
+func (s *service) Clone(ctx context.Context, id string) (*MusyawarahResponse, error) {
+	_, err := s.repo.GetEventByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrMusyawarahNotFound
+		}
+		return nil, err
+	}
+
+	clonedEvent, err := s.repo.CloneEvent(ctx, id, "system")
+	if err != nil {
+		return nil, err
+	}
+
+	s.logger.Info("AuditLog", zap.String("operation", "CLONE"), zap.String("user", "system"), zap.String("source_id", id), zap.String("new_id", clonedEvent.ID))
+
+	return s.GetByID(ctx, clonedEvent.ID)
 }
 
 func (s *service) Publish(ctx context.Context, id string) (*MusyawarahResponse, error) {
@@ -327,7 +347,7 @@ func (s *service) Publish(ctx context.Context, id string) (*MusyawarahResponse, 
 		return nil, err
 	}
 
-	evt.Status = "PUBLISHED"
+	evt.Status = "SCHEDULED"
 	user := "system"
 	evt.UpdatedBy = &user
 

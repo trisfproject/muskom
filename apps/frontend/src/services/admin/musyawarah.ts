@@ -48,6 +48,11 @@ export const musyawarahAdminService = {
     return response.data.data;
   },
 
+  async clone(id: string): Promise<Musyawarah> {
+    const response = await api.post(`/admin/musyawarah/${id}/clone`);
+    return response.data.data;
+  },
+
   async delete(id: string): Promise<void> {
     await api.delete(`/admin/musyawarah/${id}`);
   },
