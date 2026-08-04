@@ -141,7 +141,7 @@ func (s *service) GetByID(ctx context.Context, id string) (*MusyawarahResponse, 
 	return s.buildResponse(ctx, evt)
 }
 
-func (s *service) validateDates(periodStart, periodEnd, regOpen, regClose, candOpen, candClose *time.Time) error {
+func (s *service) validateDates(periodStart, periodEnd, regOpen, regClose, candOpen, candClose, eventDate *time.Time) error {
 	if periodStart != nil && periodEnd != nil && periodStart.After(*periodEnd) {
 		return errors.New("period start must be before period end")
 	}
@@ -151,11 +151,19 @@ func (s *service) validateDates(periodStart, periodEnd, regOpen, regClose, candO
 	if candOpen != nil && candClose != nil && candOpen.After(*candClose) {
 		return errors.New("candidate registration open must be before candidate registration close")
 	}
+	if eventDate != nil {
+		if regClose != nil && eventDate.Before(*regClose) {
+			return errors.New("event date (voting date) must be after participant registration is closed")
+		}
+		if candClose != nil && eventDate.Before(*candClose) {
+			return errors.New("event date (voting date) must be after candidate registration is closed")
+		}
+	}
 	return nil
 }
 
 func (s *service) Create(ctx context.Context, req *CreateMusyawarahRequest) (*MusyawarahResponse, error) {
-	if err := s.validateDates(req.PeriodStart, req.PeriodEnd, req.RegistrationOpen, req.RegistrationClose, req.CandidateRegistrationOpen, req.CandidateRegistrationClose); err != nil {
+	if err := s.validateDates(req.PeriodStart, req.PeriodEnd, req.RegistrationOpen, req.RegistrationClose, req.CandidateRegistrationOpen, req.CandidateRegistrationClose, req.EventDate); err != nil {
 		return nil, err
 	}
 
@@ -191,7 +199,7 @@ func (s *service) Create(ctx context.Context, req *CreateMusyawarahRequest) (*Mu
 }
 
 func (s *service) UpdateByID(ctx context.Context, id string, req *UpdateMusyawarahRequest) (*MusyawarahResponse, error) {
-	if err := s.validateDates(req.PeriodStart, req.PeriodEnd, req.RegistrationOpen, req.RegistrationClose, req.CandidateRegistrationOpen, req.CandidateRegistrationClose); err != nil {
+	if err := s.validateDates(req.PeriodStart, req.PeriodEnd, req.RegistrationOpen, req.RegistrationClose, req.CandidateRegistrationOpen, req.CandidateRegistrationClose, req.EventDate); err != nil {
 		return nil, err
 	}
 
@@ -251,6 +259,10 @@ func (s *service) Activate(ctx context.Context, id string) (*MusyawarahResponse,
 
 	if evt.Status == "ARCHIVED" {
 		return nil, errors.New("cannot activate an archived event")
+	}
+
+	if evt.LogoPath == nil || *evt.LogoPath == "" {
+		return nil, errors.New("musyawarah must have a logo before it can be activated")
 	}
 
 	tx, err := s.repo.BeginTx(ctx)
@@ -345,6 +357,14 @@ func (s *service) Publish(ctx context.Context, id string) (*MusyawarahResponse, 
 			return nil, ErrMusyawarahNotFound
 		}
 		return nil, err
+	}
+
+	if evt.Status == "ARCHIVED" {
+		return nil, errors.New("cannot publish an archived event")
+	}
+
+	if evt.LogoPath == nil || *evt.LogoPath == "" {
+		return nil, errors.New("musyawarah must have a logo before it can be scheduled")
 	}
 
 	evt.Status = "SCHEDULED"

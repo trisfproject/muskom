@@ -231,8 +231,8 @@ export default function MusyawarahGeneralEditPage() {
             <Input name="slug" value={event.slug || ""} onChange={handleChange} placeholder="mubes-2026" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Tema</label>
-            <Input name="theme" value={event.theme || ""} onChange={handleChange} placeholder="Bersama Membangun Komunitas" />
+            <label className="block text-sm font-medium text-slate-300 mb-1">Tema <span className="text-rose-500">*</span></label>
+            <Input name="theme" value={event.theme || ""} onChange={handleChange} placeholder="Bersama Membangun Komunitas" required />
           </div>
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-1">Status</label>
@@ -262,35 +262,35 @@ export default function MusyawarahGeneralEditPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Tanggal Acara Musyawarah</label>
-              <Input type="date" name="event_date" value={event.event_date ? event.event_date.substring(0, 10) : ""} onChange={handleChange} />
+              <label className="block text-sm font-medium text-slate-300 mb-1">Tanggal Acara Musyawarah <span className="text-rose-500">*</span></label>
+              <Input type="date" name="event_date" value={event.event_date ? event.event_date.substring(0, 10) : ""} onChange={handleChange} required />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Buka Registrasi Peserta</label>
-                <Input type="datetime-local" name="registration_open" value={event.registration_open ? event.registration_open.substring(0, 16) : ""} onChange={handleChange} />
+                <label className="block text-sm font-medium text-slate-300 mb-1">Buka Registrasi Peserta <span className="text-rose-500">*</span></label>
+                <Input type="datetime-local" name="registration_open" value={event.registration_open ? event.registration_open.substring(0, 16) : ""} onChange={handleChange} required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Tutup Registrasi Peserta</label>
-                <Input type="datetime-local" name="registration_close" value={event.registration_close ? event.registration_close.substring(0, 16) : ""} onChange={handleChange} />
+                <label className="block text-sm font-medium text-slate-300 mb-1">Tutup Registrasi Peserta <span className="text-rose-500">*</span></label>
+                <Input type="datetime-local" name="registration_close" value={event.registration_close ? event.registration_close.substring(0, 16) : ""} onChange={handleChange} required />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Buka Pendaftaran Kandidat</label>
-                <Input type="datetime-local" name="candidate_registration_open" value={event.candidate_registration_open ? event.candidate_registration_open.substring(0, 16) : ""} onChange={handleChange} />
+                <label className="block text-sm font-medium text-slate-300 mb-1">Buka Pendaftaran Kandidat <span className="text-rose-500">*</span></label>
+                <Input type="datetime-local" name="candidate_registration_open" value={event.candidate_registration_open ? event.candidate_registration_open.substring(0, 16) : ""} onChange={handleChange} required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Tutup Pendaftaran Kandidat</label>
-                <Input type="datetime-local" name="candidate_registration_close" value={event.candidate_registration_close ? event.candidate_registration_close.substring(0, 16) : ""} onChange={handleChange} />
+                <label className="block text-sm font-medium text-slate-300 mb-1">Tutup Pendaftaran Kandidat <span className="text-rose-500">*</span></label>
+                <Input type="datetime-local" name="candidate_registration_close" value={event.candidate_registration_close ? event.candidate_registration_close.substring(0, 16) : ""} onChange={handleChange} required />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Nama Lokasi/Gedung</label>
-              <Input name="location_name" value={event.location_name || ""} onChange={handleChange} placeholder="Aula Utama Gedung A" />
+              <label className="block text-sm font-medium text-slate-300 mb-1">Nama Lokasi/Gedung <span className="text-rose-500">*</span></label>
+              <Input name="location_name" value={event.location_name || ""} onChange={handleChange} placeholder="Aula Utama Gedung A" required />
             </div>
             
             <div>
@@ -304,13 +304,14 @@ export default function MusyawarahGeneralEditPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Deskripsi/Informasi Tambahan</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Deskripsi/Informasi Tambahan <span className="text-rose-500">*</span></label>
               <Textarea
                 name="description"
                 value={event.description || ""}
                 onChange={handleChange}
                 placeholder="Deskripsi lengkap tentang musyawarah ini..."
                 className="min-h-[120px]"
+                required
               />
             </div>
         </div>

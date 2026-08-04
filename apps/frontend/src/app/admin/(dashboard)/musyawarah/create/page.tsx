@@ -131,8 +131,10 @@ export default function CreateMusyawarahPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Tema</label>
-              <Input name="theme" value={form.theme || ""} onChange={handleChange} placeholder="Bersama Membangun Komunitas" />
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Tema <span className="text-rose-500">*</span>
+              </label>
+              <Input name="theme" value={form.theme || ""} onChange={handleChange} placeholder="Bersama Membangun Komunitas" required />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -147,35 +149,37 @@ export default function CreateMusyawarahPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Tanggal Acara Musyawarah</label>
-              <Input type="date" name="event_date" value={form.event_date || ""} onChange={handleChange} />
+              <label className="block text-sm font-medium text-slate-300 mb-1">
+                Tanggal Acara Musyawarah <span className="text-rose-500">*</span>
+              </label>
+              <Input type="date" name="event_date" value={form.event_date || ""} onChange={handleChange} required />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Buka Registrasi Peserta</label>
-                <Input type="datetime-local" name="registration_open" value={form.registration_open ? String(form.registration_open).substring(0, 16) : ""} onChange={handleChange} />
+                <label className="block text-sm font-medium text-slate-300 mb-1">Buka Registrasi Peserta <span className="text-rose-500">*</span></label>
+                <Input type="datetime-local" name="registration_open" value={form.registration_open ? String(form.registration_open).substring(0, 16) : ""} onChange={handleChange} required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Tutup Registrasi Peserta</label>
-                <Input type="datetime-local" name="registration_close" value={form.registration_close ? String(form.registration_close).substring(0, 16) : ""} onChange={handleChange} />
+                <label className="block text-sm font-medium text-slate-300 mb-1">Tutup Registrasi Peserta <span className="text-rose-500">*</span></label>
+                <Input type="datetime-local" name="registration_close" value={form.registration_close ? String(form.registration_close).substring(0, 16) : ""} onChange={handleChange} required />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Buka Pendaftaran Kandidat</label>
-                <Input type="datetime-local" name="candidate_registration_open" value={form.candidate_registration_open ? String(form.candidate_registration_open).substring(0, 16) : ""} onChange={handleChange} />
+                <label className="block text-sm font-medium text-slate-300 mb-1">Buka Pendaftaran Kandidat <span className="text-rose-500">*</span></label>
+                <Input type="datetime-local" name="candidate_registration_open" value={form.candidate_registration_open ? String(form.candidate_registration_open).substring(0, 16) : ""} onChange={handleChange} required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Tutup Pendaftaran Kandidat</label>
-                <Input type="datetime-local" name="candidate_registration_close" value={form.candidate_registration_close ? String(form.candidate_registration_close).substring(0, 16) : ""} onChange={handleChange} />
+                <label className="block text-sm font-medium text-slate-300 mb-1">Tutup Pendaftaran Kandidat <span className="text-rose-500">*</span></label>
+                <Input type="datetime-local" name="candidate_registration_close" value={form.candidate_registration_close ? String(form.candidate_registration_close).substring(0, 16) : ""} onChange={handleChange} required />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Nama Lokasi/Gedung</label>
-              <Input name="location_name" value={form.location_name || ""} onChange={handleChange} placeholder="Aula Utama Gedung A" />
+              <label className="block text-sm font-medium text-slate-300 mb-1">Nama Lokasi/Gedung <span className="text-rose-500">*</span></label>
+              <Input name="location_name" value={form.location_name || ""} onChange={handleChange} placeholder="Aula Utama Gedung A" required />
             </div>
             
             <div>
@@ -189,13 +193,14 @@ export default function CreateMusyawarahPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Deskripsi/Informasi Tambahan</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Deskripsi/Informasi Tambahan <span className="text-rose-500">*</span></label>
               <Textarea
                 name="description"
                 value={form.description || ""}
                 onChange={handleChange}
                 placeholder="Deskripsi singkat tentang pelaksanaan Musyawarah..."
                 className="min-h-[100px]"
+                required
               />
             </div>
           </div>

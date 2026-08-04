@@ -7,16 +7,16 @@ import "time"
 type CreateMusyawarahRequest struct {
 	Name                       string     `json:"name" validate:"required,max=255"`
 	Slug                       string     `json:"slug" validate:"required,max=255"`
-	Theme                      *string    `json:"theme" validate:"omitempty,max=255"`
-	Description                *string    `json:"description" validate:"omitempty"`
+	Theme                      *string    `json:"theme" validate:"required,max=255"`
+	Description                *string    `json:"description" validate:"required"`
 	PeriodStart                *time.Time `json:"period_start" validate:"omitempty"`
 	PeriodEnd                  *time.Time `json:"period_end" validate:"omitempty"`
-	EventDate                  *time.Time `json:"event_date" validate:"omitempty"`
-	RegistrationOpen           *time.Time `json:"registration_open" validate:"omitempty"`
-	RegistrationClose          *time.Time `json:"registration_close" validate:"omitempty"`
-	CandidateRegistrationOpen  *time.Time `json:"candidate_registration_open" validate:"omitempty"`
-	CandidateRegistrationClose *time.Time `json:"candidate_registration_close" validate:"omitempty"`
-	LocationName               *string    `json:"location_name" validate:"omitempty,max=255"`
+	EventDate                  *time.Time `json:"event_date" validate:"required"`
+	RegistrationOpen           *time.Time `json:"registration_open" validate:"required"`
+	RegistrationClose          *time.Time `json:"registration_close" validate:"required"`
+	CandidateRegistrationOpen  *time.Time `json:"candidate_registration_open" validate:"required"`
+	CandidateRegistrationClose *time.Time `json:"candidate_registration_close" validate:"required"`
+	LocationName               *string    `json:"location_name" validate:"required,max=255"`
 	Address                    *string    `json:"address" validate:"omitempty"`
 	GoogleMapsURL              *string    `json:"google_maps_url" validate:"omitempty,max=255"`
 }
@@ -39,16 +39,16 @@ type MusyawarahListItem struct {
 type UpdateMusyawarahRequest struct {
 	Name                       string     `json:"name" validate:"required,max=255"`
 	Slug                       string     `json:"slug" validate:"required,max=255"`
-	Theme                      *string    `json:"theme" validate:"omitempty,max=255"`
-	Description                *string    `json:"description" validate:"omitempty"`
+	Theme                      *string    `json:"theme" validate:"required,max=255"`
+	Description                *string    `json:"description" validate:"required"`
 	PeriodStart                *time.Time `json:"period_start" validate:"omitempty"`
 	PeriodEnd                  *time.Time `json:"period_end" validate:"omitempty"`
-	EventDate                  *time.Time `json:"event_date" validate:"omitempty"`
-	RegistrationOpen           *time.Time `json:"registration_open" validate:"omitempty"`
-	RegistrationClose          *time.Time `json:"registration_close" validate:"omitempty"`
-	CandidateRegistrationOpen  *time.Time `json:"candidate_registration_open" validate:"omitempty"`
-	CandidateRegistrationClose *time.Time `json:"candidate_registration_close" validate:"omitempty"`
-	LocationName               *string    `json:"location_name" validate:"omitempty,max=255"`
+	EventDate                  *time.Time `json:"event_date" validate:"required"`
+	RegistrationOpen           *time.Time `json:"registration_open" validate:"required"`
+	RegistrationClose          *time.Time `json:"registration_close" validate:"required"`
+	CandidateRegistrationOpen  *time.Time `json:"candidate_registration_open" validate:"required"`
+	CandidateRegistrationClose *time.Time `json:"candidate_registration_close" validate:"required"`
+	LocationName               *string    `json:"location_name" validate:"required,max=255"`
 	Address                    *string    `json:"address" validate:"omitempty"`
 	GoogleMapsURL              *string    `json:"google_maps_url" validate:"omitempty,max=255"`
 }

@@ -29,8 +29,7 @@ func (r *repository) GetActiveEvent(ctx context.Context) (*PublicEvent, error) {
 	query := `
 		SELECT id, name, theme, location, event_date, status 
 		FROM events 
-		WHERE deleted_at IS NULL 
-		ORDER BY created_at ASC 
+		WHERE is_default_active = true AND deleted_at IS NULL 
 		LIMIT 1
 	`
 	var e PublicEvent
