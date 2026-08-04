@@ -431,76 +431,18 @@ export default function CandidateRegisterPage() {
                 <p className="text-slate-500 mb-8">Draft otomatis tersimpan saat Anda mengetik. Anda bisa keluar dan melanjutkannya nanti.</p>
 
                 <div className="space-y-6 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm">
-                  <InputGroup label="Kawasan Industri" error={errors.industrial_area?.message}>
-                    <Controller
-                      name="industrial_area"
-                      control={control}
-                      render={({ field }) => (
-                        <SearchableSelect
-                          id="industrial_area"
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                          options={masterAreas.map(a => a.name)}
-                          placeholder="Pilih Kawasan Industri"
-                          hasError={!!errors.industrial_area}
-                        />
-                      )}
-                    />
-                  </InputGroup>
                   <InputGroup label="Nama Perusahaan" error={errors.company_name?.message}>
-                    <Controller
-                      name="company_name"
-                      control={control}
-                      render={({ field }) => (
-                        <SearchableSelect
-                          id="company_name"
-                          value={field.value || ""}
-                          onChange={field.onChange}
-                          options={masterCompanies
-                            .filter(c => {
-                              const selectedArea = watch("industrial_area");
-                              if (!selectedArea) return true;
-                              return c.industrial_area === selectedArea;
-                            })
-                            .map(c => c.name)}
-                          placeholder="Pilih Perusahaan"
-                          hasError={!!errors.company_name}
-                        />
-                      )}
-                    />
+                    <input {...register("company_name")} type="text" className="input-lg" placeholder="Masukkan Nama Perusahaan" />
+                  </InputGroup>
+                  <InputGroup label="Kawasan Industri" error={errors.industrial_area?.message}>
+                    <input {...register("industrial_area")} type="text" className="input-lg" placeholder="Masukkan Kawasan Industri" />
                   </InputGroup>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <InputGroup label="Jabatan" error={errors.job_title?.message}>
-                      <Controller
-                        name="job_title"
-                        control={control}
-                        render={({ field }) => (
-                          <SearchableSelect
-                            id="job_title"
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                            options={masterJobTitles.map(j => j.name)}
-                            placeholder="Pilih Jabatan"
-                            hasError={!!errors.job_title}
-                          />
-                        )}
-                      />
+                      <input {...register("job_title")} type="text" className="input-lg" placeholder="Masukkan Jabatan" />
                     </InputGroup>
                     <InputGroup label="Departemen (Opsional)" error={errors.department?.message}>
-                      <Controller
-                        name="department"
-                        control={control}
-                        render={({ field }) => (
-                          <SearchableSelect
-                            id="department"
-                            value={field.value || ""}
-                            onChange={field.onChange}
-                            options={masterDepartments.map(d => d.name)}
-                            placeholder="Pilih Departemen"
-                            hasError={!!errors.department}
-                          />
-                        )}
-                      />
+                      <input {...register("department")} type="text" className="input-lg" placeholder="Masukkan Departemen" />
                     </InputGroup>
                   </div>
                 </div>
