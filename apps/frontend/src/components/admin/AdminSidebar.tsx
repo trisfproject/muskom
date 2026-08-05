@@ -24,13 +24,19 @@ import {
   UserPlus,
   ShieldCheck,
   Activity,
-  BarChart3
+  BarChart3,
+  X
 } from "lucide-react";
 import Cookies from "js-cookie";
 
 import { useSystemConfig } from "@/contexts/ConfigContext";
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const { config } = useSystemConfig();
 
@@ -94,27 +100,49 @@ export function AdminSidebar() {
   ] as { title: string; items: { label: string; href: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean; comingSoon?: boolean }[] }[];
 
   return (
-    <aside className="w-64 pg-bg border-r pg-border pg-muted flex flex-col h-screen sticky top-0 shrink-0 select-none">
-      {/* Brand Header */}
-      <div className="p-5 border-b pg-border flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-black text-sm shadow-md shadow-[var(--color-primary)]/30">
-            {initial}
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" 
+          onClick={onClose} 
+        />
+      )}
+      <aside 
+        className={`w-64 pg-bg border-r pg-border pg-muted flex flex-col h-screen fixed inset-y-0 left-0 z-50 lg:sticky lg:top-0 shrink-0 select-none transform transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
+      >
+        {/* Brand Header */}
+        <div className="p-5 border-b pg-border flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-black text-sm shadow-md shadow-[var(--color-primary)]/30">
+              {initial}
+            </div>
+            <div>
+              <h1 className="font-bold pg-text text-sm tracking-tight">{communityName}</h1>
+              <p className="text-[10px] text-primary font-semibold uppercase tracking-wider">Admin Portal</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-bold pg-text text-sm tracking-tight">{communityName}</h1>
-            <p className="text-[10px] text-primary font-semibold uppercase tracking-wider">Admin Portal</p>
+          <div className="flex items-center gap-1">
+            <Link
+              href="/"
+              target="_blank"
+              className="p-1.5 rounded-md hover:pg-surface-elevated pg-muted hover:pg-text transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              title="Lihat Website Publik"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </Link>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="lg:hidden p-1.5 rounded-md hover:pg-surface-elevated pg-muted hover:pg-text transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
-        <Link
-          href="/"
-          target="_blank"
-          className="p-1.5 rounded-md hover:pg-surface-elevated pg-muted hover:pg-text transition-colors"
-          title="Lihat Website Publik"
-        >
-          <ExternalLink className="w-4 h-4" />
-        </Link>
-      </div>
 
       {/* Navigation Groups */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
@@ -134,7 +162,7 @@ export function AdminSidebar() {
                     key={item.href}
                     href={item.comingSoon ? "#" : item.href}
                     onClick={(e) => item.comingSoon && e.preventDefault()}
-                    className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                    className={`flex items-center justify-between px-3 py-2 min-h-[44px] rounded-lg text-xs font-medium transition-all ${
                       item.comingSoon
                         ? "opacity-50 cursor-not-allowed text-slate-500"
                         : isActive
@@ -174,12 +202,13 @@ export function AdminSidebar() {
         </div>
         <button
           onClick={handleLogout}
-          className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+          className="p-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
           title="Keluar"
         >
           <LogOut className="w-4 h-4" />
         </button>
       </div>
     </aside>
+    </>
   );
 }

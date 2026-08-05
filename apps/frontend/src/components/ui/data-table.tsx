@@ -93,9 +93,9 @@ export function DataTable<T extends { id?: string }>({
       {/* ── Table card ── */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left whitespace-nowrap">
+          <table className="w-full text-sm text-left whitespace-nowrap md:table flex flex-col">
             {/* Header */}
-            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-700">
+            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-700 hidden md:table-header-group">
               <tr>
                 {columns.map((col) => (
                   <th
@@ -125,17 +125,20 @@ export function DataTable<T extends { id?: string }>({
             </thead>
 
             {/* Body */}
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50 pg-text">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50 pg-text flex flex-col md:table-row-group">
               {loading ? (
                 // Skeleton rows
                 Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={i} className="animate-pulse">
+                  <tr key={i} className="animate-pulse flex flex-col md:table-row border-b md:border-none p-4 md:p-0">
                     {columns.map((col, j) => (
-                      <td key={j} className="px-5 py-4">
-                        <div className="h-3.5 bg-slate-100 dark:bg-slate-700 rounded w-3/4" />
-                        {j === 0 && (
-                          <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded w-1/2 mt-2" />
-                        )}
+                      <td key={j} className="px-0 py-2 md:px-5 md:py-4 flex justify-between items-center md:table-cell gap-4">
+                        <span className="md:hidden font-bold pg-muted text-xs uppercase tracking-wider">{col.header}</span>
+                        <div className="w-1/2 flex flex-col gap-2 items-end md:items-start">
+                          <div className="h-3.5 bg-slate-100 dark:bg-slate-700 rounded w-full max-w-[200px]" />
+                          {j === 0 && (
+                            <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded w-1/2" />
+                          )}
+                        </div>
                       </td>
                     ))}
                   </tr>
@@ -143,7 +146,7 @@ export function DataTable<T extends { id?: string }>({
               ) : sortedData.length === 0 ? (
                 // Empty state
                 <tr>
-                  <td colSpan={columns.length} className="px-5 py-16 text-center">
+                  <td colSpan={columns.length} className="px-5 py-16 text-center block md:table-cell">
                     <div className="flex flex-col items-center gap-2">
                       <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                         <Search className="w-5 h-5 pg-muted" />
@@ -157,11 +160,14 @@ export function DataTable<T extends { id?: string }>({
                 sortedData.map((row, i) => (
                   <tr
                     key={row.id || i}
-                    className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
+                    className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors flex flex-col md:table-row p-4 md:p-0 border-b border-slate-100 dark:border-slate-700 md:border-none"
                   >
                     {columns.map((col) => (
-                      <td key={col.key} className="px-5 py-3.5 align-middle">
-                        {col.render ? col.render(row) : (row as any)[col.key]}
+                      <td key={col.key} className="px-0 py-2 md:px-5 md:py-3.5 align-middle flex justify-between items-center md:table-cell gap-4 border-b border-slate-50 dark:border-slate-800/50 md:border-none last:border-none">
+                        <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">{col.header}</span>
+                        <div className="text-right md:text-left flex-1 flex justify-end md:justify-start min-w-0">
+                          {col.render ? col.render(row) : (row as any)[col.key]}
+                        </div>
                       </td>
                     ))}
                   </tr>
@@ -186,17 +192,17 @@ export function DataTable<T extends { id?: string }>({
               <button
                 disabled={page <= 1}
                 onClick={() => onPageChange && onPageChange(page - 1)}
-                className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="px-2 font-medium pg-text">
+              <span className="px-2 font-medium pg-text min-h-[44px] flex items-center justify-center">
                 {page} / {totalPages}
               </span>
               <button
                 disabled={page >= totalPages}
                 onClick={() => onPageChange && onPageChange(page + 1)}
-                className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>

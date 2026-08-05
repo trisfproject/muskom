@@ -653,8 +653,8 @@ export default function ParticipantDashboardPage() {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-700">
+          <table className="w-full text-sm text-left md:table flex flex-col">
+            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-700 hidden md:table-header-group">
               <tr>
                 <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider pg-muted whitespace-nowrap">No. Reg.</th>
                 <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider pg-muted">Nama</th>
@@ -665,10 +665,10 @@ export default function ParticipantDashboardPage() {
                 <th className="px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider pg-muted text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50 pg-text">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50 pg-text flex flex-col md:table-row-group">
               {filteredRecent.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-12 text-center">
+                  <td colSpan={7} className="px-5 py-12 text-center block md:table-cell">
                     <div className="flex flex-col items-center gap-2">
                       <Users className="w-10 h-10 text-slate-200 dark:text-slate-700" />
                       <p className="text-sm font-medium pg-muted">Tidak ada peserta yang cocok</p>
@@ -677,42 +677,51 @@ export default function ParticipantDashboardPage() {
                 </tr>
               ) : (
                 filteredRecent.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="px-5 py-4 font-mono text-xs text-slate-400 font-semibold whitespace-nowrap">
-                      {p.registration_number}
+                  <tr key={p.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors flex flex-col md:table-row p-4 md:p-0 border-b border-slate-100 dark:border-slate-700 md:border-none">
+                    <td className="px-0 py-2 md:px-5 md:py-4 flex justify-between items-center md:table-cell gap-4 border-b border-slate-50 dark:border-slate-800/50 md:border-none">
+                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">No. Reg.</span>
+                      <span className="font-mono text-xs text-slate-400 font-semibold text-right md:text-left">{p.registration_number}</span>
                     </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center gap-2.5">
+                    <td className="px-0 py-2 md:px-5 md:py-4 flex justify-between items-center md:table-cell gap-4 border-b border-slate-50 dark:border-slate-800/50 md:border-none">
+                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Nama</span>
+                      <div className="flex items-center gap-2.5 justify-end md:justify-start">
                         <div className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-xs font-bold pg-muted shrink-0">
                           {p.full_name.charAt(0).toUpperCase()}
                         </div>
                         <span className="font-semibold pg-text text-sm whitespace-nowrap">{p.full_name}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-4 hidden sm:table-cell">
-                      <span className="text-sm pg-text">{p.company_name}</span>
+                    <td className="px-0 py-2 md:px-5 md:py-4 flex sm:table-cell justify-between items-center md:table-cell gap-4 border-b border-slate-50 dark:border-slate-800/50 md:border-none hidden md:table-cell sm:flex">
+                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Perusahaan</span>
+                      <span className="text-sm pg-text text-right md:text-left">{p.company_name}</span>
                     </td>
-                    <td className="px-5 py-4 hidden md:table-cell">
-                      <span className="text-sm pg-muted">{p.industrial_area}</span>
+                    <td className="px-0 py-2 md:px-5 md:py-4 flex md:table-cell justify-between items-center md:table-cell gap-4 border-b border-slate-50 dark:border-slate-800/50 md:border-none hidden md:table-cell md:flex">
+                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Area Industri</span>
+                      <span className="text-sm pg-muted text-right md:text-left">{p.industrial_area}</span>
                     </td>
-                    <td className="px-5 py-4">
-                      <StatusBadge status={p.status} />
+                    <td className="px-0 py-2 md:px-5 md:py-4 flex justify-between items-center md:table-cell gap-4 border-b border-slate-50 dark:border-slate-800/50 md:border-none">
+                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Status</span>
+                      <div className="flex justify-end md:justify-start"><StatusBadge status={p.status} /></div>
                     </td>
-                    <td className="px-5 py-4 hidden lg:table-cell">
-                      <span className="text-xs pg-muted whitespace-nowrap">
+                    <td className="px-0 py-2 md:px-5 md:py-4 flex lg:table-cell justify-between items-center md:table-cell gap-4 border-b border-slate-50 dark:border-slate-800/50 md:border-none hidden lg:table-cell lg:flex">
+                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Waktu Daftar</span>
+                      <span className="text-xs pg-muted whitespace-nowrap text-right md:text-left">
                         {new Date(p.created_at).toLocaleString("id-ID", {
                           day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
                         })}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-right">
-                      <Link
-                        href={`/admin/registrations/${p.id}`}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        Detail
-                      </Link>
+                    <td className="px-0 py-2 md:px-5 md:py-4 flex justify-between items-center md:table-cell gap-4 md:border-none mt-2 md:mt-0">
+                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Aksi</span>
+                      <div className="text-right flex justify-end">
+                        <Link
+                          href={`/admin/registrations/${p.id}`}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors p-2"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          Detail
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))

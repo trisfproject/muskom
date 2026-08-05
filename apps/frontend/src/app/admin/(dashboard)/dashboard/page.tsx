@@ -91,23 +91,23 @@ export default function AdminDashboardPage() {
               {formatLifecycleName(lifecycle)}
             </div>
             
-            <div className="flex flex-wrap gap-3 mt-6">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 mt-6">
               {lifecycle === 'DRAFT' && (
-                <Link href="/admin/musyawarah/publication" className="inline-flex items-center gap-2 bg-primary hover:bg-primary-active pg-text px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                <Link href="/admin/musyawarah/publication" className="inline-flex items-center justify-center min-h-[44px] gap-2 bg-primary hover:bg-primary-active pg-text px-4 py-2 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto">
                   <ArrowRight className="w-4 h-4" /> Publikasikan Acara
                 </Link>
               )}
               {lifecycle.includes('PARTICIPANT') && (
-                <Link href="/admin/registrations" className="inline-flex items-center gap-2 bg-primary hover:bg-primary-active pg-text px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-700">
+                <Link href="/admin/registrations" className="inline-flex items-center justify-center min-h-[44px] gap-2 bg-primary hover:bg-primary-active pg-text px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-700 w-full sm:w-auto">
                   <Users className="w-4 h-4" /> Kelola Peserta
                 </Link>
               )}
               {lifecycle.includes('CANDIDATE') && (
-                <Link href="/admin/candidates" className="inline-flex items-center gap-2 bg-primary hover:bg-primary-active pg-text px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-700">
+                <Link href="/admin/candidates" className="inline-flex items-center justify-center min-h-[44px] gap-2 bg-primary hover:bg-primary-active pg-text px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-700 w-full sm:w-auto">
                   <UserCheck className="w-4 h-4" /> Kelola Kandidat
                 </Link>
               )}
-              <Link href="/admin/musyawarah/timeline" className="inline-flex items-center gap-2 pg-surface-elevated hover:pg-surface-elevated/80 pg-text px-4 py-2 rounded-lg text-sm font-medium transition-colors border pg-border">
+              <Link href="/admin/musyawarah/timeline" className="inline-flex items-center justify-center min-h-[44px] gap-2 pg-surface-elevated hover:pg-surface-elevated/80 pg-text px-4 py-2 rounded-lg text-sm font-medium transition-colors border pg-border w-full sm:w-auto">
                 <Calendar className="w-4 h-4" /> Timeline
               </Link>
             </div>
@@ -136,7 +136,7 @@ export default function AdminDashboardPage() {
           <div className="mt-6">
             <Link 
               href="/admin/registrations"
-              className={`w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`w-full inline-flex items-center justify-center min-h-[44px] gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 totalPending > 0 
                   ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
                   : 'pg-surface-elevated pg-muted hover:pg-text'

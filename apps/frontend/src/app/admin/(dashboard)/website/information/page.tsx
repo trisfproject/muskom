@@ -126,7 +126,7 @@ export default function AdminInformationPages() {
         </div>
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover pg-text font-semibold text-sm transition-colors shadow-lg shadow-[var(--color-primary)]/30 shrink-0"
+          className="inline-flex items-center justify-center min-h-[44px] gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover pg-text font-semibold text-sm transition-colors shadow-lg shadow-[var(--color-primary)]/30 shrink-0 w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
           Buat Halaman
@@ -149,41 +149,43 @@ export default function AdminInformationPages() {
       {/* Pages List */}
       <div className="pg-surface border pg-border rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
+          <table className="w-full text-left md:table flex flex-col">
+            <thead className="hidden md:table-header-group">
               <tr className="border-b pg-border pg-surface/50">
                 <th className="px-6 py-4 text-xs font-semibold pg-muted uppercase tracking-wider w-[40%]">Halaman</th>
                 <th className="px-6 py-4 text-xs font-semibold pg-muted uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold pg-muted uppercase tracking-wider text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--color-border)]">
+            <tbody className="divide-y divide-[var(--color-border)] flex flex-col md:table-row-group">
               {pages.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center pg-muted">
+                  <td colSpan={3} className="px-6 py-12 text-center pg-muted block md:table-cell">
                     <FileText className="w-12 h-12 mx-auto mb-4 opacity-20" />
                     <p>Belum ada halaman informasi.</p>
                   </td>
                 </tr>
               ) : (
                 pages.map((p) => (
-                  <tr key={p.id} className="hover:pg-surface-elevated transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center shrink-0 border border-[var(--color-primary)]/20">
+                  <tr key={p.id} className="hover:pg-surface-elevated transition-colors group flex flex-col md:table-row p-4 md:p-0 border-b md:border-none pg-border">
+                    <td className="px-0 py-2 md:px-6 md:py-4 flex justify-between md:items-start md:table-cell gap-4 border-b md:border-none pg-border/50 items-center">
+                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Halaman</span>
+                      <div className="flex items-start gap-4 text-right md:text-left justify-end md:justify-start">
+                        <div className="w-10 h-10 rounded-xl bg-[var(--color-primary)]/10 hidden md:flex items-center justify-center shrink-0 border border-[var(--color-primary)]/20">
                           <FileText className="w-5 h-5 text-primary" />
                         </div>
                         <div>
                           <p className="pg-text font-medium mb-1">{p.title}</p>
-                          <div className="flex items-center gap-3 text-xs pg-muted">
+                          <div className="flex items-center md:justify-start justify-end gap-3 text-xs pg-muted flex-wrap">
                             <span>/{p.slug}</span>
-                            <span className="w-1 h-1 rounded-full pg-surface-elevated"></span>
-                            <span>{new Date(p.created_at || "").toLocaleDateString("id-ID")}</span>
+                            <span className="w-1 h-1 rounded-full pg-surface-elevated hidden sm:inline-block"></span>
+                            <span className="hidden sm:inline-block">{new Date(p.created_at || "").toLocaleDateString("id-ID")}</span>
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-0 py-2 md:px-6 md:py-4 flex justify-between items-center md:table-cell gap-4 border-b md:border-none pg-border/50">
+                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Status</span>
                       <span
                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
                           p.is_published
@@ -194,26 +196,27 @@ export default function AdminInformationPages() {
                         {p.is_published ? "Dipublikasikan" : "Draft"}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <td className="px-0 py-3 md:px-6 md:py-4 flex justify-between items-center md:table-cell gap-4 md:border-none">
+                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Aksi</span>
+                      <div className="flex items-center justify-end gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
                         <Link
                           href={`/informasi/${p.slug}`}
                           target="_blank"
-                          className="p-2 pg-muted hover:pg-text pg-surface-elevated/50 hover:pg-surface-elevated/80 rounded-lg transition-colors"
+                          className="min-h-[44px] min-w-[44px] flex items-center justify-center pg-muted hover:pg-text pg-surface-elevated/50 hover:pg-surface-elevated/80 rounded-lg transition-colors"
                           title="Lihat"
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
                         <button
                           onClick={() => openEditModal(p)}
-                          className="p-2 text-primary hover:text-primary-hover bg-[var(--color-primary)]/10 hover:bg-primary-hover/20 rounded-lg transition-colors"
+                          className="min-h-[44px] min-w-[44px] flex items-center justify-center text-primary hover:text-primary-hover bg-[var(--color-primary)]/10 hover:bg-primary-hover/20 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => p.id && handleDelete(p.id)}
-                          className="p-2 text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-colors"
+                          className="min-h-[44px] min-w-[44px] flex items-center justify-center text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition-colors"
                           title="Hapus"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -255,7 +258,7 @@ export default function AdminInformationPages() {
                       required
                       value={formState.title}
                       onChange={(e) => setFormState({ ...formState, title: e.target.value })}
-                      className="w-full pg-surface border pg-border rounded-xl px-4 py-2.5 pg-text placeholder:pg-muted focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
+                      className="w-full min-h-[44px] pg-surface border pg-border rounded-xl px-4 py-2.5 pg-text placeholder:pg-muted focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
                       placeholder="Masukkan judul halaman..."
                     />
                   </div>
@@ -270,7 +273,7 @@ export default function AdminInformationPages() {
                         type="text"
                         value={formState.slug}
                         onChange={(e) => setFormState({ ...formState, slug: e.target.value })}
-                        className="flex-1 min-w-0 pg-surface border pg-border rounded-r-xl px-4 py-2.5 pg-text placeholder:pg-muted focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
+                        className="flex-1 min-w-0 min-h-[44px] pg-surface border pg-border rounded-r-xl px-4 py-2.5 pg-text placeholder:pg-muted focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all"
                         placeholder="Otomatis dari judul jika kosong"
                       />
                     </div>
@@ -309,7 +312,7 @@ export default function AdminInformationPages() {
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="px-5 py-2.5 text-sm font-medium pg-text hover:pg-muted transition-colors"
+                className="min-h-[44px] px-5 py-2.5 text-sm font-medium pg-text hover:pg-muted transition-colors w-full sm:w-auto text-center"
               >
                 Batal
               </button>
@@ -317,7 +320,7 @@ export default function AdminInformationPages() {
                 type="submit"
                 form="page-form"
                 disabled={saving}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover pg-text font-semibold text-sm transition-all shadow-lg shadow-[var(--color-primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px]"
+                className="inline-flex items-center justify-center min-h-[44px] gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover pg-text font-semibold text-sm transition-all shadow-lg shadow-[var(--color-primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto min-w-[120px]"
               >
                 {saving ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

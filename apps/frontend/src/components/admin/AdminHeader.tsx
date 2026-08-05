@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Bell, User as UserIcon, LogOut, Settings } from "lucide-react";
+import { Search, Bell, User as UserIcon, LogOut, Settings, Menu } from "lucide-react";
 import Cookies from "js-cookie";
 import { dashboardService } from "@/services/dashboard";
 import { DashboardSummary } from "@/types/dashboard";
 import Link from "next/link";
 import { useSystemConfig } from "@/contexts/ConfigContext";
 
-export function AdminHeader() {
+interface AdminHeaderProps {
+  onOpenSidebar?: () => void;
+}
+
+export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
   const { config } = useSystemConfig();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [user, setUser] = useState<{ full_name: string; role_name: string } | null>(null);
@@ -38,9 +42,20 @@ export function AdminHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[var(--color-bg)]/80 backdrop-blur-md border-b border-[var(--color-border)] flex items-center justify-between px-6 py-4 h-16">
+    <header className="sticky top-0 z-30 bg-[var(--color-bg)]/80 backdrop-blur-md border-b border-[var(--color-border)] flex items-center justify-between px-4 sm:px-6 py-4 h-16 shrink-0">
+      
+      {/* Mobile Hamburger */}
+      {onOpenSidebar && (
+        <button
+          onClick={onOpenSidebar}
+          className="mr-3 lg:hidden p-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors shrink-0"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      )}
+
       {/* Search Bar Placeholder */}
-      <div className="flex-1 max-w-md">
+      <div className="flex-1 max-w-md hidden sm:block">
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition-colors" />
           <input
@@ -72,7 +87,7 @@ export function AdminHeader() {
 
         {/* Quick Actions / Notifications */}
         <div className="relative group">
-          <button className="relative p-2 pg-muted hover:pg-text hover:pg-surface-elevated rounded-full transition-colors">
+          <button className="relative p-2 min-h-[44px] min-w-[44px] flex items-center justify-center pg-muted hover:pg-text hover:pg-surface-elevated rounded-full transition-colors">
             <Bell className="w-5 h-5" />
             {(summary?.pending_participants || 0) + (summary?.pending_candidates || 0) > 0 && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full border border-slate-950"></span>
@@ -127,7 +142,7 @@ export function AdminHeader() {
 
         {/* User Profile */}
         <div className="relative group">
-          <button className="flex items-center gap-2 pl-2">
+          <button className="flex items-center gap-2 pl-2 min-h-[44px]">
             <div className="text-right hidden sm:block">
               <div className="text-sm font-semibold pg-text leading-tight">
                 {user?.full_name || 'Administrator'}
@@ -144,13 +159,13 @@ export function AdminHeader() {
           {/* Dropdown (Hover) */}
           <div className="absolute right-0 mt-2 w-48 pg-surface border border-[var(--color-border)] rounded-xl shadow-xl shadow-black/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
             <div className="p-2 space-y-1">
-              <Link href="/admin/users/profile" className="flex items-center gap-2 px-3 py-2 text-sm pg-muted hover:pg-text hover:pg-surface-elevated rounded-lg transition-colors">
+              <Link href="/admin/users/profile" className="flex items-center gap-2 px-3 py-2 min-h-[44px] text-sm pg-muted hover:pg-text hover:pg-surface-elevated rounded-lg transition-colors">
                 <Settings className="w-4 h-4" />
                 <span>Account Settings</span>
               </Link>
               <button 
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 min-h-[44px] text-sm text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out</span>
