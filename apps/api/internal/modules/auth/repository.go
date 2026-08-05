@@ -8,7 +8,7 @@ import (
 )
 
 type Repository interface {
-	FindByUsername(ctx context.Context, username string) (*AuthUser, error)
+	FindByUsernameOrEmail(ctx context.Context, identifier string) (*AuthUser, error)
 	UpdateLastLogin(ctx context.Context, userID string, loginAt time.Time) error
 }
 
@@ -21,7 +21,7 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
-func (r *repository) FindByUsername(ctx context.Context, username string) (*AuthUser, error) {
+func (r *repository) FindByUsernameOrEmail(ctx context.Context, identifier string) (*AuthUser, error) {
 	query := `
 		SELECT 
 			u.id, 
@@ -35,11 +35,11 @@ func (r *repository) FindByUsername(ctx context.Context, username string) (*Auth
 		FROM users u
 		INNER JOIN persons p ON u.person_id = p.id
 		INNER JOIN roles ON u.role_id = roles.id
-		WHERE u.username = $1 AND u.deleted_at IS NULL
+		WHERE (u.username = $1 OR p.email = $1) AND u.deleted_at IS NULL
 	`
 
 	var user AuthUser
-	err := r.db.GetContext(ctx, &user, query, username)
+	err := r.db.GetContext(ctx, &user, query, identifier)
 	if err != nil {
 		return nil, err
 	}

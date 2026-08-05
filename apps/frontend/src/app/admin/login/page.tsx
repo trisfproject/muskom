@@ -55,7 +55,7 @@ export default function AdminLoginPage() {
       router.push("/admin/dashboard")
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } }
-      const msg = e?.response?.data?.message ?? "Username atau password salah."
+      const msg = e?.response?.data?.message ?? "Username/Email atau Password salah."
       setErrorMsg(msg)
       toast.error(msg)
     } finally {
@@ -111,11 +111,11 @@ export default function AdminLoginPage() {
               </div>
 
               <div>
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">Username atau Email</Label>
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Masukkan username"
+                  placeholder="admin atau admin@muskom.local"
                   autoComplete="username"
                   value={form.username}
                   onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}

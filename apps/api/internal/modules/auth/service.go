@@ -68,7 +68,7 @@ func (s *service) generateTokens(user *AuthUser) (string, string, string, error)
 }
 
 func (s *service) Authenticate(ctx context.Context, username, password string) (*LoginResponse, error) {
-	user, err := s.repo.FindByUsername(ctx, username)
+	user, err := s.repo.FindByUsernameOrEmail(ctx, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrInvalidCredentials
@@ -151,7 +151,7 @@ func (s *service) Refresh(ctx context.Context, refreshTokenString string) (*Refr
 	}
 
 	// 3. Verify user is still active
-	user, err := s.repo.FindByUsername(ctx, username)
+	user, err := s.repo.FindByUsernameOrEmail(ctx, username)
 	if err != nil || !user.IsActive {
 		_ = s.redis.Del(ctx, redisKey) // revoke on failure
 		return nil, ErrUserInactive

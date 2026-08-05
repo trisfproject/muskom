@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -38,6 +39,10 @@ func Run(ctx context.Context, db *sqlx.DB, cfg *config.Config, log *zap.Logger) 
 	}
 
 	if count > 0 {
+		fmt.Println("--------------------------------------------------")
+		fmt.Println("[BOOTSTRAP]")
+		fmt.Println("Administrator : ALREADY EXISTS")
+		fmt.Println("--------------------------------------------------")
 		log.Info("Bootstrap administrator skipped (already exists)")
 		return
 	}
@@ -110,5 +115,12 @@ func Run(ctx context.Context, db *sqlx.DB, cfg *config.Config, log *zap.Logger) 
 		return
 	}
 
+	fmt.Println("--------------------------------------------------")
+	fmt.Println("[BOOTSTRAP]")
+	fmt.Println("Administrator : CREATED")
+	fmt.Printf("Name      : %s\n", name)
+	fmt.Printf("Username  : %s\n", cfg.BootstrapAdminUsername)
+	fmt.Printf("Email     : %s\n", cfg.BootstrapAdminEmail)
+	fmt.Println("--------------------------------------------------")
 	log.Info("Bootstrap administrator created")
 }

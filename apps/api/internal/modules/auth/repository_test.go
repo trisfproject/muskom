@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRepository_FindByUsername(t *testing.T) {
+func TestRepository_FindByUsernameOrEmail(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
 	defer db.Close()
@@ -28,7 +28,7 @@ func TestRepository_FindByUsername(t *testing.T) {
 			WithArgs("testuser").
 			WillReturnRows(rows)
 
-		user, err := repo.FindByUsername(ctx, "testuser")
+		user, err := repo.FindByUsernameOrEmail(ctx, "testuser")
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, "usr1", user.ID)
@@ -41,7 +41,7 @@ func TestRepository_FindByUsername(t *testing.T) {
 			WithArgs("testuser").
 			WillReturnError(sql.ErrNoRows)
 
-		user, err := repo.FindByUsername(ctx, "testuser")
+		user, err := repo.FindByUsernameOrEmail(ctx, "testuser")
 		assert.ErrorIs(t, err, sql.ErrNoRows)
 		assert.Nil(t, user)
 	})

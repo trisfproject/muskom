@@ -15,10 +15,10 @@ The application supports automatically creating a Super Administrator during sta
 You can configure the bootstrap behavior in your `.env` file using the following variables:
 
 ```env
-BOOTSTRAP_ADMIN_ENABLED=false
-BOOTSTRAP_ADMIN_NAME=Administrator
+BOOTSTRAP_ADMIN_ENABLED=true
+BOOTSTRAP_ADMIN_NAME="System Administrator"
 BOOTSTRAP_ADMIN_USERNAME=admin
-BOOTSTRAP_ADMIN_EMAIL=admin@example.com
+BOOTSTRAP_ADMIN_EMAIL=admin@muskom.local
 BOOTSTRAP_ADMIN_PASSWORD=ChangeMe123!
 BOOTSTRAP_ADMIN_ROLE=super_admin
 ```
