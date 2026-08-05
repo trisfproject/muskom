@@ -1,4 +1,4 @@
-# MUSKOM Knowledge Base & Documentation Sitemap
+# MUSKOM Knowledge Base & Project Sitemap
 
 Welcome to the permanent Project Knowledge Base for the **MUSKOM Platform (Musyawarah Management System)**.
 
@@ -6,7 +6,7 @@ This documentation serves as the single source of truth for all architectural de
 
 ---
 
-## Documentation Structure
+## Documentation Index
 
 ### [00-assessment/](00-assessment/repository-assessment.md)
 - [`repository-assessment.md`](00-assessment/repository-assessment.md) — Comprehensive technical & product assessment report.
@@ -18,6 +18,8 @@ This documentation serves as the single source of truth for all architectural de
 - [`glossary.md`](01-product/glossary.md) — Domain terminology reference.
 - [`business-rules.md`](01-product/business-rules.md) — Core business rule validations.
 - [`workflows.md`](01-product/workflows.md) — 4 core end-to-end operational workflows.
+- [`navigation.md`](01-product/navigation.md) — Admin & public portal navigation structures.
+- [`feature-matrix.md`](01-product/feature-matrix.md) — Feature status & release target matrix.
 
 ### [02-architecture/](02-architecture/overview.md)
 - [`overview.md`](02-architecture/overview.md) — High-level system architecture & topology.
@@ -26,6 +28,7 @@ This documentation serves as the single source of truth for all architectural de
 - [`database.md`](02-architecture/database.md) — PostgreSQL schema & canonical SSOT tables.
 - [`deployment.md`](02-architecture/deployment.md) — Docker Compose & Nginx setup.
 - [`security.md`](02-architecture/security.md) — JWT, Bcrypt, RBAC & Audit Trail design.
+- [`storage.md`](02-architecture/storage.md) — Local storage provider & media layout.
 
 ### [03-engineering/](03-engineering/coding-standard.md)
 - [`coding-standard.md`](03-engineering/coding-standard.md) — Go and TypeScript coding conventions.
@@ -34,6 +37,8 @@ This documentation serves as the single source of truth for all architectural de
 - [`ui-guidelines.md`](03-engineering/ui-guidelines.md) — UI design system, state rules, & mobile responsiveness.
 - [`docker-guidelines.md`](03-engineering/docker-guidelines.md) — Containerization & volume management.
 - [`release-process.md`](03-engineering/release-process.md) — Quality gates & release validation steps.
+- [`governance.md`](03-engineering/governance.md) — Code review & governance policies.
+- [`contribution.md`](03-engineering/contribution.md) — Git workflow & Definition of Done checklist.
 
 ### [04-reference/](04-reference/environment.md)
 - [`environment.md`](04-reference/environment.md) — Backend & Frontend environment variables.
@@ -54,12 +59,15 @@ This documentation serves as the single source of truth for all architectural de
 - [`ADR-003-registration-flow.md`](06-adr/ADR-003-registration-flow.md) — Delegate Registration Pipeline.
 - [`ADR-004-bootstrap-admin.md`](06-adr/ADR-004-bootstrap-admin.md) — Automated System Bootstrapping.
 - [`ADR-005-navigation.md`](06-adr/ADR-005-navigation.md) — Admin Portal Sidebar Architecture.
+- [`ADR-006-deployment-architecture.md`](06-adr/ADR-006-deployment-architecture.md) — Multi-Container Docker Deployment.
+- [`ADR-007-authentication-strategy.md`](06-adr/ADR-007-authentication-strategy.md) — JWT & RBAC Authorization.
 
 ### [07-quality/](07-quality/known-issues.md)
 - [`known-issues.md`](07-quality/known-issues.md) — Known Issues Register.
 - [`technical-debt.md`](07-quality/technical-debt.md) — Technical Debt Register.
 - [`qa-checklist.md`](07-quality/qa-checklist.md) — End-to-End QA Integration Checklist.
 - [`release-checklist.md`](07-quality/release-checklist.md) — RC-1 Release Readiness Checklist.
+- [`regression-checklist.md`](07-quality/regression-checklist.md) — Pre-Commit Regression Verification Suite.
 
 ### [08-sprint/](08-sprint/sprint-history.md)
 - [`sprint-history.md`](08-sprint/sprint-history.md) — Sprint Trajectory History.
