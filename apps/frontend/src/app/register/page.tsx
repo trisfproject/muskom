@@ -7,6 +7,7 @@ import * as z from "zod";
 import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { landingService } from "@/services/landing";
 import { participantRegistrationService } from "@/services/participant-registration";
+import api from "@/lib/api";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -31,6 +32,7 @@ interface SuccessInfo {
   regNumber: string;
   qr: string;
   fullName: string;
+  email: string;
   musyawarahName: string;
   submittedAt: string;
 }
@@ -50,6 +52,7 @@ export default function RegisterPage() {
   const [musyawarahName, setMusyawarahName] = useState<string>("MUSKOM");
   const [eventStatus, setEventStatus] = useState<"loading" | "open" | "closed" | "not_started" | "no_event">("loading");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [resendCooldown, setResendCooldown] = useState(0);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
@@ -127,6 +130,13 @@ export default function RegisterPage() {
     };
   }, [watch, eventStatus]);
 
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
   const onNextStep1 = async () => {
     const valid = await trigger(["full_name", "email", "phone"]);
     if (valid) setStep(2);
@@ -168,6 +178,7 @@ export default function RegisterPage() {
           regNumber: res.registration_number,
           qr: res.qr_token || "",
           fullName: data.full_name,
+          email: data.email,
           musyawarahName,
           submittedAt: new Date().toLocaleString("id-ID", {
             day: "numeric",
@@ -205,7 +216,19 @@ export default function RegisterPage() {
     setError(null);
     setSuccessInfo(null);
     setSaveStatus("idle");
+    setResendCooldown(0);
     setStep(1);
+  };
+
+  const handleResendVerification = async () => {
+    if (!successInfo?.email) return;
+    try {
+      await api.post("/public/participants/resend-verification", { email: successInfo.email });
+      setResendCooldown(60); // 1 minute cooldown
+    } catch (err: any) {
+      // Error toast or something. For now just set a smaller cooldown if it fails
+      setResendCooldown(10);
+    }
   };
 
   const v = getValues();
@@ -571,8 +594,10 @@ export default function RegisterPage() {
                   <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-2">
                     Pendaftaran Berhasil!
                   </h1>
-                  <p className="text-slate-500 text-sm max-w-xs mx-auto">
-                    Terima kasih. Data Anda telah diterima dan menunggu verifikasi panitia.
+                  <p className="text-slate-500 text-sm max-w-sm mx-auto">
+                    Data Anda telah diterima. Kami telah mengirimkan tautan verifikasi ke email <strong className="text-slate-700">{successInfo.email}</strong>.
+                    <br/><br/>
+                    Silakan periksa kotak masuk (atau folder spam) Anda dan klik tautan tersebut untuk mengaktifkan akun Anda.
                   </p>
 
                   {/* Registration detail card */}
@@ -583,14 +608,22 @@ export default function RegisterPage() {
                     <DetailRow label="Waktu Daftar" value={successInfo.submittedAt} />
                     <div className="flex items-center justify-between pt-1">
                       <span className="text-xs text-slate-500 font-medium">Status</span>
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
-                        Pending Verifikasi
+                      <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-slate-200 text-slate-700">
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500 inline-block" />
+                        Unverified
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-8 flex justify-center">
+                  <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendCooldown > 0}
+                      className="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 font-bold py-4 px-10 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50"
+                    >
+                      {resendCooldown > 0 ? `Kirim Ulang (${resendCooldown}s)` : "Kirim Ulang Email"}
+                    </button>
                     <Link
                       href="/"
                       className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-10 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary/20"

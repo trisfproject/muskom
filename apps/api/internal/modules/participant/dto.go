@@ -81,7 +81,7 @@ type CreateParticipantRequest struct {
 	IndustrialArea     string  `json:"industrial_area" validate:"required"`
 	JobTitle           string  `json:"job_title" validate:"required"`
 	Department         *string `json:"department"`
-	Status             string  `json:"status" validate:"required,oneof=Pending Verified Rejected Eligible"`
+	Status             string  `json:"status" validate:"required,oneof=Unverified Pending Verified Rejected Eligible"`
 }
 
 // UpdateParticipantRequest represents the payload for updating an existing participant
@@ -100,7 +100,7 @@ type UpdateParticipantRequest struct {
 
 // UpdateStatusRequest represents the payload for updating a participant's status
 type UpdateStatusRequest struct {
-	Status string  `json:"status" validate:"required,oneof=Pending Verified Rejected Eligible"`
+	Status string  `json:"status" validate:"required,oneof=Unverified Pending Verified Rejected Eligible"`
 	Reason *string `json:"reason" validate:"omitempty,max=500"`
 }
 

@@ -7,7 +7,6 @@ require (
 	github.com/caarlos0/env/v11 v11.4.1
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/go-redis/redismock/v9 v9.2.0
-	github.com/gofiber/fiber/v2 v2.52.14
 	github.com/gofiber/fiber/v3 v3.4.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
@@ -38,12 +37,10 @@ require (
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
-	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/richardlehane/mscfb v1.0.7 // indirect
 	github.com/richardlehane/msoleps v1.0.6 // indirect
-	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.15.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tiendc/go-deepcopy v1.7.2 // indirect

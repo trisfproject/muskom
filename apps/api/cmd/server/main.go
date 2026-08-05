@@ -108,7 +108,7 @@ func main() {
 	})
 
 	// Register System Configuration Routes
-	configuration.RegisterRoutes(v1, db, redisClient, val, log)
+	configuration.RegisterRoutes(v1, db, redisClient, val, log, cfg, mailerSvc)
 
 	// Modules (Public / Dedicated)
 	authGroup := v1.Group("/auth")
@@ -120,7 +120,7 @@ func main() {
 	musyawarah.SetupPublicRoutes(v1.Group("/public/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
-	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, log, val, mailerSvc)
+	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, redisClient, cfg, log, val, mailerSvc)
 
 	// Protected Participant Routes
 	participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))

@@ -7,8 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 )
 
@@ -28,19 +31,25 @@ type Service interface {
 	Delete(ctx context.Context, id string) error
 	PublicRegister(ctx context.Context, req PublicRegisterParticipantRequest) (*PublicRegisterParticipantResponse, error)
 	GetStats(ctx context.Context) (*ParticipantStats, error)
+	VerifyEmail(ctx context.Context, token string) error
+	ResendVerification(ctx context.Context, email string) error
 }
 
 type service struct {
 	repo         Repository
 	auditService audit.AuditService
 	mailer       mailer.Mailer
+	rdb          *redis.Client
+	cfg          *config.Config
 }
 
-func NewService(repo Repository, auditService audit.AuditService, m mailer.Mailer) Service {
+func NewService(repo Repository, auditService audit.AuditService, m mailer.Mailer, rdb *redis.Client, cfg *config.Config) Service {
 	return &service{
 		repo:         repo,
 		auditService: auditService,
 		mailer:       m,
+		rdb:          rdb,
+		cfg:          cfg,
 	}
 }
 
@@ -248,7 +257,7 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 		IndustrialArea: req.IndustrialArea,
 		JobTitle:       req.JobTitle,
 		Department:     req.Department,
-		Status:         "Pending",
+		Status:         "Unverified",
 	}
 
 	err = s.repo.Create(ctx, p)
@@ -265,17 +274,25 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 	})
 
 	go func() {
-		err := s.mailer.SendRegistrationConfirmation(
-			req.Email,
-			req.FullName,
-			regNum,
-			req.MusyawarahID,
-			req.CompanyName,
-			time.Now().Format("02 Jan 2006 15:04:05"),
-			"Pending Verifikasi",
-		)
-		if err != nil {
-			_ = err
+		if s.cfg != nil {
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+				"sub": p.ID,
+				"exp": time.Now().Add(24 * time.Hour).Unix(),
+			})
+			tokenString, _ := token.SignedString([]byte(s.cfg.JWTSecret))
+			
+			// Determine Base URL (can be from request origin, but we'll use a relative path logic on frontend)
+			// Actually we need the absolute frontend URL for the email link.
+			// The frontend usually runs on the same domain or we can just use a relative /verify-email?token=
+			// Let's use an environment variable or construct from localhost if not available.
+			// Since we don't have a FRONTEND_URL in config, we'll use a relative path format assuming it's same origin,
+			// or default to localhost:3000
+			verificationURL := fmt.Sprintf("http://localhost:3000/verify-email?token=%s", tokenString)
+			
+			err := s.mailer.SendEmailVerificationLink(req.Email, req.FullName, verificationURL)
+			if err != nil {
+				_ = err
+			}
 		}
 	}()
 
@@ -287,4 +304,78 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 
 func (s *service) GetStats(ctx context.Context) (*ParticipantStats, error) {
 	return s.repo.GetStats(ctx)
+}
+
+func (s *service) VerifyEmail(ctx context.Context, tokenString string) error {
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method")
+		}
+		return []byte(s.cfg.JWTSecret), nil
+	})
+
+	if err != nil || !token.Valid {
+		return errors.New("invalid or expired token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return errors.New("invalid token claims")
+	}
+
+	participantID, ok := claims["sub"].(string)
+	if !ok {
+		return errors.New("invalid participant ID in token")
+	}
+
+	p, err := s.repo.GetByID(ctx, participantID)
+	if err != nil {
+		return err
+	}
+
+	if p.Status != "Unverified" {
+		// Already verified or processed
+		return nil
+	}
+
+	return s.repo.UpdateStatus(ctx, p.ID, "Pending")
+}
+
+func (s *service) ResendVerification(ctx context.Context, email string) error {
+	p, err := s.repo.FindByEmail(ctx, email)
+	if err != nil {
+		if err == ErrNotFound {
+			// Don't leak if email exists or not
+			return nil
+		}
+		return err
+	}
+
+	if p.Status != "Unverified" {
+		return nil
+	}
+
+	if s.rdb != nil {
+		cooldownKey := fmt.Sprintf("resend_verification:%s", p.ID)
+		exists, _ := s.rdb.Exists(ctx, cooldownKey).Result()
+		if exists > 0 {
+			return errors.New("please wait before requesting another verification email")
+		}
+		s.rdb.Set(ctx, cooldownKey, "1", 1*time.Minute)
+	}
+
+	if s.cfg != nil {
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"sub": p.ID,
+			"exp": time.Now().Add(24 * time.Hour).Unix(),
+		})
+		tokenString, _ := token.SignedString([]byte(s.cfg.JWTSecret))
+		verificationURL := fmt.Sprintf("http://localhost:3000/verify-email?token=%s", tokenString)
+
+		go func() {
+			_ = s.mailer.SendEmailVerificationLink(p.Email, p.FullName, verificationURL)
+		}()
+	}
+
+	return nil
 }

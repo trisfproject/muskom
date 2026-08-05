@@ -16,6 +16,7 @@ import {
   ChevronRight,
   ExternalLink,
   List,
+  Mail,
   MonitorPlay,
   Users,
   Info,
@@ -101,6 +102,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
       title: "System",
       items: [
         { label: "Pengguna", href: "/admin/users", icon: Users, exact: false },
+        { label: "Konfigurasi SMTP", href: "/admin/system/smtp", icon: Mail, exact: true },
         { label: "Audit Log", href: "/admin/audit", icon: Activity, exact: false },
       ],
     },
