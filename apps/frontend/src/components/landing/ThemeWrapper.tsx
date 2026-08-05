@@ -4,8 +4,17 @@ import { Header } from "./Header"
 
 export function ThemeWrapper({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="data-theme" defaultTheme="light" enableSystem={false}>
-      <div className="min-h-screen pg-bg">
+    <ThemeProvider
+      attribute="data-theme"
+      defaultTheme="light"
+      enableSystem={false}
+      disableTransitionOnChange
+      storageKey="muskom-theme"
+    >
+      {/* suppressHydrationWarning is required because next-themes injects
+          the data-theme attribute on this element client-side, which differs
+          from the server-rendered HTML (no attribute) causing React Error #418. */}
+      <div className="min-h-screen pg-bg" suppressHydrationWarning>
         {/* ── Global Atmospheric Layers ── */}
         <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute inset-0 bg-aurora" />
