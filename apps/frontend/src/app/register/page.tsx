@@ -48,8 +48,7 @@ export default function RegisterPage() {
   const [successInfo, setSuccessInfo] = useState<SuccessInfo | null>(null);
   const [musyawarahId, setMusyawarahId] = useState<string>("");
   const [musyawarahName, setMusyawarahName] = useState<string>("MUSKOM");
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isClosed, setIsClosed] = useState(false);
+  const [eventStatus, setEventStatus] = useState<"loading" | "open" | "closed" | "not_started" | "no_event">("loading");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -66,31 +65,53 @@ export default function RegisterPage() {
   });
 
   useEffect(() => {
-    landingService.getPublicHome().then((data) => {
-      if (data?.event?.id) setMusyawarahId(data.event.id);
-      if (data?.event?.name) setMusyawarahName(data.event.name);
-      
-      const limit = data?.settings?.participant_limit || 0;
-      const count = data?.settings?.participant_count || 0;
-      if (limit > 0 && count >= limit) {
-        setIsClosed(true);
-      }
-    });
-
-    const saved = localStorage.getItem("participant_registration_draft");
-    if (saved) {
+    let mounted = true;
+    const init = async () => {
       try {
-        const parsed = JSON.parse(saved);
-        reset(parsed);
-      } catch {
-        // ignore parse errors
+        const data = await landingService.getPublicHome();
+        if (!mounted) return;
+
+        if (!data?.event?.id) {
+          setEventStatus("no_event");
+          return;
+        }
+
+        setMusyawarahId(data.event.id);
+        if (data.event.name) setMusyawarahName(data.event.name);
+
+        if (data.general?.registration_enabled === false) {
+          setEventStatus("not_started");
+          return;
+        }
+
+        const limit = data.settings?.participant_limit || 0;
+        const count = data.settings?.participant_count || 0;
+        if (limit > 0 && count >= limit) {
+          setEventStatus("closed");
+          return;
+        }
+
+        setEventStatus("open");
+
+        const saved = localStorage.getItem("participant_registration_draft");
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            reset(parsed);
+          } catch {
+            // ignore parse errors
+          }
+        }
+      } catch (err) {
+        if (mounted) setEventStatus("no_event");
       }
-    }
-    setIsLoaded(true);
+    };
+    init();
+    return () => { mounted = false; };
   }, [reset]);
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (eventStatus !== "open") return;
     const subscription = watch((value) => {
       setSaveStatus("saving");
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
@@ -104,7 +125,7 @@ export default function RegisterPage() {
       subscription.unsubscribe();
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
     };
-  }, [watch, isLoaded]);
+  }, [watch, eventStatus]);
 
   const onNextStep1 = async () => {
     const valid = await trigger(["full_name", "email", "phone"]);
@@ -122,7 +143,7 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     if (!musyawarahId) {
-      setError("Data acara belum dimuat. Mohon muat ulang halaman.");
+      setError("Data acara tidak ditemukan atau belum dimuat. Mohon muat ulang halaman.");
       return;
     }
 
@@ -189,7 +210,31 @@ export default function RegisterPage() {
 
   const v = getValues();
 
-  if (!isLoaded) return null;
+  if (eventStatus === "loading") {
+    return (
+      <main className="min-h-screen bg-slate-50 text-slate-900 pb-32">
+        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200">
+          <div className="max-w-[800px] mx-auto px-6 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-16 h-4 bg-slate-200 animate-pulse rounded" />
+            </div>
+            <div className="w-32 h-4 bg-slate-200 animate-pulse rounded hidden sm:block" />
+            <div className="w-20 h-4 bg-slate-200 animate-pulse rounded" />
+          </div>
+        </header>
+        <div className="max-w-[800px] mx-auto px-6 pt-10">
+          <div className="mb-10 w-full h-8 bg-slate-200 animate-pulse rounded-lg" />
+          <div className="w-48 h-8 bg-slate-200 animate-pulse rounded mb-2" />
+          <div className="w-64 h-4 bg-slate-200 animate-pulse rounded mb-8" />
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+            <div className="w-full h-12 bg-slate-100 animate-pulse rounded-xl" />
+            <div className="w-full h-12 bg-slate-100 animate-pulse rounded-xl" />
+            <div className="w-full h-12 bg-slate-100 animate-pulse rounded-xl" />
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 pb-32">
@@ -238,7 +283,7 @@ export default function RegisterPage() {
 
       <div className="max-w-[800px] mx-auto px-6 pt-10">
         {/* PROGRESS STEPPER */}
-        {step < 4 && !isClosed && (
+        {step < 4 && eventStatus === "open" && (
           <div className="mb-10 overflow-x-auto pb-4 hide-scrollbar">
             <div className="flex items-center text-xs font-semibold uppercase tracking-widest text-slate-400 min-w-max">
               <span className={step >= 1 ? "text-primary" : ""}>1. Personal</span>
@@ -250,29 +295,32 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {isClosed ? (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-14 text-center shadow-sm"
-          >
-            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
-              <AlertCircle className="w-9 h-9 text-red-500" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-2">
-              Pendaftaran Ditutup
-            </h1>
-            <p className="text-slate-500 max-w-sm mx-auto mb-8">
-              Kuota peserta telah terpenuhi. Terima kasih atas antusiasmenya.
-            </p>
-            <Link
-              href="/"
-              className="inline-flex bg-slate-100 text-slate-700 font-bold py-3.5 px-8 rounded-xl hover:bg-slate-200 transition-colors"
-            >
-              Kembali ke Beranda
-            </Link>
-          </motion.div>
-        ) : (
+        {eventStatus === "no_event" && (
+          <StatusMessage 
+            icon={<AlertCircle className="w-9 h-9 text-amber-500" />}
+            iconBg="bg-amber-50"
+            title="Tidak Ada Acara Aktif"
+            message="Saat ini belum ada Musyawarah yang sedang berlangsung. Silakan kembali lagi nanti."
+          />
+        )}
+        {eventStatus === "not_started" && (
+          <StatusMessage 
+            icon={<AlertCircle className="w-9 h-9 text-blue-500" />}
+            iconBg="bg-blue-50"
+            title="Pendaftaran Belum Dibuka"
+            message="Pendaftaran peserta untuk acara ini belum dibuka oleh panitia."
+          />
+        )}
+        {eventStatus === "closed" && (
+          <StatusMessage 
+            icon={<AlertCircle className="w-9 h-9 text-red-500" />}
+            iconBg="bg-red-50"
+            title="Pendaftaran Ditutup"
+            message="Pendaftaran telah ditutup atau kuota peserta telah terpenuhi. Terima kasih atas antusiasmenya."
+          />
+        )}
+        
+        {eventStatus === "open" && (
         <form onSubmit={handleSubmit(onSubmit)}>
           <AnimatePresence mode="wait">
             {/* ─── STEP 1: PERSONAL ─── */}
@@ -594,6 +642,32 @@ export default function RegisterPage() {
   );
 }
 // ─── Helper Components ────────────────────────────────────────────────────────
+function StatusMessage({ icon, iconBg, title, message }: { icon: React.ReactNode; iconBg: string; title: string; message: string; }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white border border-slate-200 rounded-3xl p-8 sm:p-14 text-center shadow-sm"
+    >
+      <div className={`w-16 h-16 ${iconBg} rounded-2xl flex items-center justify-center mx-auto mb-5`}>
+        {icon}
+      </div>
+      <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-2">
+        {title}
+      </h1>
+      <p className="text-slate-500 max-w-sm mx-auto mb-8">
+        {message}
+      </p>
+      <Link
+        href="/"
+        className="inline-flex bg-slate-100 text-slate-700 font-bold py-3.5 px-8 rounded-xl hover:bg-slate-200 transition-colors"
+      >
+        Kembali ke Beranda
+      </Link>
+    </motion.div>
+  );
+}
+
 function InputGroup({
   label,
   required,
