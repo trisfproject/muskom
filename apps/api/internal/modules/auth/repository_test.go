@@ -20,7 +20,7 @@ func TestRepository_FindByUsernameOrEmail(t *testing.T) {
 	repo := NewRepository(sqlxDB)
 	ctx := context.Background()
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("Success by Username", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "person_id", "role_id", "username", "password_hash", "is_active", "full_name", "role_code"}).
 			AddRow("usr1", "per1", "rol1", "testuser", "hash123", true, "Test User", "ADMIN")
 
@@ -29,6 +29,22 @@ func TestRepository_FindByUsernameOrEmail(t *testing.T) {
 			WillReturnRows(rows)
 
 		user, err := repo.FindByUsernameOrEmail(ctx, "testuser")
+		assert.NoError(t, err)
+		assert.NotNil(t, user)
+		assert.Equal(t, "usr1", user.ID)
+		assert.Equal(t, "testuser", user.Username)
+		assert.Equal(t, "ADMIN", user.RoleCode)
+	})
+
+	t.Run("Success by Email", func(t *testing.T) {
+		rows := sqlmock.NewRows([]string{"id", "person_id", "role_id", "username", "password_hash", "is_active", "full_name", "role_code"}).
+			AddRow("usr1", "per1", "rol1", "testuser", "hash123", true, "Test User", "ADMIN")
+
+		mock.ExpectQuery("^SELECT u.id, u.person_id, u.role_id, u.username, u.password_hash, u.is_active, p.full_name, roles.code as role_code").
+			WithArgs("testuser@example.com").
+			WillReturnRows(rows)
+
+		user, err := repo.FindByUsernameOrEmail(ctx, "testuser@example.com")
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
 		assert.Equal(t, "usr1", user.ID)

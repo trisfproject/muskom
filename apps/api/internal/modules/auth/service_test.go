@@ -29,7 +29,7 @@ func TestService_Authenticate(t *testing.T) {
 
 	svc := NewService(mockRepo, rdb, cfg, log)
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("Success by Username", func(t *testing.T) {
 		hash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 		user := &AuthUser{
 			ID:           "usr1",
@@ -45,6 +45,29 @@ func TestService_Authenticate(t *testing.T) {
 		rmock.Regexp().ExpectSet("muskom:refresh:usr1", `.*`, cfg.JWTRefreshTTL).SetVal("OK")
 
 		res, err := svc.Authenticate(ctx, "admin", "password123")
+		assert.NoError(t, err)
+		assert.NotNil(t, res)
+		assert.NotEmpty(t, res.AccessToken)
+		assert.NotEmpty(t, res.RefreshToken)
+		assert.Equal(t, "usr1", res.User.ID)
+	})
+
+	t.Run("Success by Email", func(t *testing.T) {
+		hash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+		user := &AuthUser{
+			ID:           "usr1",
+			Username:     "admin",
+			PasswordHash: string(hash),
+			IsActive:     true,
+			RoleCode:     "ADMIN",
+		}
+
+		mockRepo.On("FindByUsernameOrEmail", mock.Anything, "admin@example.com").Return(user, nil).Once()
+		mockRepo.On("UpdateLastLogin", mock.Anything, "usr1", mock.Anything).Return(nil).Once()
+
+		rmock.Regexp().ExpectSet("muskom:refresh:usr1", `.*`, cfg.JWTRefreshTTL).SetVal("OK")
+
+		res, err := svc.Authenticate(ctx, "admin@example.com", "password123")
 		assert.NoError(t, err)
 		assert.NotNil(t, res)
 		assert.NotEmpty(t, res.AccessToken)
