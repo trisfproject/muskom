@@ -18,6 +18,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/participant"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/bootstrap"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/rbac"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/registration"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/reporting"
@@ -76,6 +77,9 @@ func main() {
 		log.Fatal("Storage initialization failed", zap.Error(err))
 	}
 	log.Info("Initialized Storage Provider", zap.String("provider", cfg.StorageProvider))
+
+	// 3.5 Bootstrap
+	bootstrap.Run(ctx, db, cfg, log)
 
 	// 4. Initialize Fiber App
 	app := fiber.New(fiber.Config{

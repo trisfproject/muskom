@@ -30,6 +30,14 @@ type Config struct {
 	SmtpFromName   string `env:"SMTP_FROM_NAME"`
 	SmtpTls        bool   `env:"SMTP_TLS" envDefault:"true"`
 	MailEnabled    bool   `env:"MAIL_ENABLED" envDefault:"false"`
+
+	// Bootstrap Admin
+	BootstrapAdminEnabled  bool   `env:"BOOTSTRAP_ADMIN_ENABLED" envDefault:"false"`
+	BootstrapAdminName     string `env:"BOOTSTRAP_ADMIN_NAME"`
+	BootstrapAdminEmail    string `env:"BOOTSTRAP_ADMIN_EMAIL"`
+	BootstrapAdminUsername string `env:"BOOTSTRAP_ADMIN_USERNAME"`
+	BootstrapAdminPassword string `env:"BOOTSTRAP_ADMIN_PASSWORD"`
+	BootstrapAdminRole     string `env:"BOOTSTRAP_ADMIN_ROLE" envDefault:"SUPER_ADMIN"`
 }
 
 func Load() (*Config, error) {
