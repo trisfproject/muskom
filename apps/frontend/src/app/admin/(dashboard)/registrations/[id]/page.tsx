@@ -12,30 +12,8 @@ import {
   AdminParticipantResponse,
   ParticipantAuditEntry,
 } from "@/services/participant-admin";
-
-// ─── Status helpers ───────────────────────────────────────────────────────────
-
-const STATUS_CONFIG: Record<string, {
-  label: string;
-  badgeCls: string;
-  icon: React.ComponentType<{ className?: string }>;
-}> = {
-  Pending:  { label: "Pending Verifikasi", badgeCls: "bg-amber-50 text-amber-700 border-amber-200",   icon: Clock },
-  Verified: { label: "Terverifikasi",       badgeCls: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: CheckCircle2 },
-  Rejected: { label: "Ditolak",             badgeCls: "bg-red-50 text-red-700 border-red-200",           icon: XCircle },
-  Eligible: { label: "Eligible",            badgeCls: "bg-blue-50 text-blue-700 border-blue-200",        icon: CheckCircle2 },
-};
-
-function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CONFIG[status] ?? { label: status, badgeCls: "bg-slate-100 text-slate-600 border-slate-200", icon: Clock };
-  const Icon = cfg.icon;
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold border ${cfg.badgeCls}`}>
-      <Icon className="w-4 h-4" />
-      {cfg.label}
-    </span>
-  );
-}
+import { StatusChip } from "@/components/ui/status-chip";
+import { Button } from "@/components/ui/button";
 
 // ─── Audit action label helper ────────────────────────────────────────────────
 
@@ -187,7 +165,7 @@ export default function ParticipantDetailPage() {
                 )}
                 <p className="font-mono text-xs text-slate-400 mt-1">{participant.registration_number}</p>
                 <div className="mt-3">
-                  <StatusBadge status={participant.status} />
+                  <StatusChip status={participant.status} />
                 </div>
               </div>
             </div>
@@ -257,7 +235,7 @@ export default function ParticipantDetailPage() {
 
             <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
               <p className="text-xs pg-muted mb-1.5">Status Saat Ini</p>
-              <StatusBadge status={participant.status} />
+              <StatusChip status={participant.status} />
             </div>
 
             {/* Confirm overlay */}
@@ -292,58 +270,59 @@ export default function ParticipantDetailPage() {
                   </div>
                 )}
                 <div className="flex gap-2">
-                  <button
+                  <Button
+                    variant="secondary"
                     onClick={() => { setConfirmAction(null); setRejectReason(""); }}
                     disabled={acting}
-                    className="flex-1 py-2 text-xs font-semibold rounded-lg border border-slate-200 pg-text hover:bg-slate-50 transition-colors disabled:opacity-50"
+                    className="flex-1 w-full"
                   >
                     Batal
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant={confirmAction === "Rejected" ? "danger" : "primary"}
                     onClick={() => handleStatusUpdate(confirmAction)}
                     disabled={acting}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-1 ${
-                      confirmAction === "Verified" ? "bg-emerald-600 hover:bg-emerald-700" :
-                      confirmAction === "Rejected" ? "bg-red-600 hover:bg-red-700" :
-                      "bg-amber-500 hover:bg-amber-600"
-                    }`}
+                    loading={acting}
+                    className="flex-1 w-full"
                   >
-                    {acting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
-                    {acting ? "Memproses..." : "Konfirmasi"}
-                  </button>
+                    Konfirmasi
+                  </Button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="flex flex-col gap-3">
                 {participant.status !== "Verified" && (
-                  <button
+                  <Button
                     id="btn-verify-participant"
+                    variant="primary"
                     onClick={() => setConfirmAction("Verified")}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-colors"
+                    className="w-full"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     Verifikasi Peserta
-                  </button>
+                  </Button>
                 )}
                 {participant.status !== "Rejected" && (
-                  <button
+                  <Button
                     id="btn-reject-participant"
+                    variant="danger"
                     onClick={() => setConfirmAction("Rejected")}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-colors"
+                    className="w-full"
                   >
                     <XCircle className="w-4 h-4" />
                     Tolak Peserta
-                  </button>
+                  </Button>
                 )}
                 {participant.status !== "Pending" && (
-                  <button
+                  <Button
                     id="btn-return-pending"
+                    variant="secondary"
                     onClick={() => setConfirmAction("Pending")}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 pg-text text-sm font-bold transition-colors"
+                    className="w-full"
                   >
                     <RotateCcw className="w-4 h-4" />
                     Kembalikan ke Pending
-                  </button>
+                  </Button>
                 )}
               </div>
             )}
