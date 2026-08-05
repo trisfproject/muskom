@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Calendar, Clock, MapPin, CheckCircle2, ChevronRight } from "lucide-react";
-import Header from "@/components/landing/Header";
-import Footer from "@/components/landing/Footer";
+import { Header } from "@/components/landing/Header";
+import { Footer } from "@/components/landing/Footer";
 
 interface TimelineItem {
   id: string;

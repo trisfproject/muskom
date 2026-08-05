@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Vote, CheckCircle2, Shield, Lock, Award, ArrowRight, AlertTriangle } from "lucide-react";
-import Header from "@/components/landing/Header";
-import Footer from "@/components/landing/Footer";
+import { Header } from "@/components/landing/Header";
+import { Footer } from "@/components/landing/Footer";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 

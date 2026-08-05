@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import { QrCode, Search, CheckCircle2, User, Building, MapPin, Calendar, Download, AlertCircle } from "lucide-react";
-import Header from "@/components/landing/Header";
-import Footer from "@/components/landing/Footer";
+import { Header } from "@/components/landing/Header";
+import { Footer } from "@/components/landing/Footer";
 
 interface ParticipantProfile {
   id: string;
