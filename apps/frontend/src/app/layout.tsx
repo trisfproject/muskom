@@ -69,7 +69,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" className={inter.variable} suppressHydrationWarning>
-      <body>
+      <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -83,6 +83,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }),
           }}
         />
+      </head>
+      <body suppressHydrationWarning>
         <ConfigProvider>
           <AuthProvider>
             <QueryProvider>

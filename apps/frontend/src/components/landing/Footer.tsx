@@ -189,7 +189,7 @@ export function Footer({ data }: { data: HomeResponse | null }) {
         {/* ── Bottom Bar: Copyright & Attribution ── */}
         <div className="pt-6 border-t border-slate-200/60 dark:border-slate-800/60 flex flex-col lg:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex flex-col sm:flex-row items-center gap-4 lg:gap-8">
-            <p>{copyright}</p>
+            <p suppressHydrationWarning>{copyright}</p>
           </div>
 
           <div className="flex items-center gap-4 mt-4 lg:mt-0">

@@ -44,7 +44,7 @@ export const AnnouncementCard = React.forwardRef<HTMLDivElement, AnnouncementCar
             {category}
           </span>
           {date && (
-            <span className="flex items-center gap-1.5 text-[11px] md:text-xs font-medium text-muted">
+            <span suppressHydrationWarning className="flex items-center gap-1.5 text-[11px] md:text-xs font-medium text-muted">
               <Calendar className="w-3.5 h-3.5 opacity-70" />
               {date}
             </span>

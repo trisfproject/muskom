@@ -111,7 +111,7 @@ export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
               ) : (
                 <Calendar className="w-3.5 h-3.5" />
               )}
-              <span>{date}</span>
+              <span suppressHydrationWarning>{date}</span>
             </div>
           </div>
 
