@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRepository_FindByUsernameOrEmail(t *testing.T) {
+func TestRepository_FindAllByUsernameOrEmail(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	assert.NoError(t, err)
 	defer db.Close()
@@ -28,12 +28,13 @@ func TestRepository_FindByUsernameOrEmail(t *testing.T) {
 			WithArgs("testuser").
 			WillReturnRows(rows)
 
-		user, err := repo.FindByUsernameOrEmail(ctx, "testuser")
+		users, err := repo.FindAllByUsernameOrEmail(ctx, "testuser")
 		assert.NoError(t, err)
-		assert.NotNil(t, user)
-		assert.Equal(t, "usr1", user.ID)
-		assert.Equal(t, "testuser", user.Username)
-		assert.Equal(t, "ADMIN", user.RoleCode)
+		assert.NotNil(t, users)
+		assert.Len(t, users, 1)
+		assert.Equal(t, "usr1", users[0].ID)
+		assert.Equal(t, "testuser", users[0].Username)
+		assert.Equal(t, "ADMIN", users[0].RoleCode)
 	})
 
 	t.Run("Success by Email", func(t *testing.T) {
@@ -44,12 +45,13 @@ func TestRepository_FindByUsernameOrEmail(t *testing.T) {
 			WithArgs("testuser@example.com").
 			WillReturnRows(rows)
 
-		user, err := repo.FindByUsernameOrEmail(ctx, "testuser@example.com")
+		users, err := repo.FindAllByUsernameOrEmail(ctx, "testuser@example.com")
 		assert.NoError(t, err)
-		assert.NotNil(t, user)
-		assert.Equal(t, "usr1", user.ID)
-		assert.Equal(t, "testuser", user.Username)
-		assert.Equal(t, "ADMIN", user.RoleCode)
+		assert.NotNil(t, users)
+		assert.Len(t, users, 1)
+		assert.Equal(t, "usr1", users[0].ID)
+		assert.Equal(t, "testuser", users[0].Username)
+		assert.Equal(t, "ADMIN", users[0].RoleCode)
 	})
 
 	t.Run("Not Found", func(t *testing.T) {
@@ -57,9 +59,9 @@ func TestRepository_FindByUsernameOrEmail(t *testing.T) {
 			WithArgs("testuser").
 			WillReturnError(sql.ErrNoRows)
 
-		user, err := repo.FindByUsernameOrEmail(ctx, "testuser")
+		users, err := repo.FindAllByUsernameOrEmail(ctx, "testuser")
 		assert.ErrorIs(t, err, sql.ErrNoRows)
-		assert.Nil(t, user)
+		assert.Nil(t, users)
 	})
 }
 

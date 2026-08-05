@@ -8,7 +8,7 @@ import (
 )
 
 type Repository interface {
-	FindByUsernameOrEmail(ctx context.Context, identifier string) (*AuthUser, error)
+	FindAllByUsernameOrEmail(ctx context.Context, identifier string) ([]*AuthUser, error)
 	UpdateLastLogin(ctx context.Context, userID string, loginAt time.Time) error
 }
 
@@ -21,7 +21,7 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
-func (r *repository) FindByUsernameOrEmail(ctx context.Context, identifier string) (*AuthUser, error) {
+func (r *repository) FindAllByUsernameOrEmail(ctx context.Context, identifier string) ([]*AuthUser, error) {
 	query := `
 		SELECT 
 			u.id, 
@@ -38,13 +38,13 @@ func (r *repository) FindByUsernameOrEmail(ctx context.Context, identifier strin
 		WHERE (u.username = $1 OR p.email = $1) AND u.deleted_at IS NULL
 	`
 
-	var user AuthUser
-	err := r.db.GetContext(ctx, &user, query, identifier)
+	var users []*AuthUser
+	err := r.db.SelectContext(ctx, &users, query, identifier)
 	if err != nil {
 		return nil, err
 	}
 
-	return &user, nil
+	return users, nil
 }
 
 func (r *repository) UpdateLastLogin(ctx context.Context, userID string, loginAt time.Time) error {

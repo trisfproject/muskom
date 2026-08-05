@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-	"database/sql"
+	
 	"errors"
 	"fmt"
 	"time"
@@ -68,29 +68,42 @@ func (s *service) generateTokens(user *AuthUser) (string, string, string, error)
 }
 
 func (s *service) Authenticate(ctx context.Context, username, password string) (*LoginResponse, error) {
-	user, err := s.repo.FindByUsernameOrEmail(ctx, username)
+	users, err := s.repo.FindAllByUsernameOrEmail(ctx, username)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrInvalidCredentials
-		}
 		return nil, err
 	}
-
-	if !user.IsActive {
-		return nil, ErrUserInactive
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+	if len(users) == 0 {
 		return nil, ErrInvalidCredentials
 	}
 
-	accessToken, refreshToken, expiresAt, err := s.generateTokens(user)
+	var matchedUser *AuthUser
+	var hasInactive bool
+
+	for _, user := range users {
+		if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err == nil {
+			if !user.IsActive {
+				hasInactive = true
+				continue
+			}
+			matchedUser = user
+			break
+		}
+	}
+
+	if matchedUser == nil {
+		if hasInactive {
+			return nil, ErrUserInactive
+		}
+		return nil, ErrInvalidCredentials
+	}
+
+	accessToken, refreshToken, expiresAt, err := s.generateTokens(matchedUser)
 	if err != nil {
 		return nil, err
 	}
 
 	// Store Refresh Token in Redis
-	redisKey := fmt.Sprintf("muskom:refresh:%s", user.ID)
+	redisKey := fmt.Sprintf("muskom:refresh:%s", matchedUser.ID)
 	if err := s.redis.Set(ctx, redisKey, refreshToken, s.cfg.JWTRefreshTTL).Err(); err != nil {
 		s.log.Error("Failed to store refresh token in Redis", zap.Error(err))
 		return nil, err
@@ -100,17 +113,17 @@ func (s *service) Authenticate(ctx context.Context, username, password string) (
 		bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		_ = s.repo.UpdateLastLogin(bgCtx, userID, time.Now())
-	}(user.ID)
+	}(matchedUser.ID)
 
 	return &LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresAt:    expiresAt,
 		User: UserData{
-			ID:       user.ID,
-			FullName: user.FullName,
-			Username: user.Username,
-			Role:     user.RoleCode,
+			ID:       matchedUser.ID,
+			FullName: matchedUser.FullName,
+			Username: matchedUser.Username,
+			Role:     matchedUser.RoleCode,
 		},
 	}, nil
 }
@@ -151,14 +164,26 @@ func (s *service) Refresh(ctx context.Context, refreshTokenString string) (*Refr
 	}
 
 	// 3. Verify user is still active
-	user, err := s.repo.FindByUsernameOrEmail(ctx, username)
-	if err != nil || !user.IsActive {
+	users, err := s.repo.FindAllByUsernameOrEmail(ctx, username)
+	if err != nil || len(users) == 0 {
+		_ = s.redis.Del(ctx, redisKey) // revoke on failure
+		return nil, ErrUserInactive
+	}
+
+	var matchedUser *AuthUser
+	for _, u := range users {
+		if u.Username == username && u.IsActive {
+			matchedUser = u
+			break
+		}
+	}
+	if matchedUser == nil {
 		_ = s.redis.Del(ctx, redisKey) // revoke on failure
 		return nil, ErrUserInactive
 	}
 
 	// 4. Generate new tokens
-	accessToken, newRefreshToken, expiresAt, err := s.generateTokens(user)
+	accessToken, newRefreshToken, expiresAt, err := s.generateTokens(matchedUser)
 	if err != nil {
 		return nil, err
 	}

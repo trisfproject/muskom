@@ -11,10 +11,10 @@ type MockRepository struct {
 	mock.Mock
 }
 
-func (m *MockRepository) FindByUsernameOrEmail(ctx context.Context, username string) (*AuthUser, error) {
+func (m *MockRepository) FindAllByUsernameOrEmail(ctx context.Context, username string) ([]*AuthUser, error) {
 	args := m.Called(ctx, username)
 	if args.Get(0) != nil {
-		return args.Get(0).(*AuthUser), args.Error(1)
+		return args.Get(0).([]*AuthUser), args.Error(1)
 	}
 	return nil, args.Error(1)
 }

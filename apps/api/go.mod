@@ -13,6 +13,7 @@ require (
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.10.9
 	github.com/redis/go-redis/v9 v9.21.0
 	github.com/stretchr/testify v1.11.1
 	github.com/xuri/excelize/v2 v2.11.0

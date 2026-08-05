@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-	"database/sql"
+	
 	"testing"
 	"time"
 
@@ -39,7 +39,7 @@ func TestService_Authenticate(t *testing.T) {
 			RoleCode:     "ADMIN",
 		}
 
-		mockRepo.On("FindByUsernameOrEmail", mock.Anything, "admin").Return(user, nil).Once()
+		mockRepo.On("FindAllByUsernameOrEmail", mock.Anything, "admin").Return([]*AuthUser{user}, nil).Once()
 		mockRepo.On("UpdateLastLogin", mock.Anything, "usr1", mock.Anything).Return(nil).Once()
 
 		rmock.Regexp().ExpectSet("muskom:refresh:usr1", `.*`, cfg.JWTRefreshTTL).SetVal("OK")
@@ -62,7 +62,7 @@ func TestService_Authenticate(t *testing.T) {
 			RoleCode:     "ADMIN",
 		}
 
-		mockRepo.On("FindByUsernameOrEmail", mock.Anything, "admin@example.com").Return(user, nil).Once()
+		mockRepo.On("FindAllByUsernameOrEmail", mock.Anything, "admin@example.com").Return([]*AuthUser{user}, nil).Once()
 		mockRepo.On("UpdateLastLogin", mock.Anything, "usr1", mock.Anything).Return(nil).Once()
 
 		rmock.Regexp().ExpectSet("muskom:refresh:usr1", `.*`, cfg.JWTRefreshTTL).SetVal("OK")
@@ -76,7 +76,7 @@ func TestService_Authenticate(t *testing.T) {
 	})
 
 	t.Run("Invalid Username", func(t *testing.T) {
-		mockRepo.On("FindByUsernameOrEmail", mock.Anything, "invalid").Return(nil, sql.ErrNoRows).Once()
+		mockRepo.On("FindAllByUsernameOrEmail", mock.Anything, "invalid").Return([]*AuthUser{}, nil).Once()
 		res, err := svc.Authenticate(ctx, "invalid", "password123")
 		assert.ErrorIs(t, err, ErrInvalidCredentials)
 		assert.Nil(t, res)
@@ -90,19 +90,21 @@ func TestService_Authenticate(t *testing.T) {
 			IsActive:     true,
 		}
 
-		mockRepo.On("FindByUsernameOrEmail", mock.Anything, "admin").Return(user, nil).Once()
+		mockRepo.On("FindAllByUsernameOrEmail", mock.Anything, "admin").Return([]*AuthUser{user}, nil).Once()
 		res, err := svc.Authenticate(ctx, "admin", "wrong")
 		assert.ErrorIs(t, err, ErrInvalidCredentials)
 		assert.Nil(t, res)
 	})
 
 	t.Run("Inactive User", func(t *testing.T) {
+		hash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 		user := &AuthUser{
-			Username: "admin",
-			IsActive: false,
+			Username:     "admin",
+			PasswordHash: string(hash),
+			IsActive:     false,
 		}
 
-		mockRepo.On("FindByUsernameOrEmail", mock.Anything, "admin").Return(user, nil).Once()
+		mockRepo.On("FindAllByUsernameOrEmail", mock.Anything, "admin").Return([]*AuthUser{user}, nil).Once()
 		res, err := svc.Authenticate(ctx, "admin", "password123")
 		assert.ErrorIs(t, err, ErrUserInactive)
 		assert.Nil(t, res)
@@ -154,7 +156,7 @@ func TestService_Refresh(t *testing.T) {
 			IsActive: true,
 			RoleCode: "ADMIN",
 		}
-		mockRepo.On("FindByUsernameOrEmail", mock.Anything, "admin").Return(user, nil).Once()
+		mockRepo.On("FindAllByUsernameOrEmail", mock.Anything, "admin").Return([]*AuthUser{user}, nil).Once()
 
 		rmock.Regexp().ExpectSet("muskom:refresh:usr1", `.*`, cfg.JWTRefreshTTL).SetVal("OK")
 
@@ -208,7 +210,7 @@ func TestService_Refresh(t *testing.T) {
 			Username: "admin",
 			IsActive: false,
 		}
-		mockRepo.On("FindByUsernameOrEmail", mock.Anything, "admin").Return(user, nil).Once()
+		mockRepo.On("FindAllByUsernameOrEmail", mock.Anything, "admin").Return([]*AuthUser{user}, nil).Once()
 		rmock.ExpectDel("muskom:refresh:usr1").SetVal(1)
 
 		res, err := svc.Refresh(ctx, tokenString)
