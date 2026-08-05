@@ -10,7 +10,7 @@ import (
 
 type Config struct {
 	AppEnv           string        `env:"APP_ENV" envDefault:"development"`
-	Port             string        `env:"PORT" envDefault:"8080"`
+	Port             string        `env:"API_PORT" envDefault:"8080"`
 	DatabaseURL      string        `env:"DATABASE_URL,required"`
 	RedisURL         string        `env:"REDIS_URL,required"`
 	JWTSecret        string        `env:"JWT_SECRET,required"`
