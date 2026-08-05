@@ -77,7 +77,8 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
       items: [
         { label: "Hero", href: "/admin/website/hero", icon: MonitorPlay },
         { label: "Kandidat", href: "/admin/website/candidate", icon: Users },
-        { label: "Pusat Informasi", href: "/admin/website/information", icon: Info },
+        { label: "Pengumuman", href: "/admin/website/announcements", icon: Megaphone },
+        { label: "Halaman Panduan", href: "/admin/website/information", icon: Info },
         { label: "Footer", href: "/admin/website/footer", icon: PanelBottom },
       ],
     },
