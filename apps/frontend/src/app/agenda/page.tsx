@@ -87,7 +87,7 @@ export default function PublicAgendaPage() {
         </div>
       </main>
 
-      <Footer />
+      <Footer data={null} />
     </div>
   );
 }

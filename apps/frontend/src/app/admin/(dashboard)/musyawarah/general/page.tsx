@@ -61,8 +61,14 @@ export default function GeneralPage() {
         publish_result: event.publish_result,
         allow_candidate_registration: event.allow_candidate_registration
       };
-      await eventService.updateEvent(payload);
-      toast.success("Konfigurasi general berhasil disimpan");
+      
+      if (event.id) {
+        await eventService.updateEvent(event.id, payload);
+        await eventService.updateSettings(payload);
+        toast.success("Konfigurasi general berhasil disimpan");
+      } else {
+        toast.error("Tidak ada musyawarah aktif");
+      }
     } catch {
       toast.error("Gagal menyimpan konfigurasi");
     } finally {

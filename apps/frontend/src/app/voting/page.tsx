@@ -215,7 +215,7 @@ export default function PublicVotingPage() {
         )}
       </main>
 
-      <Footer />
+      <Footer data={null} />
     </div>
   );
 }

@@ -38,27 +38,7 @@ export default function TimelinePage() {
     if (!event) return;
     setSaving(true);
     try {
-      const payload: UpdateEventPayload = {
-        name: event.name,
-        slug: event.slug,
-        theme: event.theme,
-        tagline: event.tagline,
-        description: event.description,
-        year: event.year ? Number(event.year) : undefined,
-        start_date: event.start_date,
-        end_date: event.end_date,
-        timezone: event.timezone,
-        venue: event.venue,
-        address: event.address,
-        google_maps_url: event.google_maps_url,
-        city: event.city,
-        province: event.province,
-        meeting_type: event.meeting_type,
-        location: event.location,
-        status: event.status,
-        max_participants: event.max_participants,
-        publish_result: event.publish_result,
-        allow_candidate_registration: event.allow_candidate_registration,
+      const payload = {
         registration_start: event.registration_start,
         registration_end: event.registration_end,
         candidate_registration_start: event.candidate_registration_start,
@@ -66,7 +46,7 @@ export default function TimelinePage() {
         voting_start: event.voting_start,
         voting_end: event.voting_end,
       };
-      await eventService.updateEvent(payload);
+      await eventService.updateTimeline(payload);
       toast.success("Timeline berhasil disimpan");
     } catch (error) {
       toast.error("Gagal menyimpan timeline");

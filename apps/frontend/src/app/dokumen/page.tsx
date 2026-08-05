@@ -88,7 +88,7 @@ export default function PublicDocumentsPage() {
         </div>
       </main>
 
-      <Footer />
+      <Footer data={null} />
     </div>
   );
 }

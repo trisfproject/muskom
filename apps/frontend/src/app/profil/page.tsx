@@ -163,7 +163,7 @@ export default function UserProfileTicketPage() {
         )}
       </main>
 
-      <Footer />
+      <Footer data={null} />
     </div>
   );
 }
