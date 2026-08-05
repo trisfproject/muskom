@@ -1,8 +1,13 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+const isServer = typeof window === 'undefined';
+const baseURL = isServer 
+  ? process.env.INTERNAL_API_URL || 'http://api:8080/api/v1' 
+  : process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || '/api/v1',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

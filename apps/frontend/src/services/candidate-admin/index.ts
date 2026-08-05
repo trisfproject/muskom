@@ -103,7 +103,7 @@ export const candidateAdminService = {
   // Get document stream URL for preview
   getDocumentStreamUrl: (id: string, docId: string) => {
     return `${
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3101/api/v1"
+      process.env.NEXT_PUBLIC_API_URL || "/api/v1"
     }/admin/candidates/${id}/documents/${docId}/stream`;
   },
 

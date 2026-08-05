@@ -79,7 +79,8 @@ export default function AuditPage() {
   ];
 
   const handleExport = () => {
-    window.location.href = `/api/v1/admin/audit/export?format=csv`;
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+    window.location.href = `${baseUrl}/admin/audit/export?format=csv`;
   };
 
   return (

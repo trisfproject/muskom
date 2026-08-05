@@ -17,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const defaultDesc = "Portal resmi musyawarah komunitas.";
   
   try {
-    const apiUrl = process.env.INTERNAL_API_URL || "http://localhost:8080/api/v1";
+    const apiUrl = process.env.INTERNAL_API_URL || "http://api:8080/api/v1";
     const res = await fetch(`${apiUrl}/system/config`, { next: { revalidate: 60 } });
     if (res.ok) {
       const json = await res.json();
