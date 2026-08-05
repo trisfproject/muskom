@@ -17,9 +17,22 @@ export const landingService = {
       
       const json = await res.json();
       const apiData = json.data;
+      
+      let eventData = apiData?.event;
+      if (!eventData) {
+        try {
+          const musyRes = await fetch(`${baseUrl}/public/musyawarah`, { cache: 'no-store' });
+          if (musyRes.ok) {
+            const musyJson = await musyRes.json();
+            eventData = musyJson.data;
+          }
+        } catch (e) {
+          // ignore error, fail gracefully
+        }
+      }
 
       // Transform API response to match frontend HomeResponse structure and inject lifecycle logic
-      const lifecycle = apiData?.event?.lifecycle_state || 'PREPARATION';
+      const lifecycle = eventData?.lifecycle_state || 'PREPARATION';
       const mappedData = {
         ...apiData,
         hero: apiData?.hero || {
@@ -49,7 +62,7 @@ export const landingService = {
           end_date: apiData?.currentPhase?.end_date,
           is_active: apiData?.currentPhase?.is_active || false,
         },
-        event: apiData?.event, // Include event for downstream use
+        event: eventData, // Include event for downstream use
       } as HomeResponse;
 
       // Lifecycle-driven CTA overrides
