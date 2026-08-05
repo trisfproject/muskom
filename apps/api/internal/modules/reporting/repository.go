@@ -24,29 +24,28 @@ func (r *repository) GetOfficialResult(ctx context.Context, eventID string) (*Of
 	result := &OfficialResult{}
 
 	// 1. Total Registered
-	r.db.GetContext(ctx, &result.TotalRegistered, `SELECT COUNT(*) FROM registrations WHERE event_id = $1`, eventID)
+	r.db.GetContext(ctx, &result.TotalRegistered, `SELECT COUNT(*) FROM participants WHERE (musyawarah_id = $1 OR $1 = '') AND deleted_at IS NULL`, eventID)
 
 	// 2. Approved Participants
-	r.db.GetContext(ctx, &result.ApprovedParticipants, `SELECT COUNT(*) FROM registrations WHERE event_id = $1 AND status = 'APPROVED'`, eventID)
+	r.db.GetContext(ctx, &result.ApprovedParticipants, `SELECT COUNT(*) FROM participants WHERE (musyawarah_id = $1 OR $1 = '') AND deleted_at IS NULL AND status IN ('Verified', 'APPROVED')`, eventID)
 
 	// 3. Checked In & Eligible Voters (Same for this context)
 	r.db.GetContext(ctx, &result.CheckedIn, `
-		SELECT COUNT(DISTINCT r.id) 
+		SELECT COUNT(DISTINCT p.id) 
 		FROM attendance a 
-		JOIN registrations r ON a.registration_id = r.id 
-		WHERE a.event_id = $1 AND r.status = 'APPROVED'
+		JOIN participants p ON a.participant_id = p.id 
+		WHERE (p.musyawarah_id = $1 OR $1 = '') AND p.deleted_at IS NULL AND a.undone_at IS NULL
 	`, eventID)
 	result.EligibleVoters = result.CheckedIn
 
 	// 4. Candidate Results & Total Votes
 	query := `
-		SELECT c.id, c.number, r.full_name as name, COUNT(v.id) as total_votes
+		SELECT c.id, COALESCE(c.candidate_number, c.display_order, 0) as number, c.full_name as name, COUNT(v.id) as total_votes
 		FROM candidates c
-		JOIN registrations r ON c.registration_id = r.id
 		LEFT JOIN votes v ON c.id = v.candidate_id
-		WHERE c.event_id = $1 AND c.status = 'VERIFIED'
-		GROUP BY c.id, c.number, r.full_name
-		ORDER BY total_votes DESC, c.number ASC
+		WHERE (c.musyawarah_id = $1 OR $1 = '') AND c.deleted_at IS NULL
+		GROUP BY c.id, c.candidate_number, c.display_order, c.full_name
+		ORDER BY total_votes DESC, number ASC
 	`
 	var rows []struct {
 		ID         string `db:"id"`

@@ -15,11 +15,11 @@ const (
 
 // AttendanceEvent represents the core domain entity for a check-in
 type AttendanceEvent struct {
-	ID             string           `json:"id"`
-	RegistrationID string           `json:"registration_id"`
-	Status         AttendanceStatus `json:"status"`
-	CheckedInAt    time.Time        `json:"checked_in_at"`
-	OperatorID     string           `json:"operator_id"`
+	ID            string           `json:"id"`
+	ParticipantID string           `json:"participant_id"`
+	Status        AttendanceStatus `json:"status"`
+	CheckedInAt   time.Time        `json:"checked_in_at"`
+	OperatorID    string           `json:"operator_id"`
 }
 
 // AttendanceSummary represents the real-time aggregate stats
@@ -31,9 +31,9 @@ type AttendanceSummary struct {
 
 // AttendanceService defines the business operations for attendance
 type AttendanceService interface {
-	CheckIn(ctx context.Context, registrationID string, operatorID string) (*AttendanceEvent, error)
+	CheckIn(ctx context.Context, participantID string, operatorID string) (*AttendanceEvent, error)
 	UndoCheckIn(ctx context.Context, checkInID string, operatorID string) error
-	GetAttendance(ctx context.Context, registrationID string) (*AttendanceEvent, error)
+	GetAttendance(ctx context.Context, participantID string) (*AttendanceEvent, error)
 	GetSummary(ctx context.Context, eventID string) (*AttendanceSummary, error)
 	Search(ctx context.Context, query string, limit, offset int) ([]AttendanceEvent, error)
 }
@@ -42,5 +42,5 @@ type AttendanceService interface {
 type AttendanceRepository interface {
 	RecordCheckIn(ctx context.Context, event *AttendanceEvent) error
 	GetSummaryByEvent(ctx context.Context, eventID string) (*AttendanceSummary, error)
-	GetByRegistrationID(ctx context.Context, registrationID string) (*AttendanceEvent, error)
+	GetByParticipantID(ctx context.Context, participantID string) (*AttendanceEvent, error)
 }

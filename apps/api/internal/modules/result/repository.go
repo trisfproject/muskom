@@ -40,14 +40,12 @@ func (r *repository) GetElectionResults(ctx context.Context, eventID uuid.UUID) 
 	statsQuery := `
 		SELECT 
 			c.id as candidate_id, 
-			cp.full_name as candidate_name,
+			c.full_name as candidate_name,
 			COUNT(v.id) as vote_count
 		FROM candidates c
-		JOIN registrations cr ON c.registration_id = cr.id
-		JOIN persons cp ON cr.person_id = cp.id
-		LEFT JOIN votes v ON v.candidate_id = c.id AND v.event_id = $1
-		WHERE c.event_id = $1 AND c.status = 'ACCEPTED'
-		GROUP BY c.id, cp.full_name
+		LEFT JOIN votes v ON v.candidate_id = c.id AND (v.event_id = $1 OR $1 = '00000000-0000-0000-0000-000000000000')
+		WHERE (c.musyawarah_id = $1 OR $1 = '00000000-0000-0000-0000-000000000000') AND c.deleted_at IS NULL
+		GROUP BY c.id, c.full_name
 		ORDER BY vote_count DESC
 	`
 
@@ -121,20 +119,25 @@ func (r *repository) GetElectionOverview(ctx context.Context, eventID uuid.UUID)
 	var overview ElectionOverviewResponse
 	overview.EventID = eventID
 
-	// Total Eligible (Approved Registrations for Event)
-	err := r.db.GetContext(ctx, &overview.TotalEligible, `SELECT COUNT(id) FROM registrations WHERE event_id = $1 AND status = 'ACCEPTED'`, eventID)
+	// Total Eligible (Approved/Verified Participants)
+	err := r.db.GetContext(ctx, &overview.TotalEligible, `SELECT COUNT(id) FROM participants WHERE (musyawarah_id = $1 OR $1 = '00000000-0000-0000-0000-000000000000') AND deleted_at IS NULL AND status IN ('Verified', 'APPROVED')`, eventID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Total Checked-In (Attendance)
-	err = r.db.GetContext(ctx, &overview.TotalCheckedIn, `SELECT COUNT(id) FROM attendance WHERE event_id = $1`, eventID)
+	err = r.db.GetContext(ctx, &overview.TotalCheckedIn, `
+		SELECT COUNT(a.id) 
+		FROM attendance a 
+		JOIN participants p ON a.participant_id = p.id 
+		WHERE (p.musyawarah_id = $1 OR $1 = '00000000-0000-0000-0000-000000000000') AND a.undone_at IS NULL AND p.deleted_at IS NULL
+	`, eventID)
 	if err != nil {
 		return nil, err
 	}
 
 	// Total Votes
-	err = r.db.GetContext(ctx, &overview.TotalVotes, `SELECT COUNT(id) FROM votes WHERE event_id = $1`, eventID)
+	err = r.db.GetContext(ctx, &overview.TotalVotes, `SELECT COUNT(id) FROM votes WHERE (event_id = $1 OR $1 = '00000000-0000-0000-0000-000000000000')`, eventID)
 	if err != nil {
 		return nil, err
 	}

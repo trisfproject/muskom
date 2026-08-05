@@ -83,12 +83,18 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
       ],
     },
     {
-      title: "Registrasi",
+      title: "Registrasi & Verifikasi",
       items: [
         { label: "Bakal Calon", href: "/admin/candidates", icon: UserPlus, exact: false },
-        { label: "Dashboard Peserta", href: "/admin/participants", icon: BarChart3, exact: false },
-        { label: "Peserta", href: "/admin/registrations", icon: Users, exact: false },
-        { label: "Verifikasi", href: "#coming-soon-verification", icon: ShieldCheck, comingSoon: true },
+        { label: "Peserta Musyawarah", href: "/admin/participants", icon: Users, exact: false },
+        { label: "Verifikasi Berkas", href: "/admin/verifications", icon: ShieldCheck, exact: false },
+      ],
+    },
+    {
+      title: "Operasional Acara",
+      items: [
+        { label: "Presensi / QR Scanner", href: "/admin/attendance", icon: UserCheck, exact: false },
+        { label: "E-Voting Control Panel", href: "/admin/voting", icon: BarChart3, exact: false },
       ],
     },
     {

@@ -24,7 +24,7 @@ type Service interface {
 	CloseSession(ctx context.Context, eventID string) error
 	
 	GetBallot(ctx context.Context, eventID string) (*Ballot, error)
-	CastVote(ctx context.Context, eventID, registrationID, candidateID string) error
+	CastVote(ctx context.Context, eventID, participantID, candidateID string) error
 	GetSummary(ctx context.Context, eventID string) (*VoteSummary, error)
 }
 
@@ -84,7 +84,7 @@ func (s *service) GetBallot(ctx context.Context, eventID string) (*Ballot, error
 	return &Ballot{Candidates: candidates}, nil
 }
 
-func (s *service) CastVote(ctx context.Context, eventID, registrationID, candidateID string) error {
+func (s *service) CastVote(ctx context.Context, eventID, participantID, candidateID string) error {
 	session, err := s.GetSession(ctx, eventID)
 	if err != nil {
 		return err
@@ -93,7 +93,7 @@ func (s *service) CastVote(ctx context.Context, eventID, registrationID, candida
 		return ErrSessionNotRunning
 	}
 
-	hasVoted, err := s.repo.HasVoted(ctx, eventID, registrationID)
+	hasVoted, err := s.repo.HasVoted(ctx, eventID, participantID)
 	if err != nil {
 		return err
 	}
@@ -109,9 +109,9 @@ func (s *service) CastVote(ctx context.Context, eventID, registrationID, candida
 	defer tx.Rollback()
 
 	vote := &Vote{
-		EventID:        eventID,
-		RegistrationID: registrationID,
-		CandidateID:    candidateID,
+		EventID:       eventID,
+		ParticipantID: participantID,
+		CandidateID:   candidateID,
 	}
 
 	err = s.repo.CastVote(ctx, tx, vote)
@@ -125,8 +125,8 @@ func (s *service) CastVote(ctx context.Context, eventID, registrationID, candida
 
 	// Dispatch Domain Event
 	_ = s.bus.Publish(ctx, eventbus.NewEnvelope(eventID, eventbus.EventVoteSubmitted, map[string]string{
-		"registration_id": registrationID,
-		"candidate_id":    candidateID,
+		"participant_id": participantID,
+		"candidate_id":   candidateID,
 	}))
 
 	return nil

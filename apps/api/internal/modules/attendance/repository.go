@@ -8,10 +8,10 @@ import (
 )
 
 type Repository interface {
-	GetParticipantStatus(ctx context.Context, registrationID string) (string, error)
-	GetAttendanceDetail(ctx context.Context, registrationID string) (*AttendanceDetailResponse, error)
+	GetParticipantStatus(ctx context.Context, participantID string) (string, error)
+	GetAttendanceDetail(ctx context.Context, participantID string) (*AttendanceDetailResponse, error)
 	BeginTx(ctx context.Context) (*sqlx.Tx, error)
-	CreateAttendance(ctx context.Context, tx *sqlx.Tx, registrationID string, operatorID string) (bool, error)
+	CreateAttendance(ctx context.Context, tx *sqlx.Tx, participantID string, operatorID string) (bool, error)
 	UndoCheckIn(ctx context.Context, tx *sqlx.Tx, checkInID string, operatorID string, reason string) error
 	GetSummaryByEvent(ctx context.Context, eventID string) (*AttendanceSummary, error)
 	LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error
@@ -27,25 +27,24 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
-func (r *repository) GetParticipantStatus(ctx context.Context, registrationID string) (string, error) {
-	query := `SELECT status FROM registrations WHERE id = $1`
+func (r *repository) GetParticipantStatus(ctx context.Context, participantID string) (string, error) {
+	query := `SELECT status FROM participants WHERE id = $1 AND deleted_at IS NULL`
 	var status string
-	err := r.db.GetContext(ctx, &status, query, registrationID)
+	err := r.db.GetContext(ctx, &status, query, participantID)
 	return status, err
 }
 
-func (r *repository) GetAttendanceDetail(ctx context.Context, registrationID string) (*AttendanceDetailResponse, error) {
+func (r *repository) GetAttendanceDetail(ctx context.Context, participantID string) (*AttendanceDetailResponse, error) {
 	query := `
 		SELECT 
-			a.id, a.registration_id, a.checked_in_at, a.checked_in_by, a.created_at, a.updated_at,
-			p.full_name, p.email, p.phone, p.institution
+			a.id, a.participant_id, a.checked_in_at, a.checked_in_by, a.created_at, a.updated_at,
+			p.full_name, p.email, p.phone, p.company_name as institution
 		FROM attendance a
-		JOIN registrations reg ON a.registration_id = reg.id
-		JOIN persons p ON reg.person_id = p.id
-		WHERE a.registration_id = $1 AND a.undone_at IS NULL
+		JOIN participants p ON a.participant_id = p.id
+		WHERE a.participant_id = $1 AND a.undone_at IS NULL AND p.deleted_at IS NULL
 	`
 	var detail AttendanceDetailResponse
-	if err := r.db.GetContext(ctx, &detail, query, registrationID); err != nil {
+	if err := r.db.GetContext(ctx, &detail, query, participantID); err != nil {
 		return nil, err
 	}
 	return &detail, nil
@@ -55,18 +54,18 @@ func (r *repository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
 	return r.db.BeginTxx(ctx, nil)
 }
 
-func (r *repository) CreateAttendance(ctx context.Context, tx *sqlx.Tx, registrationID string, operatorID string) (bool, error) {
+func (r *repository) CreateAttendance(ctx context.Context, tx *sqlx.Tx, participantID string, operatorID string) (bool, error) {
 	query := `
-		INSERT INTO attendance (registration_id, checked_in_by)
+		INSERT INTO attendance (participant_id, checked_in_by)
 		VALUES ($1, $2)
-		ON CONFLICT (registration_id) WHERE undone_at IS NULL DO NOTHING
+		ON CONFLICT (participant_id) WHERE undone_at IS NULL DO NOTHING
 	`
 	executor := r.db.ExecContext
 	if tx != nil {
 		executor = tx.ExecContext
 	}
 
-	res, err := executor(ctx, query, registrationID, operatorID)
+	res, err := executor(ctx, query, participantID, operatorID)
 	if err != nil {
 		return false, err
 	}
@@ -110,12 +109,12 @@ func (r *repository) UndoCheckIn(ctx context.Context, tx *sqlx.Tx, checkInID str
 func (r *repository) GetSummaryByEvent(ctx context.Context, eventID string) (*AttendanceSummary, error) {
 	query := `
 		SELECT 
-			COUNT(r.id) as total_participants,
+			COUNT(p.id) as total_participants,
 			COUNT(a.id) as total_present,
-			COUNT(r.id) - COUNT(a.id) as total_absent
-		FROM registrations r
-		LEFT JOIN attendance a ON r.id = a.registration_id AND a.undone_at IS NULL
-		WHERE r.event_id = $1 AND r.status = 'APPROVED'
+			COUNT(p.id) - COUNT(a.id) as total_absent
+		FROM participants p
+		LEFT JOIN attendance a ON p.id = a.participant_id AND a.undone_at IS NULL
+		WHERE (p.musyawarah_id = $1 OR $1 = '') AND p.deleted_at IS NULL AND p.status IN ('Verified', 'APPROVED', 'Pending')
 	`
 	var summary AttendanceSummary
 	if err := r.db.GetContext(ctx, &summary, query, eventID); err != nil {
@@ -154,15 +153,15 @@ func (r *repository) ListAttendances(ctx context.Context, filter AttendanceListR
 	}
 	offset := (page - 1) * limit
 
-	whereClause := "WHERE 1=1"
+	whereClause := "WHERE p.deleted_at IS NULL"
 	args := []interface{}{}
 	argIdx := 1
 
 	if filter.AttendanceStatus != "" {
 		if filter.AttendanceStatus == "PRESENT" {
-			whereClause += fmt.Sprintf(" AND a.id IS NOT NULL")
+			whereClause += " AND a.id IS NOT NULL"
 		} else if filter.AttendanceStatus == "ABSENT" {
-			whereClause += fmt.Sprintf(" AND a.id IS NULL")
+			whereClause += " AND a.id IS NULL"
 		}
 	}
 
@@ -179,7 +178,7 @@ func (r *repository) ListAttendances(ctx context.Context, filter AttendanceListR
 	}
 
 	if filter.VerificationStatus != "" {
-		whereClause += fmt.Sprintf(" AND r.status = $%d", argIdx)
+		whereClause += fmt.Sprintf(" AND p.status = $%d", argIdx)
 		args = append(args, filter.VerificationStatus)
 		argIdx++
 	}
@@ -190,7 +189,7 @@ func (r *repository) ListAttendances(ctx context.Context, filter AttendanceListR
 		argIdx++
 	}
 
-	sortCol := "r.created_at"
+	sortCol := "p.created_at"
 	if filter.SortBy == "checked_in_at" {
 		sortCol = "a.checked_in_at"
 	} else if filter.SortBy == "participant_name" {
@@ -204,9 +203,8 @@ func (r *repository) ListAttendances(ctx context.Context, filter AttendanceListR
 
 	countQuery := fmt.Sprintf(`
 		SELECT COUNT(1)
-		FROM registrations r
-		JOIN persons p ON r.person_id = p.id
-		LEFT JOIN attendance a ON r.id = a.registration_id AND a.undone_at IS NULL
+		FROM participants p
+		LEFT JOIN attendance a ON p.id = a.participant_id AND a.undone_at IS NULL
 		%s
 	`, whereClause)
 
@@ -217,15 +215,14 @@ func (r *repository) ListAttendances(ctx context.Context, filter AttendanceListR
 
 	query := fmt.Sprintf(`
 		SELECT 
-			r.id as registration_id,
+			p.id as participant_id,
 			p.full_name as participant_name,
-			p.institution,
-			r.status as verification_status,
+			COALESCE(p.company_name, '') as institution,
+			p.status as verification_status,
 			CASE WHEN a.id IS NOT NULL THEN 'PRESENT' ELSE 'ABSENT' END as attendance_status,
 			a.checked_in_at
-		FROM registrations r
-		JOIN persons p ON r.person_id = p.id
-		LEFT JOIN attendance a ON r.id = a.registration_id AND a.undone_at IS NULL
+		FROM participants p
+		LEFT JOIN attendance a ON p.id = a.participant_id AND a.undone_at IS NULL
 		%s
 		ORDER BY %s %s
 		LIMIT $%d OFFSET $%d
@@ -246,12 +243,11 @@ func (r *repository) ListAttendances(ctx context.Context, filter AttendanceListR
 func (r *repository) GetAttendanceByID(ctx context.Context, attendanceID string) (*AttendanceDetailResponse, error) {
 	query := `
 		SELECT 
-			a.id, a.registration_id, a.checked_in_at, a.checked_in_by, a.created_at, a.updated_at,
-			p.full_name, p.email, p.phone, p.institution
+			a.id, a.participant_id, a.checked_in_at, a.checked_in_by, a.created_at, a.updated_at,
+			p.full_name, p.email, p.phone, p.company_name as institution
 		FROM attendance a
-		JOIN registrations reg ON a.registration_id = reg.id
-		JOIN persons p ON reg.person_id = p.id
-		WHERE a.id = $1 AND a.undone_at IS NULL
+		JOIN participants p ON a.participant_id = p.id
+		WHERE a.id = $1 AND a.undone_at IS NULL AND p.deleted_at IS NULL
 	`
 	var detail AttendanceDetailResponse
 	if err := r.db.GetContext(ctx, &detail, query, attendanceID); err != nil {

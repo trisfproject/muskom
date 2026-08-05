@@ -12,7 +12,7 @@ type Repository interface {
 	GetSessionByEvent(ctx context.Context, eventID string) (*VotingSession, error)
 	UpdateSessionStatus(ctx context.Context, eventID string, status SessionStatus) error
 	
-	HasVoted(ctx context.Context, eventID, registrationID string) (bool, error)
+	HasVoted(ctx context.Context, eventID, participantID string) (bool, error)
 	CastVote(ctx context.Context, tx *sqlx.Tx, vote *Vote) error
 	
 	GetBallotCandidates(ctx context.Context, eventID string) ([]CandidateSnapshot, error)
@@ -57,25 +57,24 @@ func (r *repository) UpdateSessionStatus(ctx context.Context, eventID string, st
 	return err
 }
 
-func (r *repository) HasVoted(ctx context.Context, eventID, registrationID string) (bool, error) {
+func (r *repository) HasVoted(ctx context.Context, eventID, participantID string) (bool, error) {
 	var count int
-	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM votes WHERE event_id = $1 AND registration_id = $2`, eventID, registrationID)
+	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM votes WHERE (event_id = $1 OR $1 = '') AND participant_id = $2`, eventID, participantID)
 	return count > 0, err
 }
 
 func (r *repository) CastVote(ctx context.Context, tx *sqlx.Tx, vote *Vote) error {
-	query := `INSERT INTO votes (event_id, registration_id, candidate_id) VALUES ($1, $2, $3)`
-	_, err := tx.ExecContext(ctx, query, vote.EventID, vote.RegistrationID, vote.CandidateID)
+	query := `INSERT INTO votes (event_id, participant_id, candidate_id) VALUES ($1, $2, $3)`
+	_, err := tx.ExecContext(ctx, query, vote.EventID, vote.ParticipantID, vote.CandidateID)
 	return err
 }
 
 func (r *repository) GetBallotCandidates(ctx context.Context, eventID string) ([]CandidateSnapshot, error) {
 	query := `
-		SELECT c.id, c.number, r.full_name as name, c.photo_path, c.vision, c.mission
+		SELECT c.id, COALESCE(c.candidate_number, c.display_order, 0) as number, c.full_name as name, c.profile_photo as photo_path, c.vision, c.mission
 		FROM candidates c
-		JOIN registrations r ON c.registration_id = r.id
-		WHERE c.event_id = $1 AND c.status = 'VERIFIED'
-		ORDER BY c.number ASC
+		WHERE (c.musyawarah_id = $1 OR $1 = '') AND c.deleted_at IS NULL AND c.status IN ('Verified', 'VERIFIED', 'Approved', 'Draft')
+		ORDER BY number ASC
 	`
 	var rows []struct {
 		ID        string         `db:"id"`
@@ -106,13 +105,12 @@ func (r *repository) GetBallotCandidates(ctx context.Context, eventID string) ([
 
 func (r *repository) GetResults(ctx context.Context, eventID string) ([]VoteResult, error) {
 	query := `
-		SELECT c.id as candidate_id, r.full_name as name, COUNT(v.id) as total_votes
+		SELECT c.id as candidate_id, c.full_name as name, COUNT(v.id) as total_votes
 		FROM candidates c
-		JOIN registrations r ON c.registration_id = r.id
 		LEFT JOIN votes v ON c.id = v.candidate_id
-		WHERE c.event_id = $1 AND c.status = 'VERIFIED'
-		GROUP BY c.id, r.full_name
-		ORDER BY total_votes DESC, r.full_name ASC
+		WHERE (c.musyawarah_id = $1 OR $1 = '') AND c.deleted_at IS NULL
+		GROUP BY c.id, c.full_name
+		ORDER BY total_votes DESC, c.full_name ASC
 	`
 	var results []VoteResult
 	err := r.db.SelectContext(ctx, &results, query, eventID)
@@ -121,6 +119,11 @@ func (r *repository) GetResults(ctx context.Context, eventID string) ([]VoteResu
 
 func (r *repository) GetTotalCheckedIn(ctx context.Context, eventID string) (int, error) {
 	var count int
-	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM attendance WHERE event_id = $1`, eventID)
+	err := r.db.GetContext(ctx, &count, `
+		SELECT COUNT(a.id) 
+		FROM attendance a
+		JOIN participants p ON a.participant_id = p.id
+		WHERE (p.musyawarah_id = $1 OR $1 = '') AND a.undone_at IS NULL AND p.deleted_at IS NULL
+	`, eventID)
 	return count, err
 }

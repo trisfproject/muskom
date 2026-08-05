@@ -24,12 +24,12 @@ type VotingSession struct {
 }
 
 type Vote struct {
-	ID             string    `db:"id"`
-	EventID        string    `db:"event_id"`
-	RegistrationID string    `db:"registration_id"`
-	CandidateID    string    `db:"candidate_id"`
-	CreatedAt      time.Time `db:"created_at"`
-	UpdatedAt      time.Time `db:"updated_at"`
+	ID            string    `db:"id"`
+	EventID       string    `db:"event_id"`
+	ParticipantID string    `db:"participant_id"`
+	CandidateID   string    `db:"candidate_id"`
+	CreatedAt     time.Time `db:"created_at"`
+	UpdatedAt     time.Time `db:"updated_at"`
 }
 
 type CandidateSnapshot struct {

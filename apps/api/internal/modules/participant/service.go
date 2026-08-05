@@ -13,8 +13,10 @@ import (
 )
 
 var (
-	ErrDuplicateEmail = errors.New("email already registered")
-	ErrQuotaReached   = errors.New("registration quota reached")
+	ErrDuplicateEmail      = errors.New("email already registered")
+	ErrQuotaReached        = errors.New("registration quota reached")
+	ErrRegistrationNotOpen = errors.New("registration is not open yet")
+	ErrRegistrationClosed  = errors.New("registration has closed")
 )
 
 type Service interface {
@@ -195,12 +197,25 @@ func (s *service) Delete(ctx context.Context, id string) error {
 }
 
 func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticipantRequest) (*PublicRegisterParticipantResponse, error) {
-	// Check for duplicate email
-	_, err := s.repo.FindByEmail(ctx, req.Email)
+	// Check Registration Dates
+	openDate, closeDate, err := s.repo.GetMusyawarahRegistrationDates(ctx, req.MusyawarahID)
 	if err == nil {
+		now := time.Now()
+		if openDate != nil && now.Before(*openDate) {
+			return nil, ErrRegistrationNotOpen
+		}
+		if closeDate != nil && now.After(*closeDate) {
+			return nil, ErrRegistrationClosed
+		}
+	}
+
+	// Check for duplicate email
+	var findErr error
+	_, findErr = s.repo.FindByEmail(ctx, req.Email)
+	if findErr == nil {
 		return nil, ErrDuplicateEmail
-	} else if err != ErrNotFound {
-		return nil, err
+	} else if findErr != ErrNotFound {
+		return nil, findErr
 	}
 
 	// Check Registration Limit

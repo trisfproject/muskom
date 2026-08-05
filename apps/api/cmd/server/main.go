@@ -20,7 +20,6 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/participant"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/bootstrap"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/rbac"
-	"github.com/trisfproject/muskom/apps/api/internal/modules/registration"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/reporting"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/result"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/verification"
@@ -118,7 +117,6 @@ func main() {
 	// Protected Auth routes (needs JWT for /me/permissions)
 	rbac.SetupAuthRoutes(authGroup.Group("/", auth.JWTMiddleware(cfg, log)), authSvc)
 	
-	registration.SetupRoutes(v1.Group("/public/register"), db, log, val, strg, cfg.MaxUploadSize)
 	musyawarah.SetupPublicRoutes(v1.Group("/public/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
@@ -130,21 +128,20 @@ func main() {
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
-	dashboard.SetupAdminRoutes(adminGroup.Group("/dashboard"), db, log)
-	website.SetupAdminRoutes(adminGroup.Group("/website"), db, redisClient, strg, val, log)
-	musyawarah.SetupRoutes(adminGroup.Group("/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
-	registration.SetupAdminRoutes(adminGroup.Group("/registrations"), db, log, val, strg, cfg.MaxUploadSize)
-	verification.SetupAdminRoutes(adminGroup.Group("/verifications"), db, log, val)
-	attendance.SetupAdminRoutes(adminGroup.Group("/attendance"), db, log, val)
-	notification.SetupAdminRoutes(adminGroup.Group("/notifications"), db, log)
+	dashboard.SetupAdminRoutes(adminGroup.Group("/dashboard", checker.RequirePermission("audit.view")), db, log)
+	website.SetupAdminRoutes(adminGroup.Group("/website", checker.RequirePermission("website.write")), db, redisClient, strg, val, log)
+	musyawarah.SetupRoutes(adminGroup.Group("/musyawarah", checker.RequirePermission("musyawarah.manage")), db, log, val, strg, cfg.MaxUploadSize)
+	verification.SetupAdminRoutes(adminGroup.Group("/verifications", checker.RequirePermission("participant.approve")), db, log, val)
+	attendance.SetupAdminRoutes(adminGroup.Group("/attendance", checker.RequirePermission("attendance.manage")), db, log, val)
+	notification.SetupAdminRoutes(adminGroup.Group("/notifications", checker.RequirePermission("notification.send")), db, log)
 	audit.SetupAdminRoutes(adminGroup.Group("/audit", checker.RequirePermission("audit.view")), db, log)
-	reporting.SetupAdminRoutes(adminGroup.Group("/reporting"), db, log)
-	voting.SetupAdminRoutes(adminGroup.Group("/votes"), db, log, bus)
-	result.SetupAdminRoutes(adminGroup, db, log)
+	reporting.SetupAdminRoutes(adminGroup.Group("/reporting", checker.RequirePermission("report.export")), db, log)
+	voting.SetupAdminRoutes(adminGroup.Group("/votes", checker.RequirePermission("voting.manage")), db, log, bus)
+	result.SetupAdminRoutes(adminGroup.Group("/result", checker.RequirePermission("voting.view")), db, log)
 	user.SetupRoutes(adminGroup.Group("/users", checker.RequirePermission("system.manage")), db, log, val)
 	candidate.RegisterRoutes(v1, db, log, val, strg, cfg.MaxUploadSize, cfg)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, log, val, strg, cfg)
-	participant.SetupAdminRoutes(adminGroup.Group("/participants"), db, log, val, mailerSvc)
+	participant.SetupAdminRoutes(adminGroup.Group("/participants", checker.RequirePermission("participant.approve")), db, log, val, mailerSvc)
 
 	// 8. Graceful Shutdown
 	go func() {

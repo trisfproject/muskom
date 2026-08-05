@@ -27,31 +27,30 @@ func NewRepository(db *sqlx.DB) Repository {
 }
 
 func (r *repository) GetVerifications(ctx context.Context, filter VerificationListRequest) ([]VerificationItemResponse, int, error) {
-	// Base CTEs to unify registrations and candidate_applications
+	// Base CTEs to unify participants and candidates
 	baseQuery := `
 		WITH combined_queue AS (
-			-- Participant Applications (Registrations)
+			-- Participant Applications
 			SELECT 
-				r.id::text as id,
+				p.id::text as id,
 				'participant' as queue_type,
 				p.full_name as applicant_name,
-				r.status as status,
-				r.created_at
-			FROM registrations r
-			JOIN persons p ON r.person_id = p.id
+				p.status as status,
+				p.created_at
+			FROM participants p
+			WHERE p.deleted_at IS NULL
 			
 			UNION ALL
 			
 			-- Candidate Applications
 			SELECT 
-				ca.id::text as id,
+				c.id::text as id,
 				'candidate' as queue_type,
-				p.full_name as applicant_name,
-				ca.status as status,
-				ca.created_at
-			FROM candidate_applications ca
-			JOIN registrations r ON ca.registration_id = r.id
-			JOIN persons p ON r.person_id = p.id
+				c.full_name as applicant_name,
+				c.status as status,
+				c.created_at
+			FROM candidates c
+			WHERE c.deleted_at IS NULL
 		)
 		SELECT * FROM combined_queue
 		WHERE 1=1
@@ -67,7 +66,7 @@ func (r *repository) GetVerifications(ctx context.Context, filter VerificationLi
 	}
 
 	if filter.Status != "" {
-		baseQuery += fmt.Sprintf(" AND status = $%d", argId)
+		baseQuery += fmt.Sprintf(" AND status ILIKE $%d", argId)
 		args = append(args, filter.Status)
 		argId++
 	}
@@ -122,8 +121,8 @@ func (r *repository) GetVerifications(ctx context.Context, filter VerificationLi
 func (r *repository) GetVerificationSummary(ctx context.Context) (*VerificationSummaryResponse, error) {
 	query := `
 		SELECT 
-			(SELECT COUNT(*) FROM registrations WHERE status IN ('PENDING', 'APPROVED', 'REJECTED')) as pending_participants,
-			(SELECT COUNT(*) FROM candidate_applications WHERE status IN ('SUBMITTED', 'REVIEWING')) as pending_candidates
+			(SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND status IN ('Pending', 'PENDING')) as pending_participants,
+			(SELECT COUNT(*) FROM candidates WHERE deleted_at IS NULL AND status IN ('Draft', 'DRAFT', 'Submitted', 'Pending')) as pending_candidates
 	`
 
 	var summary VerificationSummaryResponse
@@ -138,11 +137,10 @@ func (r *repository) GetVerificationSummary(ctx context.Context) (*VerificationS
 func (r *repository) GetParticipantDetail(ctx context.Context, registrationID string) (*ParticipantDetailResponse, error) {
 	query := `
 		SELECT 
-			r.id, r.event_id, r.participant_category, r.source, r.status, r.rejection_reason, r.created_at, r.updated_at,
-			p.id as person_id, p.full_name, p.email, p.phone, p.institution
-		FROM registrations r
-		JOIN persons p ON r.person_id = p.id
-		WHERE r.id = $1
+			p.id, p.musyawarah_id as event_id, 'DELEGATE' as participant_category, 'ONLINE' as source, p.status, NULL as rejection_reason, p.created_at, p.updated_at,
+			p.id as person_id, p.full_name, p.email, p.phone, p.company_name as institution
+		FROM participants p
+		WHERE p.id = $1 AND p.deleted_at IS NULL
 	`
 	var detail ParticipantDetailResponse
 	if err := r.db.GetContext(ctx, &detail, query, registrationID); err != nil {
@@ -176,16 +174,16 @@ func (r *repository) LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, 
 
 func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string) error {
 	query := `
-		UPDATE registrations
-		SET status = $1, approved_by = $2, approved_at = NOW(), rejection_reason = $3, updated_at = NOW()
-		WHERE id = $4
+		UPDATE participants
+		SET status = $1, updated_at = NOW()
+		WHERE id = $2 AND deleted_at IS NULL
 	`
 	executor := r.db.ExecContext
 	if tx != nil {
 		executor = tx.ExecContext
 	}
 
-	res, err := executor(ctx, query, status, verifierID, rejectionReason, registrationID)
+	res, err := executor(ctx, query, status, registrationID)
 	if err != nil {
 		return err
 	}
@@ -195,7 +193,7 @@ func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, r
 		return err
 	}
 	if rows == 0 {
-		return fmt.Errorf("registration not found")
+		return fmt.Errorf("participant not found")
 	}
 
 	return nil
@@ -204,13 +202,11 @@ func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, r
 func (r *repository) GetCandidateDetail(ctx context.Context, candidateID string) (*CandidateDetailResponse, error) {
 	query := `
 		SELECT 
-			ca.id, ca.registration_id, r.event_id, r.participant_category, r.source, ca.status, 
-			ca.created_at, ca.updated_at, p.id as person_id, p.full_name, p.email, p.phone, p.institution,
-			ca.vision, ca.mission, ca.work_program, ca.photo_path, ca.document_path
-		FROM candidate_applications ca
-		JOIN registrations r ON ca.registration_id = r.id
-		JOIN persons p ON r.person_id = p.id
-		WHERE ca.id = $1
+			c.id, c.id as registration_id, c.musyawarah_id as event_id, 'CANDIDATE' as participant_category, 'SYSTEM' as source, c.status, 
+			c.created_at, c.updated_at, c.id as person_id, c.full_name, c.email, c.phone, COALESCE(c.organization, '') as institution,
+			COALESCE(c.vision, '') as vision, COALESCE(c.mission, '') as mission, '' as work_program, COALESCE(c.profile_photo, '') as photo_path, '' as document_path
+		FROM candidates c
+		WHERE c.id = $1 AND c.deleted_at IS NULL
 	`
 	var detail CandidateDetailResponse
 	if err := r.db.GetContext(ctx, &detail, query, candidateID); err != nil {
@@ -221,16 +217,16 @@ func (r *repository) GetCandidateDetail(ctx context.Context, candidateID string)
 
 func (r *repository) UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, candidateID string, status string, verifierID string) error {
 	query := `
-		UPDATE candidate_applications
-		SET status = $1, reviewed_by = $2, reviewed_at = NOW(), updated_at = NOW()
-		WHERE id = $3
+		UPDATE candidates
+		SET status = $1, updated_at = NOW()
+		WHERE id = $2 AND deleted_at IS NULL
 	`
 	executor := r.db.ExecContext
 	if tx != nil {
 		executor = tx.ExecContext
 	}
 
-	res, err := executor(ctx, query, status, verifierID, candidateID)
+	res, err := executor(ctx, query, status, candidateID)
 	if err != nil {
 		return err
 	}
@@ -240,7 +236,7 @@ func (r *repository) UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, can
 		return err
 	}
 	if rows == 0 {
-		return fmt.Errorf("candidate application not found")
+		return fmt.Errorf("candidate not found")
 	}
 
 	return nil

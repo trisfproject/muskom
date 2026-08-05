@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -25,6 +26,7 @@ type Repository interface {
 	Count(ctx context.Context) (int, error)
 	CountActiveByMusyawarah(ctx context.Context, musyawarahID string) (int, error)
 	GetMusyawarahRegistrationLimit(ctx context.Context, musyawarahID string) (*int, error)
+	GetMusyawarahRegistrationDates(ctx context.Context, musyawarahID string) (open *time.Time, close *time.Time, err error)
 }
 
 type repository struct {
@@ -294,4 +296,20 @@ func (r *repository) GetMusyawarahRegistrationLimit(ctx context.Context, musyawa
 		return nil, err
 	}
 	return limit, nil
+}
+
+func (r *repository) GetMusyawarahRegistrationDates(ctx context.Context, musyawarahID string) (*time.Time, *time.Time, error) {
+	query := `SELECT registration_open, registration_close FROM events WHERE id = $1 AND deleted_at IS NULL`
+	var res struct {
+		RegistrationOpen  *time.Time `db:"registration_open"`
+		RegistrationClose *time.Time `db:"registration_close"`
+	}
+	err := r.db.GetContext(ctx, &res, query, musyawarahID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil, nil
+		}
+		return nil, nil, err
+	}
+	return res.RegistrationOpen, res.RegistrationClose, nil
 }

@@ -44,17 +44,21 @@ func (e *ValidationError) Error() string {
 }
 
 func (s *service) CheckIn(ctx context.Context, req *CheckInRequest, operatorID string) (*CheckInResponse, error) {
+	if req.ParticipantID == "" && req.RegistrationID != "" {
+		req.ParticipantID = req.RegistrationID
+	}
+
 	if errs := s.validator.ValidateStruct(req); len(errs) > 0 {
 		return nil, &ValidationError{Details: errs}
 	}
 
-	status, err := s.repo.GetParticipantStatus(ctx, req.RegistrationID)
+	status, err := s.repo.GetParticipantStatus(ctx, req.ParticipantID)
 	if err != nil {
 		return nil, errors.New("participant not found")
 	}
 
-	if status != "APPROVED" {
-		return nil, errors.New("cannot check-in: participant is not APPROVED")
+	if status != "APPROVED" && status != "Verified" && status != "Pending" {
+		return nil, errors.New("cannot check-in: participant status is invalid")
 	}
 
 	tx, err := s.repo.BeginTx(ctx)
@@ -63,13 +67,13 @@ func (s *service) CheckIn(ctx context.Context, req *CheckInRequest, operatorID s
 	}
 	defer tx.Rollback()
 
-	inserted, err := s.repo.CreateAttendance(ctx, tx, req.RegistrationID, operatorID)
+	inserted, err := s.repo.CreateAttendance(ctx, tx, req.ParticipantID, operatorID)
 	if err != nil {
 		return nil, err
 	}
 
 	if inserted {
-		if err := s.repo.LogAudit(ctx, tx, "attendance", "CHECK_IN_PARTICIPANT", "attendance", req.RegistrationID, "Participant checked in successfully"); err != nil {
+		if err := s.repo.LogAudit(ctx, tx, "attendance", "CHECK_IN_PARTICIPANT", "attendance", req.ParticipantID, "Participant checked in successfully"); err != nil {
 			return nil, err
 		}
 	}
@@ -84,8 +88,8 @@ func (s *service) CheckIn(ctx context.Context, req *CheckInRequest, operatorID s
 	}, nil
 }
 
-func (s *service) GetAttendance(ctx context.Context, registrationID string) (*AttendanceDetailResponse, error) {
-	return s.repo.GetAttendanceDetail(ctx, registrationID)
+func (s *service) GetAttendance(ctx context.Context, participantID string) (*AttendanceDetailResponse, error) {
+	return s.repo.GetAttendanceDetail(ctx, participantID)
 }
 
 func (s *service) Search(ctx context.Context, filter AttendanceListRequest) ([]AttendanceItemResponse, int, error) {
@@ -96,9 +100,6 @@ func (s *service) Search(ctx context.Context, filter AttendanceListRequest) ([]A
 }
 
 func (s *service) GetSummary(ctx context.Context, eventID string) (*AttendanceSummary, error) {
-	if eventID == "" {
-		return nil, errors.New("event ID is required")
-	}
 	return s.repo.GetSummaryByEvent(ctx, eventID)
 }
 
