@@ -15,7 +15,7 @@ export default async function LandingPage() {
 
   let config: any = null;
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+    const apiUrl = process.env.INTERNAL_API_URL || "http://localhost:8080/api/v1";
     const res = await fetch(`${apiUrl}/system/config`, { cache: 'no-store' });
     if (res.ok) {
       const json = await res.json();
