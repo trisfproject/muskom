@@ -114,7 +114,7 @@ func (r *repository) GetSummaryByEvent(ctx context.Context, eventID string) (*At
 			COUNT(p.id) - COUNT(a.id) as total_absent
 		FROM participants p
 		LEFT JOIN attendance a ON p.id = a.participant_id AND a.undone_at IS NULL
-		WHERE (p.musyawarah_id = $1 OR $1 = '') AND p.deleted_at IS NULL AND p.status IN ('Verified', 'APPROVED', 'Pending')
+		WHERE p.deleted_at IS NULL AND p.status IN ('Verified', 'APPROVED', 'Pending')
 	`
 	var summary AttendanceSummary
 	if err := r.db.GetContext(ctx, &summary, query, eventID); err != nil {

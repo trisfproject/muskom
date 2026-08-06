@@ -58,7 +58,7 @@ func NewService(repo Repository, resolver website.PhaseResolver, auditService au
 
 func (s *service) Create(ctx context.Context, req CreateParticipantRequest) (*Participant, error) {
 	p := &Participant{
-		MusyawarahID:       req.MusyawarahID,
+
 		RegistrationNumber: req.RegistrationNumber,
 		FullName:           req.FullName,
 		Nickname:           req.Nickname,
@@ -167,7 +167,7 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 
 	go func() {
 		if req.Status == "Verified" {
-			err := s.mailer.SendVerification(p.Email, p.FullName, p.MusyawarahID)
+			err := s.mailer.SendVerification(p.Email, p.FullName, "")
 			if err != nil {
 				_ = err
 			}
@@ -176,7 +176,7 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 			if req.Reason != nil {
 				rsn = *req.Reason
 			}
-			err := s.mailer.SendRejection(p.Email, p.FullName, p.MusyawarahID, rsn)
+			err := s.mailer.SendRejection(p.Email, p.FullName, "", rsn)
 			if err != nil {
 				_ = err
 			}
@@ -228,12 +228,12 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 	}
 
 	// Check Registration Limit
-	limit, err := s.repo.GetMusyawarahRegistrationLimit(ctx, req.MusyawarahID)
+	limit, err := s.repo.GetRegistrationLimit(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if limit != nil && *limit > 0 {
-		count, err := s.repo.CountActiveByMusyawarah(ctx, req.MusyawarahID)
+		count, err := s.repo.CountActive(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -243,10 +243,10 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 	}
 
 	// Generate unique registration number
-	regNum := fmt.Sprintf("PAR-%s-%s", strings.ToUpper(req.MusyawarahID[:4]), strings.ToUpper(uuid.New().String()[:8]))
+	regNum := fmt.Sprintf("PAR-%s-%s", strings.ToUpper(uuid.New().String()[:4]), strings.ToUpper(uuid.New().String()[:8]))
 
 	p := &Participant{
-		MusyawarahID:       req.MusyawarahID,
+
 		RegistrationNumber: regNum,
 		FullName:           req.FullName,
 		Nickname:           req.Nickname,

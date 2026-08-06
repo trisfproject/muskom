@@ -2,7 +2,7 @@ package voting
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"github.com/trisfproject/muskom/apps/api/platform/eventctx"
+
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 )
 
@@ -15,12 +15,8 @@ func NewHandler(service Service) *Handler {
 }
 
 func (h *Handler) GetBallot(c fiber.Ctx) error {
-	evtCtx := eventctx.Get(c)
-	if evtCtx == nil {
-		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
-	}
 
-	ballot, err := h.service.GetBallot(c.Context(), evtCtx.ID)
+	ballot, err := h.service.GetBallot(c.Context(), "")
 	if err != nil {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get ballot", nil)
 	}
@@ -28,10 +24,6 @@ func (h *Handler) GetBallot(c fiber.Ctx) error {
 }
 
 func (h *Handler) CastVote(c fiber.Ctx) error {
-	evtCtx := eventctx.Get(c)
-	if evtCtx == nil {
-		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
-	}
 
 	var req struct {
 		RegistrationID string `json:"registration_id"`
@@ -41,7 +33,7 @@ func (h *Handler) CastVote(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusBadRequest, "Invalid payload", nil)
 	}
 
-	err := h.service.CastVote(c.Context(), evtCtx.ID, req.RegistrationID, req.CandidateID)
+	err := h.service.CastVote(c.Context(), "", req.RegistrationID, req.CandidateID)
 	if err != nil {
 		if err == ErrAlreadyVoted {
 			return response.SendError(c, fiber.StatusConflict, err.Error(), nil)
@@ -52,12 +44,8 @@ func (h *Handler) CastVote(c fiber.Ctx) error {
 }
 
 func (h *Handler) GetSummary(c fiber.Ctx) error {
-	evtCtx := eventctx.Get(c)
-	if evtCtx == nil {
-		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
-	}
 
-	summary, err := h.service.GetSummary(c.Context(), evtCtx.ID)
+	summary, err := h.service.GetSummary(c.Context(), "")
 	if err != nil {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get summary", nil)
 	}

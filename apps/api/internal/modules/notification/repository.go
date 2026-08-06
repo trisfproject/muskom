@@ -35,7 +35,7 @@ func (r *repository) GetTemplateByName(ctx context.Context, name string, channel
 
 func (r *repository) CreateJob(ctx context.Context, job *NotificationJob) error {
 	query := `
-		INSERT INTO notification_jobs (event_id, template_id, channel, recipient, payload, status)
+		INSERT INTO notification_jobs ( template_id, channel, recipient, payload, status)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id, created_at, updated_at
 	`
@@ -59,7 +59,7 @@ func (r *repository) UpdateJobStatus(ctx context.Context, id string, status JobS
 
 func (r *repository) CreateHistory(ctx context.Context, history *NotificationHistory) error {
 	query := `
-		INSERT INTO notification_history (job_id, event_id, channel, recipient, status, sent_at, error_message)
+		INSERT INTO notification_history (job_id,  channel, recipient, status, sent_at, error_message)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id
 	`

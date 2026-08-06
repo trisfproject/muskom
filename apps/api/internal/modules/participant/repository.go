@@ -23,8 +23,8 @@ type Repository interface {
 	FindByEmail(ctx context.Context, email string) (*Participant, error)
 	GetStats(ctx context.Context) (*ParticipantStats, error)
 	Count(ctx context.Context) (int, error)
-	CountActiveByMusyawarah(ctx context.Context, musyawarahID string) (int, error)
-	GetMusyawarahRegistrationLimit(ctx context.Context, musyawarahID string) (*int, error)
+	CountActive(ctx context.Context) (int, error)
+	GetRegistrationLimit(ctx context.Context) (*int, error)
 }
 
 type repository struct {
@@ -38,10 +38,10 @@ func NewRepository(db *sqlx.DB) Repository {
 func (r *repository) Create(ctx context.Context, p *Participant) error {
 	query := `
 		INSERT INTO participants (
-			musyawarah_id, registration_number, full_name, nickname, email, phone, 
+			 registration_number, full_name, nickname, email, phone, 
 			company_name, industrial_area, job_title, department, status
 		) VALUES (
-			:musyawarah_id, :registration_number, :full_name, :nickname, :email, :phone, 
+			: :registration_number, :full_name, :nickname, :email, :phone, 
 			:company_name, :industrial_area, :job_title, :department, :status
 		) RETURNING id, created_at, updated_at
 	`
@@ -273,20 +273,20 @@ func (r *repository) Count(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-func (r *repository) CountActiveByMusyawarah(ctx context.Context, musyawarahID string) (int, error) {
-	query := `SELECT COUNT(*) FROM participants WHERE musyawarah_id = $1 AND deleted_at IS NULL AND status != 'Rejected'`
+func (r *repository) CountActive(ctx context.Context) (int, error) {
+	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND status != 'Rejected'`
 	var count int
-	err := r.db.GetContext(ctx, &count, query, musyawarahID)
+	err := r.db.GetContext(ctx, &count, query)
 	if err != nil {
 		return 0, err
 	}
 	return count, nil
 }
 
-func (r *repository) GetMusyawarahRegistrationLimit(ctx context.Context, musyawarahID string) (*int, error) {
+func (r *repository) GetRegistrationLimit(ctx context.Context) (*int, error) {
 	query := `SELECT registration_limit FROM event_settings WHERE event_id = $1`
 	var limit *int
-	err := r.db.GetContext(ctx, &limit, query, musyawarahID)
+	err := r.db.GetContext(ctx, &limit, query)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil

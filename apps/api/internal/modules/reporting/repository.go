@@ -24,17 +24,17 @@ func (r *repository) GetOfficialResult(ctx context.Context, eventID string) (*Of
 	result := &OfficialResult{}
 
 	// 1. Total Registered
-	r.db.GetContext(ctx, &result.TotalRegistered, `SELECT COUNT(*) FROM participants WHERE (musyawarah_id = $1 OR $1 = '') AND deleted_at IS NULL`, eventID)
+	r.db.GetContext(ctx, &result.TotalRegistered, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL`, eventID)
 
 	// 2. Approved Participants
-	r.db.GetContext(ctx, &result.ApprovedParticipants, `SELECT COUNT(*) FROM participants WHERE (musyawarah_id = $1 OR $1 = '') AND deleted_at IS NULL AND status IN ('Verified', 'APPROVED')`, eventID)
+	r.db.GetContext(ctx, &result.ApprovedParticipants, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND status IN ('Verified', 'APPROVED')`, eventID)
 
 	// 3. Checked In & Eligible Voters (Same for this context)
 	r.db.GetContext(ctx, &result.CheckedIn, `
 		SELECT COUNT(DISTINCT p.id) 
 		FROM attendance a 
 		JOIN participants p ON a.participant_id = p.id 
-		WHERE (p.musyawarah_id = $1 OR $1 = '') AND p.deleted_at IS NULL AND a.undone_at IS NULL
+		WHERE p.deleted_at IS NULL AND a.undone_at IS NULL
 	`, eventID)
 	result.EligibleVoters = result.CheckedIn
 
@@ -43,7 +43,7 @@ func (r *repository) GetOfficialResult(ctx context.Context, eventID string) (*Of
 		SELECT c.id, COALESCE(c.candidate_number, c.display_order, 0) as number, c.full_name as name, COUNT(v.id) as total_votes
 		FROM candidates c
 		LEFT JOIN votes v ON c.id = v.candidate_id
-		WHERE (c.musyawarah_id = $1 OR $1 = '') AND c.deleted_at IS NULL
+		WHERE c.deleted_at IS NULL
 		GROUP BY c.id, c.candidate_number, c.display_order, c.full_name
 		ORDER BY total_votes DESC, number ASC
 	`
@@ -86,7 +86,7 @@ func (r *repository) GetOfficialResult(ctx context.Context, eventID string) (*Of
 
 func (r *repository) LogReportGeneration(ctx context.Context, history *ReportHistory) error {
 	query := `
-		INSERT INTO report_history (event_id, report_type, file_format, generated_by, file_url)
+		INSERT INTO report_history ( report_type, file_format, generated_by, file_url)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, created_at
 	`

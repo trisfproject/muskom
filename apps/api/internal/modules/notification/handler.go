@@ -2,7 +2,7 @@ package notification
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"github.com/trisfproject/muskom/apps/api/platform/eventctx"
+
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 )
 
@@ -15,12 +15,8 @@ func NewHandler(service Service) *Handler {
 }
 
 func (h *Handler) ListJobs(c fiber.Ctx) error {
-	evtCtx := eventctx.Get(c)
-	if evtCtx == nil {
-		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
-	}
 
-	jobs, err := h.service.ListJobs(c.Context(), evtCtx.ID)
+	jobs, err := h.service.ListJobs(c.Context(), "")
 	if err != nil {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get jobs", nil)
 	}
@@ -28,12 +24,8 @@ func (h *Handler) ListJobs(c fiber.Ctx) error {
 }
 
 func (h *Handler) ListHistory(c fiber.Ctx) error {
-	evtCtx := eventctx.Get(c)
-	if evtCtx == nil {
-		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
-	}
 
-	history, err := h.service.ListHistory(c.Context(), evtCtx.ID)
+	history, err := h.service.ListHistory(c.Context(), "")
 	if err != nil {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get history", nil)
 	}

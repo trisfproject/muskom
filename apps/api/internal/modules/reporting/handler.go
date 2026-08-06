@@ -2,7 +2,7 @@ package reporting
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"github.com/trisfproject/muskom/apps/api/platform/eventctx"
+
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 )
 
@@ -15,12 +15,8 @@ func NewHandler(service Service) *Handler {
 }
 
 func (h *Handler) GetOfficialResult(c fiber.Ctx) error {
-	evtCtx := eventctx.Get(c)
-	if evtCtx == nil {
-		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
-	}
 
-	res, err := h.service.GetOfficialResult(c.Context(), evtCtx.ID)
+	res, err := h.service.GetOfficialResult(c.Context(), "")
 	if err != nil {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get official result", nil)
 	}
@@ -28,10 +24,6 @@ func (h *Handler) GetOfficialResult(c fiber.Ctx) error {
 }
 
 func (h *Handler) GenerateExport(c fiber.Ctx) error {
-	evtCtx := eventctx.Get(c)
-	if evtCtx == nil {
-		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
-	}
 
 	userIDStr, _ := c.Locals("user_id").(string)
 
@@ -43,7 +35,7 @@ func (h *Handler) GenerateExport(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusBadRequest, "Invalid payload", nil)
 	}
 
-	history, err := h.service.GenerateExport(c.Context(), evtCtx.ID, userIDStr, req.ReportType, req.Format)
+	history, err := h.service.GenerateExport(c.Context(), "", userIDStr, req.ReportType, req.Format)
 	if err != nil {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to generate export", nil)
 	}
@@ -52,12 +44,8 @@ func (h *Handler) GenerateExport(c fiber.Ctx) error {
 }
 
 func (h *Handler) GetReportHistory(c fiber.Ctx) error {
-	evtCtx := eventctx.Get(c)
-	if evtCtx == nil {
-		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
-	}
 
-	history, err := h.service.GetReportHistory(c.Context(), evtCtx.ID)
+	history, err := h.service.GetReportHistory(c.Context(), "")
 	if err != nil {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get report history", nil)
 	}

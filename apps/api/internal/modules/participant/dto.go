@@ -51,7 +51,7 @@ type ParticipantStats struct {
 // Participant represents the participants table in the database
 type Participant struct {
 	ID                 string     `db:"id" json:"id"`
-	MusyawarahID       string     `db:"musyawarah_id" json:"musyawarah_id"`
+
 	RegistrationNumber string     `db:"registration_number" json:"registration_number"`
 	FullName           string     `db:"full_name" json:"full_name"`
 	Nickname           *string    `db:"nickname" json:"nickname"`
@@ -70,7 +70,7 @@ type Participant struct {
 
 // CreateParticipantRequest represents the payload for creating a new participant
 type CreateParticipantRequest struct {
-	MusyawarahID       string  `json:"musyawarah_id" validate:"required,uuid"`
+
 	RegistrationNumber string  `json:"registration_number" validate:"required"`
 	FullName           string  `json:"full_name" validate:"required"`
 	Nickname           *string `json:"nickname"`
@@ -106,7 +106,7 @@ type UpdateStatusRequest struct {
 
 // PublicRegisterParticipantRequest represents the payload for the public registration wizard
 type PublicRegisterParticipantRequest struct {
-	MusyawarahID   string  `json:"musyawarah_id" validate:"required,uuid"`
+
 	FullName       string  `json:"full_name" validate:"required,max=255"`
 	Nickname       *string `json:"nickname" validate:"omitempty,max=255"`
 

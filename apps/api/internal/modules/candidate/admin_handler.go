@@ -42,10 +42,10 @@ func (h *AdminHandler) CreateCandidate(c fiber.Ctx) error {
 
 func (h *AdminHandler) ListCandidates(c fiber.Ctx) error {
 	status := c.Query("status")
-	musyawarahID := c.Query("musyawarah_id")
+	
 	search := c.Query("search")
 
-	candidates, err := h.service.AdminListCandidates(c.Context(), status, musyawarahID, search)
+	candidates, err := h.service.AdminListCandidates(c.Context(), status, "", search)
 	if err != nil {
 		h.log.Error("failed to list candidates", zap.Error(err))
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retrieve candidates", nil)

@@ -21,7 +21,7 @@ type Repository interface {
 	FindAll(ctx context.Context) ([]Candidate, error)
 	Update(ctx context.Context, candidate *Candidate) error
 	Delete(ctx context.Context, id string) error
-	CountByMusyawarah(ctx context.Context, musyawarahID string) (int, error)
+	Count(ctx context.Context) (int, error)
 
 	SaveDocument(ctx context.Context, doc *CandidateDocument) error
 	GetDocumentByID(ctx context.Context, id string) (*CandidateDocument, error)
@@ -48,11 +48,11 @@ func NewRepository(db *sqlx.DB) Repository {
 func (r *repository) Create(ctx context.Context, c *Candidate) error {
 	query := `
 		INSERT INTO candidates (
-			musyawarah_id, registration_number, full_name, nickname, email, phone,
+			 registration_number, full_name, nickname, email, phone,
 			company_name, industrial_area, job_title, department, biography,
 			motivation, vision, mission, profile_photo, status
 		) VALUES (
-			:musyawarah_id, :registration_number, :full_name, :nickname, :email, :phone,
+			: :registration_number, :full_name, :nickname, :email, :phone,
 			:company_name, :industrial_area, :job_title, :department, :biography,
 			:motivation, :vision, :mission, :profile_photo, :status
 		) RETURNING id, created_at, updated_at
@@ -156,10 +156,10 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *repository) CountByMusyawarah(ctx context.Context, musyawarahID string) (int, error) {
-	query := `SELECT COUNT(*) FROM candidates WHERE musyawarah_id = $1 AND deleted_at IS NULL`
+func (r *repository) Count(ctx context.Context) (int, error) {
+	query := `SELECT COUNT(*) FROM candidates WHERE deleted_at IS NULL`
 	var count int
-	err := r.db.GetContext(ctx, &count, query, musyawarahID)
+	err := r.db.GetContext(ctx, &count, query)
 	return count, err
 }
 

@@ -26,12 +26,12 @@ func NewRepository(db *sqlx.DB) Repository {
 
 func (r *repository) HasVoted(ctx context.Context, eventID, participantID string) (bool, error) {
 	var count int
-	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM votes WHERE (event_id = $1 OR $1 = '') AND participant_id = $2`, eventID, participantID)
+	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM votes WHERE participant_id = $2`, eventID, participantID)
 	return count > 0, err
 }
 
 func (r *repository) CastVote(ctx context.Context, tx *sqlx.Tx, vote *Vote) error {
-	query := `INSERT INTO votes (event_id, participant_id, candidate_id) VALUES ($1, $2, $3)`
+	query := `INSERT INTO votes ( participant_id, candidate_id) VALUES ($1, $2, $3)`
 	_, err := tx.ExecContext(ctx, query, vote.EventID, vote.ParticipantID, vote.CandidateID)
 	return err
 }
@@ -40,7 +40,7 @@ func (r *repository) GetBallotCandidates(ctx context.Context, eventID string) ([
 	query := `
 		SELECT c.id, COALESCE(c.candidate_number, c.display_order, 0) as number, c.full_name as name, c.profile_photo as photo_path, c.vision, c.mission
 		FROM candidates c
-		WHERE (c.musyawarah_id = $1 OR $1 = '') AND c.deleted_at IS NULL AND c.status IN ('Verified', 'VERIFIED', 'Approved', 'Draft')
+		WHERE c.deleted_at IS NULL AND c.status IN ('Verified', 'VERIFIED', 'Approved', 'Draft')
 		ORDER BY number ASC
 	`
 	var rows []struct {
@@ -75,7 +75,7 @@ func (r *repository) GetResults(ctx context.Context, eventID string) ([]VoteResu
 		SELECT c.id as candidate_id, c.full_name as name, COUNT(v.id) as total_votes
 		FROM candidates c
 		LEFT JOIN votes v ON c.id = v.candidate_id
-		WHERE (c.musyawarah_id = $1 OR $1 = '') AND c.deleted_at IS NULL
+		WHERE c.deleted_at IS NULL
 		GROUP BY c.id, c.full_name
 		ORDER BY total_votes DESC, c.full_name ASC
 	`
@@ -90,7 +90,7 @@ func (r *repository) GetTotalCheckedIn(ctx context.Context, eventID string) (int
 		SELECT COUNT(a.id) 
 		FROM attendance a
 		JOIN participants p ON a.participant_id = p.id
-		WHERE (p.musyawarah_id = $1 OR $1 = '') AND a.undone_at IS NULL AND p.deleted_at IS NULL
+		WHERE a.undone_at IS NULL AND p.deleted_at IS NULL
 	`, eventID)
 	return count, err
 }

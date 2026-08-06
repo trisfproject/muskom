@@ -73,7 +73,7 @@ func (r *repository) IsPhaseActive(ctx context.Context, eventID string, phaseNam
 	query := `
 		SELECT COUNT(1) 
 		FROM event_phases 
-		WHERE event_id = $1 AND phase = $2 AND NOW() BETWEEN start_at AND end_at
+		WHERE phase = $2 AND NOW() BETWEEN start_at AND end_at
 	`
 	var count int
 	err := r.db.GetContext(ctx, &count, query, eventID, phaseName)
@@ -84,7 +84,7 @@ func (r *repository) CountRegistrations(ctx context.Context, eventID string) (in
 	query := `
 		SELECT COUNT(1) 
 		FROM registrations 
-		WHERE event_id = $1 AND status != 'REJECTED'
+		WHERE status != 'REJECTED'
 	`
 	var count int
 	err := r.db.GetContext(ctx, &count, query, eventID)
@@ -96,7 +96,7 @@ func (r *repository) CheckExistingRegistration(ctx context.Context, eventID stri
 		SELECT COUNT(1) 
 		FROM registrations r
 		JOIN persons p ON r.person_id = p.id
-		WHERE r.event_id = $1 AND p.email = $2
+		WHERE p.email = $2
 	`
 	var count int
 	err := r.db.GetContext(ctx, &count, query, eventID, email)
@@ -108,7 +108,7 @@ func (r *repository) CheckExistingPhone(ctx context.Context, eventID string, pho
 		SELECT COUNT(1) 
 		FROM registrations r
 		JOIN persons p ON r.person_id = p.id
-		WHERE r.event_id = $1 AND p.phone = $2
+		WHERE p.phone = $2
 	`
 	var count int
 	err := r.db.GetContext(ctx, &count, query, eventID, phone)
@@ -137,7 +137,7 @@ func (r *repository) FindOrCreatePerson(ctx context.Context, tx *sqlx.Tx, p *Per
 func (r *repository) CreateRegistration(ctx context.Context, tx *sqlx.Tx, reg *Registration) error {
 	query := `
 		INSERT INTO registrations (
-			event_id, person_id, participant_category, source, status, 
+			 person_id, participant_category, source, status, 
 			registration_number, qr_token, region, community, special_notes,
 			created_at, updated_at
 		)
@@ -283,7 +283,7 @@ func (r *repository) ListRegistrations(ctx context.Context, filter AdminListRegi
 	selectQuery := `
 		SELECT 
 			r.id,
-			r.event_id,
+			r.
 			e.title AS event_name,
 			p.full_name AS participant_name,
 			p.email,
@@ -347,7 +347,7 @@ func (r *repository) GetRegistrationAdminByID(ctx context.Context, id string) (*
 	query := `
 		SELECT 
 			r.id,
-			r.event_id,
+			r.
 			e.title AS event_name,
 			p.full_name AS participant_name,
 			p.email,

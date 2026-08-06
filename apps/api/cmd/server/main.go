@@ -16,7 +16,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/bootstrap"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/candidate"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/dashboard"
-	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
+
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/participant"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/rbac"
@@ -117,7 +117,7 @@ func main() {
 	// Protected Auth routes (needs JWT for /me/permissions)
 	rbac.SetupAuthRoutes(authGroup.Group("/", auth.JWTMiddleware(cfg, log)), authSvc)
 
-	musyawarah.SetupPublicRoutes(v1.Group("/public/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
+
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
 	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, redisClient, cfg, log, val, mailerSvc)
@@ -130,7 +130,7 @@ func main() {
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
 	dashboard.SetupAdminRoutes(adminGroup.Group("/dashboard", checker.RequirePermission("audit.view")), db, log)
 	website.SetupAdminRoutes(adminGroup.Group("/website", checker.RequirePermission("website.write")), db, redisClient, strg, val, log)
-	musyawarah.SetupRoutes(adminGroup.Group("/musyawarah", checker.RequirePermission("musyawarah.manage")), db, log, val, strg, cfg.MaxUploadSize)
+
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications", checker.RequirePermission("participant.approve")), db, log, val)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance", checker.RequirePermission("attendance.manage")), db, log, val)
 	notification.SetupAdminRoutes(adminGroup.Group("/notifications", checker.RequirePermission("notification.send")), db, log)

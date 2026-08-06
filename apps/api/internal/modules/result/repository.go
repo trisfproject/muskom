@@ -44,7 +44,7 @@ func (r *repository) GetElectionResults(ctx context.Context, eventID uuid.UUID) 
 			COUNT(v.id) as vote_count
 		FROM candidates c
 		LEFT JOIN votes v ON v.candidate_id = c.id AND (v.event_id = $1 OR $1 = '00000000-0000-0000-0000-000000000000')
-		WHERE (c.musyawarah_id = $1 OR $1 = '00000000-0000-0000-0000-000000000000') AND c.deleted_at IS NULL
+		WHERE c.deleted_at IS NULL
 		GROUP BY c.id, c.full_name
 		ORDER BY vote_count DESC
 	`
@@ -120,7 +120,7 @@ func (r *repository) GetElectionOverview(ctx context.Context, eventID uuid.UUID)
 	overview.EventID = eventID
 
 	// Total Eligible (Approved/Verified Participants)
-	err := r.db.GetContext(ctx, &overview.TotalEligible, `SELECT COUNT(id) FROM participants WHERE (musyawarah_id = $1 OR $1 = '00000000-0000-0000-0000-000000000000') AND deleted_at IS NULL AND status IN ('Verified', 'APPROVED')`, eventID)
+	err := r.db.GetContext(ctx, &overview.TotalEligible, `SELECT COUNT(id) FROM participants WHERE deleted_at IS NULL AND status IN ('Verified', 'APPROVED')`, eventID)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (r *repository) GetElectionOverview(ctx context.Context, eventID uuid.UUID)
 		SELECT COUNT(a.id) 
 		FROM attendance a 
 		JOIN participants p ON a.participant_id = p.id 
-		WHERE (p.musyawarah_id = $1 OR $1 = '00000000-0000-0000-0000-000000000000') AND a.undone_at IS NULL AND p.deleted_at IS NULL
+		WHERE a.undone_at IS NULL AND p.deleted_at IS NULL
 	`, eventID)
 	if err != nil {
 		return nil, err

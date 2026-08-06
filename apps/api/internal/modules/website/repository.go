@@ -443,7 +443,7 @@ func (r *repository) GetCandidates(ctx context.Context) ([]CandidateEntity, erro
 			CASE WHEN show_biography THEN COALESCE(biography, '') ELSE '' END as biography,
 			CASE WHEN show_mission THEN COALESCE(mission, '') ELSE '' END as mission,
 			COALESCE(company_name, '') as organization,
-			COALESCE(musyawarah_id::text, '') as musyawarah_id,
+			COALESCE(musyawarah_id::text, '') as 
 			CASE WHEN show_photo THEN COALESCE(profile_photo, '') ELSE '' END as photo_path
 		FROM candidates
 		WHERE deleted_at IS NULL AND publication_status = 'Published'
@@ -468,7 +468,7 @@ func (r *repository) GetCandidateByID(ctx context.Context, id string) (*Candidat
 			CASE WHEN show_biography THEN COALESCE(biography, '') ELSE '' END as biography,
 			CASE WHEN show_mission THEN COALESCE(mission, '') ELSE '' END as mission,
 			COALESCE(company_name, '') as organization,
-			COALESCE(musyawarah_id::text, '') as musyawarah_id,
+			COALESCE(musyawarah_id::text, '') as 
 			CASE WHEN show_photo THEN COALESCE(profile_photo, '') ELSE '' END as photo_path
 		FROM candidates
 		WHERE id = $1 AND deleted_at IS NULL AND publication_status = 'Published'

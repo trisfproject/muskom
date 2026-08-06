@@ -10,7 +10,7 @@ type MockRepository struct {
 	FindAllFunc                        func(ctx context.Context) ([]Candidate, error)
 	UpdateFunc                         func(ctx context.Context, candidate *Candidate) error
 	DeleteFunc                         func(ctx context.Context, id string) error
-	CountByMusyawarahFunc              func(ctx context.Context, musyawarahID string) (int, error)
+	CountFunc              func(ctx context.Context) (int, error)
 	SaveDocumentFunc                   func(ctx context.Context, doc *CandidateDocument) error
 	GetDocumentByIDFunc                func(ctx context.Context, id string) (*CandidateDocument, error)
 	FindDocumentsByCandidateIDFunc     func(ctx context.Context, candidateID string) ([]CandidateDocument, error)
@@ -58,9 +58,9 @@ func (m *MockRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (m *MockRepository) CountByMusyawarah(ctx context.Context, musyawarahID string) (int, error) {
-	if m.CountByMusyawarahFunc != nil {
-		return m.CountByMusyawarahFunc(ctx, musyawarahID)
+func (m *MockRepository) Count(ctx context.Context) (int, error) {
+	if m.CountFunc != nil {
+		return m.CountFunc(ctx)
 	}
 	return 0, nil
 }

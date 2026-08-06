@@ -55,7 +55,7 @@ func (r *repository) GetTimelines(ctx context.Context, eventID string) ([]Public
 	query := `
 		SELECT id, title, description, start_date, end_date, sort_order, public_visibility
 		FROM timelines 
-		WHERE event_id = $1 AND public_visibility = true
+		WHERE public_visibility = true
 		ORDER BY sort_order ASC
 	`
 	var t []PublicTimeline
@@ -70,7 +70,7 @@ func (r *repository) GetAnnouncements(ctx context.Context, eventID string) ([]Pu
 	query := `
 		SELECT id, title, content, published_at, created_at
 		FROM announcements 
-		WHERE event_id = $1 AND deleted_at IS NULL AND published_at IS NOT NULL
+		WHERE deleted_at IS NULL AND published_at IS NOT NULL
 		ORDER BY published_at DESC 
 		LIMIT 3
 	`
@@ -105,7 +105,7 @@ func (r *repository) GetCandidates(ctx context.Context) ([]PublicCandidate, erro
 }
 
 func (r *repository) GetParticipantCount(ctx context.Context, eventID string) (int, error) {
-	query := `SELECT COUNT(*) FROM participants WHERE musyawarah_id = $1 AND deleted_at IS NULL AND status != 'Rejected'`
+	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND status != 'Rejected'`
 	var count int
 	err := r.db.GetContext(ctx, &count, query, eventID)
 	if err != nil {
