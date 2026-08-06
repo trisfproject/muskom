@@ -66,15 +66,30 @@ type service struct {
 	mapper    *Mapper
 	validator *Validator
 	logger    *zap.Logger
+	sync      TimelineSynchronizer
 }
 
-func NewService(repo Repository, cache Cache, mapper *Mapper, validator *Validator, logger *zap.Logger) Service {
-	return &service{
+func NewService(repo Repository, cache Cache, mapper *Mapper, validator *Validator, logger *zap.Logger, opts ...ServiceOption) Service {
+	s := &service{
 		repo:      repo,
 		cache:     cache,
 		mapper:    mapper,
 		validator: validator,
 		logger:    logger,
+	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
+}
+
+// ServiceOption allows injecting optional dependencies into the website service.
+type ServiceOption func(*service)
+
+// WithTimelineSynchronizer injects the timeline synchronizer for ADR-007.
+func WithTimelineSynchronizer(sync TimelineSynchronizer) ServiceOption {
+	return func(s *service) {
+		s.sync = sync
 	}
 }
 
@@ -123,7 +138,6 @@ func CalculatePhasesStatus(phases []WebsiteTimelinePhase) {
 // ----------------------------------------------------------------------------
 // Public Service Methods
 // ----------------------------------------------------------------------------
-
 
 func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error) {
 	start := time.Now()
@@ -504,6 +518,7 @@ func (s *service) CreateAdminTimeline(ctx context.Context, req *CreateTimelinePh
 	res, err := s.repo.CreateTimelinePhase(ctx, entity)
 	if err == nil {
 		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
+		s.syncTimeline(ctx)
 	}
 	return res, err
 }
@@ -523,6 +538,7 @@ func (s *service) UpdateAdminTimeline(ctx context.Context, id string, req *Updat
 	res, err := s.repo.UpdateTimelinePhase(ctx, entity)
 	if err == nil {
 		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
+		s.syncTimeline(ctx)
 	}
 	return res, err
 }
@@ -531,6 +547,7 @@ func (s *service) DeleteAdminTimeline(ctx context.Context, id string) error {
 	err := s.repo.DeleteTimelinePhase(ctx, id)
 	if err == nil {
 		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
+		s.syncTimeline(ctx)
 	}
 	return err
 }
@@ -541,6 +558,17 @@ func (s *service) ReorderAdminTimeline(ctx context.Context, req *ReorderTimeline
 		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
 	}
 	return err
+}
+
+// syncTimeline propagates website_timeline_phases to derived tables.
+// ADR-007: website_timeline_phases is the canonical source for RC-1.
+func (s *service) syncTimeline(ctx context.Context) {
+	if s.sync == nil {
+		return
+	}
+	if err := s.sync.SyncAll(ctx); err != nil {
+		s.logger.Error("Timeline synchronization failed (non-blocking)", zap.Error(err))
+	}
 }
 
 func (s *service) GetAdminAnnouncements(ctx context.Context) ([]WebsiteAnnouncement, error) {

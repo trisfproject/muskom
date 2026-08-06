@@ -24,21 +24,21 @@ type WebsiteGeneralSettings struct {
 
 // WebsiteHeroSettings represents hero section configuration
 type WebsiteHeroSettings struct {
-	ID                   string    `db:"id" json:"id"`
-	HeroBadge            string    `db:"hero_badge" json:"hero_badge"`
-	HeroTitle            string    `db:"hero_title" json:"hero_title"`
-	HeroDescription      string    `db:"hero_description" json:"hero_description"`
-	PrimaryCTALabel      string    `db:"primary_cta_label" json:"primary_cta_label"`
-	PrimaryCTAURL        string    `db:"primary_cta_url" json:"primary_cta_url"`
-	PrimaryCTAEnabled    bool      `db:"primary_cta_enabled" json:"primary_cta_enabled"`
-	SecondaryCTALabel    string    `db:"secondary_cta_label" json:"secondary_cta_label"`
-	SecondaryCTAURL      string    `db:"secondary_cta_url" json:"secondary_cta_url"`
-	SecondaryCTAEnabled  bool      `db:"secondary_cta_enabled" json:"secondary_cta_enabled"`
-	BackgroundMode       string    `db:"background_mode" json:"background_mode"`
-	HeroStatus           string    `db:"hero_status" json:"hero_status"`
-	IsPublished          bool      `db:"is_published" json:"is_published"`
-	CreatedAt            time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt            time.Time `db:"updated_at" json:"updated_at"`
+	ID                  string    `db:"id" json:"id"`
+	HeroBadge           string    `db:"hero_badge" json:"hero_badge"`
+	HeroTitle           string    `db:"hero_title" json:"hero_title"`
+	HeroDescription     string    `db:"hero_description" json:"hero_description"`
+	PrimaryCTALabel     string    `db:"primary_cta_label" json:"primary_cta_label"`
+	PrimaryCTAURL       string    `db:"primary_cta_url" json:"primary_cta_url"`
+	PrimaryCTAEnabled   bool      `db:"primary_cta_enabled" json:"primary_cta_enabled"`
+	SecondaryCTALabel   string    `db:"secondary_cta_label" json:"secondary_cta_label"`
+	SecondaryCTAURL     string    `db:"secondary_cta_url" json:"secondary_cta_url"`
+	SecondaryCTAEnabled bool      `db:"secondary_cta_enabled" json:"secondary_cta_enabled"`
+	BackgroundMode      string    `db:"background_mode" json:"background_mode"`
+	HeroStatus          string    `db:"hero_status" json:"hero_status"`
+	IsPublished         bool      `db:"is_published" json:"is_published"`
+	CreatedAt           time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt           time.Time `db:"updated_at" json:"updated_at"`
 }
 
 // WebsiteTimelinePhase represents a milestone/phase in the event timeline
@@ -60,19 +60,19 @@ type WebsiteTimelinePhase struct {
 
 // WebsiteAnnouncement represents a broadcast article/announcement
 type WebsiteAnnouncement struct {
-	ID          string     `db:"id" json:"id"`
-	Title       string     `db:"title" json:"title"`
-	Slug        string     `db:"slug" json:"slug"`
-	Category    string     `db:"category" json:"category"`
-	Summary     string     `db:"summary" json:"summary"`
-	Content     string     `db:"content" json:"content"`
-	ThumbnailURL string    `db:"thumbnail_url" json:"thumbnail_url"`
-	IsPinned    bool       `db:"is_pinned" json:"is_pinned"`
-	IsPublished bool       `db:"is_published" json:"is_published"`
-	PublishedAt time.Time  `db:"published_at" json:"published_at"`
-	DeletedAt   *time.Time `db:"deleted_at" json:"deleted_at,omitempty"`
-	CreatedAt   time.Time  `db:"created_at" json:"created_at"`
-	UpdatedAt   time.Time  `db:"updated_at" json:"updated_at"`
+	ID           string     `db:"id" json:"id"`
+	Title        string     `db:"title" json:"title"`
+	Slug         string     `db:"slug" json:"slug"`
+	Category     string     `db:"category" json:"category"`
+	Summary      string     `db:"summary" json:"summary"`
+	Content      string     `db:"content" json:"content"`
+	ThumbnailURL string     `db:"thumbnail_url" json:"thumbnail_url"`
+	IsPinned     bool       `db:"is_pinned" json:"is_pinned"`
+	IsPublished  bool       `db:"is_published" json:"is_published"`
+	PublishedAt  time.Time  `db:"published_at" json:"published_at"`
+	DeletedAt    *time.Time `db:"deleted_at" json:"deleted_at,omitempty"`
+	CreatedAt    time.Time  `db:"created_at" json:"created_at"`
+	UpdatedAt    time.Time  `db:"updated_at" json:"updated_at"`
 }
 
 // WebsiteCandidateSettings represents candidate CMS section configuration

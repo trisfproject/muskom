@@ -37,7 +37,8 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, redisClient *redis.Clien
 	cache := NewRedisCache(redisClient, log)
 	mapper := NewMapper(strg)
 	v := NewValidator()
-	svc := NewService(repo, cache, mapper, v, log)
+	sync := NewTimelineSynchronizer(db, log)
+	svc := NewService(repo, cache, mapper, v, log, WithTimelineSynchronizer(sync))
 	handler := NewHandler(svc, val)
 
 	// General
