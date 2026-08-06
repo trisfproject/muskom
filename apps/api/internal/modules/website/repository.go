@@ -22,6 +22,9 @@ type CandidateEntity struct {
 }
 
 type Repository interface {
+	// Transaction
+	BeginTx(ctx context.Context) (*sqlx.Tx, error)
+
 	// General
 	GetGeneral(ctx context.Context) (*WebsiteGeneralSettings, error)
 	UpdateGeneral(ctx context.Context, s *WebsiteGeneralSettings) (*WebsiteGeneralSettings, error)
@@ -70,6 +73,10 @@ type repository struct {
 
 func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
+}
+
+func (r *repository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
+	return r.db.BeginTxx(ctx, nil)
 }
 
 // ----------------------------------------------------------------------------

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
@@ -18,6 +19,9 @@ type mockRepository struct {
 	footer    *WebsiteFooterSettings
 }
 
+func (m *mockRepository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
+	return nil, nil
+}
 func (m *mockRepository) GetGeneral(ctx context.Context) (*WebsiteGeneralSettings, error) {
 	return m.general, nil
 }

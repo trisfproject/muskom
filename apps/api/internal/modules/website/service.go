@@ -515,12 +515,46 @@ func (s *service) CreateAdminTimeline(ctx context.Context, req *CreateTimelinePh
 		CurrentIndicator: req.CurrentIndicator,
 		IsPublished:      req.IsPublished,
 	}
-	res, err := s.repo.CreateTimelinePhase(ctx, entity)
-	if err == nil {
-		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
-		s.syncTimeline(ctx)
+
+	// Single transaction: CMS write + operational sync
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return nil, err
 	}
-	return res, err
+	defer tx.Rollback()
+
+	// If current_indicator is true, unset others within the transaction
+	if entity.CurrentIndicator {
+		_, _ = tx.ExecContext(ctx, `UPDATE website_timeline_phases SET current_indicator = false WHERE deleted_at IS NULL`)
+	}
+
+	query := `
+		INSERT INTO website_timeline_phases (title, description, start_date, end_date, display_order, registration_type, current_indicator, is_published)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING id, title, description, start_date, end_date, display_order, registration_type, current_indicator, is_published, created_at, updated_at
+	`
+	var created WebsiteTimelinePhase
+	err = tx.GetContext(ctx, &created, query,
+		entity.Title, entity.Description, entity.StartDate, entity.EndDate,
+		entity.DisplayOrder, entity.RegistrationType, entity.CurrentIndicator, entity.IsPublished,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Synchronize derived tables within the same transaction
+	if s.sync != nil {
+		if err := s.sync.SyncWithinTx(ctx, tx); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
+	return &created, nil
 }
 
 func (s *service) UpdateAdminTimeline(ctx context.Context, id string, req *UpdateTimelinePhaseRequest) (*WebsiteTimelinePhase, error) {
@@ -535,21 +569,78 @@ func (s *service) UpdateAdminTimeline(ctx context.Context, id string, req *Updat
 		CurrentIndicator: req.CurrentIndicator,
 		IsPublished:      req.IsPublished,
 	}
-	res, err := s.repo.UpdateTimelinePhase(ctx, entity)
-	if err == nil {
-		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
-		s.syncTimeline(ctx)
+
+	// Single transaction: CMS write + operational sync
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return nil, err
 	}
-	return res, err
+	defer tx.Rollback()
+
+	// If current_indicator is true, unset others within the transaction
+	if entity.CurrentIndicator {
+		_, _ = tx.ExecContext(ctx, `UPDATE website_timeline_phases SET current_indicator = false WHERE id != $1 AND deleted_at IS NULL`, entity.ID)
+	}
+
+	query := `
+		UPDATE website_timeline_phases
+		SET title = $1, description = $2, start_date = $3, end_date = $4, display_order = $5, registration_type = $6, current_indicator = $7, is_published = $8, updated_at = NOW()
+		WHERE id = $9 AND deleted_at IS NULL
+		RETURNING id, title, description, start_date, end_date, display_order, registration_type, current_indicator, is_published, created_at, updated_at
+	`
+	var updated WebsiteTimelinePhase
+	err = tx.GetContext(ctx, &updated, query,
+		entity.Title, entity.Description, entity.StartDate, entity.EndDate,
+		entity.DisplayOrder, entity.RegistrationType, entity.CurrentIndicator, entity.IsPublished, entity.ID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Synchronize derived tables within the same transaction
+	if s.sync != nil {
+		if err := s.sync.SyncWithinTx(ctx, tx); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
+	return &updated, nil
 }
 
 func (s *service) DeleteAdminTimeline(ctx context.Context, id string) error {
-	err := s.repo.DeleteTimelinePhase(ctx, id)
-	if err == nil {
-		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
-		s.syncTimeline(ctx)
+	// Single transaction: CMS delete + operational sync
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return err
 	}
-	return err
+	defer tx.Rollback()
+
+	// Soft delete the phase
+	_, err = tx.ExecContext(ctx, `UPDATE website_timeline_phases SET deleted_at = NOW() WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+
+	// Synchronize derived tables within the same transaction
+	// This will nullify event_phases and events columns if the deleted phase
+	// was the only source for REGISTRATION or CANDIDATE_REGISTRATION dates.
+	if s.sync != nil {
+		if err := s.sync.SyncWithinTx(ctx, tx); err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
+	return nil
 }
 
 func (s *service) ReorderAdminTimeline(ctx context.Context, req *ReorderTimelinePhasesRequest) error {
@@ -558,17 +649,6 @@ func (s *service) ReorderAdminTimeline(ctx context.Context, req *ReorderTimeline
 		TriggerCacheInvalidation(ctx, s.cache, s.logger, EventTimelineUpdated)
 	}
 	return err
-}
-
-// syncTimeline propagates website_timeline_phases to derived tables.
-// ADR-007: website_timeline_phases is the canonical source for RC-1.
-func (s *service) syncTimeline(ctx context.Context) {
-	if s.sync == nil {
-		return
-	}
-	if err := s.sync.SyncAll(ctx); err != nil {
-		s.logger.Error("Timeline synchronization failed (non-blocking)", zap.Error(err))
-	}
 }
 
 func (s *service) GetAdminAnnouncements(ctx context.Context) ([]WebsiteAnnouncement, error) {
