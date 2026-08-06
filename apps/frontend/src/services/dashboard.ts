@@ -12,7 +12,10 @@ export const dashboardService = {
         api.get('/admin/candidates')
       ]);
 
-      const event = eventRes.status === 'fulfilled' ? eventRes.value.data.data as EventInfo : null;
+      const eventList = eventRes.status === 'fulfilled' ? eventRes.value.data.data : null;
+      const event: EventInfo | null = Array.isArray(eventList) && eventList.length > 0
+        ? (eventList.find((e: any) => e.is_active) || eventList[0]) as EventInfo
+        : null;
       
       const verification = verificationRes.status === 'fulfilled' 
         ? verificationRes.value.data.data as VerificationSummary 

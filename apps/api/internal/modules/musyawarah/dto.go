@@ -22,16 +22,22 @@ type CreateMusyawarahRequest struct {
 }
 
 type MusyawarahListItem struct {
-	ID          string     `json:"id"`
-	Name        string     `json:"name"`
-	Slug        string     `json:"slug"`
-	Theme       *string    `json:"theme"`
-	Status      string     `json:"status"`
-	IsActive    bool       `json:"is_active"`
-	PeriodStart *time.Time `json:"period_start"`
-	PeriodEnd   *time.Time `json:"period_end"`
-	EventDate   *time.Time `json:"event_date"`
-	CreatedAt   time.Time  `json:"created_at"`
+	ID                         string     `json:"id"`
+	Name                       string     `json:"name"`
+	Slug                       string     `json:"slug"`
+	Theme                      *string    `json:"theme"`
+	Status                     string     `json:"status"`
+	LifecycleState             string     `json:"lifecycle_state"`
+	IsActive                   bool       `json:"is_active"`
+	PeriodStart                *time.Time `json:"period_start"`
+	PeriodEnd                  *time.Time `json:"period_end"`
+	EventDate                  *time.Time `json:"event_date"`
+	RegistrationOpen           *time.Time `json:"registration_open"`
+	RegistrationClose          *time.Time `json:"registration_close"`
+	CandidateRegistrationOpen  *time.Time `json:"candidate_registration_open"`
+	CandidateRegistrationClose *time.Time `json:"candidate_registration_close"`
+	PublishResult              bool       `json:"publish_result"`
+	CreatedAt                  time.Time  `json:"created_at"`
 }
 
 // --- Update (full config) ---
@@ -73,7 +79,9 @@ type MusyawarahResponse struct {
 	LogoPath                   *string    `json:"logo_path"`
 	CoverPath                  *string    `json:"cover_path"`
 	Status                     string     `json:"status"`
+	LifecycleState             string     `json:"lifecycle_state"`
 	IsActive                   bool       `json:"is_active"`
+	PublishResult              bool       `json:"publish_result"`
 	CreatedAt                  time.Time  `json:"created_at"`
 	UpdatedAt                  time.Time  `json:"updated_at"`
 }

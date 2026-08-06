@@ -7,8 +7,15 @@ export const eventService = {
       const response = await api.get('/admin/musyawarah');
       const events = response.data.data;
       if (Array.isArray(events) && events.length > 0) {
-        // Return the first active event (or just the first one if there is no filter)
-        return events.find((e: any) => e.is_active) || events[0];
+        const evt = events.find((e: any) => e.is_active) || events[0];
+        // Map backend field names to frontend aliases for backward compatibility
+        return {
+          ...evt,
+          registration_start: evt.registration_open,
+          registration_end: evt.registration_close,
+          candidate_registration_start: evt.candidate_registration_open,
+          candidate_registration_end: evt.candidate_registration_close,
+        };
       }
       return null;
     } catch (error: unknown) {

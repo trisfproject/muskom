@@ -47,6 +47,13 @@ export interface MusyawarahEvent {
     total_candidates?: number;
   };
 
+  // Operational dates (from backend: registration_open/close)
+  registration_open?: string;
+  registration_close?: string;
+  candidate_registration_open?: string;
+  candidate_registration_close?: string;
+
+  // Legacy aliases used by musyawarah/timeline page
   registration_start?: string;
   registration_end?: string;
   candidate_registration_start?: string;

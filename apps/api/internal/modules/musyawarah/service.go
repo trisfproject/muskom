@@ -114,17 +114,26 @@ func (s *service) ListAll(ctx context.Context) ([]MusyawarahListItem, error) {
 
 	items := make([]MusyawarahListItem, 0, len(events))
 	for _, e := range events {
+		// Compute lifecycle state from event_phases
+		phases, _ := s.repo.GetPhases(ctx, e.ID)
+		lifecycleState := CalculateLifecycleState(e.Status, phases)
+
 		items = append(items, MusyawarahListItem{
-			ID:          e.ID,
-			Name:        e.Name,
-			Slug:        e.Slug,
-			Theme:       e.Theme,
-			Status:      e.Status,
-			IsActive:    e.IsActive,
-			PeriodStart: e.PeriodStart,
-			PeriodEnd:   e.PeriodEnd,
-			EventDate:   e.EventDate,
-			CreatedAt:   e.CreatedAt,
+			ID:                         e.ID,
+			Name:                       e.Name,
+			Slug:                       e.Slug,
+			Theme:                      e.Theme,
+			Status:                     e.Status,
+			LifecycleState:             lifecycleState,
+			IsActive:                   e.IsActive,
+			PeriodStart:                e.PeriodStart,
+			PeriodEnd:                  e.PeriodEnd,
+			EventDate:                  e.EventDate,
+			RegistrationOpen:           e.RegistrationOpen,
+			RegistrationClose:          e.RegistrationClose,
+			CandidateRegistrationOpen:  e.CandidateRegistrationOpen,
+			CandidateRegistrationClose: e.CandidateRegistrationClose,
+			CreatedAt:                  e.CreatedAt,
 		})
 	}
 	return items, nil
@@ -408,6 +417,10 @@ func (s *service) Delete(ctx context.Context, id string) error {
 
 // buildResponse constructs a MusyawarahResponse from a MusyawarahEvent
 func (s *service) buildResponse(ctx context.Context, evt *MusyawarahEvent) (*MusyawarahResponse, error) {
+	// Compute lifecycle state
+	phases, _ := s.repo.GetPhases(ctx, evt.ID)
+	lifecycleState := CalculateLifecycleState(evt.Status, phases)
+
 	res := &MusyawarahResponse{
 		ID:                         evt.ID,
 		Name:                       evt.Name,
@@ -425,6 +438,7 @@ func (s *service) buildResponse(ctx context.Context, evt *MusyawarahEvent) (*Mus
 		CandidateRegistrationOpen:  evt.CandidateRegistrationOpen,
 		CandidateRegistrationClose: evt.CandidateRegistrationClose,
 		Status:                     evt.Status,
+		LifecycleState:             lifecycleState,
 		IsActive:                   evt.IsActive,
 		CreatedAt:                  evt.CreatedAt,
 		UpdatedAt:                  evt.UpdatedAt,

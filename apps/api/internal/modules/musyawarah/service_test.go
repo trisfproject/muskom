@@ -132,6 +132,7 @@ func TestService_UpdateConfig(t *testing.T) {
 		evt := &MusyawarahEvent{ID: "evt1"}
 		mockRepo.On("GetActiveEvent", mock.Anything).Return(evt, nil).Once()
 		mockRepo.On("GetEventByID", mock.Anything, "evt1").Return(evt, nil).Times(2)
+		mockRepo.On("GetPhases", mock.Anything, "evt1").Return([]MusyawarahPhase{}, nil).Once()
 
 		(*mockDB).ExpectBegin()
 		(*mockDB).ExpectCommit()
