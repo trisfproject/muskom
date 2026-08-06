@@ -91,7 +91,7 @@ func (r *repository) GetCandidates(ctx context.Context) ([]PublicCandidate, erro
 			id, 
 			candidate_number as sequence_number, 
 			full_name as name, 
-			occupation as title, 
+			job_title as title, 
 			vision, 
 			profile_photo as photo_path 
 		FROM candidates 

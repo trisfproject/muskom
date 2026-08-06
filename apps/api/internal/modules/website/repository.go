@@ -438,11 +438,11 @@ func (r *repository) GetCandidates(ctx context.Context) ([]CandidateEntity, erro
 			id,
 			candidate_number,
 			full_name as name,
-			COALESCE(occupation, '') as title,
+			COALESCE(job_title, '') as title,
 			CASE WHEN show_vision THEN COALESCE(vision, '') ELSE '' END as vision,
 			CASE WHEN show_biography THEN COALESCE(biography, '') ELSE '' END as biography,
 			CASE WHEN show_mission THEN COALESCE(mission, '') ELSE '' END as mission,
-			COALESCE(organization, '') as organization,
+			COALESCE(company_name, '') as organization,
 			COALESCE(musyawarah_id::text, '') as musyawarah_id,
 			CASE WHEN show_photo THEN COALESCE(profile_photo, '') ELSE '' END as photo_path
 		FROM candidates
@@ -463,11 +463,11 @@ func (r *repository) GetCandidateByID(ctx context.Context, id string) (*Candidat
 			id,
 			candidate_number,
 			full_name as name,
-			COALESCE(occupation, '') as title,
+			COALESCE(job_title, '') as title,
 			CASE WHEN show_vision THEN COALESCE(vision, '') ELSE '' END as vision,
 			CASE WHEN show_biography THEN COALESCE(biography, '') ELSE '' END as biography,
 			CASE WHEN show_mission THEN COALESCE(mission, '') ELSE '' END as mission,
-			COALESCE(organization, '') as organization,
+			COALESCE(company_name, '') as organization,
 			COALESCE(musyawarah_id::text, '') as musyawarah_id,
 			CASE WHEN show_photo THEN COALESCE(profile_photo, '') ELSE '' END as photo_path
 		FROM candidates
