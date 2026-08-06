@@ -38,7 +38,7 @@ func (m *smtpMailer) SendRegistrationConfirmation(to, participantName, regNumber
 	}
 
 	subject := "Pendaftaran Peserta MUSKOM Berhasil"
-	
+
 	// Create email body
 	var body bytes.Buffer
 	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
@@ -107,7 +107,7 @@ func (m *smtpMailer) SendVerification(to, participantName, musyawarahName string
 	}
 
 	subject := "Pendaftaran Anda Telah Diverifikasi"
-	
+
 	var body bytes.Buffer
 	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
 	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", m.cfg.SmtpFromName, m.cfg.SmtpFrom))
@@ -154,7 +154,7 @@ func (m *smtpMailer) SendRejection(to, participantName, musyawarahName, reason s
 	}
 
 	subject := "Status Pendaftaran Anda"
-	
+
 	var body bytes.Buffer
 	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
 	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", m.cfg.SmtpFromName, m.cfg.SmtpFrom))
@@ -206,7 +206,7 @@ func (m *smtpMailer) SendEmailVerificationLink(to, participantName, verification
 	}
 
 	subject := "Verifikasi Email Pendaftaran Anda"
-	
+
 	var body bytes.Buffer
 	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
 	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", m.cfg.SmtpFromName, m.cfg.SmtpFrom))
@@ -260,7 +260,7 @@ func (m *smtpMailer) SendTestEmail(to string) error {
 	}
 
 	subject := "Test Email SMTP Konfigurasi MUSKOM"
-	
+
 	var body bytes.Buffer
 	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
 	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", m.cfg.SmtpFromName, m.cfg.SmtpFrom))

@@ -22,14 +22,14 @@ type Config struct {
 	MaxUploadSize    int64         `env:"MAX_UPLOAD_SIZE" envDefault:"5242880"`
 
 	// SMTP Settings
-	SmtpHost       string `env:"SMTP_HOST"`
-	SmtpPort       int    `env:"SMTP_PORT" envDefault:"587"`
-	SmtpUsername   string `env:"SMTP_USERNAME"`
-	SmtpPassword   string `env:"SMTP_PASSWORD"`
-	SmtpFrom       string `env:"SMTP_FROM"`
-	SmtpFromName   string `env:"SMTP_FROM_NAME"`
-	SmtpTls        bool   `env:"SMTP_TLS" envDefault:"true"`
-	MailEnabled    bool   `env:"MAIL_ENABLED" envDefault:"false"`
+	SmtpHost     string `env:"SMTP_HOST"`
+	SmtpPort     int    `env:"SMTP_PORT" envDefault:"587"`
+	SmtpUsername string `env:"SMTP_USERNAME"`
+	SmtpPassword string `env:"SMTP_PASSWORD"`
+	SmtpFrom     string `env:"SMTP_FROM"`
+	SmtpFromName string `env:"SMTP_FROM_NAME"`
+	SmtpTls      bool   `env:"SMTP_TLS" envDefault:"true"`
+	MailEnabled  bool   `env:"MAIL_ENABLED" envDefault:"false"`
 
 	// Bootstrap Admin
 	BootstrapAdminEnabled  bool   `env:"BOOTSTRAP_ADMIN_ENABLED" envDefault:"false"`

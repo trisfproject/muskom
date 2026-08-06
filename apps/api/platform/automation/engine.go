@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"go.uber.org/zap"
 	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
 	"github.com/trisfproject/muskom/apps/api/platform/integration"
+	"go.uber.org/zap"
 )
 
 type Engine struct {
@@ -33,9 +33,9 @@ func (e *Engine) RegisterProvider(p integration.Provider) {
 // Start binds the engine to the EventBus, effectively bridging Domains to External Systems
 func (e *Engine) Start() {
 	// Dynamically subscribe to all events that have active rules
-	// For simplicity in this abstract, we subscribe a generic handler to ALL events, 
+	// For simplicity in this abstract, we subscribe a generic handler to ALL events,
 	// and internally filter rules. In production, we'd only subscribe to necessary channels.
-	
+
 	events := []eventbus.EventType{
 		eventbus.EventParticipantApproved,
 		eventbus.EventParticipantRejected,
@@ -53,7 +53,7 @@ func (e *Engine) Start() {
 	for _, evt := range events {
 		e.bus.Subscribe(evt, e.handleEvent)
 	}
-	
+
 	e.log.Info("Automation Engine Started")
 }
 
@@ -76,7 +76,7 @@ func (e *Engine) handleEvent(ctx context.Context, env *eventbus.EventEnvelope) e
 
 		start := time.Now()
 		result := provider.Execute(ctx, executionConfig)
-		
+
 		// Map strict Observability metrics (Status, Duration, Retries, Error)
 		status := "SUCCESS"
 		errMsg := ""
@@ -95,7 +95,7 @@ func (e *Engine) handleEvent(ctx context.Context, env *eventbus.EventEnvelope) e
 
 func (e *Engine) getRulesForEvent(ctx context.Context, eventID string, eventType eventbus.EventType) ([]Rule, error) {
 	query := `SELECT id, event_id, name, event_type, provider, action, is_active FROM automation_rules WHERE event_id = $1 AND event_type = $2 AND is_active = true`
-	
+
 	var rows []struct {
 		ID        string `db:"id"`
 		EventID   string `db:"event_id"`

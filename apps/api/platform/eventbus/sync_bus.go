@@ -2,8 +2,8 @@ package eventbus
 
 import (
 	"context"
-	"sync"
 	"go.uber.org/zap"
+	"sync"
 )
 
 // SyncBus is a synchronous event dispatcher that fires handlers immediately.
@@ -43,11 +43,11 @@ func (b *SyncBus) Publish(ctx context.Context, envelope *EventEnvelope) error {
 		go func(env *EventEnvelope) {
 			// Provide a background context since the HTTP request context will be cancelled
 			bgCtx := context.Background()
-			
+
 			// Simple Retry Wrapper could be applied here
 			err := h(bgCtx, env)
 			if err != nil {
-				b.log.Error("Event handler failed", 
+				b.log.Error("Event handler failed",
 					zap.String("event_id", env.ID),
 					zap.String("type", string(env.Type)),
 					zap.Error(err),

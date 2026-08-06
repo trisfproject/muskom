@@ -10,15 +10,15 @@ type Event string
 // Standardized states for various entities
 const (
 	// Event States
-	StateEventDraft                State = "DRAFT"
-	StateEventPublished            State = "PUBLISHED"
-	StateEventRegistrationOpen     State = "REGISTRATION_OPEN"
-	StateEventRegistrationClosed   State = "REGISTRATION_CLOSED"
+	StateEventDraft                 State = "DRAFT"
+	StateEventPublished             State = "PUBLISHED"
+	StateEventRegistrationOpen      State = "REGISTRATION_OPEN"
+	StateEventRegistrationClosed    State = "REGISTRATION_CLOSED"
 	StateEventCandidateVerification State = "CANDIDATE_VERIFICATION"
-	StateEventCampaign             State = "CAMPAIGN"
-	StateEventVoting               State = "VOTING"
-	StateEventCompleted            State = "COMPLETED"
-	StateEventArchived             State = "ARCHIVED"
+	StateEventCampaign              State = "CAMPAIGN"
+	StateEventVoting                State = "VOTING"
+	StateEventCompleted             State = "COMPLETED"
+	StateEventArchived              State = "ARCHIVED"
 
 	// Participant States
 	StateParticipantPending   State = "PENDING"
@@ -44,12 +44,12 @@ type TransitionValidator func(ctx context.Context, entityID string) error
 
 // Transition defines a valid path between two states
 type Transition struct {
-	From              State
-	To                State
-	Event             Event
-	RequiredRole      []string // Which roles can trigger this? (Empty = any)
-	RequiredPermission string  // Which RBAC permission is required?
-	Validator         TransitionValidator
+	From               State
+	To                 State
+	Event              Event
+	RequiredRole       []string // Which roles can trigger this? (Empty = any)
+	RequiredPermission string   // Which RBAC permission is required?
+	Validator          TransitionValidator
 }
 
 // Definition encapsulates all valid transitions for a specific domain entity

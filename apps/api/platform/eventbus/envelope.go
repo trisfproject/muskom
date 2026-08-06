@@ -9,17 +9,17 @@ import (
 type EventType string
 
 const (
-	EventParticipantApproved  EventType = "ParticipantApproved"
-	EventParticipantRejected  EventType = "ParticipantRejected"
-	EventCandidateVerified    EventType = "CandidateVerified"
-	EventAttendanceCheckedIn  EventType = "AttendanceCheckedIn"
-	EventAttendanceUndone     EventType = "AttendanceUndone"
-	EventVotingStarted        EventType = "VotingStarted"
-	EventVotingStopped        EventType = "VotingStopped"
-	EventVoteSubmitted        EventType = "VoteSubmitted"
-	EventNotificationQueued   EventType = "NotificationQueued"
-	EventEventPublished       EventType = "EventPublished"
-	EventEventCompleted       EventType = "EventCompleted"
+	EventParticipantApproved EventType = "ParticipantApproved"
+	EventParticipantRejected EventType = "ParticipantRejected"
+	EventCandidateVerified   EventType = "CandidateVerified"
+	EventAttendanceCheckedIn EventType = "AttendanceCheckedIn"
+	EventAttendanceUndone    EventType = "AttendanceUndone"
+	EventVotingStarted       EventType = "VotingStarted"
+	EventVotingStopped       EventType = "VotingStopped"
+	EventVoteSubmitted       EventType = "VoteSubmitted"
+	EventNotificationQueued  EventType = "NotificationQueued"
+	EventEventPublished      EventType = "EventPublished"
+	EventEventCompleted      EventType = "EventCompleted"
 )
 
 // EventEnvelope standardizes the delivery of all Domain Events across the platform
