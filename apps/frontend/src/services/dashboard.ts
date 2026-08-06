@@ -1,48 +1,11 @@
 import api from '@/lib/api';
-import { DashboardSummary, EventInfo, VerificationSummary } from '@/types/dashboard';
+import { DashboardData } from '@/types/dashboard';
 
 export const dashboardService = {
-  async getSummary(): Promise<DashboardSummary> {
+  async getSummary(): Promise<DashboardData> {
     try {
-      // Execute calls concurrently using existing working endpoints
-      const [eventRes, verificationRes, participantStatsRes, candidatesRes] = await Promise.allSettled([
-        api.get('/admin/musyawarah'),
-        api.get('/admin/verifications/summary'),
-        api.get('/admin/participants/stats'),
-        api.get('/admin/candidates')
-      ]);
-
-      const eventList = eventRes.status === 'fulfilled' ? eventRes.value.data.data : null;
-      const event: EventInfo | null = Array.isArray(eventList) && eventList.length > 0
-        ? (eventList.find((e: any) => e.is_active) || eventList[0]) as EventInfo
-        : null;
-      
-      const verification = verificationRes.status === 'fulfilled' 
-        ? verificationRes.value.data.data as VerificationSummary 
-        : { pending_participants: 0, pending_candidates: 0, total_pending: 0 };
-        
-      const totalParticipants = participantStatsRes.status === 'fulfilled'
-        ? participantStatsRes.value.data.data?.total || 0
-        : 0;
-
-      const pendingParticipants = participantStatsRes.status === 'fulfilled'
-        ? participantStatsRes.value.data.data?.pending || 0
-        : verification.pending_participants;
-
-      const candidateData = candidatesRes.status === 'fulfilled'
-        ? candidatesRes.value.data.data
-        : null;
-      const totalCandidates = Array.isArray(candidateData) 
-        ? candidateData.length 
-        : candidateData?.total || 0;
-
-      return {
-        event,
-        total_participants: totalParticipants,
-        pending_participants: pendingParticipants,
-        total_candidates: totalCandidates,
-        pending_candidates: verification.pending_candidates,
-      };
+      const res = await api.get('/admin/dashboard/summary');
+      return res.data.data as DashboardData;
     } catch (error) {
       throw error;
     }

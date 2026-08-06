@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Search, Bell, User as UserIcon, LogOut, Settings, Menu } from "lucide-react";
 import Cookies from "js-cookie";
 import { dashboardService } from "@/services/dashboard";
-import { DashboardSummary } from "@/types/dashboard";
+import { DashboardData } from "@/types/dashboard";
 import Link from "next/link";
 import { useSystemConfig } from "@/contexts/ConfigContext";
 
@@ -14,13 +14,13 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
   const { config } = useSystemConfig();
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [user, setUser] = useState<{ full_name: string; role_name: string } | null>(null);
 
   useEffect(() => {
     // Fetch dashboard summary
-    dashboardService.getSummary().then(data => {
-      setSummary(data);
+    dashboardService.getSummary().then(res => {
+      setData(res);
     }).catch(() => {});
 
     // Get user from cookie
@@ -40,6 +40,8 @@ export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
     Cookies.remove("user_data");
     window.location.href = "/admin/login";
   };
+
+  const pendingNotifs = data?.summary?.pending_notifications || 0;
 
   return (
     <header className="sticky top-0 z-30 bg-[var(--color-bg)]/80 backdrop-blur-md border-b border-[var(--color-border)] flex items-center justify-between px-4 sm:px-6 py-4 h-16 shrink-0">
@@ -74,11 +76,11 @@ export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
       <div className="flex items-center gap-4 ml-auto">
         
         {/* Active Musyawarah Indicator */}
-        {(config || summary?.event) && (
+        {(config || data) && (
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full pg-surface border border-[var(--color-border)]">
-            <div className={`w-2 h-2 rounded-full ${config?.publication.website_status === 'PUBLISHED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+            <div className={`w-2 h-2 rounded-full ${config?.publication?.website_status === 'PUBLISHED' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
             <span className="text-xs font-medium pg-muted">
-              {summary?.event?.name || config?.website_identity?.community_name || "MUSKOM"}
+              {config?.website_identity?.community_name || "MUSKOM"}
             </span>
           </div>
         )}
@@ -89,7 +91,7 @@ export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
         <div className="relative group">
           <button className="relative p-2 min-h-[44px] min-w-[44px] flex items-center justify-center pg-muted hover:pg-text hover:pg-surface-elevated rounded-full transition-colors">
             <Bell className="w-5 h-5" />
-            {(summary?.pending_participants || 0) + (summary?.pending_candidates || 0) > 0 && (
+            {pendingNotifs > 0 && (
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full border border-slate-950"></span>
             )}
           </button>
@@ -99,39 +101,25 @@ export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
             <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
               <span className="text-sm font-semibold pg-text">Notifikasi Operasional</span>
               <span className="text-[10px] font-medium bg-[var(--color-primary)]/10 text-primary px-2 py-0.5 rounded-full">
-                {(summary?.pending_participants || 0) + (summary?.pending_candidates || 0)} Baru
+                {pendingNotifs} Baru
               </span>
             </div>
             <div className="p-2 max-h-64 overflow-y-auto">
-              {(summary?.pending_participants || 0) > 0 && (
-                <Link href="/admin/registrations" className="flex items-start gap-3 p-3 hover:pg-surface-elevated rounded-lg transition-colors group/item">
+              {pendingNotifs > 0 && (
+                <Link href="/admin/verifications" className="flex items-start gap-3 p-3 hover:pg-surface-elevated rounded-lg transition-colors group/item">
                   <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
                     <UserIcon className="w-4 h-4 text-amber-500" />
                   </div>
                   <div>
                     <div className="text-sm font-medium pg-muted group-hover/item:pg-text transition-colors">
-                      {summary?.pending_participants} Peserta perlu verifikasi
+                      {pendingNotifs} Menunggu Verifikasi
                     </div>
-                    <div className="text-xs pg-faint mt-0.5">Harap segera tinjau data pendaftaran peserta baru.</div>
-                  </div>
-                </Link>
-              )}
-              
-              {(summary?.pending_candidates || 0) > 0 && (
-                <Link href="/admin/candidates" className="flex items-start gap-3 p-3 hover:pg-surface-elevated rounded-lg transition-colors group/item">
-                  <div className="w-8 h-8 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <UserIcon className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium pg-muted group-hover/item:pg-text transition-colors">
-                      {summary?.pending_candidates} Kandidat perlu verifikasi
-                    </div>
-                    <div className="text-xs pg-faint mt-0.5">Harap segera tinjau kelengkapan berkas kandidat.</div>
+                    <div className="text-xs pg-faint mt-0.5">Harap segera tinjau data pendaftaran baru.</div>
                   </div>
                 </Link>
               )}
 
-              {((summary?.pending_participants || 0) + (summary?.pending_candidates || 0)) === 0 && (
+              {pendingNotifs === 0 && (
                 <div className="p-4 text-center text-sm pg-muted">
                   Tidak ada notifikasi tugas operasional saat ini.
                 </div>
