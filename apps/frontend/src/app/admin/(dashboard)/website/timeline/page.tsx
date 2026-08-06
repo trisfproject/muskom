@@ -213,28 +213,17 @@ export default function AdminWebsiteTimelinePage() {
                   <div className="flex flex-wrap items-center gap-2 mb-1.5">
                     <h3 className="font-bold pg-text text-lg">{phase.title}</h3>
                     {phase.status === "active" && (
-                      <span className="px-3 py-1 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-primary text-[10px] font-semibold uppercase tracking-wider h-7 inline-flex items-center">
+                      <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold uppercase">
                         Fase Aktif
                       </span>
                     )}
-                    {phase.status === "past" && (
-                      <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-[10px] font-semibold uppercase tracking-wider h-7 inline-flex items-center">
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                        Selesai
-                      </span>
-                    )}
-                    {phase.status === "upcoming" && (
-                      <span className="px-3 py-1 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-500 text-[10px] font-semibold uppercase tracking-wider h-7 inline-flex items-center">
-                        Akan Datang
-                      </span>
-                    )}
                     {phase.registration_type !== "NONE" && (
-                      <span className="px-3 py-1 rounded-full bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30 text-primary text-[10px] font-semibold uppercase tracking-wider h-7 inline-flex items-center">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold uppercase">
                         Reg: {phase.registration_type}
                       </span>
                     )}
                     {!phase.is_published && (
-                      <span className="px-3 py-1 rounded-full pg-surface-elevated border pg-border pg-muted text-[10px] font-semibold tracking-wider h-7 inline-flex items-center uppercase">
+                      <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200 text-[10px] font-bold uppercase">
                         Draft
                       </span>
                     )}

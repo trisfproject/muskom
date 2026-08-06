@@ -2,12 +2,32 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, Download, Clock, CheckCircle2, XCircle, AlertCircle, FileEdit, Users, ExternalLink } from "lucide-react";
+import { Search, Download, CheckCircle2, XCircle, AlertCircle, Users, ExternalLink, RefreshCw, X } from "lucide-react";
 import { candidateAdminService, CandidateAdminResponse } from "@/services/candidate-admin";
-import { useSystemConfig } from "@/contexts/ConfigContext";
+import { toast } from "sonner";
+
+const StatusBadge = ({ status }: { status: string }) => {
+  switch (status) {
+    case "Verified":
+      return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><CheckCircle2 className="w-3.5 h-3.5"/> Verified</span>;
+    case "Rejected":
+      return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold bg-red-50 text-red-700 border border-red-200"><XCircle className="w-3.5 h-3.5"/> Rejected</span>;
+    case "Under Review":
+    case "Revision Required":
+      return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] uppercase font-bold bg-amber-50 text-amber-700 border border-amber-200"><AlertCircle className="w-3.5 h-3.5"/> Menunggu Review</span>;
+    default:
+      return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase font-bold bg-slate-100 text-slate-600 border border-slate-200">{status}</span>;
+  }
+};
+
+const PubBadge = ({ pubStatus }: { pubStatus: string }) => {
+  if (pubStatus === "Published") {
+    return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Dipublikasikan</span>;
+  }
+  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase font-bold bg-slate-100 text-slate-500 border border-slate-200">Tersembunyi</span>;
+};
 
 export default function AdminCandidatesPage() {
-  const { config } = useSystemConfig();
   const [data, setData] = useState<CandidateAdminResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
@@ -16,14 +36,10 @@ export default function AdminCandidatesPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // the active musyawarah ID if needed? For now we just list all, or maybe filter by default active musyawarah
-      const res = await candidateAdminService.getCandidates({
-        status: statusFilter,
-        search: search,
-      });
+      const res = await candidateAdminService.getCandidates({ status: statusFilter, search });
       setData(res);
     } catch (err) {
-      console.error(err);
+      toast.error("Gagal memuat daftar kandidat.");
     } finally {
       setLoading(false);
     }
@@ -34,72 +50,28 @@ export default function AdminCandidatesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, search]);
 
-  const exportCSV = () => {
-    const headers = ["Registration Number", "Name", "Email", "Phone", "Status", "Date"];
-    const csvContent = [
-      headers.join(","),
-      ...data.map(r => 
-        `"${r.registration_number}","${r.full_name}","${r.email}","${r.phone || ''}","${r.status}","${new Date(r.created_at).toLocaleDateString()}"`
-      )
-    ].join("\n");
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `candidates_${new Date().getTime()}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const StatusBadge = ({ status }: { status: string }) => {
-    switch (status) {
-      case "Draft":
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200"><FileEdit className="w-3.5 h-3.5"/> Draft</span>;
-      case "Submitted":
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-200/50"><Clock className="w-3.5 h-3.5"/> Submitted</span>;
-      case "Under Review":
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200/50"><Search className="w-3.5 h-3.5"/> Reviewing</span>;
-      case "Revision Required":
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-600 border border-orange-200/50"><AlertCircle className="w-3.5 h-3.5"/> Revision Needed</span>;
-      case "Verified":
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200/50"><CheckCircle2 className="w-3.5 h-3.5"/> Verified</span>;
-      case "Rejected":
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200/50"><XCircle className="w-3.5 h-3.5"/> Rejected</span>;
-      case "Published":
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-600 border border-indigo-200/50"><Users className="w-3.5 h-3.5"/> Verified & Published</span>;
-      default:
-        return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">{status}</span>;
-    }
-  };
-
-  const PubBadge = ({ pubStatus }: { pubStatus: string }) => {
-    switch (pubStatus) {
-      case "Published":
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200/50">Published</span>;
-      case "Unpublished":
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-600 border border-amber-200/50">Unpublished</span>;
-      default:
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200/50">Hidden</span>;
-    }
-  };
-
   return (
-    <main className="p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Verifikasi Bakal Calon</h1>
-          <p className="pg-muted text-sm">Review dan verifikasi pendaftaran kandidat.</p>
+          <h1 className="text-2xl font-bold pg-text tracking-tight">Data Induk Kandidat</h1>
+          <p className="pg-muted text-sm mt-1">Kelola dan review seluruh bakal calon.</p>
         </div>
-        <button onClick={exportCSV} className="w-full sm:w-auto min-h-[44px] flex items-center justify-center gap-2 bg-blue-50 text-primary font-semibold px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">
-          <Download className="w-4 h-4" /> Export CSV
+        <button
+          onClick={fetchData}
+          disabled={loading}
+          className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+          Segarkan Data
         </button>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-200 flex flex-col sm:flex-row gap-4 justify-between bg-slate-50/50">
+      {/* Main Card */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
+        {/* Filters */}
+        <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row gap-4 justify-between bg-slate-50/50 dark:bg-slate-800/30">
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pg-muted pointer-events-none" />
             <input 
@@ -107,85 +79,77 @@ export default function AdminCandidatesPage() {
               placeholder="Cari nama atau nomor registrasi..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 min-h-[44px] rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-[var(--color-primary)]"
+              className="w-full pl-9 pr-8 py-2 min-h-[44px] text-sm rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 pg-text focus:outline-none focus:border-primary transition-colors"
             />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 pg-muted hover:pg-text">
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
           <select 
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 min-h-[44px] rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-[var(--color-primary)] bg-white min-w-[200px]"
+            className="px-4 py-2 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:border-primary min-w-[180px] transition-colors"
           >
             <option value="">Semua Status</option>
-            <option value="Draft">Draft</option>
-            <option value="Submitted">Submitted</option>
-            <option value="Under Review">Under Review</option>
-            <option value="Revision Required">Revision Required</option>
             <option value="Verified">Verified</option>
+            <option value="Under Review">Under Review</option>
             <option value="Rejected">Rejected</option>
           </select>
         </div>
 
+        {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm whitespace-nowrap md:table flex flex-col">
-            <thead className="bg-slate-50 border-b border-slate-200 pg-muted font-semibold hidden md:table-header-group">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="px-6 py-4">Registration #</th>
-                <th className="px-6 py-4">No. / Urut</th>
-                <th className="px-6 py-4">Kandidat</th>
-                <th className="px-6 py-4">Verifikasi</th>
-                <th className="px-6 py-4">Publikasi</th>
-                <th className="px-6 py-4 text-right">Aksi</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider pg-muted">No. Urut / Reg</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider pg-muted">Kandidat</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider pg-muted">Status</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider pg-muted text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 text-slate-700 flex flex-col md:table-row-group">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50 pg-text">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 pg-muted block md:table-cell">Memuat data...</td>
+                  <td colSpan={4} className="px-5 py-16 text-center text-sm pg-muted">Memuat data...</td>
                 </tr>
               ) : data.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 pg-muted block md:table-cell">Belum ada pendaftaran kandidat.</td>
+                  <td colSpan={4} className="px-5 py-16 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <Users className="w-6 h-6 pg-muted" />
+                      </div>
+                      <p className="text-sm font-medium pg-muted">Tidak ada data kandidat</p>
+                    </div>
+                  </td>
                 </tr>
               ) : (
                 data.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50/50 flex flex-col md:table-row p-4 md:p-0 border-b border-slate-200 md:border-none">
-                    <td className="px-0 py-2 md:px-6 md:py-4 flex justify-between items-center md:table-cell gap-4 border-b border-slate-100 md:border-none">
-                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Registration #</span>
-                      <span className="font-mono text-xs">{row.registration_number}</span>
+                  <tr key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="font-bold pg-text text-lg">{row.candidate_number || '-'}</div>
+                      <div className="font-mono text-[10px] pg-muted font-medium mt-1 uppercase">REG: {row.registration_number}</div>
                     </td>
-                    <td className="px-0 py-2 md:px-6 md:py-4 flex justify-between items-center md:table-cell gap-4 border-b border-slate-100 md:border-none">
-                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">No. / Urut</span>
-                      <div className="text-right md:text-left">
-                        <div className="text-xs font-medium text-slate-700">Kandidat: <span className="font-bold">{row.candidate_number || '-'}</span></div>
-                        <div className="text-xs pg-muted">Urutan Tampil: {row.display_order}</div>
+                    <td className="px-5 py-4">
+                      <div className="font-semibold pg-text text-sm">{row.full_name}</div>
+                      <div className="text-xs pg-muted mt-0.5">{row.email}</div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex flex-col items-start gap-1.5">
+                        <StatusBadge status={row.status} />
+                        <PubBadge pubStatus={row.publication_status} />
                       </div>
                     </td>
-                    <td className="px-0 py-2 md:px-6 md:py-4 flex justify-between items-center md:table-cell gap-4 border-b border-slate-100 md:border-none">
-                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Kandidat</span>
-                      <div className="text-right md:text-left">
-                        <div className="font-semibold text-slate-900">{row.full_name}</div>
-                        <div className="text-xs pg-muted">{row.email} • {row.phone}</div>
-                      </div>
-                    </td>
-                    <td className="px-0 py-2 md:px-6 md:py-4 flex justify-between items-center md:table-cell gap-4 border-b border-slate-100 md:border-none">
-                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Verifikasi</span>
-                      <StatusBadge status={row.status} />
-                    </td>
-                    <td className="px-0 py-2 md:px-6 md:py-4 flex justify-between items-center md:table-cell gap-4 border-b border-slate-100 md:border-none">
-                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Publikasi</span>
-                      <PubBadge pubStatus={row.publication_status} />
-                    </td>
-                    <td className="px-0 py-3 md:px-6 md:py-4 flex justify-between items-center md:table-cell gap-4 md:border-none">
-                      <span className="md:hidden font-bold pg-muted text-[10px] uppercase tracking-wider shrink-0">Aksi</span>
-                      <div className="text-right flex justify-end">
-                        <Link 
-                          href={`/admin/candidates/${row.id}`}
-                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 min-h-[44px] bg-white border border-slate-200 hover:border-primary hover:text-primary rounded-lg text-xs font-medium transition-colors"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          Buka Profil
-                        </Link>
-                      </div>
+                    <td className="px-5 py-4 text-right">
+                      <Link 
+                        href={`/admin/candidates/${row.id}`}
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary rounded-lg text-xs font-semibold transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> Buka
+                      </Link>
                     </td>
                   </tr>
                 ))
@@ -193,7 +157,12 @@ export default function AdminCandidatesPage() {
             </tbody>
           </table>
         </div>
+        
+        {/* Footer */}
+        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-800/20">
+          <p className="text-xs pg-muted font-medium">Menampilkan {data.length} kandidat</p>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
