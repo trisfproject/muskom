@@ -5,74 +5,39 @@ import (
 	"errors"
 
 	"github.com/jmoiron/sqlx"
-	"go.uber.org/zap"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
+	"go.uber.org/zap"
 )
 
 var (
-	ErrSessionClosed    = errors.New("voting session is closed")
+	ErrSessionClosed     = errors.New("voting session is closed")
 	ErrSessionNotRunning = errors.New("voting session is not running")
-	ErrAlreadyVoted     = errors.New("participant has already voted")
-	ErrNotCheckedIn     = errors.New("participant is not checked in")
+	ErrAlreadyVoted      = errors.New("participant has already voted")
+	ErrNotCheckedIn      = errors.New("participant is not checked in")
 )
 
 type Service interface {
-	GetSession(ctx context.Context, eventID string) (*VotingSession, error)
-	OpenSession(ctx context.Context, eventID string) error
-	PauseSession(ctx context.Context, eventID string) error
-	ResumeSession(ctx context.Context, eventID string) error
-	CloseSession(ctx context.Context, eventID string) error
-	
 	GetBallot(ctx context.Context, eventID string) (*Ballot, error)
 	CastVote(ctx context.Context, eventID, participantID, candidateID string) error
 	GetSummary(ctx context.Context, eventID string) (*VoteSummary, error)
 }
 
 type service struct {
-	db   *sqlx.DB
-	repo Repository
-	bus  eventbus.EventDispatcher
-	log  *zap.Logger
+	db       *sqlx.DB
+	repo     Repository
+	bus      eventbus.EventDispatcher
+	log      *zap.Logger
+	resolver website.PhaseResolver
 }
 
 func NewService(db *sqlx.DB, repo Repository, bus eventbus.EventDispatcher, log *zap.Logger) Service {
-	return &service{db: db, repo: repo, bus: bus, log: log}
-}
-
-func (s *service) GetSession(ctx context.Context, eventID string) (*VotingSession, error) {
-	return s.repo.GetSessionByEvent(ctx, eventID)
-}
-
-func (s *service) OpenSession(ctx context.Context, eventID string) error {
-	err := s.repo.UpdateSessionStatus(ctx, eventID, SessionRunning)
-	if err == nil {
-		_ = s.bus.Publish(ctx, eventbus.NewEnvelope(eventID, eventbus.EventVotingStarted, nil))
-	}
-	return err
-}
-
-func (s *service) PauseSession(ctx context.Context, eventID string) error {
-	return s.repo.UpdateSessionStatus(ctx, eventID, SessionPaused)
-}
-
-func (s *service) ResumeSession(ctx context.Context, eventID string) error {
-	return s.repo.UpdateSessionStatus(ctx, eventID, SessionRunning)
-}
-
-func (s *service) CloseSession(ctx context.Context, eventID string) error {
-	err := s.repo.UpdateSessionStatus(ctx, eventID, SessionClosed)
-	if err == nil {
-		_ = s.bus.Publish(ctx, eventbus.NewEnvelope(eventID, eventbus.EventVotingStopped, nil))
-	}
-	return err
+	return &service{db: db, repo: repo, bus: bus, log: log, resolver: website.NewPhaseResolver(db)}
 }
 
 func (s *service) GetBallot(ctx context.Context, eventID string) (*Ballot, error) {
-	session, err := s.GetSession(ctx, eventID)
-	if err != nil {
-		return nil, err
-	}
-	if session.Status == SessionClosed {
+	phase, err := s.resolver.GetCurrentPhase(ctx)
+	if err != nil || phase == nil || phase.Title != "VOTING" {
 		return nil, ErrSessionClosed
 	}
 
@@ -85,11 +50,8 @@ func (s *service) GetBallot(ctx context.Context, eventID string) (*Ballot, error
 }
 
 func (s *service) CastVote(ctx context.Context, eventID, participantID, candidateID string) error {
-	session, err := s.GetSession(ctx, eventID)
-	if err != nil {
-		return err
-	}
-	if session.Status != SessionRunning {
+	phase, err := s.resolver.GetCurrentPhase(ctx)
+	if err != nil || phase == nil || phase.Title != "VOTING" {
 		return ErrSessionNotRunning
 	}
 

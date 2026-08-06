@@ -3,8 +3,8 @@ package voting
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
-	"go.uber.org/zap"
 	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
+	"go.uber.org/zap"
 )
 
 func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus.EventDispatcher) {
@@ -23,7 +23,5 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eve
 	handler := NewHandler(svc)
 
 	// Admin / Operator Routes
-	router.Get("/session", handler.GetSession)
-	router.Post("/session/:action", handler.UpdateSessionStatus)
 	router.Get("/summary", handler.GetSummary)
 }

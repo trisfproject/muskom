@@ -21,6 +21,25 @@ func NewAdminHandler(service Service, validator *validator.Validator, log *zap.L
 	}
 }
 
+func (h *AdminHandler) CreateCandidate(c fiber.Ctx) error {
+	var req CreateCandidateRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "invalid request body", nil)
+	}
+
+	if errs := h.validator.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusBadRequest, "validation failed", errs)
+	}
+
+	res, err := h.service.Create(c.Context(), req)
+	if err != nil {
+		h.log.Error("failed to create candidate", zap.Error(err))
+		return response.SendError(c, fiber.StatusInternalServerError, "failed to create candidate", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusCreated, "candidate created successfully", res, nil)
+}
+
 func (h *AdminHandler) ListCandidates(c fiber.Ctx) error {
 	status := c.Query("status")
 	musyawarahID := c.Query("musyawarah_id")

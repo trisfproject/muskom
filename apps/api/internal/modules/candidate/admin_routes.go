@@ -19,6 +19,7 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 	h := NewAdminHandler(svc, val, log)
 
 	// Admin candidate endpoints
+	router.Post("/", h.CreateCandidate)
 	router.Get("/", h.ListCandidates)
 	router.Get("/:id", h.GetCandidateDetail)
 	router.Patch("/:id/verify", h.VerifyCandidate)

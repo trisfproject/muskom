@@ -3,18 +3,14 @@ package voting
 import (
 	"context"
 	"database/sql"
-	"errors"
 
 	"github.com/jmoiron/sqlx"
 )
 
 type Repository interface {
-	GetSessionByEvent(ctx context.Context, eventID string) (*VotingSession, error)
-	UpdateSessionStatus(ctx context.Context, eventID string, status SessionStatus) error
-	
 	HasVoted(ctx context.Context, eventID, participantID string) (bool, error)
 	CastVote(ctx context.Context, tx *sqlx.Tx, vote *Vote) error
-	
+
 	GetBallotCandidates(ctx context.Context, eventID string) ([]CandidateSnapshot, error)
 	GetResults(ctx context.Context, eventID string) ([]VoteResult, error)
 	GetTotalCheckedIn(ctx context.Context, eventID string) (int, error)
@@ -26,35 +22,6 @@ type repository struct {
 
 func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
-}
-
-func (r *repository) GetSessionByEvent(ctx context.Context, eventID string) (*VotingSession, error) {
-	var session VotingSession
-	err := r.db.GetContext(ctx, &session, `SELECT * FROM voting_sessions WHERE event_id = $1`, eventID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			// Auto-initialize if it doesn't exist
-			_, err = r.db.ExecContext(ctx, `INSERT INTO voting_sessions (event_id) VALUES ($1) ON CONFLICT DO NOTHING`, eventID)
-			if err != nil {
-				return nil, err
-			}
-			return r.GetSessionByEvent(ctx, eventID)
-		}
-		return nil, err
-	}
-	return &session, nil
-}
-
-func (r *repository) UpdateSessionStatus(ctx context.Context, eventID string, status SessionStatus) error {
-	query := `UPDATE voting_sessions SET status = $1, updated_at = NOW()`
-	if status == SessionRunning {
-		query += `, started_at = COALESCE(started_at, NOW())`
-	} else if status == SessionClosed {
-		query += `, closed_at = NOW()`
-	}
-	query += ` WHERE event_id = $2`
-	_, err := r.db.ExecContext(ctx, query, status, eventID)
-	return err
 }
 
 func (r *repository) HasVoted(ctx context.Context, eventID, participantID string) (bool, error) {

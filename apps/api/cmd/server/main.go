@@ -13,29 +13,29 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/attendance"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/bootstrap"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/candidate"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/dashboard"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/participant"
-	"github.com/trisfproject/muskom/apps/api/internal/modules/bootstrap"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/rbac"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/reporting"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/result"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/system/configuration"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/user"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/verification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/voting"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
-	"github.com/trisfproject/muskom/apps/api/internal/modules/system/configuration"
-	"github.com/trisfproject/muskom/apps/api/internal/modules/user"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
+	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/middleware"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
-	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
 )
 
 func main() {
@@ -113,10 +113,10 @@ func main() {
 	// Modules (Public / Dedicated)
 	authGroup := v1.Group("/auth")
 	auth.SetupRoutes(authGroup, db, redisClient, cfg, log, val)
-	
+
 	// Protected Auth routes (needs JWT for /me/permissions)
 	rbac.SetupAuthRoutes(authGroup.Group("/", auth.JWTMiddleware(cfg, log)), authSvc)
-	
+
 	musyawarah.SetupPublicRoutes(v1.Group("/public/musyawarah"), db, log, val, strg, cfg.MaxUploadSize)
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
@@ -139,7 +139,6 @@ func main() {
 	voting.SetupAdminRoutes(adminGroup.Group("/votes", checker.RequirePermission("voting.manage")), db, log, bus)
 	result.SetupAdminRoutes(adminGroup.Group("/result", checker.RequirePermission("voting.view")), db, log)
 	user.SetupRoutes(adminGroup.Group("/users", checker.RequirePermission("system.manage")), db, log, val)
-	candidate.RegisterRoutes(v1, db, log, val, strg, cfg.MaxUploadSize, cfg)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, log, val, strg, cfg)
 	participant.SetupAdminRoutes(adminGroup.Group("/participants", checker.RequirePermission("participant.approve")), db, log, val, mailerSvc)
 

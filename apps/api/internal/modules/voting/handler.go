@@ -2,8 +2,8 @@ package voting
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/eventctx"
+	"github.com/trisfproject/muskom/apps/api/platform/response"
 )
 
 type Handler struct {
@@ -12,46 +12,6 @@ type Handler struct {
 
 func NewHandler(service Service) *Handler {
 	return &Handler{service: service}
-}
-
-func (h *Handler) GetSession(c fiber.Ctx) error {
-	evtCtx := eventctx.Get(c)
-	if evtCtx == nil {
-		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
-	}
-
-	session, err := h.service.GetSession(c.Context(), evtCtx.ID)
-	if err != nil {
-		return response.SendError(c, fiber.StatusInternalServerError, "Failed to fetch session", nil)
-	}
-	return response.SendSuccess(c, fiber.StatusOK, "Session retrieved", session, nil)
-}
-
-func (h *Handler) UpdateSessionStatus(c fiber.Ctx) error {
-	evtCtx := eventctx.Get(c)
-	if evtCtx == nil {
-		return response.SendError(c, fiber.StatusBadRequest, "No active event context", nil)
-	}
-
-	action := c.Params("action") // open, pause, resume, close
-	var err error
-	switch action {
-	case "open":
-		err = h.service.OpenSession(c.Context(), evtCtx.ID)
-	case "pause":
-		err = h.service.PauseSession(c.Context(), evtCtx.ID)
-	case "resume":
-		err = h.service.ResumeSession(c.Context(), evtCtx.ID)
-	case "close":
-		err = h.service.CloseSession(c.Context(), evtCtx.ID)
-	default:
-		return response.SendError(c, fiber.StatusBadRequest, "Invalid action", nil)
-	}
-
-	if err != nil {
-		return response.SendError(c, fiber.StatusInternalServerError, "Failed to update session", nil)
-	}
-	return response.SendSuccess(c, fiber.StatusOK, "Session updated successfully", nil, nil)
 }
 
 func (h *Handler) GetBallot(c fiber.Ctx) error {

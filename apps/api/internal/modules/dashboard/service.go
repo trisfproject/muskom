@@ -49,10 +49,8 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 	data.Status.RegistrationOpen = isOpen
 	data.Status.VerificationActive = isOpen
 
-	var votingStatus string
-	err = s.db.GetContext(ctx, &votingStatus, `SELECT status FROM voting_sessions ORDER BY created_at DESC LIMIT 1`)
-	if err == nil {
-		data.Status.VotingSessionState = votingStatus
+	if currentPhase != nil && currentPhase.Title == "VOTING" {
+		data.Status.VotingSessionState = "RUNNING"
 	} else {
 		data.Status.VotingSessionState = "NOT_STARTED"
 	}
