@@ -2,13 +2,14 @@ package dashboard
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
 type Service interface {
-	GetDashboardData(ctx context.Context, eventID string) (*DashboardData, error)
+	GetDashboardData(ctx context.Context) (*DashboardData, error)
 }
 
 type service struct {
@@ -20,12 +21,22 @@ func NewService(db *sqlx.DB, log *zap.Logger) Service {
 	return &service{db: db, log: log}
 }
 
-func (s *service) GetDashboardData(ctx context.Context, eventID string) (*DashboardData, error) {
+func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) {
+	// Resolve active event
+	var eventID string
+	err := s.db.GetContext(ctx, &eventID, `SELECT id FROM events WHERE is_default_active = true AND deleted_at IS NULL LIMIT 1`)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, sql.ErrNoRows
+		}
+		return nil, err
+	}
+
 	data := &DashboardData{
 		EventID: eventID,
 		Health: SystemHealth{
-			APIStatus:      "OPERATIONAL",
-			WorkerStatus:   "IDLE", // Mock from notification engine state
+			APIStatus:    "OPERATIONAL",
+			WorkerStatus: "IDLE",
 		},
 	}
 
@@ -38,19 +49,18 @@ func (s *service) GetDashboardData(ctx context.Context, eventID string) (*Dashbo
 
 	// 2. Fetch Event Status
 	var status struct {
-		Phase string `db:"phase"`
+		Phase string `db:"status"`
 	}
-	err := s.db.GetContext(ctx, &status, `SELECT phase FROM events WHERE id = $1`, eventID)
+	err = s.db.GetContext(ctx, &status, `SELECT status FROM events WHERE id = $1`, eventID)
 	if err == nil {
 		data.Status.Phase = status.Phase
 	}
-	
-	// Default booleans logic based on phase could go here. For RC2 we mock the active booleans
-	data.Status.RegistrationOpen = (status.Phase == "REGISTRATION")
-	data.Status.VerificationActive = (status.Phase == "VERIFICATION")
+
+	data.Status.RegistrationOpen = (status.Phase == "PUBLISHED" || status.Phase == "ONGOING")
+	data.Status.VerificationActive = (status.Phase == "PUBLISHED" || status.Phase == "ONGOING")
 
 	var votingStatus string
-	err = s.db.GetContext(ctx, &votingStatus, `SELECT status FROM voting_sessions WHERE event_id = $1`, eventID)
+	err = s.db.GetContext(ctx, &votingStatus, `SELECT status FROM voting_sessions WHERE musyawarah_id = $1 ORDER BY created_at DESC LIMIT 1`, eventID)
 	if err == nil {
 		data.Status.VotingSessionState = votingStatus
 	} else {
@@ -58,29 +68,27 @@ func (s *service) GetDashboardData(ctx context.Context, eventID string) (*Dashbo
 	}
 
 	// 3. Fetch Summary Metrics
-	// For performance, this could be a single complex query or parallelized queries.
-	// For RC2 backend structure, we do sequential quick COUNT queries.
-	
-	s.db.GetContext(ctx, &data.Summary.TotalParticipants, `SELECT COUNT(*) FROM registrations WHERE event_id = $1`, eventID)
-	s.db.GetContext(ctx, &data.Summary.ApprovedParticipants, `SELECT COUNT(*) FROM registrations WHERE event_id = $1 AND status = 'APPROVED'`, eventID)
-	s.db.GetContext(ctx, &data.Summary.TotalCandidates, `SELECT COUNT(*) FROM candidates WHERE event_id = $1 AND status = 'VERIFIED'`, eventID)
-	s.db.GetContext(ctx, &data.Summary.CheckedIn, `SELECT COUNT(*) FROM attendance WHERE event_id = $1`, eventID)
-	s.db.GetContext(ctx, &data.Summary.VotesCast, `SELECT COUNT(*) FROM votes WHERE event_id = $1`, eventID)
-	s.db.GetContext(ctx, &data.Summary.PendingNotifications, `SELECT COUNT(*) FROM notification_jobs WHERE event_id = $1 AND status IN ('PENDING', 'QUEUED', 'PROCESSING')`, eventID)
+	// Sequential quick COUNT queries against canonical tables.
+
+	s.db.GetContext(ctx, &data.Summary.TotalParticipants, `SELECT COUNT(*) FROM participants WHERE musyawarah_id = $1 AND deleted_at IS NULL`, eventID)
+	s.db.GetContext(ctx, &data.Summary.ApprovedParticipants, `SELECT COUNT(*) FROM participants WHERE musyawarah_id = $1 AND deleted_at IS NULL AND status = 'Verified'`, eventID)
+	s.db.GetContext(ctx, &data.Summary.TotalCandidates, `SELECT COUNT(*) FROM candidates WHERE deleted_at IS NULL AND publication_status = 'Published'`)
+	s.db.GetContext(ctx, &data.Summary.CheckedIn, `SELECT COUNT(*) FROM attendance WHERE musyawarah_id = $1`, eventID)
+	s.db.GetContext(ctx, &data.Summary.VotesCast, `SELECT COUNT(*) FROM votes WHERE musyawarah_id = $1`, eventID)
+	s.db.GetContext(ctx, &data.Summary.PendingNotifications, `SELECT COUNT(*) FROM notification_jobs WHERE status IN ('PENDING', 'QUEUED', 'PROCESSING')`)
 
 	// 4. Fetch Recent Activity (Audit logs)
 	query := `
 		SELECT id, action, actor_name as actor, actor_role as role, created_at as timestamp 
 		FROM audit_logs 
-		WHERE event_id = $1 
 		ORDER BY created_at DESC 
 		LIMIT 10
 	`
 	var activities []RecentActivity
-	_ = s.db.SelectContext(ctx, &activities, query, eventID)
-	
+	_ = s.db.SelectContext(ctx, &activities, query)
+
 	if activities == nil {
-		activities = []RecentActivity{} // Return empty array instead of null
+		activities = []RecentActivity{}
 	}
 	data.RecentActivity = activities
 
