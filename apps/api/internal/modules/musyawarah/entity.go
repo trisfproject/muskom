@@ -11,13 +11,9 @@ type MusyawarahEvent struct {
 	Location                   *string    `db:"location"`
 	Address                    *string    `db:"address"`
 	GoogleMapsURL              *string    `db:"google_maps_url"`
-	PeriodStart                *time.Time `db:"period_start"`
-	PeriodEnd                  *time.Time `db:"period_end"`
-	EventDate                  *time.Time `db:"event_date"`
-	RegistrationOpen           *time.Time `db:"registration_open"`
-	RegistrationClose          *time.Time `db:"registration_close"`
-	CandidateRegistrationOpen  *time.Time `db:"candidate_registration_open"`
-	CandidateRegistrationClose *time.Time `db:"candidate_registration_close"`
+	PeriodStart                time.Time  `db:"period_start"`
+	PeriodEnd                  time.Time  `db:"period_end"`
+	EventDate                  time.Time  `db:"event_date"`
 	BannerPath                 *string    `db:"banner_path"`
 	LogoPath                   *string    `db:"logo_path"`
 	CoverPath                  *string    `db:"cover_path"`
@@ -48,8 +44,3 @@ type MusyawarahSettings struct {
 	ShowAnnouncements          bool   `db:"show_announcements"`
 }
 
-type MusyawarahPhase struct {
-	Phase   string     `db:"phase"`
-	StartAt *time.Time `db:"start_at"`
-	EndAt   *time.Time `db:"end_at"`
-}

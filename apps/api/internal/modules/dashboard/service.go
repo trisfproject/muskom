@@ -2,9 +2,9 @@ package dashboard
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"go.uber.org/zap"
 )
 
@@ -13,27 +13,17 @@ type Service interface {
 }
 
 type service struct {
-	db  *sqlx.DB
-	log *zap.Logger
+	db       *sqlx.DB
+	resolver website.PhaseResolver
+	log      *zap.Logger
 }
 
 func NewService(db *sqlx.DB, log *zap.Logger) Service {
-	return &service{db: db, log: log}
+	return &service{db: db, resolver: website.NewPhaseResolver(db), log: log}
 }
 
 func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) {
-	// Resolve active event
-	var eventID string
-	err := s.db.GetContext(ctx, &eventID, `SELECT id FROM events WHERE is_default_active = true AND deleted_at IS NULL LIMIT 1`)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, sql.ErrNoRows
-		}
-		return nil, err
-	}
-
 	data := &DashboardData{
-		EventID: eventID,
 		Health: SystemHealth{
 			APIStatus:    "OPERATIONAL",
 			WorkerStatus: "IDLE",
@@ -47,20 +37,20 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 		data.Health.DatabaseStatus = "OPERATIONAL"
 	}
 
-	// 2. Fetch Event Status
-	var status struct {
-		Phase string `db:"status"`
-	}
-	err = s.db.GetContext(ctx, &status, `SELECT status FROM events WHERE id = $1`, eventID)
-	if err == nil {
-		data.Status.Phase = status.Phase
+	// 2. Fetch Event Status (Now PhaseResolver)
+	currentPhase, err := s.resolver.GetCurrentPhase(ctx)
+	if err == nil && currentPhase != nil {
+		data.Status.Phase = currentPhase.Title
+	} else {
+		data.Status.Phase = "NOT_STARTED"
 	}
 
-	data.Status.RegistrationOpen = (status.Phase == "PUBLISHED" || status.Phase == "ONGOING")
-	data.Status.VerificationActive = (status.Phase == "PUBLISHED" || status.Phase == "ONGOING")
+	isOpen, _ := s.resolver.IsParticipantRegistrationOpen(ctx)
+	data.Status.RegistrationOpen = isOpen
+	data.Status.VerificationActive = isOpen
 
 	var votingStatus string
-	err = s.db.GetContext(ctx, &votingStatus, `SELECT status FROM voting_sessions WHERE musyawarah_id = $1 ORDER BY created_at DESC LIMIT 1`, eventID)
+	err = s.db.GetContext(ctx, &votingStatus, `SELECT status FROM voting_sessions ORDER BY created_at DESC LIMIT 1`)
 	if err == nil {
 		data.Status.VotingSessionState = votingStatus
 	} else {
@@ -70,11 +60,11 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 	// 3. Fetch Summary Metrics
 	// Sequential quick COUNT queries against canonical tables.
 
-	s.db.GetContext(ctx, &data.Summary.TotalParticipants, `SELECT COUNT(*) FROM participants WHERE musyawarah_id = $1 AND deleted_at IS NULL`, eventID)
-	s.db.GetContext(ctx, &data.Summary.ApprovedParticipants, `SELECT COUNT(*) FROM participants WHERE musyawarah_id = $1 AND deleted_at IS NULL AND status = 'Verified'`, eventID)
+	s.db.GetContext(ctx, &data.Summary.TotalParticipants, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL`)
+	s.db.GetContext(ctx, &data.Summary.ApprovedParticipants, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND status = 'Verified'`)
 	s.db.GetContext(ctx, &data.Summary.TotalCandidates, `SELECT COUNT(*) FROM candidates WHERE deleted_at IS NULL AND publication_status = 'Published'`)
-	s.db.GetContext(ctx, &data.Summary.CheckedIn, `SELECT COUNT(*) FROM attendance WHERE musyawarah_id = $1`, eventID)
-	s.db.GetContext(ctx, &data.Summary.VotesCast, `SELECT COUNT(*) FROM votes WHERE musyawarah_id = $1`, eventID)
+	s.db.GetContext(ctx, &data.Summary.CheckedIn, `SELECT COUNT(*) FROM attendance`)
+	s.db.GetContext(ctx, &data.Summary.VotesCast, `SELECT COUNT(*) FROM votes`)
 	s.db.GetContext(ctx, &data.Summary.PendingNotifications, `SELECT COUNT(*) FROM notification_jobs WHERE status IN ('PENDING', 'QUEUED', 'PROCESSING')`)
 
 	// 4. Fetch Recent Activity (Audit logs)

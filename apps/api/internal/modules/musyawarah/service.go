@@ -18,57 +18,6 @@ var (
 	ErrMusyawarahNotFound = errors.New("musyawarah not found")
 )
 
-func CalculateLifecycleState(status string, phases []MusyawarahPhase) string {
-	if status == "DRAFT" || status == "ARCHIVED" || status == "CANCELLED" || status == "COMPLETED" {
-		return status
-	}
-
-	now := time.Now()
-
-	phaseMap := make(map[string]MusyawarahPhase)
-	for _, p := range phases {
-		phaseMap[p.Phase] = p
-	}
-
-	isActive := func(pName string) bool {
-		p, ok := phaseMap[pName]
-		if !ok || p.StartAt == nil || p.EndAt == nil {
-			return false
-		}
-		return now.After(*p.StartAt) && now.Before(*p.EndAt)
-	}
-
-	if isActive("RESULT_PUBLICATION") {
-		return "RESULT_PUBLICATION"
-	}
-	if isActive("VOTING") {
-		return "VOTING"
-	}
-	if isActive("ATTENDANCE_CHECK_IN") {
-		return "ATTENDANCE"
-	}
-	if isActive("COOLING_OFF") {
-		return "COOLING_DOWN"
-	}
-	if isActive("CAMPAIGN") {
-		return "CAMPAIGN"
-	}
-	if isActive("CANDIDATE_VERIFICATION") {
-		return "VERIFICATION"
-	}
-	if isActive("ADMINISTRATIVE_VERIFICATION") {
-		return "VERIFICATION"
-	}
-	if isActive("CANDIDATE_REGISTRATION") {
-		return "CANDIDATE_REGISTRATION"
-	}
-	if isActive("REGISTRATION") {
-		return "REGISTRATION"
-	}
-
-	return "UPCOMING"
-}
-
 type Service interface {
 	// Multi-event CRUD
 	ListAll(ctx context.Context) ([]MusyawarahListItem, error)
@@ -87,8 +36,6 @@ type Service interface {
 	UpdateConfig(ctx context.Context, req *UpdateMusyawarahRequest) (*MusyawarahResponse, error)
 	GetSettings(ctx context.Context) (*SettingsResponse, error)
 	UpdateSettings(ctx context.Context, req *SettingsRequest) (*SettingsResponse, error)
-	GetTimeline(ctx context.Context) (*TimelineResponse, error)
-	UpdateTimeline(ctx context.Context, req *TimelineRequest) (*TimelineResponse, error)
 	GetMedia(ctx context.Context) (*MediaResponse, error)
 	UploadMedia(ctx context.Context, mediaType string, file io.Reader, filename string, contentType string) (*MediaResponse, error)
 	DeleteMedia(ctx context.Context, mediaType string) error
@@ -114,26 +61,16 @@ func (s *service) ListAll(ctx context.Context) ([]MusyawarahListItem, error) {
 
 	items := make([]MusyawarahListItem, 0, len(events))
 	for _, e := range events {
-		// Compute lifecycle state from event_phases
-		phases, _ := s.repo.GetPhases(ctx, e.ID)
-		lifecycleState := CalculateLifecycleState(e.Status, phases)
-
 		items = append(items, MusyawarahListItem{
-			ID:                         e.ID,
-			Name:                       e.Name,
-			Slug:                       e.Slug,
-			Theme:                      e.Theme,
-			Status:                     e.Status,
-			LifecycleState:             lifecycleState,
-			IsActive:                   e.IsActive,
-			PeriodStart:                e.PeriodStart,
-			PeriodEnd:                  e.PeriodEnd,
-			EventDate:                  e.EventDate,
-			RegistrationOpen:           e.RegistrationOpen,
-			RegistrationClose:          e.RegistrationClose,
-			CandidateRegistrationOpen:  e.CandidateRegistrationOpen,
-			CandidateRegistrationClose: e.CandidateRegistrationClose,
-			CreatedAt:                  e.CreatedAt,
+			ID:          e.ID,
+			Name:        e.Name,
+			Slug:        e.Slug,
+			Theme:       e.Theme,
+			Status:      e.Status,
+				PeriodStart: e.PeriodStart,
+			PeriodEnd:   e.PeriodEnd,
+			EventDate:   e.EventDate,
+			CreatedAt:   e.CreatedAt,
 		})
 	}
 	return items, nil
@@ -150,47 +87,30 @@ func (s *service) GetByID(ctx context.Context, id string) (*MusyawarahResponse, 
 	return s.buildResponse(ctx, evt)
 }
 
-func (s *service) validateDates(periodStart, periodEnd, regOpen, regClose, candOpen, candClose, eventDate *time.Time) error {
-	if periodStart != nil && periodEnd != nil && periodStart.After(*periodEnd) {
+func (s *service) validateDates(periodStart, periodEnd, eventDate time.Time) error {
+	if !periodStart.IsZero() && !periodEnd.IsZero() && periodStart.After(periodEnd) {
 		return errors.New("period start must be before period end")
 	}
-	if regOpen != nil && regClose != nil && regOpen.After(*regClose) {
-		return errors.New("registration open must be before registration close")
-	}
-	if candOpen != nil && candClose != nil && candOpen.After(*candClose) {
-		return errors.New("candidate registration open must be before candidate registration close")
-	}
-	if eventDate != nil {
-		if regClose != nil && eventDate.Before(*regClose) {
-			return errors.New("event date (voting date) must be after participant registration is closed")
-		}
-		if candClose != nil && eventDate.Before(*candClose) {
-			return errors.New("event date (voting date) must be after candidate registration is closed")
-		}
-	}
+
 	return nil
 }
 
 func (s *service) Create(ctx context.Context, req *CreateMusyawarahRequest) (*MusyawarahResponse, error) {
-	if err := s.validateDates(req.PeriodStart, req.PeriodEnd, req.RegistrationOpen, req.RegistrationClose, req.CandidateRegistrationOpen, req.CandidateRegistrationClose, req.EventDate); err != nil {
+	if err := s.validateDates(req.PeriodStart, req.PeriodEnd, req.EventDate); err != nil {
 		return nil, err
 	}
 
 	evt := &MusyawarahEvent{
-		Name:                       req.Name,
-		Slug:                       req.Slug,
-		Theme:                      req.Theme,
-		Description:                req.Description,
-		PeriodStart:                req.PeriodStart,
-		PeriodEnd:                  req.PeriodEnd,
-		EventDate:                  req.EventDate,
-		RegistrationOpen:           req.RegistrationOpen,
-		RegistrationClose:          req.RegistrationClose,
-		CandidateRegistrationOpen:  req.CandidateRegistrationOpen,
-		CandidateRegistrationClose: req.CandidateRegistrationClose,
-		Location:                   req.LocationName,
-		Address:                    req.Address,
-		GoogleMapsURL:              req.GoogleMapsURL,
+		Name:          req.Name,
+		Slug:          req.Slug,
+		Theme:         req.Theme,
+		Description:   req.Description,
+		PeriodStart:   req.PeriodStart,
+		PeriodEnd:     req.PeriodEnd,
+		EventDate:     req.EventDate,
+		Location:      req.LocationName,
+		Address:       req.Address,
+		GoogleMapsURL: req.GoogleMapsURL,
 	}
 
 	// Assuming context contains user info, mock user here if not available
@@ -208,7 +128,7 @@ func (s *service) Create(ctx context.Context, req *CreateMusyawarahRequest) (*Mu
 }
 
 func (s *service) UpdateByID(ctx context.Context, id string, req *UpdateMusyawarahRequest) (*MusyawarahResponse, error) {
-	if err := s.validateDates(req.PeriodStart, req.PeriodEnd, req.RegistrationOpen, req.RegistrationClose, req.CandidateRegistrationOpen, req.CandidateRegistrationClose, req.EventDate); err != nil {
+	if err := s.validateDates(req.PeriodStart, req.PeriodEnd, req.EventDate); err != nil {
 		return nil, err
 	}
 
@@ -227,10 +147,6 @@ func (s *service) UpdateByID(ctx context.Context, id string, req *UpdateMusyawar
 	evt.PeriodStart = req.PeriodStart
 	evt.PeriodEnd = req.PeriodEnd
 	evt.EventDate = req.EventDate
-	evt.RegistrationOpen = req.RegistrationOpen
-	evt.RegistrationClose = req.RegistrationClose
-	evt.CandidateRegistrationOpen = req.CandidateRegistrationOpen
-	evt.CandidateRegistrationClose = req.CandidateRegistrationClose
 	evt.Location = req.LocationName
 	evt.Address = req.Address
 	evt.GoogleMapsURL = req.GoogleMapsURL
@@ -417,31 +333,22 @@ func (s *service) Delete(ctx context.Context, id string) error {
 
 // buildResponse constructs a MusyawarahResponse from a MusyawarahEvent
 func (s *service) buildResponse(ctx context.Context, evt *MusyawarahEvent) (*MusyawarahResponse, error) {
-	// Compute lifecycle state
-	phases, _ := s.repo.GetPhases(ctx, evt.ID)
-	lifecycleState := CalculateLifecycleState(evt.Status, phases)
-
 	res := &MusyawarahResponse{
-		ID:                         evt.ID,
-		Name:                       evt.Name,
-		Slug:                       evt.Slug,
-		Theme:                      evt.Theme,
-		Description:                evt.Description,
-		PeriodStart:                evt.PeriodStart,
-		PeriodEnd:                  evt.PeriodEnd,
-		LocationName:               evt.Location,
-		Address:                    evt.Address,
-		GoogleMapsURL:              evt.GoogleMapsURL,
-		EventDate:                  evt.EventDate,
-		RegistrationOpen:           evt.RegistrationOpen,
-		RegistrationClose:          evt.RegistrationClose,
-		CandidateRegistrationOpen:  evt.CandidateRegistrationOpen,
-		CandidateRegistrationClose: evt.CandidateRegistrationClose,
-		Status:                     evt.Status,
-		LifecycleState:             lifecycleState,
-		IsActive:                   evt.IsActive,
-		CreatedAt:                  evt.CreatedAt,
-		UpdatedAt:                  evt.UpdatedAt,
+		ID:            evt.ID,
+		Name:          evt.Name,
+		Slug:          evt.Slug,
+		Theme:         evt.Theme,
+		Description:   evt.Description,
+		PeriodStart:   evt.PeriodStart,
+		PeriodEnd:     evt.PeriodEnd,
+		LocationName:  evt.Location,
+		Address:       evt.Address,
+		GoogleMapsURL: evt.GoogleMapsURL,
+		EventDate:     evt.EventDate,
+		Status:        evt.Status,
+		IsActive:      evt.IsActive,
+		CreatedAt:     evt.CreatedAt,
+		UpdatedAt:     evt.UpdatedAt,
 	}
 
 	if evt.LogoPath != nil && *evt.LogoPath != "" {
@@ -559,92 +466,6 @@ func (s *service) UpdateSettings(ctx context.Context, req *SettingsRequest) (*Se
 	}
 
 	return s.GetSettings(ctx)
-}
-
-func (s *service) GetTimeline(ctx context.Context) (*TimelineResponse, error) {
-	evt, err := s.repo.GetActiveEvent(ctx)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrConfigNotFound
-		}
-		return nil, err
-	}
-
-	phases, err := s.repo.GetPhases(ctx, evt.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	res := &TimelineResponse{}
-	for _, p := range phases {
-		dto := TimelinePhaseDTO{StartAt: p.StartAt, EndAt: p.EndAt}
-		switch p.Phase {
-		case "REGISTRATION":
-			res.Registration = dto
-		case "CANDIDATE_REGISTRATION":
-			res.CandidateRegistration = dto
-		case "ADMINISTRATIVE_VERIFICATION":
-			res.AdministrativeVerification = dto
-		case "CANDIDATE_VERIFICATION":
-			res.CandidateVerification = dto
-		case "CAMPAIGN":
-			res.Campaign = dto
-		case "COOLING_OFF":
-			res.CoolingOff = dto
-		case "ATTENDANCE_CHECK_IN":
-			res.AttendanceCheckIn = dto
-		case "VOTING":
-			res.Voting = dto
-		case "RESULT_PUBLICATION":
-			res.ResultPublication = dto
-		}
-	}
-	return res, nil
-}
-
-func (s *service) UpdateTimeline(ctx context.Context, req *TimelineRequest) (*TimelineResponse, error) {
-	evt, err := s.repo.GetActiveEvent(ctx)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrConfigNotFound
-		}
-		return nil, err
-	}
-
-	tx, err := s.repo.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	phaseMap := map[string]TimelinePhaseDTO{
-		"REGISTRATION":                req.Registration,
-		"CANDIDATE_REGISTRATION":      req.CandidateRegistration,
-		"ADMINISTRATIVE_VERIFICATION": req.AdministrativeVerification,
-		"CANDIDATE_VERIFICATION":      req.CandidateVerification,
-		"CAMPAIGN":                    req.Campaign,
-		"COOLING_OFF":                 req.CoolingOff,
-		"ATTENDANCE_CHECK_IN":         req.AttendanceCheckIn,
-		"VOTING":                      req.Voting,
-		"RESULT_PUBLICATION":          req.ResultPublication,
-	}
-
-	for phaseName, dto := range phaseMap {
-		p := MusyawarahPhase{
-			Phase:   phaseName,
-			StartAt: dto.StartAt,
-			EndAt:   dto.EndAt,
-		}
-		if err := s.repo.UpsertPhase(ctx, tx, evt.ID, &p); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := tx.Commit(); err != nil {
-		return nil, err
-	}
-
-	return s.GetTimeline(ctx)
 }
 
 func (s *service) GetMedia(ctx context.Context) (*MediaResponse, error) {

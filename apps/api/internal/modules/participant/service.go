@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 )
@@ -37,15 +38,17 @@ type Service interface {
 
 type service struct {
 	repo         Repository
+	resolver     website.PhaseResolver
 	auditService audit.AuditService
 	mailer       mailer.Mailer
 	rdb          *redis.Client
 	cfg          *config.Config
 }
 
-func NewService(repo Repository, auditService audit.AuditService, m mailer.Mailer, rdb *redis.Client, cfg *config.Config) Service {
+func NewService(repo Repository, resolver website.PhaseResolver, auditService audit.AuditService, m mailer.Mailer, rdb *redis.Client, cfg *config.Config) Service {
 	return &service{
 		repo:         repo,
+		resolver:     resolver,
 		auditService: auditService,
 		mailer:       m,
 		rdb:          rdb,
@@ -206,16 +209,13 @@ func (s *service) Delete(ctx context.Context, id string) error {
 }
 
 func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticipantRequest) (*PublicRegisterParticipantResponse, error) {
-	// Check Registration Dates
-	openDate, closeDate, err := s.repo.GetMusyawarahRegistrationDates(ctx, req.MusyawarahID)
-	if err == nil {
-		now := time.Now()
-		if openDate != nil && now.Before(*openDate) {
-			return nil, ErrRegistrationNotOpen
-		}
-		if closeDate != nil && now.After(*closeDate) {
-			return nil, ErrRegistrationClosed
-		}
+	// Check Registration Dates via PhaseResolver
+	isOpen, err := s.resolver.IsParticipantRegistrationOpen(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !isOpen {
+		return nil, ErrRegistrationClosed
 	}
 
 	// Check for duplicate email

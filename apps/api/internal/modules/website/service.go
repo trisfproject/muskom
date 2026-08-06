@@ -66,7 +66,6 @@ type service struct {
 	mapper    *Mapper
 	validator *Validator
 	logger    *zap.Logger
-	sync      TimelineSynchronizer
 }
 
 func NewService(repo Repository, cache Cache, mapper *Mapper, validator *Validator, logger *zap.Logger, opts ...ServiceOption) Service {
@@ -85,13 +84,6 @@ func NewService(repo Repository, cache Cache, mapper *Mapper, validator *Validat
 
 // ServiceOption allows injecting optional dependencies into the website service.
 type ServiceOption func(*service)
-
-// WithTimelineSynchronizer injects the timeline synchronizer for ADR-007.
-func WithTimelineSynchronizer(sync TimelineSynchronizer) ServiceOption {
-	return func(s *service) {
-		s.sync = sync
-	}
-}
 
 // ----------------------------------------------------------------------------
 // Shared Helpers
@@ -542,13 +534,6 @@ func (s *service) CreateAdminTimeline(ctx context.Context, req *CreateTimelinePh
 		return nil, err
 	}
 
-	// Synchronize derived tables within the same transaction
-	if s.sync != nil {
-		if err := s.sync.SyncWithinTx(ctx, tx); err != nil {
-			return nil, err
-		}
-	}
-
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -597,13 +582,6 @@ func (s *service) UpdateAdminTimeline(ctx context.Context, id string, req *Updat
 		return nil, err
 	}
 
-	// Synchronize derived tables within the same transaction
-	if s.sync != nil {
-		if err := s.sync.SyncWithinTx(ctx, tx); err != nil {
-			return nil, err
-		}
-	}
-
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -624,15 +602,6 @@ func (s *service) DeleteAdminTimeline(ctx context.Context, id string) error {
 	_, err = tx.ExecContext(ctx, `UPDATE website_timeline_phases SET deleted_at = NOW() WHERE id = $1`, id)
 	if err != nil {
 		return err
-	}
-
-	// Synchronize derived tables within the same transaction
-	// This will nullify event_phases and events columns if the deleted phase
-	// was the only source for REGISTRATION or CANDIDATE_REGISTRATION dates.
-	if s.sync != nil {
-		if err := s.sync.SyncWithinTx(ctx, tx); err != nil {
-			return err
-		}
 	}
 
 	if err := tx.Commit(); err != nil {

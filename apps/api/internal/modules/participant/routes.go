@@ -8,6 +8,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/redis/go-redis/v9"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"go.uber.org/zap"
 )
 
@@ -17,7 +18,8 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 	repo := NewRepository(db)
 	auditRepo := audit.NewRepository(db)
 	auditSvc := audit.NewService(auditRepo, log)
-	svc := NewService(repo, auditSvc, m, nil, nil)
+	resolver := website.NewPhaseResolver(db)
+	svc := NewService(repo, resolver, auditSvc, m, nil, nil)
 	handler := NewHandler(svc, val)
 
 	// Routes
@@ -35,7 +37,8 @@ func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, cfg 
 	repo := NewRepository(db)
 	auditRepo := audit.NewRepository(db)
 	auditSvc := audit.NewService(auditRepo, log)
-	svc := NewService(repo, auditSvc, m, rdb, cfg)
+	resolver := website.NewPhaseResolver(db)
+	svc := NewService(repo, resolver, auditSvc, m, rdb, cfg)
 	handler := NewHandler(svc, val)
 
 	router.Post("/register", handler.PublicRegister)

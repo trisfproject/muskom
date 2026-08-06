@@ -5,7 +5,6 @@ import (
 	"database/sql"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/trisfproject/muskom/apps/api/internal/modules/musyawarah"
 )
 
 type Repository interface {
@@ -14,7 +13,6 @@ type Repository interface {
 	GetTimelines(ctx context.Context, eventID string) ([]PublicTimeline, error)
 	GetAnnouncements(ctx context.Context, eventID string) ([]PublicAnnouncement, error)
 	GetCandidates(ctx context.Context) ([]PublicCandidate, error)
-	GetPhases(ctx context.Context, eventID string) ([]musyawarah.MusyawarahPhase, error)
 	GetParticipantCount(ctx context.Context, eventID string) (int, error)
 }
 
@@ -104,16 +102,6 @@ func (r *repository) GetCandidates(ctx context.Context) ([]PublicCandidate, erro
 		c = []PublicCandidate{}
 	}
 	return c, err
-}
-
-func (r *repository) GetPhases(ctx context.Context, eventID string) ([]musyawarah.MusyawarahPhase, error) {
-	query := `SELECT phase, start_at, end_at FROM event_phases WHERE event_id = $1`
-	var p []musyawarah.MusyawarahPhase
-	err := r.db.SelectContext(ctx, &p, query, eventID)
-	if p == nil {
-		p = []musyawarah.MusyawarahPhase{}
-	}
-	return p, err
 }
 
 func (r *repository) GetParticipantCount(ctx context.Context, eventID string) (int, error) {

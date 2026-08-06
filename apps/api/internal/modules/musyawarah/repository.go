@@ -23,11 +23,9 @@ type Repository interface {
 	// Existing (active event)
 	GetActiveEvent(ctx context.Context) (*MusyawarahEvent, error)
 	GetSettings(ctx context.Context, eventID string) (*MusyawarahSettings, error)
-	GetPhases(ctx context.Context, eventID string) ([]MusyawarahPhase, error)
 	UpdateEvent(ctx context.Context, tx *sqlx.Tx, e *MusyawarahEvent) error
 	UpdateSettings(ctx context.Context, tx *sqlx.Tx, eventID string, s *MusyawarahSettings) error
 	UpdateMedia(ctx context.Context, eventID string, mediaType string, path *string) error
-	UpsertPhase(ctx context.Context, tx *sqlx.Tx, eventID string, p *MusyawarahPhase) error
 	BeginTx(ctx context.Context) (*sqlx.Tx, error)
 }
 
@@ -48,8 +46,7 @@ func (r *repository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
 func (r *repository) ListEvents(ctx context.Context) ([]MusyawarahEvent, error) {
 	query := `
 		SELECT id, name, slug, theme, description, location, address, google_maps_url,
-		       period_start, period_end, event_date, registration_open, registration_close,
-		       candidate_registration_open, candidate_registration_close, banner_path, logo_path, cover_path, status,
+		       period_start, period_end, event_date, banner_path, logo_path, cover_path, status,
 		       is_default_active, created_by, updated_by, created_at, updated_at
 		FROM events
 		WHERE deleted_at IS NULL
@@ -63,8 +60,7 @@ func (r *repository) ListEvents(ctx context.Context) ([]MusyawarahEvent, error) 
 func (r *repository) GetEventByID(ctx context.Context, id string) (*MusyawarahEvent, error) {
 	query := `
 		SELECT id, name, slug, theme, description, location, address, google_maps_url,
-		       period_start, period_end, event_date, registration_open, registration_close,
-		       candidate_registration_open, candidate_registration_close, banner_path, logo_path, cover_path, status,
+		       period_start, period_end, event_date, banner_path, logo_path, cover_path, status,
 		       is_default_active, created_by, updated_by, created_at, updated_at
 		FROM events
 		WHERE id = $1 AND deleted_at IS NULL
@@ -77,8 +73,7 @@ func (r *repository) GetEventByID(ctx context.Context, id string) (*MusyawarahEv
 func (r *repository) GetEventBySlug(ctx context.Context, slug string) (*MusyawarahEvent, error) {
 	query := `
 		SELECT id, name, slug, theme, description, location, address, google_maps_url,
-		       period_start, period_end, event_date, registration_open, registration_close,
-		       candidate_registration_open, candidate_registration_close, banner_path, logo_path, cover_path, status,
+		       period_start, period_end, event_date, banner_path, logo_path, cover_path, status,
 		       is_default_active, created_by, updated_by, created_at, updated_at
 		FROM events
 		WHERE slug = $1 AND deleted_at IS NULL
@@ -92,26 +87,21 @@ func (r *repository) CreateEvent(ctx context.Context, e *MusyawarahEvent) (*Musy
 	query := `
 		INSERT INTO events (
 			name, slug, theme, description, location, address, google_maps_url, status,
-			period_start, period_end, event_date, registration_open, registration_close,
-			candidate_registration_open, candidate_registration_close,
+			period_start, period_end, event_date,
 			is_default_active, settings, created_by, updated_by, created_at, updated_at
 		) VALUES (
 			$1, $2, $3, $4, $5, $6, $7, 'DRAFT',
-			$8, $9, $10, $11, $12,
-			$13, $14,
+			$8, $9, $10,
 			false, '{}'::jsonb, $15, $15, NOW(), NOW()
 		)
 		RETURNING id, name, slug, theme, description, location, address, google_maps_url,
-		          period_start, period_end, event_date, registration_open, registration_close,
-		          candidate_registration_open, candidate_registration_close, banner_path, logo_path, cover_path, status,
+		          period_start, period_end, event_date, banner_path, logo_path, cover_path, status,
 		          is_default_active, created_by, updated_by, created_at, updated_at
 	`
 	var created MusyawarahEvent
 	err := r.db.QueryRowxContext(ctx, query,
 		e.Name, e.Slug, e.Theme, e.Description, e.Location, e.Address, e.GoogleMapsURL,
-		e.PeriodStart, e.PeriodEnd, e.EventDate, e.RegistrationOpen, e.RegistrationClose,
-		e.CandidateRegistrationOpen, e.CandidateRegistrationClose,
-		e.CreatedBy,
+		e.PeriodStart, e.PeriodEnd, e.EventDate, e.CreatedBy,
 	).StructScan(&created)
 	return &created, err
 }
@@ -155,29 +145,24 @@ func (r *repository) CloneEvent(ctx context.Context, sourceID string, clonedBy s
 	// 2. Insert new event
 	newSlug := source.Slug + "-copy-" + time.Now().Format("20060102150405")
 	newName := source.Name + " (Copy)"
-	
+
 	insertQuery := `
 		INSERT INTO events (
 			name, slug, theme, description, location, address, google_maps_url, status,
-			period_start, period_end, event_date, registration_open, registration_close,
-			candidate_registration_open, candidate_registration_close,
+			period_start, period_end, event_date,
 			is_default_active, created_by, updated_by, created_at, updated_at
 		) VALUES (
 			$1, $2, $3, $4, $5, $6, $7, 'DRAFT',
-			$8, $9, $10, $11, $12,
-			$13, $14,
+			$8, $9, $10,
 			false, $15, $15, NOW(), NOW()
 		) RETURNING id, name, slug, theme, description, location, address, google_maps_url,
-		       period_start, period_end, event_date, registration_open, registration_close,
-		       candidate_registration_open, candidate_registration_close, banner_path, logo_path, cover_path, status,
+		       period_start, period_end, event_date, banner_path, logo_path, cover_path, status,
 		       is_default_active, created_by, updated_by, created_at, updated_at
 	`
 	var newEvent MusyawarahEvent
 	err = tx.QueryRowxContext(ctx, insertQuery,
 		newName, newSlug, source.Theme, source.Description, source.Location, source.Address, source.GoogleMapsURL,
-		source.PeriodStart, source.PeriodEnd, source.EventDate, source.RegistrationOpen, source.RegistrationClose,
-		source.CandidateRegistrationOpen, source.CandidateRegistrationClose,
-		clonedBy,
+		source.PeriodStart, source.PeriodEnd, source.EventDate, clonedBy,
 	).StructScan(&newEvent)
 	if err != nil {
 		return nil, err
@@ -189,17 +174,6 @@ func (r *repository) CloneEvent(ctx context.Context, sourceID string, clonedBy s
 		err = r.UpdateSettings(ctx, tx, newEvent.ID, settings)
 		if err != nil {
 			return nil, err
-		}
-	}
-
-	// 4. Clone Phases
-	phases, err := r.GetPhases(ctx, sourceID)
-	if err == nil && len(phases) > 0 {
-		for _, p := range phases {
-			err = r.UpsertPhase(ctx, tx, newEvent.ID, &p)
-			if err != nil {
-				return nil, err
-			}
 		}
 	}
 
@@ -215,8 +189,7 @@ func (r *repository) CloneEvent(ctx context.Context, sourceID string, clonedBy s
 func (r *repository) GetActiveEvent(ctx context.Context) (*MusyawarahEvent, error) {
 	query := `
 		SELECT id, name, slug, theme, description, location, address, google_maps_url,
-		       period_start, period_end, event_date, registration_open, registration_close,
-		       candidate_registration_open, candidate_registration_close, banner_path, logo_path, cover_path, status,
+		       period_start, period_end, event_date, banner_path, logo_path, cover_path, status,
 		       is_default_active, created_by, updated_by, created_at, updated_at
 		FROM events 
 		WHERE is_default_active = true AND deleted_at IS NULL
@@ -246,29 +219,18 @@ func (r *repository) GetSettings(ctx context.Context, eventID string) (*Musyawar
 	return &s, err
 }
 
-func (r *repository) GetPhases(ctx context.Context, eventID string) ([]MusyawarahPhase, error) {
-	query := `SELECT phase, start_at, end_at FROM event_phases WHERE event_id = $1`
-	var p []MusyawarahPhase
-	err := r.db.SelectContext(ctx, &p, query, eventID)
-	return p, err
-}
-
 func (r *repository) UpdateEvent(ctx context.Context, tx *sqlx.Tx, event *MusyawarahEvent) error {
 	query := `
 		UPDATE events SET 
 			name = $1, slug = $2, theme = $3, description = $4, location = $5, address = $6, google_maps_url = $7,
 			banner_path = $8, logo_path = $9, status = $10, updated_at = NOW(), updated_by = $11,
-			period_start = $12, period_end = $13, event_date = $14,
-			registration_open = $15, registration_close = $16,
-			candidate_registration_open = $17, candidate_registration_close = $18
+			period_start = $12, period_end = $13, event_date = $14
 		WHERE id = $19 AND deleted_at IS NULL
 	`
 	_, err := tx.ExecContext(ctx, query,
 		event.Name, event.Slug, event.Theme, event.Description, event.Location, event.Address, event.GoogleMapsURL,
 		event.BannerPath, event.LogoPath, event.Status, event.UpdatedBy,
 		event.PeriodStart, event.PeriodEnd, event.EventDate,
-		event.RegistrationOpen, event.RegistrationClose,
-		event.CandidateRegistrationOpen, event.CandidateRegistrationClose,
 		event.ID,
 	)
 	return err
@@ -328,18 +290,5 @@ func (r *repository) UpdateMedia(ctx context.Context, eventID string, mediaType 
 
 	query := `UPDATE events SET ` + column + ` = $1, updated_at = NOW() WHERE id = $2 AND deleted_at IS NULL`
 	_, err := r.db.ExecContext(ctx, query, path, eventID)
-	return err
-}
-
-func (r *repository) UpsertPhase(ctx context.Context, tx *sqlx.Tx, eventID string, p *MusyawarahPhase) error {
-	query := `
-		INSERT INTO event_phases (event_id, phase, start_at, end_at, updated_at)
-		VALUES ($1, $2, $3, $4, NOW())
-		ON CONFLICT (event_id, phase) DO UPDATE SET
-			start_at = EXCLUDED.start_at,
-			end_at = EXCLUDED.end_at,
-			updated_at = NOW()
-	`
-	_, err := tx.ExecContext(ctx, query, eventID, p.Phase, p.StartAt, p.EndAt)
 	return err
 }

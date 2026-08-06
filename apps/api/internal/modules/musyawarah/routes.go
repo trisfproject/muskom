@@ -18,8 +18,6 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 	// Active event settings & timeline (static routes MUST be registered before /:id)
 	router.Get("/settings", handler.GetSettings)
 	router.Put("/settings", handler.UpdateSettings)
-	router.Get("/timeline", handler.GetTimeline)
-	router.Put("/timeline", handler.UpdateTimeline)
 
 	// Multi-event CRUD
 	router.Get("/", handler.List)
