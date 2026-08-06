@@ -15,6 +15,12 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 	svc := NewService(repo, log, strg)
 	handler := NewHandler(svc, val, maxUploadSize)
 
+	// Active event settings & timeline (static routes MUST be registered before /:id)
+	router.Get("/settings", handler.GetSettings)
+	router.Put("/settings", handler.UpdateSettings)
+	router.Get("/timeline", handler.GetTimeline)
+	router.Put("/timeline", handler.UpdateTimeline)
+
 	// Multi-event CRUD
 	router.Get("/", handler.List)
 	router.Post("/", handler.Create)
@@ -27,12 +33,6 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 	router.Post("/:id/archive", handler.Archive)
 	router.Post("/:id/clone", handler.Clone)
 	router.Post("/:id/publish", handler.Publish)
-
-	// Active event settings & timeline
-	router.Get("/settings", handler.GetSettings)
-	router.Put("/settings", handler.UpdateSettings)
-	router.Get("/timeline", handler.GetTimeline)
-	router.Put("/timeline", handler.UpdateTimeline)
 
 	media := router.Group("/media")
 	media.Get("/", handler.GetMedia)
