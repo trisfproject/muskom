@@ -12,14 +12,22 @@ type CreateCandidateRequest struct {
 	Email        string  `json:"email" validate:"required,email,max=255"`
 	Phone        string  `json:"phone" validate:"required,max=50"`
 
-	CompanyName    *string `json:"company_name" validate:"omitempty,max=255"`
-	IndustrialArea *string `json:"industrial_area" validate:"omitempty,max=255"`
-	JobTitle       *string `json:"job_title" validate:"omitempty,max=255"`
-	Department     *string `json:"department" validate:"omitempty,max=255"`
-	Biography      *string `json:"biography"`
-	Motivation     *string `json:"motivation"`
-	Vision         *string `json:"vision"`
-	Mission        *string `json:"mission"`
+	CompanyName       *string `json:"company_name" validate:"omitempty,max=255"`
+	IndustrialArea    *string `json:"industrial_area" validate:"omitempty,max=255"`
+	JobTitle          *string `json:"job_title" validate:"omitempty,max=255"`
+	Department        *string `json:"department" validate:"omitempty,max=255"`
+	Biography         *string `json:"biography"`
+	Motivation        *string `json:"motivation"`
+	Vision            *string `json:"vision"`
+	Mission           *string `json:"mission"`
+	CandidateNumber   *int    `json:"candidate_number" validate:"omitempty,min=1"`
+	DisplayOrder      *int    `json:"display_order"`
+	Status            *string `json:"status" validate:"omitempty,oneof=Draft Submitted 'Under Review' 'Revision Required' Verified Rejected"`
+	PublicationStatus *string `json:"publication_status" validate:"omitempty,oneof=Hidden Unpublished Published"`
+	ShowBiography     *bool   `json:"show_biography"`
+	ShowVision        *bool   `json:"show_vision"`
+	ShowMission       *bool   `json:"show_mission"`
+	ShowPhoto         *bool   `json:"show_photo"`
 }
 
 type BulkDeleteCandidateRequest struct {
@@ -33,16 +41,23 @@ type UpdateCandidateRequest struct {
 	Email    string  `json:"email" validate:"required,email,max=255"`
 	Phone    string  `json:"phone" validate:"required,max=50"`
 
-	CompanyName    *string `json:"company_name" validate:"omitempty,max=255"`
-	IndustrialArea *string `json:"industrial_area" validate:"omitempty,max=255"`
-	JobTitle       *string `json:"job_title" validate:"omitempty,max=255"`
-	Department     *string `json:"department" validate:"omitempty,max=255"`
-	Biography      *string `json:"biography"`
-	Motivation     *string `json:"motivation"`
-	Vision         *string `json:"vision"`
-	Mission        *string `json:"mission"`
-	ProfilePhoto   *string `json:"profile_photo"`
-	Status         *string `json:"status" validate:"omitempty,oneof=Draft Submitted Verified Rejected Published"`
+	CompanyName       *string `json:"company_name" validate:"omitempty,max=255"`
+	IndustrialArea    *string `json:"industrial_area" validate:"omitempty,max=255"`
+	JobTitle          *string `json:"job_title" validate:"omitempty,max=255"`
+	Department        *string `json:"department" validate:"omitempty,max=255"`
+	Biography         *string `json:"biography"`
+	Motivation        *string `json:"motivation"`
+	Vision            *string `json:"vision"`
+	Mission           *string `json:"mission"`
+	ProfilePhoto      *string `json:"profile_photo"`
+	CandidateNumber   *int    `json:"candidate_number" validate:"omitempty,min=1"`
+	DisplayOrder      *int    `json:"display_order"`
+	Status            *string `json:"status" validate:"omitempty,oneof=Draft Submitted 'Under Review' 'Revision Required' Verified Rejected Published"`
+	PublicationStatus *string `json:"publication_status" validate:"omitempty,oneof=Hidden Unpublished Published"`
+	ShowBiography     *bool   `json:"show_biography"`
+	ShowVision        *bool   `json:"show_vision"`
+	ShowMission       *bool   `json:"show_mission"`
+	ShowPhoto         *bool   `json:"show_photo"`
 }
 
 // PatchCandidateRequest represents the payload for partially updating a candidate.

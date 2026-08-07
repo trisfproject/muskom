@@ -86,6 +86,28 @@ export const adminParticipantService = {
     await api.patch(`/admin/participants/${id}/status`, payload);
   },
 
+  async createParticipant(payload: any): Promise<AdminParticipantResponse> {
+    const response = await api.post('/admin/participants', payload);
+    return response.data.data || response.data;
+  },
+
+  async updateParticipant(id: string, payload: Partial<AdminParticipantResponse>): Promise<AdminParticipantResponse> {
+    const response = await api.put(`/admin/participants/${id}`, payload);
+    return response.data.data || response.data;
+  },
+
+  async deleteParticipant(id: string): Promise<void> {
+    await api.delete(`/admin/participants/${id}`);
+  },
+
+  async bulkDelete(ids: string[]): Promise<void> {
+    await api.post('/admin/participants/bulk-delete', { ids });
+  },
+
+  async bulkUpdateStatus(ids: string[], status: string, reason?: string): Promise<void> {
+    await api.post('/admin/participants/bulk-status', { ids, status, reason });
+  },
+
   async getAuditLogs(entityId: string): Promise<ParticipantAuditEntry[]> {
     const response = await api.get(`/admin/audit`, {
       params: { entity_id: entityId, module: 'participant', limit: 50 },

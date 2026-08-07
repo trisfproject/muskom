@@ -73,6 +73,41 @@ func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*Cand
 	}
 	regNum := fmt.Sprintf("CAN-%s-%s", strings.ToUpper(prefix), strings.ToUpper(uuid.New().String()[:8]))
 
+	status := StatusDraft
+	if req.Status != nil && *req.Status != "" {
+		status = *req.Status
+	}
+
+	pubStatus := "Unpublished"
+	if req.PublicationStatus != nil && *req.PublicationStatus != "" {
+		pubStatus = *req.PublicationStatus
+	}
+
+	displayOrder := 0
+	if req.DisplayOrder != nil {
+		displayOrder = *req.DisplayOrder
+	}
+
+	showBio := true
+	if req.ShowBiography != nil {
+		showBio = *req.ShowBiography
+	}
+
+	showVis := true
+	if req.ShowVision != nil {
+		showVis = *req.ShowVision
+	}
+
+	showMis := true
+	if req.ShowMission != nil {
+		showMis = *req.ShowMission
+	}
+
+	showPhoto := true
+	if req.ShowPhoto != nil {
+		showPhoto = *req.ShowPhoto
+	}
+
 	c := &Candidate{
 		MusyawarahID:       req.MusyawarahID,
 		RegistrationNumber: regNum,
@@ -81,15 +116,22 @@ func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*Cand
 		Email:              req.Email,
 		Phone:              req.Phone,
 
-		CompanyName:    req.CompanyName,
-		IndustrialArea: req.IndustrialArea,
-		JobTitle:       req.JobTitle,
-		Department:     req.Department,
-		Biography:      req.Biography,
-		Motivation:     req.Motivation,
-		Vision:         req.Vision,
-		Mission:        req.Mission,
-		Status:         StatusDraft,
+		CompanyName:       req.CompanyName,
+		IndustrialArea:    req.IndustrialArea,
+		JobTitle:          req.JobTitle,
+		Department:        req.Department,
+		Biography:         req.Biography,
+		Motivation:        req.Motivation,
+		Vision:            req.Vision,
+		Mission:           req.Mission,
+		Status:            status,
+		CandidateNumber:   req.CandidateNumber,
+		DisplayOrder:      displayOrder,
+		PublicationStatus: pubStatus,
+		ShowBiography:     showBio,
+		ShowVision:        showVis,
+		ShowMission:       showMis,
+		ShowPhoto:         showPhoto,
 	}
 
 	err := s.repo.Create(ctx, c)
@@ -153,9 +195,6 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 	if err != nil {
 		return nil, err
 	}
-	if c.Status != StatusDraft && c.Status != StatusRevisionRequired {
-		return nil, errors.New("cannot modify candidate: not in draft state")
-	}
 
 	oldVal := *c
 
@@ -172,9 +211,33 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 	c.Motivation = req.Motivation
 	c.Vision = req.Vision
 	c.Mission = req.Mission
-	c.ProfilePhoto = req.ProfilePhoto
+	if req.ProfilePhoto != nil {
+		c.ProfilePhoto = req.ProfilePhoto
+	}
 
-	if req.Status != nil {
+	if req.CandidateNumber != nil {
+		c.CandidateNumber = req.CandidateNumber
+	}
+	if req.DisplayOrder != nil {
+		c.DisplayOrder = *req.DisplayOrder
+	}
+	if req.PublicationStatus != nil && *req.PublicationStatus != "" {
+		c.PublicationStatus = *req.PublicationStatus
+	}
+	if req.ShowBiography != nil {
+		c.ShowBiography = *req.ShowBiography
+	}
+	if req.ShowVision != nil {
+		c.ShowVision = *req.ShowVision
+	}
+	if req.ShowMission != nil {
+		c.ShowMission = *req.ShowMission
+	}
+	if req.ShowPhoto != nil {
+		c.ShowPhoto = *req.ShowPhoto
+	}
+
+	if req.Status != nil && *req.Status != "" {
 		c.Status = *req.Status
 	}
 

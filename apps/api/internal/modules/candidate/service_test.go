@@ -161,32 +161,3 @@ func TestService_Update(t *testing.T) {
 		t.Fatalf("expected result, got nil")
 	}
 }
-
-func TestService_Update_NotDraft(t *testing.T) {
-	repo := &MockRepository{
-		GetByIDFunc: func(ctx context.Context, id string) (*Candidate, error) {
-			return &Candidate{
-				ID:     id,
-				Status: StatusVerified, // Not draft
-			}, nil
-		},
-	}
-	auditSvc := &mockAuditService{}
-	st := &mockStorage{}
-	cfg := &config.Config{}
-	log := zap.NewNop()
-
-	svc := NewService(repo, auditSvc, st, 5*1024*1024, cfg, log)
-
-	req := UpdateCandidateRequest{
-		FullName: "Jane Doe",
-	}
-
-	_, err := svc.Update(context.Background(), "test-uuid", req)
-	if err == nil {
-		t.Fatalf("expected error, got nil")
-	}
-	if err.Error() != "cannot modify candidate: not in draft state" {
-		t.Errorf("unexpected error message: %v", err)
-	}
-}

@@ -2,9 +2,36 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, User, FileText, CheckCircle2, XCircle, AlertCircle, Eye, RefreshCw, Calendar, MapPin, Briefcase } from "lucide-react";
-import { candidateAdminService, CandidateAdminResponse, CandidateAdminDocumentResponse } from "@/services/candidate-admin";
+import {
+  ArrowLeft,
+  User,
+  FileText,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Eye,
+  RefreshCw,
+  Calendar,
+  MapPin,
+  Briefcase,
+  Upload,
+  Edit3,
+  X,
+  Mail,
+  Phone,
+  Building2,
+  Sparkles,
+  ShieldCheck,
+  Globe,
+  Clock,
+} from "lucide-react";
+import {
+  candidateAdminService,
+  CandidateAdminResponse,
+  CandidateAdminDocumentResponse,
+} from "@/services/candidate-admin";
 import api from "@/lib/api";
+import { toast } from "sonner";
 
 export default function CandidateDetailPage() {
   const { id } = useParams() as { id: string };
@@ -33,6 +60,14 @@ export default function CandidateDetailPage() {
   const [showPhoto, setShowPhoto] = useState(true);
   const [savingPub, setSavingPub] = useState(false);
 
+  // Edit Candidate Modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState<any>({});
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  // Photo upload state
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -48,14 +83,17 @@ export default function CandidateDetailPage() {
       setShowMis(res.show_mission ?? true);
       setShowPhoto(res.show_photo ?? true);
 
-      // Fetch audit logs manually since we don't have a specific client mapped easily
-      const auditRes = await api.get<{ data: { items: any[] } }>(`/admin/audit?entity_id=${id}`);
-      if (auditRes.data?.data?.items) {
-        setAudits(auditRes.data.data.items);
+      // Audit logs
+      try {
+        const auditRes = await api.get<{ data: { items: any[] } }>(`/admin/audit?entity_id=${id}`);
+        if (auditRes.data?.data?.items) {
+          setAudits(auditRes.data.data.items);
+        }
+      } catch {
+        setAudits([]);
       }
     } catch (err) {
-      console.error(err);
-      alert("Failed to load candidate details");
+      toast.error("Gagal memuat detail kandidat.");
     } finally {
       setLoading(false);
     }
@@ -67,15 +105,14 @@ export default function CandidateDetailPage() {
   }, [id]);
 
   const handleVerifyCandidate = async () => {
-    if (!verifyStatus) return alert("Select a status");
+    if (!verifyStatus) return toast.error("Pilih status verifikasi.");
     setVerifying(true);
     try {
       await candidateAdminService.verifyCandidate(id, verifyStatus, verifyNotes);
-      alert("Verification status updated");
+      toast.success("Status verifikasi kandidat berhasil diperbarui.");
       fetchData();
     } catch (err: any) {
-      console.error(err);
-      alert(err?.response?.data?.message || "Failed to update status");
+      toast.error(err?.response?.data?.message || "Gagal memperbarui status verifikasi.");
     } finally {
       setVerifying(false);
     }
@@ -83,20 +120,20 @@ export default function CandidateDetailPage() {
 
   const handlePublishToggle = async () => {
     if (candidate?.status !== "Verified") {
-      return alert("Kandidat harus diverifikasi sebelum dapat dipublikasikan.");
+      return toast.error("Kandidat harus berstatus Verified sebelum dapat dipublikasikan.");
     }
     setSavingPub(true);
     try {
       if (pubStatus === "Published") {
         await candidateAdminService.unpublishCandidate(id);
+        toast.success("Kandidat berhasil di-unpublish dari website publik.");
       } else {
         await candidateAdminService.publishCandidate(id);
+        toast.success("Kandidat berhasil dipublikasikan ke website publik!");
       }
-      alert("Status publikasi berhasil diubah");
       fetchData();
     } catch (err: any) {
-      console.error(err);
-      alert(err?.response?.data?.message || "Gagal mengubah status publikasi");
+      toast.error(err?.response?.data?.message || "Gagal mengubah status publikasi.");
     } finally {
       setSavingPub(false);
     }
@@ -113,146 +150,294 @@ export default function CandidateDetailPage() {
         show_mission: showMis,
         show_photo: showPhoto,
       });
-      alert("Pengaturan publikasi berhasil disimpan");
+      toast.success("Pengaturan publikasi berhasil disimpan.");
       fetchData();
     } catch (err: any) {
-      console.error(err);
-      alert(err?.response?.data?.message || "Gagal menyimpan pengaturan publikasi");
+      toast.error(err?.response?.data?.message || "Gagal menyimpan pengaturan publikasi.");
     } finally {
       setSavingPub(false);
+    }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPhoto(true);
+    try {
+      await candidateAdminService.uploadPhoto(id, file);
+      toast.success("Foto kandidat berhasil diunggah.");
+      fetchData();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal mengunggah foto.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const openEditModal = () => {
+    if (!candidate) return;
+    setEditForm({
+      full_name: candidate.full_name,
+      nickname: candidate.nickname || "",
+      email: candidate.email,
+      phone: candidate.phone,
+      company_name: candidate.company_name || "",
+      industrial_area: candidate.industrial_area || "",
+      job_title: candidate.job_title || "",
+      department: candidate.department || "",
+      biography: candidate.biography || "",
+      motivation: candidate.motivation || "",
+      vision: candidate.vision || "",
+      mission: candidate.mission || "",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingEdit(true);
+    try {
+      await candidateAdminService.updateCandidate(id, editForm);
+      toast.success("Data kandidat berhasil diperbarui.");
+      setShowEditModal(false);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal memperbarui data kandidat.");
+    } finally {
+      setSavingEdit(false);
     }
   };
 
   const handleVerifyDocument = async (docId: string, status: "Valid" | "Invalid") => {
     try {
       await candidateAdminService.verifyDocument(id, docId, status, docNotes);
-      alert(`Document marked as ${status}`);
+      toast.success(`Dokumen ditandai sebagai ${status}`);
       setSelectedDoc(null);
       setDocNotes("");
       fetchData();
     } catch (err: any) {
-      console.error(err);
-      alert(err?.response?.data?.message || "Failed to verify document");
+      toast.error(err?.response?.data?.message || "Gagal memverifikasi dokumen.");
     }
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-slate-500">Memuat data kandidat...</div>;
+    return (
+      <div className="p-16 text-center text-sm pg-muted">
+        <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-600" />
+        Memuat data kandidat...
+      </div>
+    );
   }
 
   if (!candidate) {
-    return <div className="p-8 text-center text-red-500">Kandidat tidak ditemukan</div>;
+    return (
+      <div className="p-16 text-center text-sm text-red-500">
+        Kandidat tidak ditemukan.
+      </div>
+    );
   }
 
   return (
-    <main className="p-6 pb-20">
-      <button 
-        onClick={() => router.back()} 
-        className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 mb-6 font-medium transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" /> Kembali ke Daftar
-      </button>
+    <div className="space-y-6 pb-20">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <button
+          onClick={() => router.push("/admin/candidates")}
+          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white font-semibold transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" /> Kembali ke Data Induk Kandidat
+        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={openEditModal}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+          >
+            <Edit3 className="w-3.5 h-3.5" /> Edit Data
+          </button>
+          <button
+            onClick={fetchData}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Segarkan
+          </button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* LEFT: Candidate Info */}
+        {/* LEFT: Candidate Info & Vision/Mission */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 mb-6">
-              <div className="w-20 h-20 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden border border-slate-200">
-                {candidate.profile_photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={candidate.profile_photo} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="w-8 h-8 text-slate-400" />
-                )}
+          {/* Main Profile Card */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-6">
+              <div className="relative group">
+                <div className="w-24 h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner">
+                  {candidate.profile_photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={candidate.profile_photo}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <User className="w-10 h-10 text-slate-400" />
+                  )}
+                </div>
+                <label className="absolute inset-0 rounded-2xl bg-black/40 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-[10px] font-semibold">
+                  <Upload className="w-4 h-4 mb-0.5" />
+                  {uploadingPhoto ? "..." : "Ganti Foto"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    disabled={uploadingPhoto}
+                    className="hidden"
+                  />
+                </label>
               </div>
+
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">{candidate.full_name}</h1>
-                <p className="text-slate-500">{candidate.registration_number}</p>
-                <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-600">
-                  <div className="flex items-center gap-1.5"><Briefcase className="w-4 h-4 text-slate-400" /> {candidate.job_title || '-'} di {candidate.company_name || '-'}</div>
-                  <div className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-slate-400" /> {candidate.industrial_area || '-'}</div>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-2xl font-bold pg-text">{candidate.full_name}</h1>
+                  {candidate.candidate_number && (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      No. Urut #{candidate.candidate_number}
+                    </span>
+                  )}
+                </div>
+                <p className="font-mono text-xs pg-muted mt-1 font-semibold">
+                  REG: {candidate.registration_number}
+                </p>
+                <div className="flex flex-wrap items-center gap-4 mt-3 text-xs pg-muted font-medium">
+                  <div className="flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5 text-slate-400" />{" "}
+                    {candidate.job_title || "-"} di {candidate.company_name || "-"}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400" />{" "}
+                    {candidate.industrial_area || "-"}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
-              <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</label>
-                <p className="font-medium text-slate-900">{candidate.email}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-sm">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <span className="text-xs pg-muted font-medium">Email</span>
+                <span className="font-semibold pg-text flex items-center gap-1.5 mt-1">
+                  <Mail className="w-3.5 h-3.5 text-blue-500" /> {candidate.email}
+                </span>
               </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Telepon</label>
-                <p className="font-medium text-slate-900">{candidate.phone}</p>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <span className="text-xs pg-muted font-medium">Telepon / WhatsApp</span>
+                <span className="font-semibold pg-text flex items-center gap-1.5 mt-1">
+                  <Phone className="w-3.5 h-3.5 text-emerald-500" /> {candidate.phone}
+                </span>
               </div>
-              <div className="md:col-span-2">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Departemen</label>
-                <p className="font-medium text-slate-900 whitespace-pre-wrap">{candidate.department || '-'}</p>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <span className="text-xs pg-muted font-medium">Departemen</span>
+                <span className="font-semibold pg-text mt-1 block">
+                  {candidate.department || "-"}
+                </span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <span className="text-xs pg-muted font-medium">Nama Panggilan</span>
+                <span className="font-semibold pg-text mt-1 block">
+                  {candidate.nickname || "-"}
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">Profil & Visi Misi</h2>
-            
-            <div className="space-y-6">
+          {/* Vision, Mission, Biography */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-6">
+            <h2 className="text-lg font-bold pg-text flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Visi, Misi & Gagasan
+            </h2>
+
+            <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-2">Biografi Singkat</h3>
-                <div className="p-4 bg-slate-50 rounded-lg text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                  {candidate.biography || 'Belum diisi'}
+                <h3 className="text-xs font-bold uppercase tracking-wider pg-muted mb-2">
+                  Visi Kandidat
+                </h3>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-xl text-sm pg-text leading-relaxed whitespace-pre-wrap">
+                  {candidate.vision || "Belum diisi"}
                 </div>
               </div>
+
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-2">Motivasi</h3>
-                <div className="p-4 bg-slate-50 rounded-lg text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                  {candidate.motivation || 'Belum diisi'}
+                <h3 className="text-xs font-bold uppercase tracking-wider pg-muted mb-2">
+                  Misi Kandidat
+                </h3>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-xl text-sm pg-text leading-relaxed whitespace-pre-wrap">
+                  {candidate.mission || "Belum diisi"}
                 </div>
               </div>
+
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-2">Visi</h3>
-                <div className="p-4 bg-slate-50 rounded-lg text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                  {candidate.vision || 'Belum diisi'}
+                <h3 className="text-xs font-bold uppercase tracking-wider pg-muted mb-2">
+                  Biografi Singkat
+                </h3>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-xl text-sm pg-text leading-relaxed whitespace-pre-wrap">
+                  {candidate.biography || "Belum diisi"}
                 </div>
               </div>
+
               <div>
-                <h3 className="text-sm font-semibold text-slate-700 mb-2">Misi</h3>
-                <div className="p-4 bg-slate-50 rounded-lg text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                  {candidate.mission || 'Belum diisi'}
+                <h3 className="text-xs font-bold uppercase tracking-wider pg-muted mb-2">
+                  Motivasi Pencalonan
+                </h3>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 rounded-xl text-sm pg-text leading-relaxed whitespace-pre-wrap">
+                  {candidate.motivation || "Belum diisi"}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">Dokumen Pendaftaran</h2>
+          {/* Documents */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-lg font-bold pg-text mb-4">Dokumen & Berkas Pendukung</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {candidate.documents?.length === 0 && <p className="text-sm text-slate-500">Tidak ada dokumen.</p>}
+              {(!candidate.documents || candidate.documents.length === 0) && (
+                <p className="text-sm pg-muted col-span-2">Tidak ada berkas yang diunggah.</p>
+              )}
               {candidate.documents?.map((doc: CandidateAdminDocumentResponse) => (
-                <div key={doc.id} className="border border-slate-200 rounded-lg p-4 flex flex-col justify-between">
+                <div
+                  key={doc.id}
+                  className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex flex-col justify-between bg-slate-50/40 dark:bg-slate-800/30"
+                >
                   <div>
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-bold text-sm text-slate-900">{doc.document_type}</h4>
-                      {doc.verification_status === 'Valid' && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
-                      {doc.verification_status === 'Invalid' && <XCircle className="w-4 h-4 text-red-500" />}
-                      {!doc.verification_status || doc.verification_status === 'Pending' ? <AlertCircle className="w-4 h-4 text-amber-500" /> : null}
+                      <h4 className="font-bold text-sm pg-text">{doc.document_type}</h4>
+                      {doc.verification_status === "Valid" && (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      )}
+                      {doc.verification_status === "Invalid" && (
+                        <XCircle className="w-4 h-4 text-red-500" />
+                      )}
+                      {(!doc.verification_status || doc.verification_status === "Pending") && (
+                        <AlertCircle className="w-4 h-4 text-amber-500" />
+                      )}
                     </div>
-                    <p className="text-xs text-slate-500 truncate mb-1" title={doc.original_filename}>{doc.original_filename}</p>
-                    <p className="text-[10px] text-slate-400">{(doc.file_size / 1024).toFixed(1)} KB • {new Date(doc.uploaded_at).toLocaleDateString()}</p>
-                    
+                    <p className="text-xs pg-muted truncate mb-1" title={doc.original_filename}>
+                      {doc.original_filename}
+                    </p>
+                    <p className="text-[10px] pg-muted">
+                      {(doc.file_size / 1024).toFixed(1)} KB •{" "}
+                      {new Date(doc.uploaded_at).toLocaleDateString("id-ID")}
+                    </p>
+
                     {doc.verification_notes && (
-                      <div className="mt-2 text-xs bg-red-50 text-red-700 p-2 rounded">
+                      <div className="mt-2 text-xs bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 p-2 rounded-lg border border-red-200 dark:border-red-800">
                         <strong>Catatan:</strong> {doc.verification_notes}
                       </div>
                     )}
                   </div>
-                  
+
                   <button
                     onClick={() => {
                       setSelectedDoc(doc);
                       setDocNotes(doc.verification_notes || "");
                     }}
-                    className="mt-4 flex items-center justify-center gap-2 w-full py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-xs rounded transition-colors border border-slate-200"
+                    className="mt-4 flex items-center justify-center gap-2 w-full py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 pg-text font-semibold text-xs rounded-lg transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
                   >
                     <Eye className="w-4 h-4" /> Review Dokumen
                   </button>
@@ -262,112 +447,150 @@ export default function CandidateDetailPage() {
           </div>
         </div>
 
-        {/* RIGHT: Actions & Audit */}
+        {/* RIGHT: Status, Publication & Audit */}
         <div className="space-y-6">
-          
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm sticky top-6">
-            <h2 className="text-base font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">Status Verifikasi</h2>
-            
-            <div className="mb-4">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Update Status</label>
+          {/* Status Verifikasi */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-4">
+            <h2 className="text-base font-bold pg-text border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              Status Verifikasi
+            </h2>
+
+            <div>
+              <label className="block text-xs font-semibold pg-text mb-1">Status Kandidat</label>
               <select
                 value={verifyStatus}
                 onChange={(e) => setVerifyStatus(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-primary"
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
               >
-                <option value="Draft">Draft (Only candidate can submit)</option>
-                <option value="Submitted">Submitted (Waiting Review)</option>
+                <option value="Draft">Draft</option>
+                <option value="Submitted">Submitted (Menunggu Review)</option>
                 <option value="Under Review">Under Review</option>
                 <option value="Revision Required">Revision Required</option>
-                <option value="Verified">Verified</option>
-                <option value="Rejected">Rejected</option>
+                <option value="Verified">Verified (Terverifikasi)</option>
+                <option value="Rejected">Rejected (Ditolak)</option>
               </select>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Catatan Internal / Revisi</label>
+            <div>
+              <label className="block text-xs font-semibold pg-text mb-1">
+                Catatan Verifikasi / Alasan
+              </label>
               <textarea
                 value={verifyNotes}
                 onChange={(e) => setVerifyNotes(e.target.value)}
-                placeholder="Tulis alasan penolakan, catatan internal, atau catatan revisi untuk kandidat..."
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-primary min-h-[100px]"
+                placeholder="Catatan verifikasi atau alasan penolakan..."
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-xs focus:outline-none focus:border-blue-600 min-h-[90px]"
               />
-              <p className="text-[10px] text-slate-500 mt-1">Jika status diubah ke &apos;Revision Required&apos;, catatan ini akan ditampilkan kepada kandidat.</p>
             </div>
 
             <button
               onClick={handleVerifyCandidate}
               disabled={verifying}
-              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {verifying ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              Simpan Perubahan
+              Simpan Status Verifikasi
             </button>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-            <h2 className="text-base font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">Pengaturan Publikasi</h2>
-            
-            <div className="mb-4">
-              <label className="block text-xs font-semibold text-slate-700 mb-2">Status Publikasi</label>
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+          {/* Publication & Website Sync */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm space-y-4">
+            <h2 className="text-base font-bold pg-text border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center gap-2">
+              <Globe className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              Publikasi ke Website Publik
+            </h2>
+
+            <div>
+              <label className="block text-xs font-semibold pg-text mb-2">Status Publikasi</label>
+              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2.5 h-2.5 rounded-full ${pubStatus === 'Published' ? 'bg-emerald-500' : pubStatus === 'Unpublished' ? 'bg-amber-500' : 'bg-slate-400'}`}></div>
-                  <span className="text-sm font-semibold text-slate-900">{pubStatus}</span>
+                  <div
+                    className={`w-2.5 h-2.5 rounded-full ${
+                      pubStatus === "Published" ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
+                    }`}
+                  />
+                  <span className="text-sm font-semibold pg-text">{pubStatus}</span>
                 </div>
                 <button
                   onClick={handlePublishToggle}
-                  disabled={savingPub || candidate.status !== 'Verified'}
-                  className={`px-3 py-1.5 rounded text-xs font-bold transition-colors ${
-                    pubStatus === 'Published' 
-                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                    : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                  disabled={savingPub || candidate.status !== "Verified"}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 ${
+                    pubStatus === "Published"
+                      ? "bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 hover:bg-amber-200"
+                      : "bg-indigo-600 hover:bg-indigo-700 text-white"
                   }`}
                 >
-                  {pubStatus === 'Published' ? 'Unpublish' : 'Publish'}
+                  {pubStatus === "Published" ? "Unpublish" : "Publish Sekarang"}
                 </button>
               </div>
-              {candidate.status !== 'Verified' && <p className="text-[10px] text-amber-600 mt-1">Kandidat harus berstatus Verified untuk dipublikasikan.</p>}
+              {candidate.status !== "Verified" && (
+                <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1.5 font-medium">
+                  Kandidat harus berstatus Verified untuk dapat dipublikasikan.
+                </p>
+              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Nomor Urut</label>
+                <label className="block text-xs font-semibold pg-text mb-1">Nomor Urut</label>
                 <input
                   type="number"
                   value={candidateNumber}
-                  onChange={(e) => setCandidateNumber(e.target.value === "" ? "" : parseInt(e.target.value))}
+                  onChange={(e) =>
+                    setCandidateNumber(e.target.value === "" ? "" : parseInt(e.target.value))
+                  }
                   placeholder="-"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Display Order</label>
+                <label className="block text-xs font-semibold pg-text mb-1">Urutan Tampilan</label>
                 <input
                   type="number"
                   value={displayOrder}
                   onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
                 />
               </div>
             </div>
 
-            <div className="space-y-2 mb-6">
-              <label className="block text-xs font-semibold text-slate-700">Tampilkan ke Publik</label>
-              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                <input type="checkbox" checked={showPhoto} onChange={(e) => setShowPhoto(e.target.checked)} className="rounded border-slate-300 text-primary focus:ring-primary" />
-                Foto Profil
+            <div className="space-y-2 pt-2">
+              <label className="block text-xs font-semibold pg-text">Tampilkan ke Publik</label>
+              <label className="flex items-center gap-2 text-xs pg-text cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showPhoto}
+                  onChange={(e) => setShowPhoto(e.target.checked)}
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
+                Foto Profil Kandidat
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                <input type="checkbox" checked={showBio} onChange={(e) => setShowBio(e.target.checked)} className="rounded border-slate-300 text-primary focus:ring-primary" />
+              <label className="flex items-center gap-2 text-xs pg-text cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showBio}
+                  onChange={(e) => setShowBio(e.target.checked)}
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
                 Biografi Singkat
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                <input type="checkbox" checked={showVis} onChange={(e) => setShowVis(e.target.checked)} className="rounded border-slate-300 text-primary focus:ring-primary" />
+              <label className="flex items-center gap-2 text-xs pg-text cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showVis}
+                  onChange={(e) => setShowVis(e.target.checked)}
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
                 Visi
               </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                <input type="checkbox" checked={showMis} onChange={(e) => setShowMis(e.target.checked)} className="rounded border-slate-300 text-primary focus:ring-primary" />
+              <label className="flex items-center gap-2 text-xs pg-text cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showMis}
+                  onChange={(e) => setShowMis(e.target.checked)}
+                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                />
                 Misi
               </label>
             </div>
@@ -375,99 +598,279 @@ export default function CandidateDetailPage() {
             <button
               onClick={handleSavePubSettings}
               disabled={savingPub}
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-900 font-bold py-2 px-4 rounded-lg text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {savingPub ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              Simpan Pengaturan
+              Simpan Pengaturan Publikasi
             </button>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-            <h2 className="text-base font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">Riwayat Audit</h2>
-            <div className="space-y-4">
-              {audits.length === 0 && <p className="text-xs text-slate-500">Belum ada riwayat aktivitas.</p>}
-              {audits.map(audit => (
-                <div key={audit.id} className="relative pl-4 border-l-2 border-slate-200">
-                  <div className="absolute w-2 h-2 bg-slate-300 rounded-full -left-[5px] top-1.5 border-2 border-white"></div>
-                  <p className="text-xs font-bold text-slate-700">{audit.action}</p>
-                  <p className="text-[10px] text-slate-500">{new Date(audit.created_at).toLocaleString('id-ID')}</p>
-                  {audit.new_value?.status && (
-                    <p className="text-xs mt-1 bg-slate-50 p-1.5 rounded text-slate-600">
-                      Status ➔ <span className="font-semibold">{audit.new_value.status}</span>
-                    </p>
-                  )}
+          {/* Audit Logs */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-base font-bold pg-text border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-slate-400" />
+              Riwayat Audit
+            </h2>
+            <div className="space-y-3 mt-4 max-h-60 overflow-y-auto">
+              {audits.length === 0 && (
+                <p className="text-xs pg-muted">Belum ada riwayat aktivitas.</p>
+              )}
+              {audits.map((audit) => (
+                <div
+                  key={audit.id}
+                  className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-xs"
+                >
+                  <p className="font-semibold pg-text">{audit.action}</p>
+                  <p className="text-[10px] pg-muted mt-0.5">
+                    {new Date(audit.created_at).toLocaleString("id-ID")}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* Document Review Modal */}
-      {selectedDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+      {/* ─── Edit Modal ─── */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
-                <h3 className="font-bold text-slate-900">{selectedDoc.document_type}</h3>
-                <p className="text-xs text-slate-500">{selectedDoc.original_filename}</p>
+                <h2 className="text-lg font-bold pg-text">Edit Data Kandidat</h2>
+                <p className="text-xs pg-muted">{candidate.registration_number}</p>
               </div>
-              <button onClick={() => setSelectedDoc(null)} className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200 transition-colors">
-                <XCircle className="w-5 h-5" />
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
-            
-            <div className="flex-1 overflow-hidden bg-slate-100 flex items-center justify-center relative min-h-[400px]">
-              {selectedDoc.mime_type.startsWith('image/') ? (
+
+            <form onSubmit={handleSaveEdit} className="space-y-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Nama Lengkap *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.full_name || ""}
+                    onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Nama Panggilan</label>
+                  <input
+                    type="text"
+                    value={editForm.nickname || ""}
+                    onChange={(e) => setEditForm({ ...editForm, nickname: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Email *</label>
+                  <input
+                    type="email"
+                    required
+                    value={editForm.email || ""}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Telepon *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.phone || ""}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Perusahaan</label>
+                  <input
+                    type="text"
+                    value={editForm.company_name || ""}
+                    onChange={(e) => setEditForm({ ...editForm, company_name: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Kawasan Industri</label>
+                  <input
+                    type="text"
+                    value={editForm.industrial_area || ""}
+                    onChange={(e) => setEditForm({ ...editForm, industrial_area: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Jabatan</label>
+                  <input
+                    type="text"
+                    value={editForm.job_title || ""}
+                    onChange={(e) => setEditForm({ ...editForm, job_title: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Departemen</label>
+                  <input
+                    type="text"
+                    value={editForm.department || ""}
+                    onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold pg-text block mb-1">Biografi</label>
+                <textarea
+                  rows={2}
+                  value={editForm.biography || ""}
+                  onChange={(e) => setEditForm({ ...editForm, biography: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-xs focus:outline-none focus:border-blue-600"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold pg-text block mb-1">Motivasi</label>
+                <textarea
+                  rows={2}
+                  value={editForm.motivation || ""}
+                  onChange={(e) => setEditForm({ ...editForm, motivation: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-xs focus:outline-none focus:border-blue-600"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Visi</label>
+                  <textarea
+                    rows={2}
+                    value={editForm.vision || ""}
+                    onChange={(e) => setEditForm({ ...editForm, vision: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-xs focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Misi</label>
+                  <textarea
+                    rows={2}
+                    value={editForm.mission || ""}
+                    onChange={(e) => setEditForm({ ...editForm, mission: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-xs focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 pg-text transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {savingEdit ? "Menyimpan..." : "Simpan Perubahan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Document Review Modal ─── */}
+      {selectedDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+              <div>
+                <h3 className="font-bold text-sm pg-text">{selectedDoc.document_type}</h3>
+                <p className="text-xs pg-muted">{selectedDoc.original_filename}</p>
+              </div>
+              <button
+                onClick={() => setSelectedDoc(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-hidden bg-slate-100 dark:bg-slate-950 flex items-center justify-center relative min-h-[400px]">
+              {selectedDoc.mime_type.startsWith("image/") ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img 
-                  src={candidateAdminService.getDocumentStreamUrl(candidate.id, selectedDoc.id)} 
-                  alt="Preview" 
+                <img
+                  src={candidateAdminService.getDocumentStreamUrl(candidate.id, selectedDoc.id)}
+                  alt="Preview"
                   className="max-w-full max-h-full object-contain"
                 />
-              ) : selectedDoc.mime_type === 'application/pdf' ? (
-                <iframe 
+              ) : selectedDoc.mime_type === "application/pdf" ? (
+                <iframe
                   src={candidateAdminService.getDocumentStreamUrl(candidate.id, selectedDoc.id)}
-                  className="w-full h-full"
+                  className="w-full h-full min-h-[450px]"
                   title="PDF Preview"
                 />
               ) : (
                 <div className="text-center p-8">
-                  <FileText className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-600 font-medium">Pratinjau tidak tersedia untuk format ini.</p>
-                  <a 
+                  <FileText className="w-16 h-16 text-slate-300 dark:text-slate-700 mx-auto mb-4" />
+                  <p className="text-slate-600 dark:text-slate-400 font-medium text-sm">
+                    Pratinjau tidak didukung langsung di peramban.
+                  </p>
+                  <a
                     href={candidateAdminService.getDocumentStreamUrl(candidate.id, selectedDoc.id)}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-block mt-4 text-primary hover:underline text-sm font-semibold"
+                    className="inline-block mt-4 text-blue-600 hover:underline text-xs font-semibold"
                   >
-                    Unduh Dokumen
+                    Unduh Berkas
                   </a>
                 </div>
               )}
             </div>
 
-            <div className="p-4 border-t border-slate-200 bg-white">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Catatan Dokumen (jika Invalid)</label>
-              <input
-                type="text"
-                value={docNotes}
-                onChange={(e) => setDocNotes(e.target.value)}
-                placeholder="Alasan dokumen tidak valid (cth: Foto buram, KTP kadaluarsa)..."
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-primary mb-4"
-              />
-              
+            <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3">
+              <div>
+                <label className="block text-xs font-semibold pg-text mb-1">
+                  Catatan Verifikasi Berkas (jika Invalid)
+                </label>
+                <input
+                  type="text"
+                  value={docNotes}
+                  onChange={(e) => setDocNotes(e.target.value)}
+                  placeholder="Alasan berkas tidak valid..."
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-xs focus:outline-none focus:border-blue-600"
+                />
+              </div>
+
               <div className="flex items-center gap-3 justify-end">
                 <button
                   onClick={() => handleVerifyDocument(selectedDoc.id, "Invalid")}
-                  className="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 font-bold text-sm rounded-lg transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/50 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer border border-red-200 dark:border-red-800"
                 >
                   <XCircle className="w-4 h-4" /> Tandai Invalid
                 </button>
                 <button
                   onClick={() => handleVerifyDocument(selectedDoc.id, "Valid")}
-                  className="px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 font-bold text-sm rounded-lg transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" /> Tandai Valid
                 </button>
@@ -476,7 +879,6 @@ export default function CandidateDetailPage() {
           </div>
         </div>
       )}
-
-    </main>
+    </div>
   );
 }

@@ -206,13 +206,12 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 		Recent:           []RecentParticipant{},
 	}
 
-	// Fetch Limit from active event
+	// Fetch Limit from event_settings
 	var limit *int
 	_ = r.db.GetContext(ctx, &limit, `
-		SELECT s.registration_limit 
-		FROM events e
-		JOIN event_settings s ON e.id = s.event_id
-		WHERE e.is_default_active = true AND e.deleted_at IS NULL
+		SELECT registration_limit 
+		FROM event_settings
+		LIMIT 1
 	`)
 	stats.Limit = limit
 

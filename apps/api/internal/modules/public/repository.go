@@ -83,15 +83,15 @@ func (r *repository) GetAnnouncements(ctx context.Context, eventID string) ([]Pu
 }
 
 func (r *repository) GetCandidates(ctx context.Context) ([]PublicCandidate, error) {
-	// Only fetch published candidates to show them publicly
+	// Only fetch published candidates to show them publicly, respecting visibility toggles
 	query := `
 		SELECT 
 			id, 
 			candidate_number as sequence_number, 
 			full_name as name, 
 			job_title as title, 
-			vision, 
-			profile_photo as photo_path 
+			CASE WHEN show_vision = true THEN vision ELSE NULL END as vision, 
+			CASE WHEN show_photo = true THEN profile_photo ELSE NULL END as photo_path 
 		FROM candidates 
 		WHERE publication_status = 'Published' AND deleted_at IS NULL
 		ORDER BY display_order ASC, created_at ASC
@@ -107,7 +107,7 @@ func (r *repository) GetCandidates(ctx context.Context) ([]PublicCandidate, erro
 func (r *repository) GetParticipantCount(ctx context.Context, eventID string) (int, error) {
 	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND status != 'Rejected'`
 	var count int
-	err := r.db.GetContext(ctx, &count, query, eventID)
+	err := r.db.GetContext(ctx, &count, query)
 	if err != nil {
 		return 0, err
 	}

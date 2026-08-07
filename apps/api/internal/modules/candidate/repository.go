@@ -49,13 +49,17 @@ func NewRepository(db *sqlx.DB) Repository {
 func (r *repository) Create(ctx context.Context, c *Candidate) error {
 	query := `
 		INSERT INTO candidates (
-			 registration_number, full_name, nickname, email, phone,
+			registration_number, full_name, nickname, email, phone,
 			company_name, industrial_area, job_title, department, biography,
-			motivation, vision, mission, profile_photo, status
+			motivation, vision, mission, profile_photo, status,
+			candidate_number, display_order, publication_status,
+			show_biography, show_vision, show_mission, show_photo
 		) VALUES (
 			:registration_number, :full_name, :nickname, :email, :phone,
 			:company_name, :industrial_area, :job_title, :department, :biography,
-			:motivation, :vision, :mission, :profile_photo, :status
+			:motivation, :vision, :mission, :profile_photo, :status,
+			:candidate_number, :display_order, :publication_status,
+			:show_biography, :show_vision, :show_mission, :show_photo
 		) RETURNING id, created_at, updated_at
 	`
 
@@ -119,6 +123,13 @@ func (r *repository) Update(ctx context.Context, c *Candidate) error {
 			mission = :mission,
 			profile_photo = :profile_photo,
 			status = :status,
+			candidate_number = :candidate_number,
+			display_order = :display_order,
+			publication_status = :publication_status,
+			show_biography = :show_biography,
+			show_vision = :show_vision,
+			show_mission = :show_mission,
+			show_photo = :show_photo,
 			updated_at = NOW()
 		WHERE id = :id AND deleted_at IS NULL
 		RETURNING updated_at

@@ -140,10 +140,53 @@ export const candidateAdminService = {
     return data.data;
   },
 
-  reorderCandidates: async (items: { id: string; display_order: number }[]) => {
-    const { data } = await api.put<{ data: null }>(
-      `/admin/candidates/reorder`,
-      { items }
+  // Create candidate
+  createCandidate: async (payload: any) => {
+    const { data } = await api.post<{ data: CandidateAdminResponse }>(
+      "/admin/candidates",
+      payload
+    );
+    return data.data;
+  },
+
+  // Update candidate
+  updateCandidate: async (id: string, payload: any) => {
+    const { data } = await api.put<{ data: CandidateAdminResponse }>(
+      `/admin/candidates/${id}`,
+      payload
+    );
+    return data.data;
+  },
+
+  // Delete candidate
+  deleteCandidate: async (id: string) => {
+    const { data } = await api.delete<{ data: null }>(
+      `/admin/candidates/${id}`
+    );
+    return data.data;
+  },
+
+  // Bulk delete candidates
+  bulkDeleteCandidates: async (ids: string[]) => {
+    const { data } = await api.post<{ data: null }>(
+      "/admin/candidates/bulk-delete",
+      { ids }
+    );
+    return data.data;
+  },
+
+  // Upload candidate photo
+  uploadPhoto: async (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append("photo", file);
+    const { data } = await api.post<{ data: CandidateAdminResponse }>(
+      `/admin/candidates/${id}/photo`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     return data.data;
   },
