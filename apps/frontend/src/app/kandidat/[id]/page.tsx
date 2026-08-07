@@ -122,34 +122,37 @@ export default async function CandidateDetailPage({ params }: Props) {
                   {candidate.biography ? (
                     <ReactMarkdown>{candidate.biography}</ReactMarkdown>
                   ) : (
-                    <p className="text-slate-400 italic">Biografi belum tersedia.</p>
+                    <p className="text-slate-400 italic">Belum tersedia.</p>
                   )}
                 </div>
               </section>
 
-              {/* Vision */}
-              <section>
-                <h2 className="text-xl font-bold pg-text mb-4 inline-block border-b-2 border-primary pb-1">Visi</h2>
-                <div className="prose dark:prose-invert prose-blue max-w-none text-slate-600 dark:text-slate-300">
-                  {candidate.vision ? (
-                    <ReactMarkdown>{candidate.vision}</ReactMarkdown>
-                  ) : (
-                    <p className="text-slate-400 italic">Visi belum tersedia.</p>
-                  )}
-                </div>
-              </section>
+              {/* Vision & Mission */}
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 md:p-8 border border-slate-100 dark:border-slate-800 space-y-8">
+                <section>
+                  <h2 className="text-xl font-bold pg-text mb-4 inline-block border-b-2 border-primary pb-1">Visi</h2>
+                  <div className="prose dark:prose-invert prose-blue max-w-none text-slate-600 dark:text-slate-300">
+                    {candidate.vision ? (
+                      <ReactMarkdown>{candidate.vision}</ReactMarkdown>
+                    ) : (
+                      <p className="text-slate-400 italic">Belum tersedia.</p>
+                    )}
+                  </div>
+                </section>
 
-              {/* Mission */}
-              <section>
-                <h2 className="text-xl font-bold pg-text mb-4 inline-block border-b-2 border-primary pb-1">Misi</h2>
-                <div className="prose dark:prose-invert prose-blue max-w-none text-slate-600 dark:text-slate-300">
-                  {candidate.mission ? (
-                    <ReactMarkdown>{candidate.mission}</ReactMarkdown>
-                  ) : (
-                    <p className="text-slate-400 italic">Misi belum tersedia.</p>
-                  )}
-                </div>
-              </section>
+                <hr className="border-slate-200 dark:border-slate-700" />
+
+                <section>
+                  <h2 className="text-xl font-bold pg-text mb-4 inline-block border-b-2 border-primary pb-1">Misi</h2>
+                  <div className="prose dark:prose-invert prose-blue max-w-none text-slate-600 dark:text-slate-300">
+                    {candidate.mission ? (
+                      <ReactMarkdown>{candidate.mission}</ReactMarkdown>
+                    ) : (
+                      <p className="text-slate-400 italic">Belum tersedia.</p>
+                    )}
+                  </div>
+                </section>
+              </div>
             </div>
             
           </div>
