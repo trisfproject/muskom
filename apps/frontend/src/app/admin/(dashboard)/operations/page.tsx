@@ -264,7 +264,7 @@ export default function OperationalDashboardPage() {
                           <td className="px-4 py-3 flex items-center gap-3">
                             {cand.photo_url ? (
                               <div className="w-8 h-8 rounded-full overflow-hidden relative shrink-0">
-                                <Image src={cand.photo_url} alt={cand.name} fill className="object-cover" />
+                                <Image src={cand.photo_url} alt={cand.name} fill className="object-cover" unoptimized={cand.photo_url?.startsWith('/uploads/')} />
                               </div>
                             ) : (
                               <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0" />

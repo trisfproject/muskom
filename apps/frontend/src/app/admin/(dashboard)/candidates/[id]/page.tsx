@@ -26,6 +26,8 @@ import {
   Globe,
   Clock,
 } from "lucide-react";
+import Image from "next/image";
+import { format } from "date-fns";
 import {
   candidateAdminService,
   CandidateAdminResponse,
@@ -285,11 +287,12 @@ export default function CandidateDetailPage() {
                   {localPreview ? (
                     <img src={localPreview} alt="Preview" className="w-full h-full object-cover" />
                   ) : candidate.profile_photo && !imageError ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={candidate.profile_photo}
                       alt="Profile"
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      unoptimized={candidate.profile_photo?.startsWith('/uploads/')}
                       onError={() => setImageError(true)}
                     />
                   ) : (

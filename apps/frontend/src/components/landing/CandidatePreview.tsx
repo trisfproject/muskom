@@ -119,7 +119,7 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
                   <div className="mb-6 flex justify-center">
                     {c.photo_url ? (
                       <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden relative shadow-lg ring-4 ring-white dark:ring-slate-800">
-                        <Image src={c.photo_url} alt={c.name || "Candidate"} fill className="object-cover" />
+                        <Image src={c.photo_url} alt={c.name || "Candidate"} fill className="object-cover" unoptimized={c.photo_url?.startsWith('/uploads/')} />
                       </div>
                     ) : (
                       <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center ring-4 ring-white dark:ring-slate-800 text-slate-400 shadow-lg">

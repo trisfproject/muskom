@@ -20,7 +20,9 @@ import {
   Upload,
   Eye,
   ArrowUpDown,
+  ImageIcon,
 } from "lucide-react";
+import Image from "next/image";
 import {
   candidateAdminService,
   CandidateAdminResponse,
@@ -372,13 +374,14 @@ export default function AdminCandidatesPage() {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
+                          <div className="relative w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
                             {row.profile_photo ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
+                              <Image
                                 src={row.profile_photo}
                                 alt={row.full_name}
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
+                                unoptimized={row.profile_photo?.startsWith('/uploads/')}
                               />
                             ) : (
                               <User className="w-5 h-5 text-slate-400" />
