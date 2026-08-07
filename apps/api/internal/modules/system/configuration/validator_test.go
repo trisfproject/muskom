@@ -1,8 +1,8 @@
 package configuration
 
 import (
-	"testing"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
+	"testing"
 )
 
 func TestValidation(t *testing.T) {

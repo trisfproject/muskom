@@ -15,6 +15,9 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 
 	router.Get("/", handler.List)
 	router.Post("/", handler.Create)
+	router.Get("/me", handler.GetMe)
+	router.Put("/me", handler.UpdateMe)
+	router.Put("/me/password", handler.ChangePassword)
 	router.Get("/:id", handler.Get)
 	router.Patch("/:id/role", handler.UpdateRole)
 	router.Patch("/:id/status", handler.UpdateStatus)

@@ -132,7 +132,7 @@ func TestRepository_GetParticipantDetail(t *testing.T) {
 			"created_at", "updated_at", "person_id", "full_name", "email", "phone", "institution",
 		}).AddRow("reg1", "evt1", "cat1", "src1", "status1", nil, now, now, "p1", "John", "e@mail", "12", "inst")
 
-		mock.ExpectQuery("^SELECT (.+) FROM registrations").WillReturnRows(rows)
+		mock.ExpectQuery("^SELECT (.+) FROM participants").WillReturnRows(rows)
 
 		detail, err := repo.GetParticipantDetail(ctx, "reg1")
 		assert.NoError(t, err)
@@ -140,7 +140,7 @@ func TestRepository_GetParticipantDetail(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		mock.ExpectQuery("^SELECT (.+) FROM registrations").WillReturnError(sql.ErrNoRows)
+		mock.ExpectQuery("^SELECT (.+) FROM participants").WillReturnError(sql.ErrNoRows)
 
 		detail, err := repo.GetParticipantDetail(ctx, "reg1")
 		assert.Error(t, err)
@@ -184,7 +184,7 @@ func TestRepository_UpdateParticipantStatus(t *testing.T) {
 		mock.ExpectBegin()
 		tx, _ := repo.BeginTx(ctx)
 
-		mock.ExpectExec("^UPDATE registrations").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectExec("^UPDATE participants").WillReturnResult(sqlmock.NewResult(1, 1))
 
 		err := repo.UpdateParticipantStatus(ctx, tx, "reg1", "APPROVED", "u1", nil)
 		assert.NoError(t, err)
@@ -192,14 +192,14 @@ func TestRepository_UpdateParticipantStatus(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		mock.ExpectExec("^UPDATE registrations").WillReturnResult(sqlmock.NewResult(1, 0))
+		mock.ExpectExec("^UPDATE participants").WillReturnResult(sqlmock.NewResult(1, 0))
 		err := repo.UpdateParticipantStatus(ctx, nil, "reg1", "APPROVED", "u1", nil)
 		assert.Error(t, err)
-		assert.Equal(t, "registration not found", err.Error())
+		assert.Equal(t, "participant not found", err.Error())
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		mock.ExpectExec("^UPDATE registrations").WillReturnError(sql.ErrConnDone)
+		mock.ExpectExec("^UPDATE participants").WillReturnError(sql.ErrConnDone)
 		err := repo.UpdateParticipantStatus(ctx, nil, "reg1", "APPROVED", "u1", nil)
 		assert.Error(t, err)
 	})
@@ -218,7 +218,7 @@ func TestRepository_GetCandidateDetail(t *testing.T) {
 			"vision", "mission", "work_program", "photo_path", "document_path",
 		}).AddRow("ca1", "reg1", "evt1", "cat1", "src1", "status1", now, now, "p1", "John", "e@mail", "12", "inst", nil, nil, nil, nil, nil)
 
-		mock.ExpectQuery("^SELECT (.+) FROM candidate_applications").WillReturnRows(rows)
+		mock.ExpectQuery("^SELECT (.+) FROM candidates").WillReturnRows(rows)
 
 		detail, err := repo.GetCandidateDetail(ctx, "ca1")
 		assert.NoError(t, err)
@@ -226,7 +226,7 @@ func TestRepository_GetCandidateDetail(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		mock.ExpectQuery("^SELECT (.+) FROM candidate_applications").WillReturnError(sql.ErrNoRows)
+		mock.ExpectQuery("^SELECT (.+) FROM candidates").WillReturnError(sql.ErrNoRows)
 
 		detail, err := repo.GetCandidateDetail(ctx, "ca1")
 		assert.Error(t, err)
@@ -240,21 +240,21 @@ func TestRepository_UpdateCandidateStatus(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Success", func(t *testing.T) {
-		mock.ExpectExec("^UPDATE candidate_applications").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectExec("^UPDATE candidates").WillReturnResult(sqlmock.NewResult(1, 1))
 
 		err := repo.UpdateCandidateStatus(ctx, nil, "ca1", "ACCEPTED", "u1")
 		assert.NoError(t, err)
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		mock.ExpectExec("^UPDATE candidate_applications").WillReturnResult(sqlmock.NewResult(1, 0))
+		mock.ExpectExec("^UPDATE candidates").WillReturnResult(sqlmock.NewResult(1, 0))
 		err := repo.UpdateCandidateStatus(ctx, nil, "ca1", "ACCEPTED", "u1")
 		assert.Error(t, err)
-		assert.Equal(t, "candidate application not found", err.Error())
+		assert.Equal(t, "candidate not found", err.Error())
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		mock.ExpectExec("^UPDATE candidate_applications").WillReturnError(sql.ErrConnDone)
+		mock.ExpectExec("^UPDATE candidates").WillReturnError(sql.ErrConnDone)
 		err := repo.UpdateCandidateStatus(ctx, nil, "ca1", "ACCEPTED", "u1")
 		assert.Error(t, err)
 	})

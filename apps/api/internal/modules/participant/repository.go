@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	ErrNotFound      = errors.New("participant not found")
-	ErrDuplicateReg  = errors.New("registration number already exists")
+	ErrNotFound     = errors.New("participant not found")
+	ErrDuplicateReg = errors.New("registration number already exists")
 )
 
 type Repository interface {
@@ -20,6 +20,8 @@ type Repository interface {
 	Update(ctx context.Context, p *Participant) error
 	UpdateStatus(ctx context.Context, id string, status string) error
 	Delete(ctx context.Context, id string) error
+	BulkDelete(ctx context.Context, ids []string) error
+	BulkUpdateStatus(ctx context.Context, ids []string, status string) error
 	FindByEmail(ctx context.Context, email string) (*Participant, error)
 	GetStats(ctx context.Context) (*ParticipantStats, error)
 	Count(ctx context.Context) (int, error)
@@ -41,11 +43,11 @@ func (r *repository) Create(ctx context.Context, p *Participant) error {
 			 registration_number, full_name, nickname, email, phone, 
 			company_name, industrial_area, job_title, department, status
 		) VALUES (
-			: :registration_number, :full_name, :nickname, :email, :phone, 
+			:registration_number, :full_name, :nickname, :email, :phone, 
 			:company_name, :industrial_area, :job_title, :department, :status
 		) RETURNING id, created_at, updated_at
 	`
-	
+
 	stmt, err := r.db.PrepareNamedContext(ctx, query)
 	if err != nil {
 		return err
@@ -105,7 +107,7 @@ func (r *repository) Update(ctx context.Context, p *Participant) error {
 		WHERE id = :id AND deleted_at IS NULL
 		RETURNING updated_at
 	`
-	
+
 	stmt, err := r.db.PrepareNamedContext(ctx, query)
 	if err != nil {
 		return err
@@ -155,6 +157,32 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 		return ErrNotFound
 	}
 	return nil
+}
+
+func (r *repository) BulkDelete(ctx context.Context, ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	query, args, err := sqlx.In(`UPDATE participants SET deleted_at = NOW() WHERE id IN (?) AND deleted_at IS NULL`, ids)
+	if err != nil {
+		return err
+	}
+	query = r.db.Rebind(query)
+	_, err = r.db.ExecContext(ctx, query, args...)
+	return err
+}
+
+func (r *repository) BulkUpdateStatus(ctx context.Context, ids []string, status string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	query, args, err := sqlx.In(`UPDATE participants SET status = ?, updated_at = NOW() WHERE id IN (?) AND deleted_at IS NULL`, status, ids)
+	if err != nil {
+		return err
+	}
+	query = r.db.Rebind(query)
+	_, err = r.db.ExecContext(ctx, query, args...)
+	return err
 }
 
 func (r *repository) FindByEmail(ctx context.Context, email string) (*Participant, error) {

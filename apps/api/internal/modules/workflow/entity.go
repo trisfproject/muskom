@@ -32,25 +32,25 @@ type WorkflowTransition struct {
 }
 
 type WorkflowInstance struct {
-	ID                string     `db:"id"`
-	WorkflowID        string     `db:"workflow_id"`
-	EntityType        string     `db:"entity_type"`
-	EntityID          string     `db:"entity_id"`
-	CurrentStateID    string     `db:"current_state_id"`
-	AssignedToUserID  *string    `db:"assigned_to_user_id"`
-	AssignedToRoleID  *string    `db:"assigned_to_role_id"`
-	CreatedAt         time.Time  `db:"created_at"`
-	UpdatedAt         time.Time  `db:"updated_at"`
-	DeletedAt         *time.Time `db:"deleted_at"`
+	ID               string     `db:"id"`
+	WorkflowID       string     `db:"workflow_id"`
+	EntityType       string     `db:"entity_type"`
+	EntityID         string     `db:"entity_id"`
+	CurrentStateID   string     `db:"current_state_id"`
+	AssignedToUserID *string    `db:"assigned_to_user_id"`
+	AssignedToRoleID *string    `db:"assigned_to_role_id"`
+	CreatedAt        time.Time  `db:"created_at"`
+	UpdatedAt        time.Time  `db:"updated_at"`
+	DeletedAt        *time.Time `db:"deleted_at"`
 }
 
 type WorkflowHistory struct {
-	ID          string     `db:"id"`
-	InstanceID  string     `db:"instance_id"`
-	FromStateID *string    `db:"from_state_id"`
-	ToStateID   string     `db:"to_state_id"`
-	ActorID     *string    `db:"actor_id"`
-	Reason      *string    `db:"reason"`
-	IPAddress   *string    `db:"ip_address"`
-	CreatedAt   time.Time  `db:"created_at"`
+	ID          string    `db:"id"`
+	InstanceID  string    `db:"instance_id"`
+	FromStateID *string   `db:"from_state_id"`
+	ToStateID   string    `db:"to_state_id"`
+	ActorID     *string   `db:"actor_id"`
+	Reason      *string   `db:"reason"`
+	IPAddress   *string   `db:"ip_address"`
+	CreatedAt   time.Time `db:"created_at"`
 }

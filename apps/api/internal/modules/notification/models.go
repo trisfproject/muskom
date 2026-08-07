@@ -45,12 +45,12 @@ type NotificationJob struct {
 }
 
 type NotificationHistory struct {
-	ID           string    `json:"id" db:"id"`
-	JobID        *string   `json:"job_id" db:"job_id"`
-	EventID      string    `json:"event_id" db:"event_id"`
-	Channel      Channel   `json:"channel" db:"channel"`
-	Recipient    string    `json:"recipient" db:"recipient"`
-	Status       JobStatus `json:"status" db:"status"`
+	ID           string     `json:"id" db:"id"`
+	JobID        *string    `json:"job_id" db:"job_id"`
+	EventID      string     `json:"event_id" db:"event_id"`
+	Channel      Channel    `json:"channel" db:"channel"`
+	Recipient    string     `json:"recipient" db:"recipient"`
+	Status       JobStatus  `json:"status" db:"status"`
 	SentAt       *time.Time `json:"sent_at" db:"sent_at"`
-	ErrorMessage *string   `json:"error_message" db:"error_message"`
+	ErrorMessage *string    `json:"error_message" db:"error_message"`
 }

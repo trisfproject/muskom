@@ -45,16 +45,16 @@ func (h *Handler) Search(c fiber.Ctx) error {
 	var responses []AuditDetailResponse
 	for _, item := range items {
 		responses = append(responses, AuditDetailResponse{
-			ID:        item.ID,
-			Module:    string(item.Module),
-			Entity:    item.Entity,
-			EntityID:  item.EntityID,
-			Action:    string(item.Action),
-			ActorID:   item.ActorID,
-			ActorRole: item.ActorRole,
-			Reason:    item.Reason,
-			IPAddress: item.IPAddress,
-			UserAgent: item.UserAgent,
+			ID:            item.ID,
+			Module:        string(item.Module),
+			Entity:        item.Entity,
+			EntityID:      item.EntityID,
+			Action:        string(item.Action),
+			ActorID:       item.ActorID,
+			ActorRole:     item.ActorRole,
+			Reason:        item.Reason,
+			IPAddress:     item.IPAddress,
+			UserAgent:     item.UserAgent,
 			Metadata:      item.Metadata,
 			PreviousValue: item.PreviousValue,
 			NewValue:      item.NewValue,
@@ -62,7 +62,7 @@ func (h *Handler) Search(c fiber.Ctx) error {
 			CreatedAt:     item.CreatedAt,
 		})
 	}
-	
+
 	if responses == nil {
 		responses = []AuditDetailResponse{}
 	}
@@ -90,16 +90,16 @@ func (h *Handler) GetByID(c fiber.Ctx) error {
 	}
 
 	res := AuditDetailResponse{
-		ID:        item.ID,
-		Module:    string(item.Module),
-		Entity:    item.Entity,
-		EntityID:  item.EntityID,
-		Action:    string(item.Action),
-		ActorID:   item.ActorID,
-		ActorRole: item.ActorRole,
-		Reason:    item.Reason,
-		IPAddress: item.IPAddress,
-		UserAgent: item.UserAgent,
+		ID:            item.ID,
+		Module:        string(item.Module),
+		Entity:        item.Entity,
+		EntityID:      item.EntityID,
+		Action:        string(item.Action),
+		ActorID:       item.ActorID,
+		ActorRole:     item.ActorRole,
+		Reason:        item.Reason,
+		IPAddress:     item.IPAddress,
+		UserAgent:     item.UserAgent,
 		Metadata:      item.Metadata,
 		PreviousValue: item.PreviousValue,
 		NewValue:      item.NewValue,
@@ -143,7 +143,7 @@ func (h *Handler) Export(c fiber.Ctx) error {
 		// Basic CSV Generation
 		c.Set("Content-Type", "text/csv")
 		c.Set("Content-Disposition", "attachment; filename=audit_export.csv")
-		
+
 		csvData := "ID,Module,Entity,EntityID,Action,ActorID,ActorRole,CreatedAt\n"
 		for _, item := range items {
 			csvData += item.ID + "," + string(item.Module) + "," + item.Entity + "," + item.EntityID + "," + string(item.Action) + ","
@@ -159,7 +159,7 @@ func (h *Handler) Export(c fiber.Ctx) error {
 			}
 			csvData += item.CreatedAt.String() + "\n"
 		}
-		
+
 		return c.SendString(csvData)
 	}
 

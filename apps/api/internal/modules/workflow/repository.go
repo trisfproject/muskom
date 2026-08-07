@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	ErrWorkflowNotFound = errors.New("workflow not found")
-	ErrStateNotFound    = errors.New("state not found")
+	ErrWorkflowNotFound     = errors.New("workflow not found")
+	ErrStateNotFound        = errors.New("state not found")
 	ErrTransitionNotAllowed = errors.New("transition not allowed")
 )
 

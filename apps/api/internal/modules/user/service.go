@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	ErrUserNotFound     = errors.New("user not found")
-	ErrUsernameTaken    = errors.New("username is already taken")
-	ErrEmailTaken       = errors.New("email is already registered")
+	ErrUserNotFound  = errors.New("user not found")
+	ErrUsernameTaken = errors.New("username is already taken")
+	ErrEmailTaken    = errors.New("email is already registered")
 )
 
 type Service interface {
@@ -22,6 +22,8 @@ type Service interface {
 	UpdateRole(ctx context.Context, id string, req *UpdateRoleRequest) error
 	UpdateStatus(ctx context.Context, id string, req *UpdateStatusRequest) error
 	ResetPassword(ctx context.Context, id string, req *ResetPasswordRequest) error
+	UpdateProfile(ctx context.Context, id string, req *UpdateProfileRequest) (*UserResponse, error)
+	ChangePassword(ctx context.Context, id string, req *ChangePasswordRequest) error
 }
 
 type service struct {
@@ -136,6 +138,44 @@ func (s *service) ResetPassword(ctx context.Context, id string, req *ResetPasswo
 	if err != nil {
 		return err
 	}
+	return s.repo.UpdateUserPassword(ctx, id, string(hash))
+}
+
+func (s *service) UpdateProfile(ctx context.Context, id string, req *UpdateProfileRequest) (*UserResponse, error) {
+	emailExists, err := s.repo.CheckEmailExistsExcludingUser(ctx, req.Email, id)
+	if err != nil {
+		return nil, err
+	}
+	if emailExists {
+		return nil, ErrEmailTaken
+	}
+
+	if err := s.repo.UpdateUserProfile(ctx, id, req.FullName, req.Email); err != nil {
+		s.log.Error("Failed to update user profile", zap.Error(err))
+		return nil, err
+	}
+
+	return s.GetUser(ctx, id)
+}
+
+func (s *service) ChangePassword(ctx context.Context, id string, req *ChangePasswordRequest) error {
+	u, err := s.repo.GetUserByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if u == nil {
+		return ErrUserNotFound
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(req.OldPassword)); err != nil {
+		return errors.New("kata sandi lama tidak sesuai")
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
 	return s.repo.UpdateUserPassword(ctx, id, string(hash))
 }
 

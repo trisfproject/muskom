@@ -8,11 +8,11 @@ type ReportType string
 type FileFormat string
 
 const (
-	ReportOfficialResult   ReportType = "OFFICIAL_RESULT"
+	ReportOfficialResult    ReportType = "OFFICIAL_RESULT"
 	ReportAttendanceSummary ReportType = "ATTENDANCE_SUMMARY"
 	ReportParticipantList   ReportType = "PARTICIPANT_LIST"
 	ReportCandidateList     ReportType = "CANDIDATE_LIST"
-	
+
 	FormatPDF  FileFormat = "PDF"
 	FormatCSV  FileFormat = "CSV"
 	FormatXLSX FileFormat = "XLSX"

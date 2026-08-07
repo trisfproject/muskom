@@ -148,8 +148,8 @@ export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
           <div className="absolute right-0 mt-2 w-48 pg-surface border border-[var(--color-border)] rounded-xl shadow-xl shadow-black/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
             <div className="p-2 space-y-1">
               <Link href="/admin/users/profile" className="flex items-center gap-2 px-3 py-2 min-h-[44px] text-sm pg-muted hover:pg-text hover:pg-surface-elevated rounded-lg transition-colors">
-                <Settings className="w-4 h-4" />
-                <span>Account Settings</span>
+                <UserIcon className="w-4 h-4" />
+                <span>Profil Saya</span>
               </Link>
               <button 
                 onClick={handleLogout}

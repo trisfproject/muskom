@@ -37,10 +37,10 @@ func setupTestApp(svc Service) *fiber.App {
 	app := fiber.New()
 	val := validator.New()
 	log := zap.NewNop()
-	h := NewHandler(svc, val, log)
+	h := NewAdminHandler(svc, val, log)
 
-	app.Post("/candidates", h.Create)
-	app.Get("/candidates/:id", h.GetByID)
+	app.Post("/candidates", h.CreateCandidate)
+	app.Get("/candidates/:id", h.GetCandidateDetail)
 	return app
 }
 
@@ -60,7 +60,6 @@ func TestHandler_Create_Success(t *testing.T) {
 		FullName:     "John Doe",
 		Email:        "test@test.com",
 		Phone:        "123",
-
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 

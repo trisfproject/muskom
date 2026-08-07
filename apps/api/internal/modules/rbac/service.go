@@ -23,7 +23,7 @@ func NewService(repo RBACRepository, log *zap.Logger) AuthorizationService {
 	// Initial load
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	
+
 	if err := s.RefreshMatrix(ctx); err != nil {
 		log.Error("Failed to initialize RBAC matrix", zap.Error(err))
 	} else {
@@ -51,7 +51,7 @@ func (s *service) RefreshMatrix(ctx context.Context) error {
 }
 
 func (s *service) HasPermission(roleCode, permissionCode string) bool {
-	// SUPER_ADMIN override (optional, but good practice. We actually explicitly map SUPER_ADMIN in DB, 
+	// SUPER_ADMIN override (optional, but good practice. We actually explicitly map SUPER_ADMIN in DB,
 	// but this ensures they never get locked out even if DB mapping drops).
 	if roleCode == "SUPER_ADMIN" {
 		return true

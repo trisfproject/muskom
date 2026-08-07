@@ -117,7 +117,6 @@ func main() {
 	// Protected Auth routes (needs JWT for /me/permissions)
 	rbac.SetupAuthRoutes(authGroup.Group("/", auth.JWTMiddleware(cfg, log)), authSvc)
 
-
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
 	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, redisClient, cfg, log, val, mailerSvc)

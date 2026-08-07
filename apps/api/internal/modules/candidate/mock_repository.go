@@ -10,7 +10,7 @@ type MockRepository struct {
 	FindAllFunc                        func(ctx context.Context) ([]Candidate, error)
 	UpdateFunc                         func(ctx context.Context, candidate *Candidate) error
 	DeleteFunc                         func(ctx context.Context, id string) error
-	CountFunc              func(ctx context.Context) (int, error)
+	CountFunc                          func(ctx context.Context) (int, error)
 	SaveDocumentFunc                   func(ctx context.Context, doc *CandidateDocument) error
 	GetDocumentByIDFunc                func(ctx context.Context, id string) (*CandidateDocument, error)
 	FindDocumentsByCandidateIDFunc     func(ctx context.Context, candidateID string) ([]CandidateDocument, error)
@@ -132,5 +132,9 @@ func (m *MockRepository) AdminReorderCandidates(ctx context.Context, items []Reo
 	if m.AdminReorderCandidatesFunc != nil {
 		return m.AdminReorderCandidatesFunc(ctx, items)
 	}
+	return nil
+}
+
+func (m *MockRepository) BulkDelete(ctx context.Context, ids []string) error {
 	return nil
 }

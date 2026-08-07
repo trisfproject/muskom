@@ -22,6 +22,16 @@ type ResetPasswordRequest struct {
 	NewPassword string `json:"new_password" validate:"required,min=8"`
 }
 
+type UpdateProfileRequest struct {
+	FullName string `json:"full_name" validate:"required,max=255"`
+	Email    string `json:"email" validate:"required,email,max=255"`
+}
+
+type ChangePasswordRequest struct {
+	OldPassword string `json:"old_password" validate:"required"`
+	NewPassword string `json:"new_password" validate:"required,min=8"`
+}
+
 type UserResponse struct {
 	ID          string     `json:"id"`
 	FullName    string     `json:"full_name"`

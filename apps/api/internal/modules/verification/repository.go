@@ -137,8 +137,8 @@ func (r *repository) GetVerificationSummary(ctx context.Context) (*VerificationS
 func (r *repository) GetParticipantDetail(ctx context.Context, registrationID string) (*ParticipantDetailResponse, error) {
 	query := `
 		SELECT 
-			p.id, p.musyawarah_id as  'DELEGATE' as participant_category, 'ONLINE' as source, p.status, NULL as rejection_reason, p.created_at, p.updated_at,
-			p.id as person_id, p.full_name, p.email, p.phone, p.company_name as institution
+			p.id, '' as event_id, 'DELEGATE' as participant_category, 'ONLINE' as source, p.status, NULL as rejection_reason, p.created_at, p.updated_at,
+			p.id as person_id, p.full_name, p.email, p.phone, COALESCE(p.company_name, '') as institution
 		FROM participants p
 		WHERE p.id = $1 AND p.deleted_at IS NULL
 	`
@@ -202,8 +202,8 @@ func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, r
 func (r *repository) GetCandidateDetail(ctx context.Context, candidateID string) (*CandidateDetailResponse, error) {
 	query := `
 		SELECT 
-			c.id, c.id as registration_id, c.musyawarah_id as  'CANDIDATE' as participant_category, 'SYSTEM' as source, c.status, 
-			c.created_at, c.updated_at, c.id as person_id, c.full_name, c.email, c.phone, COALESCE(c.organization, '') as institution,
+			c.id, c.id as registration_id, '' as event_id, 'CANDIDATE' as participant_category, 'SYSTEM' as source, c.status, 
+			c.created_at, c.updated_at, c.id as person_id, c.full_name, c.email, c.phone, COALESCE(c.company_name, '') as institution,
 			COALESCE(c.vision, '') as vision, COALESCE(c.mission, '') as mission, '' as work_program, COALESCE(c.profile_photo, '') as photo_path, '' as document_path
 		FROM candidates c
 		WHERE c.id = $1 AND c.deleted_at IS NULL

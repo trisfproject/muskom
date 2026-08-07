@@ -59,7 +59,7 @@ func (s *service) StartWorkflow(ctx context.Context, workflowName, entityType, e
 		ToStateID:   initialState.ID,
 		ActorID:     nil, // System triggered
 	}
-	
+
 	err = s.repo.UpdateInstanceAndRecordHistory(ctx, instance, history)
 	return instance, err
 }

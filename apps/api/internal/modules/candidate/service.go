@@ -26,12 +26,15 @@ type Service interface {
 	Delete(ctx context.Context, id string) error
 
 	UploadDocument(ctx context.Context, candidateID string, docType string, filename string, mimeType string, size int64, file io.Reader) (*CandidateDocumentResponse, error)
+	UploadPhoto(ctx context.Context, candidateID string, filename string, mimeType string, size int64, file io.Reader) (*CandidateResponse, error)
 	ListDocuments(ctx context.Context, candidateID string) ([]CandidateDocumentResponse, error)
 	DeleteDocument(ctx context.Context, candidateID string, docID string) error
 	StreamDocument(ctx context.Context, candidateID string, docID string) (io.ReadCloser, string, error)
 
 	// Admin methods
 	AdminListCandidates(ctx context.Context, statusFilter string, musyawarahFilter string, search string) ([]CandidateResponse, error)
+	AdminDeleteCandidate(ctx context.Context, id string, adminUserID string) error
+	AdminBulkDeleteCandidates(ctx context.Context, ids []string, adminUserID string) error
 	AdminVerifyCandidate(ctx context.Context, id string, req AdminVerifyCandidateRequest, adminUserID string) error
 	AdminVerifyDocument(ctx context.Context, id string, docID string, req AdminVerifyDocumentRequest, adminUserID string) error
 	AdminPublishCandidate(ctx context.Context, id string, adminUserID string) error
@@ -64,7 +67,11 @@ func NewService(repo Repository, auditService audit.AuditService, st storage.Sto
 
 func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*CandidateResponse, error) {
 	// Generate unique registration number
-	regNum := fmt.Sprintf("CAN-%s-%s", strings.ToUpper(req.MusyawarahID[:4]), strings.ToUpper(uuid.New().String()[:8]))
+	prefix := "MUS"
+	if len(req.MusyawarahID) >= 4 {
+		prefix = req.MusyawarahID[:4]
+	}
+	regNum := fmt.Sprintf("CAN-%s-%s", strings.ToUpper(prefix), strings.ToUpper(uuid.New().String()[:8]))
 
 	c := &Candidate{
 		MusyawarahID:       req.MusyawarahID,
@@ -74,15 +81,15 @@ func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*Cand
 		Email:              req.Email,
 		Phone:              req.Phone,
 
-		CompanyName:        req.CompanyName,
-		IndustrialArea:     req.IndustrialArea,
-		JobTitle:           req.JobTitle,
-		Department:         req.Department,
-		Biography:          req.Biography,
-		Motivation:         req.Motivation,
-		Vision:             req.Vision,
-		Mission:            req.Mission,
-		Status:             StatusDraft,
+		CompanyName:    req.CompanyName,
+		IndustrialArea: req.IndustrialArea,
+		JobTitle:       req.JobTitle,
+		Department:     req.Department,
+		Biography:      req.Biography,
+		Motivation:     req.Motivation,
+		Vision:         req.Vision,
+		Mission:        req.Mission,
+		Status:         StatusDraft,
 	}
 
 	err := s.repo.Create(ctx, c)
@@ -149,7 +156,7 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 	if c.Status != StatusDraft && c.Status != StatusRevisionRequired {
 		return nil, errors.New("cannot modify candidate: not in draft state")
 	}
-	
+
 	oldVal := *c
 
 	c.FullName = req.FullName
@@ -166,8 +173,6 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 	c.Vision = req.Vision
 	c.Mission = req.Mission
 	c.ProfilePhoto = req.ProfilePhoto
-
-
 
 	if req.Status != nil {
 		c.Status = *req.Status
@@ -303,36 +308,36 @@ func mapToResponse(c *Candidate) CandidateResponse {
 		Email:              c.Email,
 		Phone:              c.Phone,
 
-		CompanyName:        c.CompanyName,
-		IndustrialArea:     c.IndustrialArea,
-		JobTitle:           c.JobTitle,
-		Department:         c.Department,
-		Biography:          c.Biography,
-		Motivation:         c.Motivation,
-		Vision:             c.Vision,
-		Mission:            c.Mission,
-		ProfilePhoto:       c.ProfilePhoto,
-		Status:             c.Status,
-		VerificationNotes:  c.VerificationNotes,
-		CandidateNumber:    c.CandidateNumber,
-		DisplayOrder:       c.DisplayOrder,
-		PublicationStatus:  c.PublicationStatus,
-		PublishedAt:        c.PublishedAt,
-		ShowBiography:      c.ShowBiography,
-		ShowVision:         c.ShowVision,
-		ShowMission:        c.ShowMission,
-		ShowPhoto:          c.ShowPhoto,
-		CreatedAt:          c.CreatedAt,
-		UpdatedAt:          c.UpdatedAt,
+		CompanyName:       c.CompanyName,
+		IndustrialArea:    c.IndustrialArea,
+		JobTitle:          c.JobTitle,
+		Department:        c.Department,
+		Biography:         c.Biography,
+		Motivation:        c.Motivation,
+		Vision:            c.Vision,
+		Mission:           c.Mission,
+		ProfilePhoto:      c.ProfilePhoto,
+		Status:            c.Status,
+		VerificationNotes: c.VerificationNotes,
+		CandidateNumber:   c.CandidateNumber,
+		DisplayOrder:      c.DisplayOrder,
+		PublicationStatus: c.PublicationStatus,
+		PublishedAt:       c.PublishedAt,
+		ShowBiography:     c.ShowBiography,
+		ShowVision:        c.ShowVision,
+		ShowMission:       c.ShowMission,
+		ShowPhoto:         c.ShowPhoto,
+		CreatedAt:         c.CreatedAt,
+		UpdatedAt:         c.UpdatedAt,
 	}
 }
 
 func mapToDocumentResponse(d *CandidateDocument) CandidateDocumentResponse {
 	return CandidateDocumentResponse{
-		ID:               d.ID,
-		CandidateID:      d.CandidateID,
-		DocumentType:     d.DocumentType,
-		OriginalFilename: d.OriginalFilename,
+		ID:                 d.ID,
+		CandidateID:        d.CandidateID,
+		DocumentType:       d.DocumentType,
+		OriginalFilename:   d.OriginalFilename,
 		MimeType:           d.MimeType,
 		FileSize:           d.FileSize,
 		UploadedAt:         d.UploadedAt,
@@ -696,7 +701,7 @@ func (s *service) AdminUpdatePublicationSettings(ctx context.Context, id string,
 			"show_photo":       c.ShowPhoto,
 		},
 		NewValue: req,
-		ActorID: &adminUserID,
+		ActorID:  &adminUserID,
 	})
 
 	return nil
@@ -714,7 +719,93 @@ func (s *service) AdminReorderCandidates(ctx context.Context, req AdminReorderCa
 		EntityID: "bulk",
 		Action:   "ADMIN_REORDER_CANDIDATES",
 		NewValue: req.Items,
-		ActorID: &adminUserID,
+		ActorID:  &adminUserID,
+	})
+
+	return nil
+}
+
+func (s *service) UploadPhoto(ctx context.Context, candidateID string, filename string, mimeType string, size int64, file io.Reader) (*CandidateResponse, error) {
+	c, err := s.repo.GetByID(ctx, candidateID)
+	if err != nil {
+		return nil, err
+	}
+
+	if size > s.maxUploadSize {
+		return nil, fmt.Errorf("file size exceeds maximum allowed size of %d bytes", s.maxUploadSize)
+	}
+
+	allowedMimes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/webp": true,
+	}
+	if !allowedMimes[mimeType] {
+		return nil, errors.New("invalid file type. Only JPEG, PNG, and WebP are allowed")
+	}
+
+	ext := filepath.Ext(filename)
+	if ext == "" {
+		ext = ".jpg"
+	}
+	storagePath := fmt.Sprintf("candidates/%s/photo%s", candidateID, ext)
+
+	info, err := s.storage.Upload(ctx, file, storagePath)
+	if err != nil {
+		s.log.Error("Failed to store photo", zap.Error(err))
+		return nil, fmt.Errorf("failed to save photo: %w", err)
+	}
+
+	c.ProfilePhoto = &info.Path
+	err = s.repo.Update(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+
+	res := mapToResponse(c)
+	return &res, nil
+}
+
+func (s *service) AdminDeleteCandidate(ctx context.Context, id string, adminUserID string) error {
+	c, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:        audit.ModuleCandidate,
+		Entity:        "candidates",
+		EntityID:      id,
+		Action:        "ADMIN_DELETE",
+		PreviousValue: c,
+		ActorID:       &adminUserID,
+	})
+
+	return nil
+}
+
+func (s *service) AdminBulkDeleteCandidates(ctx context.Context, ids []string, adminUserID string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	err := s.repo.BulkDelete(ctx, ids)
+	if err != nil {
+		return err
+	}
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleCandidate,
+		Entity:   "candidates",
+		EntityID: "bulk",
+		Action:   "ADMIN_BULK_DELETE",
+		Metadata: map[string]interface{}{"candidate_ids": ids},
+		ActorID:  &adminUserID,
 	})
 
 	return nil

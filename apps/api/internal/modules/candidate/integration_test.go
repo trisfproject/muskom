@@ -23,7 +23,7 @@ func TestIntegration_CandidateFlow(t *testing.T) {
 		Email:              "john@example.com",
 		Phone:              "123",
 
-		Status:             StatusDraft,
+		Status: StatusDraft,
 	}
 
 	// Setup dependencies
@@ -59,21 +59,20 @@ func TestIntegration_CandidateFlow(t *testing.T) {
 	log := zap.NewNop()
 
 	svc := NewService(repo, auditSvc, st, 5*1024*1024, cfg, log)
-	
+
 	val := validator.New()
-	handler := NewHandler(svc, val, log)
 	adminHandler := NewAdminHandler(svc, val, log)
 
 	app := fiber.New()
-	
+
 	// Simulate auth context for all routes
 	app.Use(func(c fiber.Ctx) error {
 		c.Locals("user_id", "admin-1")
 		return c.Next()
 	})
 
-	app.Post("/candidates", handler.Create)
-	app.Put("/candidates/:id", handler.Update)
+	app.Post("/candidates", adminHandler.CreateCandidate)
+	app.Put("/candidates/:id", adminHandler.UpdateCandidate)
 	app.Patch("/admin/candidates/:id/verify", adminHandler.VerifyCandidate)
 	app.Post("/admin/candidates/:id/publish", adminHandler.PublishCandidate)
 
@@ -83,7 +82,6 @@ func TestIntegration_CandidateFlow(t *testing.T) {
 		FullName:     "John Doe",
 		Email:        "john@example.com",
 		Phone:        "123",
-
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 	req1 := httptest.NewRequest("POST", "/candidates", bytes.NewReader(bodyBytes))
@@ -100,7 +98,7 @@ func TestIntegration_CandidateFlow(t *testing.T) {
 		Email:    "john@example.com",
 		Phone:    "123",
 
-		Status:   &statusSubmit,
+		Status: &statusSubmit,
 	}
 	bodyBytes2, _ := json.Marshal(reqUpdate)
 	req2 := httptest.NewRequest("PUT", "/candidates/test-candidate-id", bytes.NewReader(bodyBytes2))
@@ -117,7 +115,7 @@ func TestIntegration_CandidateFlow(t *testing.T) {
 	bodyBytes3a, _ := json.Marshal(reqVerify1)
 	req3a := httptest.NewRequest("PATCH", "/admin/candidates/test-candidate-id/verify", bytes.NewReader(bodyBytes3a))
 	req3a.Header.Set("Content-Type", "application/json")
-	
+
 	resp3a, err := app.Test(req3a)
 	if err != nil || resp3a.StatusCode != fiber.StatusOK {
 		var buf bytes.Buffer
@@ -132,7 +130,7 @@ func TestIntegration_CandidateFlow(t *testing.T) {
 	bodyBytes3b, _ := json.Marshal(reqVerify2)
 	req3b := httptest.NewRequest("PATCH", "/admin/candidates/test-candidate-id/verify", bytes.NewReader(bodyBytes3b))
 	req3b.Header.Set("Content-Type", "application/json")
-	
+
 	resp3b, err := app.Test(req3b)
 	if err != nil || resp3b.StatusCode != fiber.StatusOK {
 		var buf bytes.Buffer

@@ -15,8 +15,10 @@ type Repository interface {
 	UpdateUserRole(ctx context.Context, id, roleID string) error
 	UpdateUserStatus(ctx context.Context, id string, isActive bool) error
 	UpdateUserPassword(ctx context.Context, id, hash string) error
+	UpdateUserProfile(ctx context.Context, userID, fullName, email string) error
 	CheckUsernameExists(ctx context.Context, username string) (bool, error)
 	CheckEmailExists(ctx context.Context, email string) (bool, error)
+	CheckEmailExistsExcludingUser(ctx context.Context, email, excludeUserID string) (bool, error)
 }
 
 type repository struct {
@@ -70,7 +72,7 @@ func (r *repository) ListUsers(ctx context.Context, search string, roleID string
 		SELECT u.id, u.person_id, u.role_id, ro.code as role_code, ro.name as role_name, 
 		       p.full_name, p.email, u.username, u.is_active, u.last_login_at, u.created_at, u.updated_at
 	` + baseQuery + fmt.Sprintf(` ORDER BY u.created_at DESC LIMIT $%d OFFSET $%d`, argCount, argCount+1)
-	
+
 	args = append(args, limit, offset)
 
 	err = r.db.SelectContext(ctx, &users, selectQuery, args...)
@@ -84,7 +86,7 @@ func (r *repository) ListUsers(ctx context.Context, search string, roleID string
 func (r *repository) GetUserByID(ctx context.Context, id string) (*User, error) {
 	query := `
 		SELECT u.id, u.person_id, u.role_id, ro.code as role_code, ro.name as role_name, 
-		       p.full_name, p.email, u.username, u.is_active, u.last_login_at, u.created_at, u.updated_at
+		       p.full_name, p.email, u.username, u.password_hash, u.is_active, u.last_login_at, u.created_at, u.updated_at
 		FROM users u
 		JOIN persons p ON u.person_id = p.id
 		JOIN roles ro ON u.role_id = ro.id
@@ -172,6 +174,24 @@ func (r *repository) UpdateUserPassword(ctx context.Context, id, hash string) er
 	return nil
 }
 
+func (r *repository) UpdateUserProfile(ctx context.Context, userID, fullName, email string) error {
+	query := `
+		UPDATE persons p
+		SET full_name = $1, email = $2, updated_at = NOW()
+		FROM users u
+		WHERE u.person_id = p.id AND u.id = $3 AND u.deleted_at IS NULL
+	`
+	res, err := r.db.ExecContext(ctx, query, fullName, email, userID)
+	if err != nil {
+		return err
+	}
+	rows, _ := res.RowsAffected()
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
 func (r *repository) CheckUsernameExists(ctx context.Context, username string) (bool, error) {
 	var count int
 	err := r.db.GetContext(ctx, &count, "SELECT count(*) FROM users WHERE username = $1", username)
@@ -181,5 +201,17 @@ func (r *repository) CheckUsernameExists(ctx context.Context, username string) (
 func (r *repository) CheckEmailExists(ctx context.Context, email string) (bool, error) {
 	var count int
 	err := r.db.GetContext(ctx, &count, "SELECT count(*) FROM persons WHERE email = $1", email)
+	return count > 0, err
+}
+
+func (r *repository) CheckEmailExistsExcludingUser(ctx context.Context, email, excludeUserID string) (bool, error) {
+	var count int
+	query := `
+		SELECT count(*) 
+		FROM persons p 
+		JOIN users u ON u.person_id = p.id 
+		WHERE p.email = $1 AND u.id != $2 AND u.deleted_at IS NULL
+	`
+	err := r.db.GetContext(ctx, &count, query, email, excludeUserID)
 	return count > 0, err
 }

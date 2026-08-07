@@ -27,10 +27,10 @@ type WorkflowInstanceDTO struct {
 }
 
 type WorkflowHistoryDTO struct {
-	ID          string    `json:"id"`
-	FromState   string    `json:"from_state"`
-	ToState     string    `json:"to_state"`
-	ActorID     *string   `json:"actor_id"`
-	Reason      *string   `json:"reason"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID        string    `json:"id"`
+	FromState string    `json:"from_state"`
+	ToState   string    `json:"to_state"`
+	ActorID   *string   `json:"actor_id"`
+	Reason    *string   `json:"reason"`
+	CreatedAt time.Time `json:"created_at"`
 }

@@ -33,12 +33,12 @@ type Vote struct {
 }
 
 type CandidateSnapshot struct {
-	ID             string `json:"id"`
-	Number         int    `json:"number"`
-	Name           string `json:"name"`
-	PhotoURL       string `json:"photo_url"`
-	Vision         string `json:"vision"`
-	Mission        string `json:"mission"`
+	ID       string `json:"id"`
+	Number   int    `json:"number"`
+	Name     string `json:"name"`
+	PhotoURL string `json:"photo_url"`
+	Vision   string `json:"vision"`
+	Mission  string `json:"mission"`
 }
 
 type Ballot struct {

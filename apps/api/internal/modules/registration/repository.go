@@ -150,7 +150,7 @@ func (r *repository) CreateRegistration(ctx context.Context, tx *sqlx.Tx, reg *R
 		RETURNING id, status, registration_number
 	`
 	return tx.QueryRowContext(
-		ctx, query, 
+		ctx, query,
 		reg.EventID, reg.PersonID, reg.ParticipantCategory, reg.Source, reg.Status,
 		reg.QrToken, reg.Region, reg.Community, reg.SpecialNotes,
 	).Scan(&reg.ID, &reg.Status, &reg.RegistrationNumber)
@@ -283,7 +283,7 @@ func (r *repository) ListRegistrations(ctx context.Context, filter AdminListRegi
 	selectQuery := `
 		SELECT 
 			r.id,
-			r.
+			r.event_id,
 			e.title AS event_name,
 			p.full_name AS participant_name,
 			p.email,
@@ -347,7 +347,7 @@ func (r *repository) GetRegistrationAdminByID(ctx context.Context, id string) (*
 	query := `
 		SELECT 
 			r.id,
-			r.
+			r.event_id,
 			e.title AS event_name,
 			p.full_name AS participant_name,
 			p.email,

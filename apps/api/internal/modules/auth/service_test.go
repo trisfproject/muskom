@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-	
+
 	"testing"
 	"time"
 

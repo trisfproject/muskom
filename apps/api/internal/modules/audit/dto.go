@@ -15,13 +15,13 @@ type AuditListRequest struct {
 }
 
 type AuditDetailResponse struct {
-	ID        string      `json:"id"`
-	Module    string      `json:"module"`
-	Entity    string      `json:"entity"`
-	EntityID  string      `json:"entity_id"`
-	Action    string      `json:"action"`
-	ActorID   *string     `json:"actor_id,omitempty"`
-	ActorRole *string     `json:"actor_role,omitempty"`
+	ID            string      `json:"id"`
+	Module        string      `json:"module"`
+	Entity        string      `json:"entity"`
+	EntityID      string      `json:"entity_id"`
+	Action        string      `json:"action"`
+	ActorID       *string     `json:"actor_id,omitempty"`
+	ActorRole     *string     `json:"actor_role,omitempty"`
 	Reason        *string     `json:"reason,omitempty"`
 	IPAddress     *string     `json:"ip_address,omitempty"`
 	UserAgent     *string     `json:"user_agent,omitempty"`
@@ -29,5 +29,5 @@ type AuditDetailResponse struct {
 	PreviousValue interface{} `json:"previous_value,omitempty"`
 	NewValue      interface{} `json:"new_value,omitempty"`
 	CorrelationID *string     `json:"correlation_id,omitempty"`
-	CreatedAt time.Time   `json:"created_at"`
+	CreatedAt     time.Time   `json:"created_at"`
 }

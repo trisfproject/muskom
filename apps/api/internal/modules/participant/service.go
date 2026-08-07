@@ -30,6 +30,8 @@ type Service interface {
 	Update(ctx context.Context, id string, req UpdateParticipantRequest) (*Participant, error)
 	UpdateStatus(ctx context.Context, id string, req UpdateStatusRequest) (*Participant, error)
 	Delete(ctx context.Context, id string) error
+	BulkDelete(ctx context.Context, ids []string) error
+	BulkUpdateStatus(ctx context.Context, ids []string, status string) error
 	PublicRegister(ctx context.Context, req PublicRegisterParticipantRequest) (*PublicRegisterParticipantResponse, error)
 	GetStats(ctx context.Context) (*ParticipantStats, error)
 	VerifyEmail(ctx context.Context, token string) error
@@ -280,7 +282,7 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 				"exp": time.Now().Add(24 * time.Hour).Unix(),
 			})
 			tokenString, _ := token.SignedString([]byte(s.cfg.JWTSecret))
-			
+
 			// Determine Base URL (can be from request origin, but we'll use a relative path logic on frontend)
 			// Actually we need the absolute frontend URL for the email link.
 			// The frontend usually runs on the same domain or we can just use a relative /verify-email?token=
@@ -288,7 +290,7 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 			// Since we don't have a FRONTEND_URL in config, we'll use a relative path format assuming it's same origin,
 			// or default to localhost:3000
 			verificationURL := fmt.Sprintf("http://localhost:3000/verify-email?token=%s", tokenString)
-			
+
 			err := s.mailer.SendEmailVerificationLink(req.Email, req.FullName, verificationURL)
 			if err != nil {
 				_ = err
@@ -376,6 +378,46 @@ func (s *service) ResendVerification(ctx context.Context, email string) error {
 			_ = s.mailer.SendEmailVerificationLink(p.Email, p.FullName, verificationURL)
 		}()
 	}
+
+	return nil
+}
+
+func (s *service) BulkDelete(ctx context.Context, ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	err := s.repo.BulkDelete(ctx, ids)
+	if err != nil {
+		return err
+	}
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleParticipant,
+		Entity:   "participants",
+		EntityID: "bulk",
+		Action:   "BULK_DELETE",
+		Metadata: map[string]interface{}{"participant_ids": ids},
+	})
+
+	return nil
+}
+
+func (s *service) BulkUpdateStatus(ctx context.Context, ids []string, status string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	err := s.repo.BulkUpdateStatus(ctx, ids, status)
+	if err != nil {
+		return err
+	}
+
+	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
+		Module:   audit.ModuleParticipant,
+		Entity:   "participants",
+		EntityID: "bulk",
+		Action:   "BULK_UPDATE_STATUS",
+		Metadata: map[string]interface{}{"participant_ids": ids, "status": status},
+	})
 
 	return nil
 }

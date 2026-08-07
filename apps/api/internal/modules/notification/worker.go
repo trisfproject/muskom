@@ -70,7 +70,7 @@ func (w *Worker) processJob(ctx context.Context, job NotificationJob) {
 
 	// 4. Send
 	err := provider.Send(ctx, job.Recipient, subject, body)
-	
+
 	// 5. Transition to Final State
 	now := time.Now()
 	if err != nil {

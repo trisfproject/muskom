@@ -189,8 +189,8 @@ func TestRepository_GetElectionOverview(t *testing.T) {
 		sqlxDB := sqlx.NewDb(db, "postgres")
 		repo := NewRepository(sqlxDB)
 
-		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM registrations").WithArgs(eventID).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(100))
-		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM attendance").WithArgs(eventID).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(80))
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM participants").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(100))
+		mock.ExpectQuery("^SELECT COUNT\\(a\\.id\\) FROM attendance").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(80))
 		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes").WithArgs(eventID).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(60))
 
 		res, err := repo.GetElectionOverview(ctx, eventID)

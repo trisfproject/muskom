@@ -42,7 +42,7 @@ func (h *AdminHandler) CreateCandidate(c fiber.Ctx) error {
 
 func (h *AdminHandler) ListCandidates(c fiber.Ctx) error {
 	status := c.Query("status")
-	
+
 	search := c.Query("search")
 
 	candidates, err := h.service.AdminListCandidates(c.Context(), status, "", search)
@@ -201,4 +201,81 @@ func (h *AdminHandler) ReorderCandidates(c fiber.Ctx) error {
 	}
 
 	return response.SendSuccess(c, fiber.StatusOK, "Candidates reordered successfully", nil, nil)
+}
+
+func (h *AdminHandler) UpdateCandidate(c fiber.Ctx) error {
+	id := c.Params("id")
+	var req UpdateCandidateRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request body", nil)
+	}
+
+	if errs := h.validator.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	res, err := h.service.Update(c.Context(), id, req)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to update candidate: "+err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Candidate updated successfully", res, nil)
+}
+
+func (h *AdminHandler) DeleteCandidate(c fiber.Ctx) error {
+	id := c.Params("id")
+	adminUserID := c.Locals("user_id").(string)
+
+	if err := h.service.AdminDeleteCandidate(c.Context(), id, adminUserID); err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to delete candidate: "+err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Candidate deleted successfully", nil, nil)
+}
+
+func (h *AdminHandler) BulkDeleteCandidates(c fiber.Ctx) error {
+	var req BulkDeleteCandidateRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request body", nil)
+	}
+
+	if errs := h.validator.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	adminUserID := c.Locals("user_id").(string)
+	if err := h.service.AdminBulkDeleteCandidates(c.Context(), req.IDs, adminUserID); err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to delete candidates: "+err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Candidates deleted successfully", nil, nil)
+}
+
+func (h *AdminHandler) UploadPhoto(c fiber.Ctx) error {
+	id := c.Params("id")
+	fileHeader, err := c.FormFile("photo")
+	if err != nil {
+		fileHeader, err = c.FormFile("file")
+		if err != nil {
+			return response.SendError(c, fiber.StatusBadRequest, "No photo file provided", nil)
+		}
+	}
+
+	src, err := fileHeader.Open()
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to read photo file", nil)
+	}
+	defer src.Close()
+
+	mimeType := fileHeader.Header.Get("Content-Type")
+	if mimeType == "" {
+		mimeType = "image/jpeg"
+	}
+
+	res, err := h.service.UploadPhoto(c.Context(), id, fileHeader.Filename, mimeType, fileHeader.Size, src)
+	if err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Photo uploaded successfully", res, nil)
 }

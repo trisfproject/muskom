@@ -21,6 +21,6 @@ func (h *Handler) GetMyPermissions(c fiber.Ctx) error {
 	}
 
 	perms := h.authSvc.GetPermissionsForRole(roleCode)
-	
+
 	return response.SendSuccess(c, fiber.StatusOK, "Permissions retrieved", perms, nil)
 }

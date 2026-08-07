@@ -5,8 +5,8 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
-	"go.uber.org/zap"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
+	"go.uber.org/zap"
 )
 
 type checker struct {

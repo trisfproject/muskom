@@ -44,4 +44,18 @@ export const userService = {
   async resetPassword(id: string, new_password: string): Promise<void> {
     await api.post(`/admin/users/${id}/password-reset`, { new_password });
   },
+
+  async getMe(): Promise<UserResponse> {
+    const response = await api.get('/admin/users/me');
+    return response.data.data;
+  },
+
+  async updateMe(payload: { full_name: string; email: string }): Promise<UserResponse> {
+    const response = await api.put('/admin/users/me', payload);
+    return response.data.data;
+  },
+
+  async changePassword(payload: { old_password: string; new_password: string }): Promise<void> {
+    await api.put('/admin/users/me/password', payload);
+  },
 };

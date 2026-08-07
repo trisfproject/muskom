@@ -17,6 +17,7 @@ type Mailer interface {
 	SendEmailVerificationLink(to, participantName, verificationURL string) error
 	SendRejection(to, participantName, musyawarahName, reason string) error
 	SendTestEmail(to string) error
+	TestConnection() error
 }
 
 type smtpMailer struct {
@@ -347,5 +348,59 @@ func (m *smtpMailer) sendSMTP(to string, body []byte) error {
 		m.log.Error("Failed to send SMTP email", zap.Error(sendErr))
 		return fmt.Errorf("failed to send email: %w", sendErr)
 	}
+	return nil
+}
+
+func (m *smtpMailer) TestConnection() error {
+	addr := fmt.Sprintf("%s:%d", m.cfg.SmtpHost, m.cfg.SmtpPort)
+	if m.cfg.SmtpPort == 465 {
+		tlsConfig := &tls.Config{
+			InsecureSkipVerify: false,
+			ServerName:         m.cfg.SmtpHost,
+		}
+		conn, err := tls.Dial("tcp", addr, tlsConfig)
+		if err != nil {
+			return fmt.Errorf("failed to connect via TLS to %s: %w", addr, err)
+		}
+		defer conn.Close()
+
+		client, err := smtp.NewClient(conn, m.cfg.SmtpHost)
+		if err != nil {
+			return fmt.Errorf("failed to create SMTP client: %w", err)
+		}
+		defer client.Close()
+
+		if m.cfg.SmtpUsername != "" {
+			auth := smtp.PlainAuth("", m.cfg.SmtpUsername, m.cfg.SmtpPassword, m.cfg.SmtpHost)
+			if err := client.Auth(auth); err != nil {
+				return fmt.Errorf("authentication failed: %w", err)
+			}
+		}
+		return nil
+	}
+
+	client, err := smtp.Dial(addr)
+	if err != nil {
+		return fmt.Errorf("failed to connect to %s: %w", addr, err)
+	}
+	defer client.Close()
+
+	if m.cfg.SmtpTls {
+		tlsConfig := &tls.Config{
+			InsecureSkipVerify: false,
+			ServerName:         m.cfg.SmtpHost,
+		}
+		if err := client.StartTLS(tlsConfig); err != nil {
+			return fmt.Errorf("StartTLS failed: %w", err)
+		}
+	}
+
+	if m.cfg.SmtpUsername != "" {
+		auth := smtp.PlainAuth("", m.cfg.SmtpUsername, m.cfg.SmtpPassword, m.cfg.SmtpHost)
+		if err := client.Auth(auth); err != nil {
+			return fmt.Errorf("authentication failed: %w", err)
+		}
+	}
+
 	return nil
 }

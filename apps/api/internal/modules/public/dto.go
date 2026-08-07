@@ -38,9 +38,9 @@ type TimelineDTO struct {
 }
 
 type CurrentPhaseDTO struct {
-	Name      string     `json:"name"`
-	EndDate   *time.Time `json:"end_date"`
-	IsActive  bool       `json:"is_active"`
+	Name     string     `json:"name"`
+	EndDate  *time.Time `json:"end_date"`
+	IsActive bool       `json:"is_active"`
 }
 
 type AnnouncementDTO struct {

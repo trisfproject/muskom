@@ -190,3 +190,39 @@ func (h *Handler) ResendVerification(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusOK, "Verification email sent", nil, nil)
 }
+
+func (h *Handler) BulkDelete(c fiber.Ctx) error {
+	var req BulkDeleteParticipantRequest
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+
+	if errs := h.val.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	err := h.service.BulkDelete(c.Context(), req.IDs)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to delete participants: "+err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Participants deleted successfully", nil, nil)
+}
+
+func (h *Handler) BulkUpdateStatus(c fiber.Ctx) error {
+	var req BulkUpdateParticipantStatusRequest
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+
+	if errs := h.val.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	err := h.service.BulkUpdateStatus(c.Context(), req.IDs, req.Status)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to update participants: "+err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Participants status updated successfully", nil, nil)
+}

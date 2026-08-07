@@ -23,7 +23,7 @@ func (r *repository) GetRolePermissionMatrix(ctx context.Context) (map[string][]
 		JOIN role_permissions rp ON r.id = rp.role_id
 		JOIN permissions p ON rp.permission_id = p.id
 	`
-	
+
 	type row struct {
 		RoleCode       string `db:"role_code"`
 		PermissionCode string `db:"permission_code"`

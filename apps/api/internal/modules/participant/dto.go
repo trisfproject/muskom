@@ -50,38 +50,37 @@ type ParticipantStats struct {
 
 // Participant represents the participants table in the database
 type Participant struct {
-	ID                 string     `db:"id" json:"id"`
+	ID string `db:"id" json:"id"`
 
-	RegistrationNumber string     `db:"registration_number" json:"registration_number"`
-	FullName           string     `db:"full_name" json:"full_name"`
-	Nickname           *string    `db:"nickname" json:"nickname"`
+	RegistrationNumber string  `db:"registration_number" json:"registration_number"`
+	FullName           string  `db:"full_name" json:"full_name"`
+	Nickname           *string `db:"nickname" json:"nickname"`
 
-	Email              string     `db:"email" json:"email"`
-	Phone              string     `db:"phone" json:"phone"`
-	CompanyName        string     `db:"company_name" json:"company_name"`
-	IndustrialArea     string     `db:"industrial_area" json:"industrial_area"`
-	JobTitle           string     `db:"job_title" json:"job_title"`
-	Department         *string    `db:"department" json:"department"`
-	Status             string     `db:"status" json:"status"`
-	CreatedAt          time.Time  `db:"created_at" json:"created_at"`
-	UpdatedAt          time.Time  `db:"updated_at" json:"updated_at"`
-	DeletedAt          *time.Time `db:"deleted_at" json:"-"`
+	Email          string     `db:"email" json:"email"`
+	Phone          string     `db:"phone" json:"phone"`
+	CompanyName    string     `db:"company_name" json:"company_name"`
+	IndustrialArea string     `db:"industrial_area" json:"industrial_area"`
+	JobTitle       string     `db:"job_title" json:"job_title"`
+	Department     *string    `db:"department" json:"department"`
+	Status         string     `db:"status" json:"status"`
+	CreatedAt      time.Time  `db:"created_at" json:"created_at"`
+	UpdatedAt      time.Time  `db:"updated_at" json:"updated_at"`
+	DeletedAt      *time.Time `db:"deleted_at" json:"-"`
 }
 
 // CreateParticipantRequest represents the payload for creating a new participant
 type CreateParticipantRequest struct {
-
 	RegistrationNumber string  `json:"registration_number" validate:"required"`
 	FullName           string  `json:"full_name" validate:"required"`
 	Nickname           *string `json:"nickname"`
 
-	Email              string  `json:"email" validate:"required,email"`
-	Phone              string  `json:"phone" validate:"required"`
-	CompanyName        string  `json:"company_name" validate:"required"`
-	IndustrialArea     string  `json:"industrial_area" validate:"required"`
-	JobTitle           string  `json:"job_title" validate:"required"`
-	Department         *string `json:"department"`
-	Status             string  `json:"status" validate:"required,oneof=Unverified Pending Verified Rejected Eligible"`
+	Email          string  `json:"email" validate:"required,email"`
+	Phone          string  `json:"phone" validate:"required"`
+	CompanyName    string  `json:"company_name" validate:"required"`
+	IndustrialArea string  `json:"industrial_area" validate:"required"`
+	JobTitle       string  `json:"job_title" validate:"required"`
+	Department     *string `json:"department"`
+	Status         string  `json:"status" validate:"required,oneof=Unverified Pending Verified Rejected Eligible"`
 }
 
 // UpdateParticipantRequest represents the payload for updating an existing participant
@@ -90,12 +89,12 @@ type UpdateParticipantRequest struct {
 	FullName           string  `json:"full_name" validate:"required"`
 	Nickname           *string `json:"nickname"`
 
-	Email              string  `json:"email" validate:"required,email"`
-	Phone              string  `json:"phone" validate:"required"`
-	CompanyName        string  `json:"company_name" validate:"required"`
-	IndustrialArea     string  `json:"industrial_area" validate:"required"`
-	JobTitle           string  `json:"job_title" validate:"required"`
-	Department         *string `json:"department"`
+	Email          string  `json:"email" validate:"required,email"`
+	Phone          string  `json:"phone" validate:"required"`
+	CompanyName    string  `json:"company_name" validate:"required"`
+	IndustrialArea string  `json:"industrial_area" validate:"required"`
+	JobTitle       string  `json:"job_title" validate:"required"`
+	Department     *string `json:"department"`
 }
 
 // UpdateStatusRequest represents the payload for updating a participant's status
@@ -104,11 +103,20 @@ type UpdateStatusRequest struct {
 	Reason *string `json:"reason" validate:"omitempty,max=500"`
 }
 
+type BulkDeleteParticipantRequest struct {
+	IDs []string `json:"ids" validate:"required,min=1"`
+}
+
+type BulkUpdateParticipantStatusRequest struct {
+	IDs    []string `json:"ids" validate:"required,min=1"`
+	Status string   `json:"status" validate:"required,oneof=Unverified Pending Verified Rejected Eligible"`
+	Reason *string  `json:"reason" validate:"omitempty,max=500"`
+}
+
 // PublicRegisterParticipantRequest represents the payload for the public registration wizard
 type PublicRegisterParticipantRequest struct {
-
-	FullName       string  `json:"full_name" validate:"required,max=255"`
-	Nickname       *string `json:"nickname" validate:"omitempty,max=255"`
+	FullName string  `json:"full_name" validate:"required,max=255"`
+	Nickname *string `json:"nickname" validate:"omitempty,max=255"`
 
 	Email          string  `json:"email" validate:"required,email,max=255"`
 	Phone          string  `json:"phone" validate:"required,max=50"`

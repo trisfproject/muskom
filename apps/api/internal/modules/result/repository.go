@@ -120,7 +120,7 @@ func (r *repository) GetElectionOverview(ctx context.Context, eventID uuid.UUID)
 	overview.EventID = eventID
 
 	// Total Eligible (Approved/Verified Participants)
-	err := r.db.GetContext(ctx, &overview.TotalEligible, `SELECT COUNT(id) FROM participants WHERE deleted_at IS NULL AND status IN ('Verified', 'APPROVED')`, eventID)
+	err := r.db.GetContext(ctx, &overview.TotalEligible, `SELECT COUNT(id) FROM participants WHERE deleted_at IS NULL AND status IN ('Verified', 'APPROVED')`)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (r *repository) GetElectionOverview(ctx context.Context, eventID uuid.UUID)
 		FROM attendance a 
 		JOIN participants p ON a.participant_id = p.id 
 		WHERE a.undone_at IS NULL AND p.deleted_at IS NULL
-	`, eventID)
+	`)
 	if err != nil {
 		return nil, err
 	}

@@ -131,3 +131,67 @@ func (h *Handler) ResetPassword(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusOK, "Password reset successfully", nil, nil)
 }
+
+func (h *Handler) GetMe(c fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized", nil)
+	}
+
+	res, err := h.service.GetUser(c.Context(), userID)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, "User not found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get profile", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Profile retrieved successfully", res, nil)
+}
+
+func (h *Handler) UpdateMe(c fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized", nil)
+	}
+
+	var req UpdateProfileRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+
+	if errs := h.validator.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	res, err := h.service.UpdateProfile(c.Context(), userID, &req)
+	if err != nil {
+		if errors.Is(err, ErrEmailTaken) {
+			return response.SendError(c, fiber.StatusConflict, err.Error(), nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to update profile", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Profile updated successfully", res, nil)
+}
+
+func (h *Handler) ChangePassword(c fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized", nil)
+	}
+
+	var req ChangePasswordRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+
+	if errs := h.validator.ValidateStruct(&req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	if err := h.service.ChangePassword(c.Context(), userID, &req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Password changed successfully", nil, nil)
+}

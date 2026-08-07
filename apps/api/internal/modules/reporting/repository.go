@@ -90,7 +90,7 @@ func (r *repository) LogReportGeneration(ctx context.Context, history *ReportHis
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, created_at
 	`
-	return r.db.QueryRowContext(ctx, query, 
+	return r.db.QueryRowContext(ctx, query,
 		history.EventID, history.ReportType, history.FileFormat, history.GeneratedBy, history.FileURL,
 	).Scan(&history.ID, &history.CreatedAt)
 }

@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	ErrNotFound      = errors.New("candidate not found")
-	ErrDuplicateReg  = errors.New("registration number already exists")
+	ErrNotFound       = errors.New("candidate not found")
+	ErrDuplicateReg   = errors.New("registration number already exists")
 	ErrDuplicateEmail = errors.New("candidate with this email already registered for this event")
 )
 
@@ -21,6 +21,7 @@ type Repository interface {
 	FindAll(ctx context.Context) ([]Candidate, error)
 	Update(ctx context.Context, candidate *Candidate) error
 	Delete(ctx context.Context, id string) error
+	BulkDelete(ctx context.Context, ids []string) error
 	Count(ctx context.Context) (int, error)
 
 	SaveDocument(ctx context.Context, doc *CandidateDocument) error
@@ -52,12 +53,12 @@ func (r *repository) Create(ctx context.Context, c *Candidate) error {
 			company_name, industrial_area, job_title, department, biography,
 			motivation, vision, mission, profile_photo, status
 		) VALUES (
-			: :registration_number, :full_name, :nickname, :email, :phone,
+			:registration_number, :full_name, :nickname, :email, :phone,
 			:company_name, :industrial_area, :job_title, :department, :biography,
 			:motivation, :vision, :mission, :profile_photo, :status
 		) RETURNING id, created_at, updated_at
 	`
-	
+
 	stmt, err := r.db.PrepareNamedContext(ctx, query)
 	if err != nil {
 		return err
@@ -108,7 +109,6 @@ func (r *repository) Update(ctx context.Context, c *Candidate) error {
 			nickname = :nickname,
 			email = :email,
 			phone = :phone,
-
 			company_name = :company_name,
 			industrial_area = :industrial_area,
 			job_title = :job_title,
@@ -123,7 +123,7 @@ func (r *repository) Update(ctx context.Context, c *Candidate) error {
 		WHERE id = :id AND deleted_at IS NULL
 		RETURNING updated_at
 	`
-	
+
 	stmt, err := r.db.PrepareNamedContext(ctx, query)
 	if err != nil {
 		return err
@@ -156,6 +156,19 @@ func (r *repository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
+func (r *repository) BulkDelete(ctx context.Context, ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	query, args, err := sqlx.In(`UPDATE candidates SET deleted_at = NOW() WHERE id IN (?) AND deleted_at IS NULL`, ids)
+	if err != nil {
+		return err
+	}
+	query = r.db.Rebind(query)
+	_, err = r.db.ExecContext(ctx, query, args...)
+	return err
+}
+
 func (r *repository) Count(ctx context.Context) (int, error) {
 	query := `SELECT COUNT(*) FROM candidates WHERE deleted_at IS NULL`
 	var count int
@@ -182,14 +195,15 @@ func (r *repository) SaveDocument(ctx context.Context, doc *CandidateDocument) e
 			updated_at = NOW()
 		RETURNING id, uploaded_at, updated_at
 	`
-	
+
 	stmt, err := r.db.PrepareNamedContext(ctx, query)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	return stmt.GetContext(ctx, doc, doc)
+	err = stmt.GetContext(ctx, doc, doc)
+	return err
 }
 
 func (r *repository) GetDocumentByID(ctx context.Context, id string) (*CandidateDocument, error) {
@@ -206,7 +220,7 @@ func (r *repository) GetDocumentByID(ctx context.Context, id string) (*Candidate
 }
 
 func (r *repository) FindDocumentsByCandidateID(ctx context.Context, candidateID string) ([]CandidateDocument, error) {
-	query := `SELECT * FROM candidate_documents WHERE candidate_id = $1 AND deleted_at IS NULL ORDER BY uploaded_at ASC`
+	query := `SELECT * FROM candidate_documents WHERE candidate_id = $1 AND deleted_at IS NULL ORDER BY uploaded_at DESC`
 	var docs []CandidateDocument
 	err := r.db.SelectContext(ctx, &docs, query, candidateID)
 	if err != nil {
@@ -242,12 +256,6 @@ func (r *repository) AdminListCandidates(ctx context.Context, statusFilter strin
 	if statusFilter != "" {
 		query += ` AND status = $` + strconv.Itoa(argID)
 		args = append(args, statusFilter)
-		argID++
-	}
-
-	if musyawarahFilter != "" {
-		query += ` AND musyawarah_id = $` + strconv.Itoa(argID)
-		args = append(args, musyawarahFilter)
 		argID++
 	}
 

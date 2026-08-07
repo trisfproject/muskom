@@ -28,7 +28,7 @@ func TestRepository_GetParticipantStatus(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"status"}).AddRow("VERIFIED")
-		mock.ExpectQuery("^SELECT status FROM registrations WHERE id = \\$1").
+		mock.ExpectQuery("^SELECT status FROM participants WHERE id = \\$1").
 			WithArgs("reg1").
 			WillReturnRows(rows)
 
@@ -38,7 +38,7 @@ func TestRepository_GetParticipantStatus(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		mock.ExpectQuery("^SELECT status FROM registrations WHERE id = \\$1").
+		mock.ExpectQuery("^SELECT status FROM participants WHERE id = \\$1").
 			WithArgs("reg1").
 			WillReturnError(sql.ErrNoRows)
 
@@ -57,11 +57,11 @@ func TestRepository_GetAttendanceDetail(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		now := time.Now()
 		rows := sqlmock.NewRows([]string{
-			"id", "registration_id", "checked_in_at", "checked_in_by", "created_at", "updated_at",
+			"id", "participant_id", "checked_in_at", "checked_in_by", "created_at", "updated_at",
 			"full_name", "email", "phone", "institution",
 		}).AddRow("att1", "reg1", now, "op1", now, now, "John", "j@mail.com", "123", "Inst")
 
-		mock.ExpectQuery("^SELECT (.+) FROM attendance a JOIN registrations reg").
+		mock.ExpectQuery("^SELECT (.+) FROM attendance a JOIN participants p").
 			WithArgs("reg1").
 			WillReturnRows(rows)
 
@@ -72,7 +72,7 @@ func TestRepository_GetAttendanceDetail(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		mock.ExpectQuery("^SELECT (.+) FROM attendance a JOIN registrations reg").
+		mock.ExpectQuery("^SELECT (.+) FROM attendance a JOIN participants p").
 			WithArgs("reg1").
 			WillReturnError(sql.ErrNoRows)
 
@@ -167,11 +167,11 @@ func TestRepository_ListAttendances(t *testing.T) {
 
 		now := time.Now()
 		rows := sqlmock.NewRows([]string{
-			"registration_id", "participant_name", "institution",
+			"participant_id", "participant_name", "institution",
 			"verification_status", "attendance_status", "checked_in_at",
 		}).AddRow("reg1", "John", "Inst", "VERIFIED", "PRESENT", now)
 
-		mock.ExpectQuery("^SELECT r.id as registration_id").
+		mock.ExpectQuery("^SELECT p.id as participant_id").
 			WillReturnRows(rows)
 
 		req := AttendanceListRequest{}
@@ -186,11 +186,11 @@ func TestRepository_ListAttendances(t *testing.T) {
 		mock.ExpectQuery("^SELECT COUNT").WillReturnRows(countRows)
 
 		rows := sqlmock.NewRows([]string{
-			"registration_id", "participant_name", "institution",
+			"participant_id", "participant_name", "institution",
 			"verification_status", "attendance_status", "checked_in_at",
 		}).AddRow("reg1", "John", "Inst", "VERIFIED", "PRESENT", nil)
 
-		mock.ExpectQuery("^SELECT r.id as registration_id").
+		mock.ExpectQuery("^SELECT p.id as participant_id").
 			WillReturnRows(rows)
 
 		req := AttendanceListRequest{
@@ -215,11 +215,11 @@ func TestRepository_ListAttendances(t *testing.T) {
 		mock.ExpectQuery("^SELECT COUNT").WillReturnRows(countRows)
 
 		rows := sqlmock.NewRows([]string{
-			"registration_id", "participant_name", "institution",
+			"participant_id", "participant_name", "institution",
 			"verification_status", "attendance_status", "checked_in_at",
 		}).AddRow("reg1", "John", "Inst", "VERIFIED", "ABSENT", nil)
 
-		mock.ExpectQuery("^SELECT r.id as registration_id").
+		mock.ExpectQuery("^SELECT p.id as participant_id").
 			WillReturnRows(rows)
 
 		req := AttendanceListRequest{
@@ -245,7 +245,7 @@ func TestRepository_ListAttendances(t *testing.T) {
 	t.Run("QueryError", func(t *testing.T) {
 		countRows := sqlmock.NewRows([]string{"count"}).AddRow(1)
 		mock.ExpectQuery("^SELECT COUNT").WillReturnRows(countRows)
-		mock.ExpectQuery("^SELECT r.id as registration_id").WillReturnError(sql.ErrConnDone)
+		mock.ExpectQuery("^SELECT p.id as participant_id").WillReturnError(sql.ErrConnDone)
 
 		req := AttendanceListRequest{}
 		items, total, err := repo.ListAttendances(ctx, req)
@@ -264,11 +264,11 @@ func TestRepository_GetAttendanceByID(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		now := time.Now()
 		rows := sqlmock.NewRows([]string{
-			"id", "registration_id", "checked_in_at", "checked_in_by", "created_at", "updated_at",
+			"id", "participant_id", "checked_in_at", "checked_in_by", "created_at", "updated_at",
 			"full_name", "email", "phone", "institution",
 		}).AddRow("att1", "reg1", now, "op1", now, now, "John", "j@mail.com", "123", "Inst")
 
-		mock.ExpectQuery("^SELECT (.+) FROM attendance a JOIN registrations reg").
+		mock.ExpectQuery("^SELECT (.+) FROM attendance a JOIN participants p").
 			WithArgs("att1").
 			WillReturnRows(rows)
 
@@ -279,7 +279,7 @@ func TestRepository_GetAttendanceByID(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		mock.ExpectQuery("^SELECT (.+) FROM attendance a JOIN registrations reg").
+		mock.ExpectQuery("^SELECT (.+) FROM attendance a JOIN participants p").
 			WithArgs("att1").
 			WillReturnError(sql.ErrNoRows)
 

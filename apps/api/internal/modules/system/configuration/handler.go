@@ -2,11 +2,11 @@ package configuration
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"strings"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
+	"strings"
 )
 
 type Handler struct {
@@ -85,6 +85,56 @@ func (h *Handler) HandleGetSMTPConfig(c fiber.Ctx) error {
 	}
 
 	return response.SendSuccess(c, fiber.StatusOK, "SMTP configuration retrieved", smtpConfig, nil)
+}
+
+func (h *Handler) HandleUpdateSMTPConfig(c fiber.Ctx) error {
+	if h.cfg == nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Config not loaded", nil)
+	}
+
+	var req struct {
+		Enabled   bool   `json:"enabled"`
+		Host      string `json:"host"`
+		Port      int    `json:"port"`
+		Username  string `json:"username"`
+		Password  string `json:"password"`
+		FromName  string `json:"fromName"`
+		FromEmail string `json:"fromEmail"`
+	}
+
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid payload", nil)
+	}
+
+	h.cfg.MailEnabled = req.Enabled
+	if req.Host != "" {
+		h.cfg.SmtpHost = req.Host
+	}
+	if req.Port > 0 {
+		h.cfg.SmtpPort = req.Port
+	}
+	if req.Username != "" {
+		h.cfg.SmtpUsername = req.Username
+	}
+	// Only update password if not empty and not asterisks
+	if req.Password != "" && !strings.HasPrefix(req.Password, "*") {
+		h.cfg.SmtpPassword = req.Password
+	}
+	if req.FromName != "" {
+		h.cfg.SmtpFromName = req.FromName
+	}
+	if req.FromEmail != "" {
+		h.cfg.SmtpFrom = req.FromEmail
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "SMTP configuration updated successfully", nil, nil)
+}
+
+func (h *Handler) HandleTestSMTPConnection(c fiber.Ctx) error {
+	if err := h.mailer.TestConnection(); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "SMTP connection test failed: "+err.Error(), nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "SMTP connection test successful", nil, nil)
 }
 
 func (h *Handler) HandleTestSMTP(c fiber.Ctx) error {

@@ -16,7 +16,7 @@ var (
 type Service interface {
 	QueueNotification(ctx context.Context, eventID string, channel Channel, templateName, recipient string, payload *string) error
 	Broadcast(ctx context.Context, eventID string, channel Channel, templateName string, recipients []string, payload *string) error
-	
+
 	ListJobs(ctx context.Context, eventID string) ([]NotificationJob, error)
 	ListHistory(ctx context.Context, eventID string) ([]NotificationHistory, error)
 	ListTemplates(ctx context.Context) ([]NotificationTemplate, error)
@@ -46,7 +46,7 @@ func (s *service) QueueNotification(ctx context.Context, eventID string, channel
 	if err != nil {
 		// Mock auto-provisioning for architecture test
 		tpl = &NotificationTemplate{
-			ID:      "mock-tpl-id", // Note: This will fail real FK constraints unless inserted. 
+			ID: "mock-tpl-id", // Note: This will fail real FK constraints unless inserted.
 			// In a real system, we'd insert it if it doesn't exist for the mock.
 			// But since we just need the architecture to compile and run, we'll bypass actual DB insertion for this strict mock.
 		}
