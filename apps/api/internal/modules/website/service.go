@@ -251,8 +251,8 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 	}
 
 	candStyle, partStyle := "outline", "outline"
-	candOpen := regEnabled && heroPrimaryEnabled
-	partOpen := regEnabled && heroSecondaryEnabled
+	candOpen := regEnabled && heroPrimaryEnabled && (regType == "CANDIDATE" || regType == "BOTH")
+	partOpen := regEnabled && heroSecondaryEnabled && (regType == "PARTICIPANT" || regType == "BOTH")
 
 	switch regType {
 	case "CANDIDATE":
@@ -261,8 +261,6 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 		partStyle = "primary"
 	case "BOTH":
 		candStyle, partStyle = "primary", "primary"
-	default:
-		candStyle = "primary"
 	}
 
 	cta := PublicCtaDTO{
@@ -288,6 +286,9 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 	candCMS, candList, candSection := s.mapper.MapCandidates(candSettings, candidates)
 	footerDTO := s.mapper.MapFooter(footer)
 
+	partCount, _ := s.repo.GetParticipantCount(ctx)
+	partLimit, _ := s.repo.GetRegistrationLimit(ctx)
+
 	resp := &PublicHomeResponse{
 		Hero:          heroDTO,
 		CurrentPhase:  currentPhase,
@@ -304,6 +305,15 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 		General:      genDTO,
 		CandidateCMS: candCMS,
 		Candidates:   candList,
+		Settings: &PublicSettingsDTO{
+			RegistrationApprovalMode: "MANUAL",
+			ShowCandidateList:        true,
+			ShowTimeline:             true,
+			ShowAnnouncements:        true,
+			ParticipantLimit:         partLimit,
+			ParticipantCount:         partCount,
+			RegistrationEnabled:      regEnabled,
+		},
 	}
 
 	// 6. Set Cache

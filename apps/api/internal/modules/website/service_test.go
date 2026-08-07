@@ -152,6 +152,12 @@ func (m *mockRepository) UpdateInformationPage(ctx context.Context, id string, p
 func (m *mockRepository) DeleteInformationPage(ctx context.Context, id string) error {
 	return nil
 }
+func (m *mockRepository) GetParticipantCount(ctx context.Context) (int, error) {
+	return 10, nil
+}
+func (m *mockRepository) GetRegistrationLimit(ctx context.Context) (int, error) {
+	return 100, nil
+}
 
 func TestGetPublicHome(t *testing.T) {
 	now := time.Now().UTC()
@@ -230,5 +236,5 @@ func TestGetPublicHome(t *testing.T) {
 	assert.Equal(t, "primary", res.CTA.CandidateRegistration.Style)
 	assert.Equal(t, "outline", res.CTA.ParticipantRegistration.Style)
 	assert.True(t, res.CTA.CandidateRegistration.Open)
-	assert.True(t, res.CTA.ParticipantRegistration.Open)
+	assert.False(t, res.CTA.ParticipantRegistration.Open)
 }

@@ -23,6 +23,17 @@ type PublicHomeResponse struct {
 	General      WebsiteGeneralDTO      `json:"general"`
 	CandidateCMS WebsiteCandidateCMSDTO `json:"candidate_cms"`
 	Candidates   []PublicCandidateDTO   `json:"candidates"`
+	Settings     *PublicSettingsDTO     `json:"settings,omitempty"`
+}
+
+type PublicSettingsDTO struct {
+	RegistrationApprovalMode string `json:"registration_approval_mode"`
+	ShowCandidateList        bool   `json:"show_candidate_list"`
+	ShowTimeline             bool   `json:"show_timeline"`
+	ShowAnnouncements        bool   `json:"show_announcements"`
+	ParticipantLimit         int    `json:"participant_limit"`
+	ParticipantCount         int    `json:"participant_count"`
+	RegistrationEnabled      bool   `json:"registration_enabled"`
 }
 
 type WebsiteGeneralDTO struct {

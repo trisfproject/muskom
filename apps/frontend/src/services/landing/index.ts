@@ -1,5 +1,6 @@
 import publicApi from '@/lib/public-api';
 import { HomeResponse } from '@/types/landing';
+
 export const landingService = {
   async getPublicHome(): Promise<HomeResponse | null> {
     try {
@@ -18,23 +19,22 @@ export const landingService = {
       const json = await res.json();
       const apiData = json.data;
       
-      let eventData = apiData?.event;
-      if (!eventData) {
-        try {
-          const musyRes = await fetch(`${baseUrl}/public/musyawarah`, { cache: 'no-store' });
-          if (musyRes.ok) {
-            const musyJson = await musyRes.json();
-            eventData = musyJson.data;
-          }
-        } catch (e) {
-          // ignore error, fail gracefully
-        }
-      }
-
-      // Transform API response to match frontend HomeResponse structure and inject lifecycle logic
-      const lifecycle = eventData?.lifecycle_state || 'PREPARATION';
-      const mappedData = {
-        ...apiData,
+      const mappedData: HomeResponse = {
+        general: apiData?.general || {
+          site_name: "MUSKOM 2026",
+          tagline: "Musyawarah Komisariat",
+          theme: "modern-tech",
+          primary_color: "#2563eb",
+          secondary_color: "#64748b",
+          default_light_theme: true,
+          default_dark_theme: false,
+          registration_enabled: true,
+          maintenance_mode: false,
+          seo_title: "MUSKOM 2026",
+          seo_description: "Musyawarah Komisariat 2026",
+          seo_image_url: "",
+          favicon_url: "",
+        },
         hero: apiData?.hero || {
           hero_badge: "Welcome",
           hero_title: "MUSKOM 2026",
@@ -52,7 +52,7 @@ export const landingService = {
         footer: apiData?.footer || {
           organization_name: "MUSKOM",
           description: "Musyawarah Komisariat",
-          copyright: "2026 MUSKOM",
+          copyright: "© 2026 MUSKOM",
           official_badge: "Official",
           tagline: "Together we build",
         },
@@ -62,28 +62,22 @@ export const landingService = {
           end_date: apiData?.currentPhase?.end_date,
           is_active: apiData?.currentPhase?.is_active || false,
         },
-        event: eventData, // Include event for downstream use
-      } as HomeResponse;
-
-      // Lifecycle-driven CTA overrides
-      mappedData.cta = {
-        participant_registration: { label: "Persiapan", url: "#", open: false, style: "outline" },
-        candidate_registration: { label: "Persiapan", url: "#", open: false, style: "outline" }
+        cta: apiData?.cta || {
+          participant_registration: { label: "Daftar Peserta", url: "/register", open: false, style: "outline" },
+          candidate_registration: { label: "Daftar Calon", url: "/register/candidate", open: false, style: "outline" },
+        },
+        timeline: apiData?.timeline || [],
+        announcements: apiData?.announcements || [],
+        candidate_cms: apiData?.candidate_cms || {
+          section_title: "Bursa Calon",
+          section_description: "Daftar Bakal Calon Ketua Umum",
+          registration_status: "PENJARINGAN",
+          empty_state_message: "Belum ada kandidat terdaftar.",
+          publication_message: "",
+        },
+        candidates: apiData?.candidates || [],
+        settings: apiData?.settings,
       };
-
-      if (lifecycle === 'PARTICIPANT_REGISTRATION') {
-        mappedData.cta.participant_registration = { label: "Daftar Peserta", url: "/register", open: true, style: "primary" };
-      } else if (lifecycle === 'CANDIDATE_REGISTRATION') {
-        mappedData.cta.candidate_registration = { label: "Daftar Bakal Calon", url: "/register/candidate", open: true, style: "primary" };
-      } else if (lifecycle === 'CAMPAIGN') {
-        mappedData.cta.candidate_registration = { label: "Lihat Profil Kandidat", url: "#candidates", open: true, style: "primary" };
-      } else if (lifecycle === 'VOTING') {
-        mappedData.cta.participant_registration = { label: "Masuk Voting", url: "/voting", open: true, style: "primary" };
-      } else if (lifecycle === 'COMPLETED' || lifecycle === 'RESULT_PUBLICATION') {
-        mappedData.cta.participant_registration = { label: "Lihat Hasil Musyawarah", url: "#result", open: true, style: "primary" };
-      } else if (lifecycle === 'PUBLISHED') {
-         mappedData.cta.participant_registration = { label: "Lihat Jadwal", url: "#timeline", open: true, style: "primary" };
-      }
 
       return mappedData;
     } catch (error: unknown) {

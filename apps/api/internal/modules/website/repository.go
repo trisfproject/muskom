@@ -65,6 +65,10 @@ type Repository interface {
 	CreateInformationPage(ctx context.Context, p *WebsiteInformationPage) (*WebsiteInformationPage, error)
 	UpdateInformationPage(ctx context.Context, id string, p *WebsiteInformationPage) (*WebsiteInformationPage, error)
 	DeleteInformationPage(ctx context.Context, id string) error
+
+	// Operational Metrics
+	GetParticipantCount(ctx context.Context) (int, error)
+	GetRegistrationLimit(ctx context.Context) (int, error)
 }
 
 type repository struct {
@@ -589,4 +593,22 @@ func (r *repository) DeleteInformationPage(ctx context.Context, id string) error
 	query := `DELETE FROM website_information_pages WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id)
 	return err
+}
+
+func (r *repository) GetParticipantCount(ctx context.Context) (int, error) {
+	var count int
+	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND status != 'Rejected'`)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *repository) GetRegistrationLimit(ctx context.Context) (int, error) {
+	var limit *int
+	err := r.db.GetContext(ctx, &limit, `SELECT registration_limit FROM event_settings LIMIT 1`)
+	if err != nil || limit == nil {
+		return 0, nil
+	}
+	return *limit, nil
 }

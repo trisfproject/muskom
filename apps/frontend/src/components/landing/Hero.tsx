@@ -16,22 +16,25 @@ export function Hero({ data }: { data: HomeResponse | null }) {
   const title = data?.hero?.hero_title || identity?.community_name || "Musyawarah Komunitas";
   const description = data?.hero?.hero_description || identity?.website_description || "Platform pemilihan resmi. Membangun proses kepemimpinan yang transparan, terpercaya, dan akuntabel.";
 
+  const candCTA = data?.cta?.candidate_registration;
+  const partCTA = data?.cta?.participant_registration;
+
   let ctaList = [
-    data?.hero?.primary_cta_enabled ? {
-      label: data?.hero?.primary_cta_label,
-      url: data?.hero?.primary_cta_url,
-      open: true,
-      style: "primary"
+    candCTA && data?.hero?.primary_cta_enabled !== false ? {
+      label: candCTA.label || data?.hero?.primary_cta_label || "Daftar Calon",
+      url: candCTA.url || data?.hero?.primary_cta_url || "/register/candidate",
+      open: candCTA.open,
+      style: candCTA.style || "primary"
     } : null,
-    data?.hero?.secondary_cta_enabled ? {
-      label: data?.hero?.secondary_cta_label,
-      url: data?.hero?.secondary_cta_url,
-      open: true,
-      style: "outline"
+    partCTA && data?.hero?.secondary_cta_enabled !== false ? {
+      label: partCTA.label || data?.hero?.secondary_cta_label || "Daftar Peserta",
+      url: partCTA.url || data?.hero?.secondary_cta_url || "/register",
+      open: partCTA.open,
+      style: partCTA.style || "outline"
     } : null,
   ].filter(Boolean);
 
-  if (config?.feature_flags && !config.feature_flags.enable_registration) {
+  if (data?.general?.registration_enabled === false || (config?.feature_flags && !config.feature_flags.enable_registration)) {
     ctaList = [];
   }
 

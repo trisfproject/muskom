@@ -48,9 +48,9 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successInfo, setSuccessInfo] = useState<SuccessInfo | null>(null);
-  const [musyawarahId, setMusyawarahId] = useState<string>("");
-  const [musyawarahName, setMusyawarahName] = useState<string>("MUSKOM");
-  const [eventStatus, setEventStatus] = useState<"loading" | "open" | "closed" | "not_started" | "no_event">("loading");
+  const [musyawarahId, setMusyawarahId] = useState<string>("muskom-2026");
+  const [musyawarahName, setMusyawarahName] = useState<string>("Musyawarah KOMITKABE 2026");
+  const [eventStatus, setEventStatus] = useState<"loading" | "open" | "closed" | "not_started">("loading");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [resendCooldown, setResendCooldown] = useState(0);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -74,27 +74,47 @@ export default function RegisterPage() {
         const data = await landingService.getPublicHome();
         if (!mounted) return;
 
-        if (!data?.event?.id) {
-          setEventStatus("no_event");
-          return;
-        }
+        const eventTitle = data?.hero?.hero_title || data?.general?.site_name || "Musyawarah KOMITKABE 2026";
+        setMusyawarahName(eventTitle);
+        setMusyawarahId(data?.event?.id || "muskom-2026");
 
-        setMusyawarahId(data.event.id);
-        if (data.event.name) setMusyawarahName(data.event.name);
-
-        if (data.general?.registration_enabled === false) {
+        // 1. Check Website General registration toggle
+        if (data?.general?.registration_enabled === false) {
           setEventStatus("not_started");
           return;
         }
 
-        const limit = data.settings?.participant_limit || 0;
-        const count = data.settings?.participant_count || 0;
+        // 2. Check quota
+        const limit = data?.settings?.participant_limit || 0;
+        const count = data?.settings?.participant_count || 0;
         if (limit > 0 && count >= limit) {
           setEventStatus("closed");
           return;
         }
 
-        setEventStatus("open");
+        // 3. Check Website Timeline
+        if (data?.cta?.participant_registration?.open) {
+          setEventStatus("open");
+        } else {
+          const timeline = data?.timeline || [];
+          const partPhases = timeline.filter(p => p.registration_type === 'PARTICIPANT' || p.registration_type === 'BOTH');
+          
+          if (partPhases.some(p => p.status === 'active')) {
+            setEventStatus("open");
+          } else if (partPhases.some(p => p.status === 'upcoming')) {
+            setEventStatus("not_started");
+          } else if (partPhases.some(p => p.status === 'past')) {
+            setEventStatus("closed");
+          } else {
+            if (timeline.some(p => p.status === 'upcoming')) {
+              setEventStatus("not_started");
+            } else if (timeline.some(p => p.status === 'past')) {
+              setEventStatus("closed");
+            } else {
+              setEventStatus("not_started");
+            }
+          }
+        }
 
         const saved = localStorage.getItem("participant_registration_draft");
         if (saved) {
@@ -106,7 +126,7 @@ export default function RegisterPage() {
           }
         }
       } catch (err) {
-        if (mounted) setEventStatus("no_event");
+        if (mounted) setEventStatus("not_started");
       }
     };
     init();
@@ -318,28 +338,20 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {eventStatus === "no_event" && (
-          <StatusMessage 
-            icon={<AlertCircle className="w-9 h-9 text-amber-500" />}
-            iconBg="bg-amber-50"
-            title="Tidak Ada Acara Aktif"
-            message="Saat ini belum ada Musyawarah yang sedang berlangsung. Silakan kembali lagi nanti."
-          />
-        )}
         {eventStatus === "not_started" && (
           <StatusMessage 
             icon={<AlertCircle className="w-9 h-9 text-blue-500" />}
             iconBg="bg-blue-50"
             title="Pendaftaran Belum Dibuka"
-            message="Pendaftaran peserta untuk acara ini belum dibuka oleh panitia."
+            message="Pendaftaran peserta untuk acara ini belum dibuka sesuai jadwal yang ditentukan oleh panitia."
           />
         )}
         {eventStatus === "closed" && (
           <StatusMessage 
-            icon={<AlertCircle className="w-9 h-9 text-red-500" />}
-            iconBg="bg-red-50"
+            icon={<AlertCircle className="w-9 h-9 text-amber-500" />}
+            iconBg="bg-amber-50"
             title="Pendaftaran Ditutup"
-            message="Pendaftaran telah ditutup atau kuota peserta telah terpenuhi. Terima kasih atas antusiasmenya."
+            message="Pendaftaran peserta telah ditutup sesuai jadwal yang telah ditentukan atau kuota peserta telah terpenuhi."
           />
         )}
         

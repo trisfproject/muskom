@@ -312,7 +312,7 @@ func (r *repository) CountActive(ctx context.Context) (int, error) {
 }
 
 func (r *repository) GetRegistrationLimit(ctx context.Context) (*int, error) {
-	query := `SELECT registration_limit FROM event_settings WHERE event_id = $1`
+	query := `SELECT registration_limit FROM event_settings LIMIT 1`
 	var limit *int
 	err := r.db.GetContext(ctx, &limit, query)
 	if err != nil {
