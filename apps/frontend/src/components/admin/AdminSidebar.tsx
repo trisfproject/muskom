@@ -71,6 +71,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
       title: "Monitoring",
       items: [
         { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+        { label: "Operational Dashboard", href: "/admin/operations", icon: Activity },
       ],
     },
     {

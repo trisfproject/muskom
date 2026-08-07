@@ -4,22 +4,36 @@ import (
 	"context"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/redis/go-redis/v9"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
+	"github.com/trisfproject/muskom/apps/api/platform/mailer"
+	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"go.uber.org/zap"
 )
 
 type Service interface {
 	GetDashboardData(ctx context.Context) (*DashboardData, error)
+	GetOperationsData(ctx context.Context) (*OperationsDashboardData, error)
 }
 
 type service struct {
-	db       *sqlx.DB
-	resolver website.PhaseResolver
-	log      *zap.Logger
+	db          *sqlx.DB
+	redisClient *redis.Client
+	storage     storage.Storage
+	mailer      mailer.Mailer
+	resolver    website.PhaseResolver
+	log         *zap.Logger
 }
 
-func NewService(db *sqlx.DB, log *zap.Logger) Service {
-	return &service{db: db, resolver: website.NewPhaseResolver(db), log: log}
+func NewService(db *sqlx.DB, redisClient *redis.Client, strg storage.Storage, mailSvc mailer.Mailer, log *zap.Logger) Service {
+	return &service{
+		db:          db,
+		redisClient: redisClient,
+		storage:     strg,
+		mailer:      mailSvc,
+		resolver:    website.NewPhaseResolver(db),
+		log:         log,
+	}
 }
 
 func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) {
@@ -79,6 +93,129 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 		activities = []RecentActivity{}
 	}
 	data.RecentActivity = activities
+
+	return data, nil
+}
+
+func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardData, error) {
+	data := &OperationsDashboardData{
+		SystemHealth: SystemHealthStats{
+			API:      "Healthy",
+			Database: "Healthy",
+			Redis:    "Healthy",
+			Storage:  "Healthy",
+			SMTP:     "Healthy",
+		},
+	}
+
+	// Health Checks
+	if err := s.db.PingContext(ctx); err != nil {
+		data.SystemHealth.Database = "Offline"
+	}
+
+	if s.redisClient != nil {
+		if err := s.redisClient.Ping(ctx).Err(); err != nil {
+			data.SystemHealth.Redis = "Offline"
+		}
+	} else {
+		data.SystemHealth.Redis = "Unknown"
+	}
+
+	if s.storage == nil {
+		data.SystemHealth.Storage = "Unknown"
+	} // Assuming storage is healthy if instantiated for now.
+
+	if s.mailer == nil {
+		data.SystemHealth.SMTP = "Unknown"
+	}
+
+	// Fetch Participants Stats
+	var partStats []struct {
+		Status string `db:"status"`
+		Count  int    `db:"count"`
+	}
+	s.db.SelectContext(ctx, &partStats, `SELECT status, count(*) as count FROM participants WHERE deleted_at IS NULL GROUP BY status`)
+	for _, p := range partStats {
+		data.Participants.Total += p.Count
+		switch p.Status {
+		case "Verified", "APPROVED":
+			data.Participants.Verified += p.Count
+		case "Pending":
+			data.Participants.Pending += p.Count
+		case "Rejected":
+			data.Participants.Rejected += p.Count
+		}
+	}
+
+	// Fetch Candidates Stats
+	var candStats []struct {
+		Status string `db:"publication_status"`
+		Count  int    `db:"count"`
+	}
+	s.db.SelectContext(ctx, &candStats, `SELECT publication_status, count(*) as count FROM candidates WHERE deleted_at IS NULL GROUP BY publication_status`)
+	for _, c := range candStats {
+		data.Candidates.Total += c.Count
+		if c.Status == "Published" {
+			data.Candidates.Published += c.Count
+		}
+	}
+
+	// Fetch Attendance
+	s.db.GetContext(ctx, &data.Attendance.Present, `SELECT count(*) FROM attendance WHERE undone_at IS NULL`)
+	data.Attendance.Absent = data.Participants.Verified - data.Attendance.Present
+	if data.Attendance.Absent < 0 {
+		data.Attendance.Absent = 0
+	}
+	if data.Participants.Verified > 0 {
+		data.Attendance.Percentage = float64(data.Attendance.Present) / float64(data.Participants.Verified) * 100
+	}
+
+	// Fetch Voting
+	currentPhase, err := s.resolver.GetCurrentPhase(ctx)
+	if err == nil && currentPhase != nil && currentPhase.Title == "VOTING" {
+		data.Voting.SessionState = "Open"
+	} else {
+		data.Voting.SessionState = "Closed"
+	}
+
+	s.db.GetContext(ctx, &data.Voting.VotesSubmitted, `SELECT count(*) FROM votes`)
+	data.Voting.RemainingVoters = data.Participants.Verified - data.Voting.VotesSubmitted
+	if data.Voting.RemainingVoters < 0 {
+		data.Voting.RemainingVoters = 0
+	}
+
+	// Fetch Recent Registrations
+	s.db.SelectContext(ctx, &data.RecentRegistrations, `
+		SELECT id, registration_number, full_name, email, status, created_at 
+		FROM participants 
+		WHERE deleted_at IS NULL 
+		ORDER BY created_at DESC LIMIT 5
+	`)
+
+	// Fetch Recent Candidates
+	s.db.SelectContext(ctx, &data.RecentCandidates, `
+		SELECT id, name, photo_url, status, publication_status 
+		FROM candidates 
+		WHERE deleted_at IS NULL 
+		ORDER BY updated_at DESC LIMIT 5
+	`)
+
+	// Fetch Recent Activity
+	s.db.SelectContext(ctx, &data.RecentActivity, `
+		SELECT id, action, actor_name as actor, actor_role as role, created_at as timestamp 
+		FROM audit_logs 
+		ORDER BY created_at DESC LIMIT 50
+	`)
+
+	if data.RecentRegistrations == nil {
+		data.RecentRegistrations = []RecentRegistration{}
+	}
+	if data.RecentCandidates == nil {
+		data.RecentCandidates = []RecentCandidate{}
+	}
+	if data.RecentActivity == nil {
+		data.RecentActivity = []RecentActivity{}
+	}
 
 	return data, nil
 }
