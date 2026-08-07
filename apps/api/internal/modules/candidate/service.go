@@ -154,7 +154,7 @@ func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*Cand
 		NewValue: c,
 	})
 
-	res := mapToResponse(c)
+	res := s.mapToResponse(c)
 
 	// Generate Candidate Token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -173,7 +173,7 @@ func (s *service) GetByID(ctx context.Context, id string) (*CandidateResponse, e
 	if err != nil {
 		return nil, err
 	}
-	res := mapToResponse(c)
+	res := s.mapToResponse(c)
 	return &res, nil
 }
 
@@ -185,7 +185,7 @@ func (s *service) GetAll(ctx context.Context) ([]CandidateResponse, error) {
 
 	var res []CandidateResponse
 	for _, c := range candidates {
-		res = append(res, mapToResponse(&c))
+		res = append(res, s.mapToResponse(&c))
 	}
 	return res, nil
 }
@@ -257,7 +257,7 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 		NewValue:      c,
 	})
 
-	res := mapToResponse(c)
+	res := s.mapToResponse(c)
 	return &res, nil
 }
 
@@ -332,7 +332,7 @@ func (s *service) Patch(ctx context.Context, id string, req PatchCandidateReques
 		NewValue:      c,
 	})
 
-	res := mapToResponse(c)
+	res := s.mapToResponse(c)
 	return &res, nil
 }
 
@@ -361,7 +361,13 @@ func (s *service) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func mapToResponse(c *Candidate) CandidateResponse {
+func (s *service) mapToResponse(c *Candidate) CandidateResponse {
+	var profilePhoto *string
+	if c.ProfilePhoto != nil && *c.ProfilePhoto != "" {
+		url := s.storage.URL(*c.ProfilePhoto)
+		profilePhoto = &url
+	}
+
 	return CandidateResponse{
 		ID:                 c.ID,
 		MusyawarahID:       c.MusyawarahID,
@@ -379,7 +385,7 @@ func mapToResponse(c *Candidate) CandidateResponse {
 		Motivation:        c.Motivation,
 		Vision:            c.Vision,
 		Mission:           c.Mission,
-		ProfilePhoto:      c.ProfilePhoto,
+		ProfilePhoto:      profilePhoto,
 		Status:            c.Status,
 		VerificationNotes: c.VerificationNotes,
 		CandidateNumber:   c.CandidateNumber,
@@ -582,7 +588,7 @@ func (s *service) AdminListCandidates(ctx context.Context, statusFilter string, 
 
 	var res []CandidateResponse
 	for _, c := range candidates {
-		res = append(res, mapToResponse(&c))
+		res = append(res, s.mapToResponse(&c))
 	}
 	return res, nil
 }
@@ -825,7 +831,7 @@ func (s *service) UploadPhoto(ctx context.Context, candidateID string, filename 
 		return nil, err
 	}
 
-	res := mapToResponse(c)
+	res := s.mapToResponse(c)
 	return &res, nil
 }
 

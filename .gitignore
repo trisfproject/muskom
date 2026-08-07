@@ -42,3 +42,4 @@ vendor/
 # Docker
 .docker/
 docker-compose.override.yml
+\n# Storage\nstorage/uploads/**\n!storage/uploads/**/.gitkeep

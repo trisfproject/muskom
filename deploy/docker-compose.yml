@@ -45,7 +45,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - muskom_uploads:/storage/uploads
+      - ../storage/uploads:/storage/uploads
 
   frontend:
     build:
@@ -77,7 +77,6 @@ services:
 volumes:
   muskom_data:
   muskom_redis:
-  muskom_uploads:
 
 networks:
   default:
