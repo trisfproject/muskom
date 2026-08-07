@@ -84,7 +84,7 @@ func (r *repository) Create(ctx context.Context, c *Candidate) error {
 }
 
 func (r *repository) GetByID(ctx context.Context, id string) (*Candidate, error) {
-	query := `SELECT * FROM candidates WHERE id = $1 AND deleted_at IS NULL`
+	query := `SELECT id, musyawarah_id, registration_number, full_name, nickname, email, phone, company_name, industrial_area, job_title, department, biography, motivation, vision, mission, profile_photo, status, created_at, updated_at, deleted_at, verification_notes, candidate_number, display_order, publication_status, published_at, show_biography, show_vision, show_mission, show_photo FROM candidates WHERE id = $1 AND deleted_at IS NULL`
 	var c Candidate
 	err := r.db.GetContext(ctx, &c, query, id)
 	if err != nil {
@@ -97,7 +97,7 @@ func (r *repository) GetByID(ctx context.Context, id string) (*Candidate, error)
 }
 
 func (r *repository) FindAll(ctx context.Context) ([]Candidate, error) {
-	query := `SELECT * FROM candidates WHERE deleted_at IS NULL ORDER BY created_at DESC`
+	query := `SELECT id, musyawarah_id, registration_number, full_name, nickname, email, phone, company_name, industrial_area, job_title, department, biography, motivation, vision, mission, profile_photo, status, created_at, updated_at, deleted_at, verification_notes, candidate_number, display_order, publication_status, published_at, show_biography, show_vision, show_mission, show_photo FROM candidates WHERE deleted_at IS NULL ORDER BY created_at DESC`
 	var candidates []Candidate
 	err := r.db.SelectContext(ctx, &candidates, query)
 	if err != nil {
@@ -260,7 +260,7 @@ func (r *repository) DeleteDocument(ctx context.Context, id string) error {
 }
 
 func (r *repository) AdminListCandidates(ctx context.Context, statusFilter string, musyawarahFilter string, search string) ([]Candidate, error) {
-	query := `SELECT * FROM candidates WHERE deleted_at IS NULL`
+	query := `SELECT id, musyawarah_id, registration_number, full_name, nickname, email, phone, company_name, industrial_area, job_title, department, biography, motivation, vision, mission, profile_photo, status, created_at, updated_at, deleted_at, verification_notes, candidate_number, display_order, publication_status, published_at, show_biography, show_vision, show_mission, show_photo FROM candidates WHERE deleted_at IS NULL`
 	args := []interface{}{}
 	argID := 1
 
