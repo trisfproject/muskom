@@ -20,6 +20,7 @@ import {
   Mail,
   Phone,
   Building2,
+  Layers,
   Sparkles,
   ShieldCheck,
   Globe,
@@ -329,7 +330,34 @@ export default function CandidateDetailPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-sm">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <span className="text-xs pg-muted font-medium">Perusahaan</span>
+                <span className="font-semibold pg-text flex items-center gap-1.5 mt-1">
+                  <Building2 className="w-3.5 h-3.5 text-blue-500" /> {candidate.company_name || "-"}
+                </span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <span className="text-xs pg-muted font-medium">Kawasan Industri</span>
+                <span className="font-semibold pg-text flex items-center gap-1.5 mt-1">
+                  <MapPin className="w-3.5 h-3.5 text-slate-500" /> {candidate.industrial_area || "-"}
+                </span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <span className="text-xs pg-muted font-medium">Jabatan</span>
+                <span className="font-semibold pg-text flex items-center gap-1.5 mt-1">
+                  <Briefcase className="w-3.5 h-3.5 text-indigo-500" /> {candidate.job_title || "-"}
+                </span>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                <span className="text-xs pg-muted font-medium">Departemen</span>
+                <span className="font-semibold pg-text flex items-center gap-1.5 mt-1">
+                  <Layers className="w-3.5 h-3.5 text-emerald-500" /> {candidate.department || "-"}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 text-sm">
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
                 <span className="text-xs pg-muted font-medium">Email</span>
                 <span className="font-semibold pg-text flex items-center gap-1.5 mt-1">
@@ -693,6 +721,48 @@ export default function CandidateDetailPage() {
                     required
                     value={editForm.phone || ""}
                     onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Perusahaan</label>
+                  <input
+                    type="text"
+                    value={editForm.company_name || ""}
+                    onChange={(e) => setEditForm({ ...editForm, company_name: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Kawasan Industri</label>
+                  <input
+                    type="text"
+                    value={editForm.industrial_area || ""}
+                    onChange={(e) => setEditForm({ ...editForm, industrial_area: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Jabatan</label>
+                  <input
+                    type="text"
+                    value={editForm.job_title || ""}
+                    onChange={(e) => setEditForm({ ...editForm, job_title: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Departemen</label>
+                  <input
+                    type="text"
+                    value={editForm.department || ""}
+                    onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
                   />
                 </div>

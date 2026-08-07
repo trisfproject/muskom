@@ -7,6 +7,10 @@ export interface CandidateAdminResponse {
   nickname?: string;
   email: string;
   phone: string;
+  company_name?: string;
+  industrial_area?: string;
+  job_title?: string;
+  department?: string;
 
   biography?: string;
   motivation?: string;

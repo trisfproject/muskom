@@ -10,6 +10,10 @@ type CreateCandidateRequest struct {
 	Nickname     *string `json:"nickname" validate:"omitempty,max=100"`
 	Email        string  `json:"email" validate:"required,email,max=255"`
 	Phone        string  `json:"phone" validate:"required,max=50"`
+	CompanyName  *string `json:"company_name,omitempty" validate:"omitempty,max=255"`
+	IndustrialArea *string `json:"industrial_area,omitempty" validate:"omitempty,max=255"`
+	JobTitle     *string `json:"job_title,omitempty" validate:"omitempty,max=255"`
+	Department   *string `json:"department,omitempty" validate:"omitempty,max=255"`
 
 	Biography         *string `json:"biography"`
 	Motivation        *string `json:"motivation"`
@@ -35,6 +39,10 @@ type UpdateCandidateRequest struct {
 	Nickname *string `json:"nickname" validate:"omitempty,max=100"`
 	Email    string  `json:"email" validate:"required,email,max=255"`
 	Phone    string  `json:"phone" validate:"required,max=50"`
+	CompanyName  *string `json:"company_name,omitempty" validate:"omitempty,max=255"`
+	IndustrialArea *string `json:"industrial_area,omitempty" validate:"omitempty,max=255"`
+	JobTitle     *string `json:"job_title,omitempty" validate:"omitempty,max=255"`
+	Department   *string `json:"department,omitempty" validate:"omitempty,max=255"`
 
 	Biography         *string `json:"biography"`
 	Motivation        *string `json:"motivation"`
@@ -57,6 +65,10 @@ type PatchCandidateRequest struct {
 	Nickname *string `json:"nickname" validate:"omitempty,max=100"`
 	Email    *string `json:"email" validate:"omitempty,email,max=255"`
 	Phone    *string `json:"phone" validate:"omitempty,max=50"`
+	CompanyName  *string `json:"company_name,omitempty" validate:"omitempty,max=255"`
+	IndustrialArea *string `json:"industrial_area,omitempty" validate:"omitempty,max=255"`
+	JobTitle     *string `json:"job_title,omitempty" validate:"omitempty,max=255"`
+	Department   *string `json:"department,omitempty" validate:"omitempty,max=255"`
 
 	Biography      *string `json:"biography"`
 	Motivation     *string `json:"motivation"`
@@ -74,6 +86,10 @@ type CandidateResponse struct {
 	Nickname           *string `json:"nickname,omitempty"`
 	Email              string  `json:"email"`
 	Phone              string  `json:"phone"`
+	CompanyName        *string `json:"company_name,omitempty"`
+	IndustrialArea     *string `json:"industrial_area,omitempty"`
+	JobTitle           *string `json:"job_title,omitempty"`
+	Department         *string `json:"department,omitempty"`
 
 	Biography         *string                     `json:"biography,omitempty"`
 	Motivation        *string                     `json:"motivation,omitempty"`

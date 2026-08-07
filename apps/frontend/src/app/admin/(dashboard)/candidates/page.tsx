@@ -89,6 +89,10 @@ export default function AdminCandidatesPage() {
     nickname: "",
     email: "",
     phone: "",
+    company_name: "",
+    industrial_area: "",
+    job_title: "",
+    department: "",
     biography: "",
     motivation: "",
     vision: "",
@@ -172,6 +176,10 @@ export default function AdminCandidatesPage() {
         nickname: "",
         email: "",
         phone: "",
+        company_name: "",
+        industrial_area: "",
+        job_title: "",
+        department: "",
         biography: "",
         motivation: "",
         vision: "",
@@ -306,7 +314,7 @@ export default function AdminCandidatesPage() {
                 </th>
                 <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider pg-muted">No. Urut</th>
                 <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider pg-muted">Kandidat</th>
-                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider pg-muted">Kontak</th>
+                <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider pg-muted">Perusahaan / Area</th>
                 <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider pg-muted">Status</th>
                 <th className="px-5 py-4 text-[10px] font-bold uppercase tracking-wider pg-muted text-right">Aksi</th>
               </tr>
@@ -384,7 +392,10 @@ export default function AdminCandidatesPage() {
                       </td>
                       <td className="px-5 py-4">
                         <div className="font-semibold text-sm pg-text">
-                          {row.phone || "-"}
+                          {row.company_name || "-"}
+                        </div>
+                        <div className="text-xs pg-muted mt-0.5 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-slate-400" /> {row.industrial_area || "-"}
                         </div>
                       </td>
                       <td className="px-5 py-4">
@@ -519,6 +530,52 @@ export default function AdminCandidatesPage() {
                     placeholder="08123456789"
                     value={createForm.phone}
                     onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Perusahaan</label>
+                  <input
+                    type="text"
+                    placeholder="PT Industri Bersama"
+                    value={createForm.company_name}
+                    onChange={(e) => setCreateForm({ ...createForm, company_name: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Kawasan Industri</label>
+                  <input
+                    type="text"
+                    placeholder="Kawasan MM2100"
+                    value={createForm.industrial_area}
+                    onChange={(e) => setCreateForm({ ...createForm, industrial_area: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Jabatan</label>
+                  <input
+                    type="text"
+                    placeholder="Manager HRD"
+                    value={createForm.job_title}
+                    onChange={(e) => setCreateForm({ ...createForm, job_title: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Departemen</label>
+                  <input
+                    type="text"
+                    placeholder="Human Resources"
+                    value={createForm.department}
+                    onChange={(e) => setCreateForm({ ...createForm, department: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
                   />
                 </div>

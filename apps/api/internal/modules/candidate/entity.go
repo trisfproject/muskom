@@ -30,6 +30,10 @@ type Candidate struct {
 	Nickname           *string `db:"nickname"`
 	Email              string  `db:"email"`
 	Phone              string  `db:"phone"`
+	CompanyName        *string `db:"company_name"`
+	IndustrialArea     *string `db:"industrial_area"`
+	JobTitle           *string `db:"job_title"`
+	Department         *string `db:"department"`
 
 	Biography         *string    `db:"biography"`
 	Motivation        *string    `db:"motivation"`
