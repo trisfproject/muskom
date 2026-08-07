@@ -66,14 +66,14 @@ export default async function CandidateDetailPage({ params }: Props) {
 
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
             {/* Header Section */}
-            <div className="relative p-8 md:p-12 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left bg-gradient-to-br from-blue-50/50 to-white dark:from-slate-800/30 dark:to-slate-900">
+            <div className="relative p-8 md:p-12 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-8 md:gap-12 items-center md:items-center text-center md:text-left bg-gradient-to-br from-blue-50/50 to-white dark:from-slate-800/30 dark:to-slate-900">
               <div className="absolute top-6 right-6 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary font-black text-xl shadow-sm">
                 {candidate.sequence_number ?? "?"}
               </div>
 
               <div className="shrink-0">
                 {candidate.photo_url ? (
-                  <div className="w-40 h-40 md:w-48 md:h-48 rounded-3xl overflow-hidden relative shadow-xl ring-4 ring-white dark:ring-slate-900">
+                  <div className="w-[140px] h-[140px] md:w-[180px] md:h-[180px] lg:w-[220px] lg:h-[220px] rounded-xl overflow-hidden relative shadow-xl ring-4 ring-white dark:ring-slate-900">
                     <Image
                       src={candidate.photo_url}
                       alt={candidate.name || "Candidate"}
@@ -83,7 +83,7 @@ export default async function CandidateDetailPage({ params }: Props) {
                     />
                   </div>
                 ) : (
-                  <div className="w-40 h-40 md:w-48 md:h-48 rounded-3xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center ring-4 ring-white dark:ring-slate-900 text-slate-400 shadow-xl">
+                  <div className="w-[140px] h-[140px] md:w-[180px] md:h-[180px] lg:w-[220px] lg:h-[220px] rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center ring-4 ring-white dark:ring-slate-900 text-slate-400 shadow-xl">
                     <span className="text-5xl font-bold">
                       {candidate.name?.charAt(0) || "?"}
                     </span>
@@ -91,12 +91,12 @@ export default async function CandidateDetailPage({ params }: Props) {
                 )}
               </div>
               
-              <div className="flex-1 mt-2">
+              <div className="flex-1 flex flex-col justify-center">
                 <h1 className="text-3xl md:text-4xl font-black pg-text tracking-tight mb-3">
                   {candidate.name}
                 </h1>
                 
-                <div className="flex flex-col gap-2 mt-4 inline-flex items-center md:items-start text-slate-600 dark:text-slate-400">
+                <div className="flex flex-col gap-2 items-center md:items-start text-slate-600 dark:text-slate-400">
                   {candidate.title && (
                     <div className="flex items-center gap-2">
                       <Briefcase className="w-4 h-4 shrink-0 text-primary" />
@@ -114,7 +114,7 @@ export default async function CandidateDetailPage({ params }: Props) {
             </div>
 
             {/* Content Section */}
-            <div className="p-8 md:p-12 space-y-12">
+            <div className="p-8 md:p-12 space-y-6 md:space-y-8">
               {/* Biography */}
               <section>
                 <h2 className="text-xl font-bold pg-text mb-4 inline-block border-b-2 border-primary pb-1">Biografi Singkat</h2>
