@@ -19,6 +19,7 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, m maile
 	router.Get("/templates", handler.ListTemplates)
 	router.Get("/templates/:id", handler.GetTemplate)
 	router.Put("/templates/:id", handler.UpdateTemplate)
+	router.Post("/templates/:id/test", handler.TestTemplate)
 	
 	router.Post("/jobs/:id/retry", handler.RetryJob)
 	router.Post("/smtp/test", handler.TestSMTP)
@@ -42,6 +43,7 @@ func SetupAdminRoutesWithService(router fiber.Router, svc Service, hub *realtime
 	router.Get("/templates", handler.ListTemplates)
 	router.Get("/templates/:id", handler.GetTemplate)
 	router.Put("/templates/:id", handler.UpdateTemplate)
+	router.Post("/templates/:id/test", handler.TestTemplate)
 	
 	router.Post("/jobs/:id/retry", handler.RetryJob)
 	router.Post("/smtp/test", handler.TestSMTP)

@@ -94,6 +94,22 @@ func (h *Handler) TestSMTP(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Test email queued", nil, nil)
 }
 
+func (h *Handler) TestTemplate(c fiber.Ctx) error {
+	id := c.Params("id")
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+
+	err := h.service.TestTemplate(c.Context(), id, req.Email)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to send test template", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Test template email queued", nil, nil)
+}
+
 var upgrader = websocket.FastHTTPUpgrader{
 	CheckOrigin: func(ctx *fasthttp.RequestCtx) bool { return true }, // Or properly check origin
 }

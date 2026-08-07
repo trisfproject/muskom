@@ -177,9 +177,9 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 				"full_name":           p.FullName,
 				"registration_number": p.RegistrationNumber,
 				"event_name":          "MUSKOM 2026",
-				"participant_lookup_url": fmt.Sprintf("%s/peserta", s.cfg.PublicAppURL),
-				"event_date": "Tanggal Acara", // Placeholder for actual event date
-				"venue": "Lokasi Acara",       // Placeholder for actual venue
+				"qr_code":             fmt.Sprintf("%s/api/v1/public/qr/%s.png", s.cfg.AppBaseURL, p.RegistrationNumber),
+				"event_date":          "Tanggal Acara",
+				"venue":               "Lokasi Acara",
 			}
 			if s.notifSvc != nil {
 				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_approved", p.Email, payload)
@@ -333,9 +333,8 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 			// Actually we need the absolute frontend URL for the email link.
 			// The frontend usually runs on the same domain or we can just use a relative /verify-email?token=
 			// Let's use an environment variable or construct from localhost if not available.
-			// Since we don't have a FRONTEND_URL in config, we'll use a relative path format assuming it's same origin,
-			// or default to localhost:3000
-			verificationURL := fmt.Sprintf("http://localhost:3000/verify-email?token=%s", tokenString)
+			// Construct from AppBaseURL
+			verificationURL := fmt.Sprintf("%s/verify-email?token=%s", s.cfg.AppBaseURL, tokenString)
 
 			err := s.mailer.SendEmailVerificationLink(req.Email, req.FullName, verificationURL)
 			if err != nil {
@@ -436,7 +435,7 @@ func (s *service) ResendVerification(ctx context.Context, email string) error {
 			"exp": time.Now().Add(24 * time.Hour).Unix(),
 		})
 		tokenString, _ := token.SignedString([]byte(s.cfg.JWTSecret))
-		verificationURL := fmt.Sprintf("http://localhost:3000/verify-email?token=%s", tokenString)
+		verificationURL := fmt.Sprintf("%s/verify-email?token=%s", s.cfg.AppBaseURL, tokenString)
 
 		go func() {
 			_ = s.mailer.SendEmailVerificationLink(p.Email, p.FullName, verificationURL)

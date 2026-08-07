@@ -20,7 +20,7 @@ type Config struct {
 	StorageRoot      string        `env:"STORAGE_ROOT" envDefault:"./uploads"`
 	StorageBaseURL   string        `env:"STORAGE_BASE_URL" envDefault:"http://localhost:8080/uploads"`
 	MaxUploadSize    int64         `env:"MAX_UPLOAD_SIZE" envDefault:"10485760"`
-	PublicAppURL     string        `env:"PUBLIC_APP_URL" envDefault:"http://localhost:3000"`
+	AppBaseURL       string        `env:"APP_BASE_URL"`
 
 	// SMTP Settings
 	SmtpHost     string `env:"SMTP_HOST"`

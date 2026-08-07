@@ -65,8 +65,14 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     const connectWebSocket = () => {
       // Assuming API URL is like https://api.muskom.com/v1
       // Convert to wss://api.muskom.com/v1
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
-      const wsUrl = apiUrl.replace(/^http/, 'ws') + '/notifications/ws?client_id=' + Math.random().toString(36).substring(7);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
+      let wsUrl = '';
+      if (apiUrl.startsWith('http')) {
+        wsUrl = apiUrl.replace(/^http/, 'ws') + '/notifications/ws?client_id=' + Math.random().toString(36).substring(7);
+      } else {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        wsUrl = `${protocol}//${window.location.host}${apiUrl}/notifications/ws?client_id=${Math.random().toString(36).substring(7)}`;
+      }
 
       const websocket = new WebSocket(wsUrl);
 

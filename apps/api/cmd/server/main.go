@@ -108,6 +108,11 @@ func main() {
 	notifRepo := notification.NewRepository(db)
 	notifRegistry := notification.NewProviderRegistry(mailerSvc, hub, notifRepo)
 	notifSvc := notification.NewService(notifRepo, notifRegistry, log)
+	
+	// Seed default notification templates
+	if err := notifSvc.SeedDefaultTemplates(context.Background()); err != nil {
+		log.Error("Failed to seed default templates", zap.Error(err))
+	}
 
 	// Create Announcement Service
 	annRepo := announcement.NewRepository(db, log)
@@ -150,7 +155,7 @@ func main() {
 
 	// Protected Participant Routes
 	participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
-	voting.SetupRoutes(participantGroup, db, log, bus, notifSvc)
+	voting.SetupRoutes(participantGroup, db, log, bus, notifSvc, cfg)
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
@@ -158,13 +163,13 @@ func main() {
 	dashboard.SetupAdminRoutes(adminGroup.Group("/dashboard", checker.RequirePermission("audit.view")), db, redisClient, strg, mailerSvc, log)
 	website.SetupAdminRoutes(adminGroup.Group("/website", checker.RequirePermission("website.write")), db, redisClient, strg, val, log, cfg)
 
-	verification.SetupAdminRoutes(adminGroup.Group("/verifications", checker.RequirePermission("participant.approve")), db, log, val, notifSvc)
+	verification.SetupAdminRoutes(adminGroup.Group("/verifications", checker.RequirePermission("participant.approve")), db, log, val, notifSvc, cfg)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance", checker.RequirePermission("attendance.manage")), db, log, val)
 	attendance.SetupRootAdminRoutes(adminGroup.Group("/", checker.RequirePermission("attendance.manage")), db, log, val)
 	notification.SetupAdminRoutesWithService(adminGroup.Group("/notifications", checker.RequirePermission("notification.send")), notifSvc, hub)
 	audit.SetupAdminRoutes(adminGroup.Group("/audit", checker.RequirePermission("audit.view")), db, log)
 	reporting.SetupAdminRoutes(adminGroup.Group("/reporting", checker.RequirePermission("report.export")), db, log)
-	voting.SetupAdminRoutes(adminGroup.Group("/votes", checker.RequirePermission("voting.manage")), db, log, bus, notifSvc)
+	voting.SetupAdminRoutes(adminGroup.Group("/votes", checker.RequirePermission("voting.manage")), db, log, bus, notifSvc, cfg)
 	result.SetupAdminRoutes(adminGroup.Group("/result", checker.RequirePermission("voting.view")), db, log)
 	user.SetupRoutes(adminGroup.Group("/users"), db, log, val, checker)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, log, val, strg, cfg, notifSvc)

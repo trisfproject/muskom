@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
+	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"go.uber.org/zap"
@@ -28,14 +28,16 @@ type service struct {
 	log       *zap.Logger
 	validator *validator.Validator
 	notifSvc  notification.Service
+	cfg       *config.Config
 }
 
-func NewService(repo Repository, log *zap.Logger, val *validator.Validator, notifSvc notification.Service) Service {
+func NewService(repo Repository, log *zap.Logger, val *validator.Validator, notifSvc notification.Service, cfg *config.Config) Service {
 	return &service{
 		repo:      repo,
 		log:       log,
 		validator: val,
 		notifSvc:  notifSvc,
+		cfg:       cfg,
 	}
 }
 
@@ -170,11 +172,7 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 				rn = *regNumber
 			}
 			
-			appBaseUrl := os.Getenv("APP_BASE_URL")
-			if appBaseUrl == "" {
-				appBaseUrl = "http://localhost:3000"
-			}
-			
+			appBaseUrl := s.cfg.AppBaseURL
 			payload := map[string]interface{}{
 				"full_name":           detail.FullName,
 				"registration_number": rn,

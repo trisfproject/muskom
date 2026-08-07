@@ -3,10 +3,12 @@ package voting
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
+	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
 	"go.uber.org/zap"
 )
@@ -36,10 +38,11 @@ type service struct {
 	log      *zap.Logger
 	resolver website.PhaseResolver
 	notifSvc notification.Service
+	cfg      *config.Config
 }
 
-func NewService(db *sqlx.DB, repo Repository, bus eventbus.EventDispatcher, log *zap.Logger, notifSvc notification.Service) Service {
-	return &service{db: db, repo: repo, bus: bus, log: log, resolver: website.NewPhaseResolver(db), notifSvc: notifSvc}
+func NewService(db *sqlx.DB, repo Repository, bus eventbus.EventDispatcher, log *zap.Logger, notifSvc notification.Service, cfg *config.Config) Service {
+	return &service{db: db, repo: repo, bus: bus, log: log, resolver: website.NewPhaseResolver(db), notifSvc: notifSvc, cfg: cfg}
 }
 
 func (s *service) GetBallot(ctx context.Context, eventID string) (*Ballot, error) {
@@ -175,7 +178,7 @@ func (s *service) BroadcastVotingInvitation(ctx context.Context, eventID string)
 	}
 	payload := map[string]interface{}{
 		"event_name": "MUSKOM 2026",
-		"voting_url": "http://localhost:3000/voting", // Example URL
+		"voting_url": fmt.Sprintf("%s/voting", s.cfg.AppBaseURL),
 	}
 	return s.notifSvc.Broadcast(ctx, notification.ChannelEmail, "voting_invitation", emails, payload)
 }
@@ -187,7 +190,7 @@ func (s *service) SendVotingReminder(ctx context.Context, eventID string) error 
 	}
 	payload := map[string]interface{}{
 		"event_name": "MUSKOM 2026",
-		"voting_url": "http://localhost:3000/voting",
+		"voting_url": fmt.Sprintf("%s/voting", s.cfg.AppBaseURL),
 	}
 	return s.notifSvc.Broadcast(ctx, notification.ChannelEmail, "voting_reminder", emails, payload)
 }

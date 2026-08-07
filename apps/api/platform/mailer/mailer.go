@@ -75,7 +75,7 @@ func (m *smtpMailer) SendRegistrationConfirmation(to, participantName, regNumber
 	}{
 		ParticipantName: participantName,
 		MusyawarahName:  musyawarahName,
-		LookupURL:       fmt.Sprintf("%s/peserta", m.cfg.PublicAppURL),
+		LookupURL:       fmt.Sprintf("%s/peserta", m.cfg.AppBaseURL),
 	}
 
 	if err := tmpl.Execute(&body, data); err != nil {
@@ -134,7 +134,7 @@ func (m *smtpMailer) SendVerification(to, participantName, regNumber, musyawarah
 		ParticipantName: participantName,
 		MusyawarahName:  musyawarahName,
 		RegNumber:       regNumber,
-		LookupURL:       fmt.Sprintf("%s/peserta", m.cfg.PublicAppURL),
+		LookupURL:       fmt.Sprintf("%s/peserta", m.cfg.AppBaseURL),
 	}
 
 	if err := tmpl.Execute(&body, data); err != nil {

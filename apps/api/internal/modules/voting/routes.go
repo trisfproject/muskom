@@ -4,13 +4,14 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
+	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
 	"go.uber.org/zap"
 )
 
-func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus.EventDispatcher, notifSvc notification.Service) {
+func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus.EventDispatcher, notifSvc notification.Service, cfg *config.Config) {
 	repo := NewRepository(db)
-	svc := NewService(db, repo, bus, log, notifSvc)
+	svc := NewService(db, repo, bus, log, notifSvc, cfg)
 	handler := NewHandler(svc)
 
 	// Public / Voter Routes
@@ -18,9 +19,9 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus
 	router.Post("/cast", handler.CastVote)
 }
 
-func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus.EventDispatcher, notifSvc notification.Service) {
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus.EventDispatcher, notifSvc notification.Service, cfg *config.Config) {
 	repo := NewRepository(db)
-	svc := NewService(db, repo, bus, log, notifSvc)
+	svc := NewService(db, repo, bus, log, notifSvc, cfg)
 	handler := NewHandler(svc)
 
 	// Admin / Operator Routes

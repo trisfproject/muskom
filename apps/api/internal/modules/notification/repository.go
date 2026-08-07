@@ -9,6 +9,7 @@ import (
 type Repository interface {
 	GetTemplateByName(ctx context.Context, name string, channel Channel) (*NotificationTemplate, error)
 	GetTemplateByID(ctx context.Context, id string) (*NotificationTemplate, error)
+	CreateTemplate(ctx context.Context, tpl *NotificationTemplate) error
 	CreateJob(ctx context.Context, job *NotificationJob) error
 	GetPendingJobs(ctx context.Context, limit int) ([]NotificationJob, error)
 	UpdateJobStatus(ctx context.Context, id string, status JobStatus, errMsg *string) error
@@ -49,6 +50,16 @@ func (r *repository) GetTemplateByID(ctx context.Context, id string) (*Notificat
 	query := `SELECT * FROM notification_templates WHERE id = $1`
 	err := r.db.GetContext(ctx, &tpl, query, id)
 	return &tpl, err
+}
+
+func (r *repository) CreateTemplate(ctx context.Context, tpl *NotificationTemplate) error {
+	query := `
+		INSERT INTO notification_templates (name, channel, subject, body)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, created_at
+	`
+	return r.db.QueryRowContext(ctx, query, tpl.Name, tpl.Channel, tpl.Subject, tpl.Body).
+		Scan(&tpl.ID, &tpl.CreatedAt)
 }
 
 func (r *repository) CreateJob(ctx context.Context, job *NotificationJob) error {

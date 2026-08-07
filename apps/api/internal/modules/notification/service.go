@@ -25,6 +25,8 @@ type Service interface {
 	UpdateTemplate(ctx context.Context, id string, subject *string, body string) error
 	RetryJob(ctx context.Context, id string) error
 	TestSMTP(ctx context.Context, email string) error
+	TestTemplate(ctx context.Context, id string, email string) error
+	SeedDefaultTemplates(ctx context.Context) error
 
 	// In-App Notification Methods
 	ListInAppNotifications(ctx context.Context, userID *string, limit int, offset int) ([]InAppNotification, int, error)
@@ -139,4 +141,33 @@ func (s *service) MarkAllInAppRead(ctx context.Context, userID *string) error {
 
 func (s *service) DeleteInAppNotification(ctx context.Context, id string) error {
 	return s.repo.DeleteInAppNotification(ctx, id)
+}
+
+func (s *service) TestTemplate(ctx context.Context, id string, email string) error {
+	tpl, err := s.repo.GetTemplateByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	
+	// Dummy payload for testing
+	payload := map[string]interface{}{
+		"full_name":              "Budi Santoso",
+		"registration_number":    "PENDING-A1B2C3D4",
+		"candidate_number":       "CAND-001",
+		"company_name":           "PT. Maju Jaya",
+		"job_title":              "Direktur",
+		"event_name":             "Musyawarah Nasional 2026",
+		"event_date":             "12 Oktober 2026",
+		"venue":                  "Hotel Mulia Senayan",
+		"verification_url":       "https://congress.trisf.my.id/verify-email?token=123",
+		"participant_lookup_url": "https://congress.trisf.my.id/peserta?q=PENDING-A1B2C3D4",
+		"candidate_profile_url":  "https://congress.trisf.my.id/kandidat/CAND-001",
+		"qr_code":                "https://congress.trisf.my.id/api/v1/public/qr/PENDING-A1B2C3D4.png",
+	}
+
+	return s.QueueNotification(ctx, tpl.Channel, tpl.Name, email, payload)
+}
+
+func (s *service) SeedDefaultTemplates(ctx context.Context) error {
+	return SeedDefaultTemplates(ctx, s.repo, s.log)
 }
