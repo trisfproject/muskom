@@ -67,7 +67,7 @@ type Service interface {
 	DeleteAdminInformationPage(ctx context.Context, id string) error
 
 	// Media Upload
-	UploadMedia(ctx context.Context, file io.Reader, filename, folder string) (*MediaUploadResponse, error)
+	UploadMedia(ctx context.Context, file io.Reader, filename, folder string, mimeType string, size int64) (*MediaUploadResponse, error)
 }
 
 type service struct {
@@ -833,9 +833,22 @@ func (s *service) DeleteAdminInformationPage(ctx context.Context, id string) err
 	return err
 }
 
-func (s *service) UploadMedia(ctx context.Context, file io.Reader, filename, folder string) (*MediaUploadResponse, error) {
+func (s *service) UploadMedia(ctx context.Context, file io.Reader, filename, folder string, mimeType string, size int64) (*MediaUploadResponse, error) {
 	if s.storage == nil {
 		return nil, errors.New("storage provider not configured")
+	}
+
+	if size > 2*1024*1024 {
+		return nil, errors.New("file size exceeds maximum allowed size of 2 MB")
+	}
+
+	allowedMimes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/webp": true,
+	}
+	if !allowedMimes[mimeType] {
+		return nil, errors.New("invalid file type. Only JPEG, PNG, and WebP are allowed")
 	}
 
 	ext := filepath.Ext(filename)
@@ -849,7 +862,7 @@ func (s *service) UploadMedia(ctx context.Context, file io.Reader, filename, fol
 
 	baseName := strings.TrimSuffix(filepath.Base(filename), ext)
 	baseName = strings.ReplaceAll(baseName, " ", "_")
-	uniqueName := fmt.Sprintf("%s_%s%s", baseName, uuid.New().String()[:8], ext)
+	uniqueName := fmt.Sprintf("%s_%s%s", baseName, uuid.New().String(), ext)
 	storagePath := fmt.Sprintf("%s/%s", cleanFolder, uniqueName)
 
 	info, err := s.storage.Upload(ctx, file, storagePath)

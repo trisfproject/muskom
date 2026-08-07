@@ -438,15 +438,20 @@ func (h *Handler) UploadMedia(c fiber.Ctx) error {
 		folder = "website"
 	}
 
+	mimeType := fileHeader.Header.Get("Content-Type")
+	if mimeType == "" {
+		mimeType = "image/jpeg"
+	}
+
 	file, err := fileHeader.Open()
 	if err != nil {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to open uploaded file", nil)
 	}
 	defer file.Close()
 
-	res, err := h.service.UploadMedia(c.Context(), file, fileHeader.Filename, folder)
+	res, err := h.service.UploadMedia(c.Context(), file, fileHeader.Filename, folder, mimeType, fileHeader.Size)
 	if err != nil {
-		return response.SendError(c, fiber.StatusInternalServerError, err.Error(), nil)
+		return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
 	}
 
 	return response.SendSuccess(c, fiber.StatusOK, "Media uploaded successfully", res, nil)

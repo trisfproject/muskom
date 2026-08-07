@@ -794,8 +794,8 @@ func (s *service) UploadPhoto(ctx context.Context, candidateID string, filename 
 		return nil, err
 	}
 
-	if size > s.maxUploadSize {
-		return nil, fmt.Errorf("file size exceeds maximum allowed size of %d bytes", s.maxUploadSize)
+	if size > 2*1024*1024 {
+		return nil, errors.New("file size exceeds maximum allowed size of 2 MB")
 	}
 
 	allowedMimes := map[string]bool{
@@ -809,9 +809,9 @@ func (s *service) UploadPhoto(ctx context.Context, candidateID string, filename 
 
 	ext := filepath.Ext(filename)
 	if ext == "" {
-		ext = ".jpg"
+		ext = ".png"
 	}
-	storagePath := fmt.Sprintf("candidates/%s/photo%s", candidateID, ext)
+	storagePath := fmt.Sprintf("candidates/%s/%s%s", candidateID, uuid.New().String(), ext)
 
 	info, err := s.storage.Upload(ctx, file, storagePath)
 	if err != nil {
