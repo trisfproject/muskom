@@ -245,7 +245,7 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 	}
 
 	// Generate unique registration number
-	regNum := fmt.Sprintf("PAR-%s-%s", strings.ToUpper(uuid.New().String()[:4]), strings.ToUpper(uuid.New().String()[:8]))
+	regNum := fmt.Sprintf("MK-%s-%s", strings.ToUpper(uuid.New().String()[:4]), strings.ToUpper(uuid.New().String()[:8]))
 
 	p := &Participant{
 

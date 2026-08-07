@@ -67,7 +67,7 @@ export default function UserProfileTicketPage() {
                 type="text"
                 value={emailOrReg}
                 onChange={(e) => setEmailOrReg(e.target.value)}
-                placeholder="Masukkan Email Terdaftar atau Nomor Registrasi (PAR-...)"
+                placeholder="Masukkan Email Terdaftar atau Nomor Registrasi (MK-...)"
                 className="w-full pl-11 pr-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
