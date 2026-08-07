@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func RegisterRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, val *validator.Validator, log *zap.Logger, cfg *config.Config, m mailer.Mailer) {
+func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, val *validator.Validator, log *zap.Logger, cfg *config.Config, m mailer.Mailer) {
 	auditRepo := audit.NewRepository(db)
 	auditService := audit.NewService(auditRepo, log)
 	repo := NewRepository(db)
@@ -19,23 +19,25 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, val *va
 	service := NewService(repo, cache, auditService, log, val)
 	handler := NewHandler(service, val, cfg, m)
 
-	// Define routes on both /system/config and /admin/system/config for compatibility
-	groups := []fiber.Router{
-		router.Group("/system/config"),
-		router.Group("/admin/system/config"),
-	}
+	router.Get("/", handler.HandleGetConfig)
+}
 
-	for _, group := range groups {
-		// Public/Global GET configuration
-		group.Get("/", handler.HandleGetConfig)
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, val *validator.Validator, log *zap.Logger, cfg *config.Config, m mailer.Mailer) {
+	auditRepo := audit.NewRepository(db)
+	auditService := audit.NewService(auditRepo, log)
+	repo := NewRepository(db)
+	cache := NewCache(rdb)
+	service := NewService(repo, cache, auditService, log, val)
+	handler := NewHandler(service, val, cfg, m)
 
-		// Admin SMTP
-		group.Get("/smtp/config", handler.HandleGetSMTPConfig)
-		group.Put("/smtp/config", handler.HandleUpdateSMTPConfig)
-		group.Post("/smtp/test-connection", handler.HandleTestSMTPConnection)
-		group.Post("/smtp/test", handler.HandleTestSMTP)
+	router.Get("/", handler.HandleGetConfig)
 
-		// Admin update configuration
-		group.Put("/:group", handler.HandleUpdateConfig)
-	}
+	// Admin SMTP
+	router.Get("/smtp/config", handler.HandleGetSMTPConfig)
+	router.Put("/smtp/config", handler.HandleUpdateSMTPConfig)
+	router.Post("/smtp/test-connection", handler.HandleTestSMTPConnection)
+	router.Post("/smtp/test", handler.HandleTestSMTP)
+
+	// Admin update configuration
+	router.Put("/:group", handler.HandleUpdateConfig)
 }

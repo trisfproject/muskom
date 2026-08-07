@@ -70,7 +70,7 @@ export const configService = {
   },
   
   updateConfigGroup: async (groupName: string, settings: any): Promise<void> => {
-    await api.put(`/system/config/${groupName}`, {
+    await api.put(`/admin/system/config/${groupName}`, {
       group_name: groupName,
       settings: settings,
     });

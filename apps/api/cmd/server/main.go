@@ -116,9 +116,6 @@ func main() {
 		}, nil)
 	})
 
-	// Register System Configuration Routes
-	configuration.RegisterRoutes(v1, db, redisClient, val, log, cfg, mailerSvc)
-
 	// Modules (Public / Dedicated)
 	authGroup := v1.Group("/auth")
 	auth.SetupRoutes(authGroup, db, redisClient, cfg, log, val)
@@ -126,6 +123,7 @@ func main() {
 	// Protected Auth routes (needs JWT for /me/permissions)
 	rbac.SetupAuthRoutes(authGroup.Group("/", auth.JWTMiddleware(cfg, log)), authSvc)
 
+	configuration.SetupPublicRoutes(v1.Group("/system/config"), db, redisClient, val, log, cfg, mailerSvc)
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
 	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, redisClient, cfg, log, val, mailerSvc)
@@ -136,6 +134,7 @@ func main() {
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
+	configuration.SetupAdminRoutes(adminGroup.Group("/system/config", checker.RequirePermission("system.manage")), db, redisClient, val, log, cfg, mailerSvc)
 	dashboard.SetupAdminRoutes(adminGroup.Group("/dashboard", checker.RequirePermission("audit.view")), db, log)
 	website.SetupAdminRoutes(adminGroup.Group("/website", checker.RequirePermission("website.write")), db, redisClient, strg, val, log)
 

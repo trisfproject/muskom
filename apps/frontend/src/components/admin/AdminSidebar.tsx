@@ -91,10 +91,10 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
     {
       title: "Pengaturan Website",
       items: [
-        { label: "Identitas Web", href: "/admin/website/general", icon: Sliders },
+        { label: "Identitas Web", href: "/admin/website/identity", icon: Sliders },
         { label: "Timeline Acara", href: "/admin/website/timeline", icon: Calendar },
         { label: "Pengumuman", href: "/admin/website/announcements", icon: Megaphone },
-        { label: "Panduan", href: "/admin/website/information", icon: Info },
+        { label: "Panduan", href: "/admin/website/guides", icon: Info },
       ],
     },
     {
