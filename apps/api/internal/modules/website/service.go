@@ -257,10 +257,10 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 	regEnabled := true
 	heroPrimaryEnabled := true
 	heroSecondaryEnabled := true
-	primaryLabel := "Daftar Calon Ketua Umum"
-	primaryURL := "/register/candidate"
-	secondaryLabel := "Daftar Peserta Musyawarah"
-	secondaryURL := "/register"
+	primaryLabel := ""
+	primaryURL := ""
+	secondaryLabel := ""
+	secondaryURL := ""
 
 	if general != nil {
 		regEnabled = general.RegistrationEnabled

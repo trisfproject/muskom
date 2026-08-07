@@ -100,19 +100,7 @@ func (r *repository) GetGeneral(ctx context.Context) (*WebsiteGeneralSettings, e
 	err := r.db.GetContext(ctx, &s, query)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return &WebsiteGeneralSettings{
-				SiteName:            "MUSKOM",
-				Tagline:             "Together We Shape the Future",
-				Theme:               "modern-tech",
-				PrimaryColor:        "#2563EB",
-				SecondaryColor:      "#38BDF8",
-				DefaultLightTheme:   true,
-				DefaultDarkTheme:    false,
-				RegistrationEnabled: true,
-				MaintenanceMode:     false,
-				SEOTitle:            "MUSKOM — Official Event Portal",
-				SEODescription:      "Portal resmi Musyawarah KOMITKABE. Membangun proses pemilihan yang transparan, profesional, dan dapat dipercaya oleh seluruh anggota komunitas.",
-			}, nil
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -161,20 +149,7 @@ func (r *repository) GetHero(ctx context.Context) (*WebsiteHeroSettings, error) 
 	err := r.db.GetContext(ctx, &h, query)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return &WebsiteHeroSettings{
-				HeroBadge:           "Together We Shape the Future",
-				HeroTitle:           "Musyawarah Terpadu",
-				HeroDescription:     "Platform pemilihan resmi KOMITKABE 2026. Membangun proses kepemimpinan yang transparan, terpercaya, dan akuntabel.",
-				PrimaryCTALabel:     "Daftar Calon Ketua Umum",
-				PrimaryCTAURL:       "/register/candidate",
-				PrimaryCTAEnabled:   true,
-				SecondaryCTALabel:   "Daftar Peserta Musyawarah",
-				SecondaryCTAURL:     "/register",
-				SecondaryCTAEnabled: true,
-				BackgroundMode:      "aurora-blueprint",
-				HeroStatus:          "ACTIVE",
-				IsPublished:         true,
-			}, nil
+			return nil, nil
 		}
 		return nil, err
 	}

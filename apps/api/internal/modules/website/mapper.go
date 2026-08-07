@@ -17,19 +17,7 @@ func NewMapper(strg storage.Storage) *Mapper {
 // MapGeneral maps WebsiteGeneralSettings entity to DTOs (General, Metadata, FeatureFlags, Navigation).
 func (m *Mapper) MapGeneral(g *WebsiteGeneralSettings) (WebsiteGeneralDTO, PublicMetadataDTO, PublicFeatureFlagsDTO, []PublicNavigationItemDTO) {
 	if g == nil {
-		g = &WebsiteGeneralSettings{
-			SiteName:            "MUSKOM",
-			Tagline:             "Together We Shape the Future",
-			Theme:               "modern-tech",
-			PrimaryColor:        "#2563EB",
-			SecondaryColor:      "#38BDF8",
-			DefaultLightTheme:   true,
-			DefaultDarkTheme:    false,
-			RegistrationEnabled: true,
-			MaintenanceMode:     false,
-			SEOTitle:            "MUSKOM — Official Event Portal",
-			SEODescription:      "Portal resmi Musyawarah KOMITKABE. Membangun proses pemilihan yang transparan, profesional, dan dapat dipercaya oleh seluruh anggota komunitas.",
-		}
+		g = &WebsiteGeneralSettings{}
 	}
 
 	generalDTO := WebsiteGeneralDTO{
@@ -77,20 +65,7 @@ func (m *Mapper) MapGeneral(g *WebsiteGeneralSettings) (WebsiteGeneralDTO, Publi
 // MapHero maps WebsiteHeroSettings entity to WebsiteHeroDTO.
 func (m *Mapper) MapHero(h *WebsiteHeroSettings) WebsiteHeroDTO {
 	if h == nil {
-		return WebsiteHeroDTO{
-			HeroBadge:           "Together We Shape the Future",
-			HeroTitle:           "Musyawarah Terpadu",
-			HeroDescription:     "Platform pemilihan resmi KOMITKABE 2026. Membangun proses kepemimpinan yang transparan, terpercaya, dan akuntabel.",
-			PrimaryCTALabel:     "Daftar Calon Ketua Umum",
-			PrimaryCTAURL:       "/register/candidate",
-			PrimaryCTAEnabled:   true,
-			SecondaryCTALabel:   "Daftar Peserta Musyawarah",
-			SecondaryCTAURL:     "/register",
-			SecondaryCTAEnabled: true,
-			BackgroundMode:      "aurora-blueprint",
-			HeroStatus:          "ACTIVE",
-			IsPublished:         true,
-		}
+		return WebsiteHeroDTO{}
 	}
 
 	return WebsiteHeroDTO{

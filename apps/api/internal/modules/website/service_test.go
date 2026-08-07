@@ -167,18 +167,18 @@ func TestGetPublicHome(t *testing.T) {
 	repo := &mockRepository{
 		general: &WebsiteGeneralSettings{
 			SiteName:            "MUSKOM",
-			Tagline:             "Together We Shape the Future",
+			Tagline:             "",
 			Theme:               "modern-tech",
 			RegistrationEnabled: true,
 		},
 		hero: &WebsiteHeroSettings{
-			HeroBadge:           "Together We Shape the Future",
-			HeroTitle:           "Musyawarah Terpadu",
-			PrimaryCTALabel:     "Daftar Calon",
-			PrimaryCTAURL:       "/register/candidate",
+			HeroBadge:           "",
+			HeroTitle:           "",
+			PrimaryCTALabel:     "",
+			PrimaryCTAURL:       "",
 			PrimaryCTAEnabled:   true,
-			SecondaryCTALabel:   "Daftar Peserta",
-			SecondaryCTAURL:     "/register",
+			SecondaryCTALabel:   "",
+			SecondaryCTAURL:     "",
 			SecondaryCTAEnabled: true,
 		},
 		phases: []WebsiteTimelinePhase{
@@ -224,8 +224,8 @@ func TestGetPublicHome(t *testing.T) {
 
 	// General & Hero
 	assert.Equal(t, "MUSKOM", res.General.SiteName)
-	assert.Equal(t, "Together We Shape the Future", res.General.Tagline)
-	assert.Equal(t, "Musyawarah Terpadu", res.Hero.HeroTitle)
+	assert.Equal(t, "", res.General.Tagline)
+	assert.Equal(t, "", res.Hero.HeroTitle)
 
 	// Timeline Engine check
 	assert.True(t, res.CurrentPhase.IsActive)
