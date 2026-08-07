@@ -451,4 +451,3 @@ func (h *Handler) UploadMedia(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusOK, "Media uploaded successfully", res, nil)
 }
-

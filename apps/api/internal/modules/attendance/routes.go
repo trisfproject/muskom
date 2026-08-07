@@ -13,6 +13,8 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 	h := NewHandler(svc)
 
 	router.Post("/check-in", h.CheckIn)
+	router.Post("/bulk-undo", h.BulkUndo)
+	router.Post("/bulk-delete", h.BulkUndo)
 	router.Get("/", h.Search)
 	router.Get("/summary", h.GetSummary)
 	router.Get("/:id", h.GetAttendanceByID)

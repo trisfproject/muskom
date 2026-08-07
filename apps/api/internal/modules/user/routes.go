@@ -28,4 +28,3 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 	manage.Patch("/:id/status", handler.UpdateStatus)
 	manage.Post("/:id/password-reset", handler.ResetPassword)
 }
-

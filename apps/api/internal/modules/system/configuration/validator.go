@@ -38,6 +38,10 @@ func ValidateConfigPayload(groupName string, payload json.RawMessage, val *valid
 		var c ContactConfig
 		err = json.Unmarshal(payload, &c)
 		configStruct = c
+	case "smtp":
+		var c SMTPConfig
+		err = json.Unmarshal(payload, &c)
+		configStruct = c
 	default:
 		return fmt.Errorf("unknown configuration group: %s", groupName)
 	}

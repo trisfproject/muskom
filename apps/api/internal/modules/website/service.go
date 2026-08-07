@@ -103,7 +103,6 @@ func WithStorage(strg storage.Storage) ServiceOption {
 	}
 }
 
-
 // ----------------------------------------------------------------------------
 // Shared Helpers
 // ----------------------------------------------------------------------------
@@ -865,4 +864,3 @@ func (s *service) UploadMedia(ctx context.Context, file io.Reader, filename, fol
 		Size: info.Size,
 	}, nil
 }
-

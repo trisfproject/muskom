@@ -66,6 +66,16 @@ type ContactConfig struct {
 	MapsEmbed   string `json:"maps_embed" validate:"omitempty"`
 }
 
+type SMTPConfig struct {
+	Enabled   bool   `json:"enabled"`
+	Host      string `json:"host" validate:"required"`
+	Port      int    `json:"port" validate:"required,min=1,max=65535"`
+	Username  string `json:"username"`
+	Password  string `json:"password"`
+	FromName  string `json:"from_name"`
+	FromEmail string `json:"from_email" validate:"omitempty,email"`
+}
+
 // FullSystemConfig is an aggregate structure useful for returning everything to the client
 type FullSystemConfig struct {
 	WebsiteIdentity WebsiteIdentityConfig `json:"website_identity"`

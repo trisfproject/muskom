@@ -12,6 +12,7 @@ import (
 type Service interface {
 	CheckIn(ctx context.Context, req *CheckInRequest, operatorID string) (*CheckInResponse, error)
 	UndoCheckIn(ctx context.Context, checkInID string, operatorID string, req *UndoCheckInRequest) error
+	BulkUndoCheckIn(ctx context.Context, ids []string, operatorID string, reason string) (int, error)
 	GetAttendance(ctx context.Context, registrationID string) (*AttendanceDetailResponse, error)
 	Search(ctx context.Context, filter AttendanceListRequest) ([]AttendanceItemResponse, int, error)
 	GetSummary(ctx context.Context, eventID string) (*AttendanceSummary, error)
@@ -128,4 +129,32 @@ func (s *service) UndoCheckIn(ctx context.Context, checkInID string, operatorID 
 	}
 
 	return tx.Commit()
+}
+
+func (s *service) BulkUndoCheckIn(ctx context.Context, ids []string, operatorID string, reason string) (int, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+
+	affected, err := s.repo.BulkUndo(ctx, tx, ids, operatorID, reason)
+	if err != nil {
+		return 0, err
+	}
+
+	if affected > 0 {
+		metadata := "Bulk check-in undone with reason: " + reason
+		_ = s.repo.LogAudit(ctx, tx, "attendance", "BULK_UNDO_CHECK_IN", "attendance", operatorID, metadata)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+
+	return affected, nil
 }

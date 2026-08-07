@@ -1,12 +1,14 @@
 package configuration
 
 import (
+	"encoding/json"
+	"strings"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
-	"strings"
 )
 
 type Handler struct {
@@ -93,17 +95,28 @@ func (h *Handler) HandleUpdateSMTPConfig(c fiber.Ctx) error {
 	}
 
 	var req struct {
-		Enabled   bool   `json:"enabled"`
-		Host      string `json:"host"`
-		Port      int    `json:"port"`
-		Username  string `json:"username"`
-		Password  string `json:"password"`
-		FromName  string `json:"fromName"`
-		FromEmail string `json:"fromEmail"`
+		Enabled      bool   `json:"enabled"`
+		Host         string `json:"host" validate:"required"`
+		Port         int    `json:"port" validate:"required,min=1,max=65535"`
+		Username     string `json:"username"`
+		Password     string `json:"password"`
+		FromName     string `json:"from_name"`
+		FromNameAlt  string `json:"fromName"`
+		FromEmail    string `json:"from_email"`
+		FromEmailAlt string `json:"fromEmail"`
 	}
 
 	if err := c.Bind().JSON(&req); err != nil {
 		return response.SendError(c, fiber.StatusBadRequest, "Invalid payload", nil)
+	}
+
+	fromName := req.FromName
+	if fromName == "" {
+		fromName = req.FromNameAlt
+	}
+	fromEmail := req.FromEmail
+	if fromEmail == "" {
+		fromEmail = req.FromEmailAlt
 	}
 
 	h.cfg.MailEnabled = req.Enabled
@@ -113,18 +126,39 @@ func (h *Handler) HandleUpdateSMTPConfig(c fiber.Ctx) error {
 	if req.Port > 0 {
 		h.cfg.SmtpPort = req.Port
 	}
-	if req.Username != "" {
-		h.cfg.SmtpUsername = req.Username
-	}
+	h.cfg.SmtpUsername = req.Username
 	// Only update password if not empty and not asterisks
 	if req.Password != "" && !strings.HasPrefix(req.Password, "*") {
 		h.cfg.SmtpPassword = req.Password
 	}
-	if req.FromName != "" {
-		h.cfg.SmtpFromName = req.FromName
+	if fromName != "" {
+		h.cfg.SmtpFromName = fromName
 	}
-	if req.FromEmail != "" {
-		h.cfg.SmtpFrom = req.FromEmail
+	if fromEmail != "" {
+		h.cfg.SmtpFrom = fromEmail
+	}
+
+	// Persist to database
+	smtpEntity := SMTPConfig{
+		Enabled:   h.cfg.MailEnabled,
+		Host:      h.cfg.SmtpHost,
+		Port:      h.cfg.SmtpPort,
+		Username:  h.cfg.SmtpUsername,
+		Password:  h.cfg.SmtpPassword,
+		FromName:  h.cfg.SmtpFromName,
+		FromEmail: h.cfg.SmtpFrom,
+	}
+
+	settingsBytes, err := json.Marshal(smtpEntity)
+	if err == nil {
+		var updatedBy *string
+		if uid, ok := c.Locals("user_id").(string); ok && uid != "" {
+			updatedBy = &uid
+		}
+		_ = h.service.UpdateConfigGroup(c.Context(), UpdateConfigRequest{
+			GroupName: "smtp",
+			Settings:  settingsBytes,
+		}, updatedBy)
 	}
 
 	return response.SendSuccess(c, fiber.StatusOK, "SMTP configuration updated successfully", nil, nil)

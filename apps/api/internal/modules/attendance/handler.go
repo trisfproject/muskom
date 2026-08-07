@@ -100,9 +100,6 @@ func (h *Handler) GetAttendanceByID(c fiber.Ctx) error {
 
 func (h *Handler) GetSummary(c fiber.Ctx) error {
 	eventID := c.Query("event_id")
-	if eventID == "" {
-		return response.SendError(c, fiber.StatusBadRequest, "event_id is required", nil)
-	}
 
 	summary, err := h.service.GetSummary(c.Context(), eventID)
 	if err != nil {
@@ -118,8 +115,10 @@ func (h *Handler) UndoCheckIn(c fiber.Ctx) error {
 	}
 
 	var req UndoCheckInRequest
-	if err := c.Bind().Body(&req); err != nil {
-		return response.SendError(c, fiber.StatusBadRequest, "Invalid request body", nil)
+	if len(c.Body()) > 0 {
+		if err := c.Bind().Body(&req); err != nil {
+			return response.SendError(c, fiber.StatusBadRequest, "Invalid request body", nil)
+		}
 	}
 
 	operatorID, ok := c.Locals("user_id").(string)
@@ -139,4 +138,44 @@ func (h *Handler) UndoCheckIn(c fiber.Ctx) error {
 	}
 
 	return response.SendSuccess(c, fiber.StatusOK, "Attendance undone successfully", nil, nil)
+}
+
+func (h *Handler) BulkUndo(c fiber.Ctx) error {
+	var req struct {
+		IDs            []string `json:"ids"`
+		ParticipantIDs []string `json:"participant_ids"`
+		AttendanceIDs  []string `json:"attendance_ids"`
+		Reason         string   `json:"reason"`
+	}
+
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request body", nil)
+	}
+
+	allIDs := req.IDs
+	allIDs = append(allIDs, req.ParticipantIDs...)
+	allIDs = append(allIDs, req.AttendanceIDs...)
+
+	if len(allIDs) == 0 {
+		return response.SendError(c, fiber.StatusBadRequest, "No IDs provided for bulk undo", nil)
+	}
+
+	reason := req.Reason
+	if reason == "" {
+		reason = "Bulk undo by operator"
+	}
+
+	operatorID, ok := c.Locals("user_id").(string)
+	if !ok || operatorID == "" {
+		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized operator", nil)
+	}
+
+	affected, err := h.service.BulkUndoCheckIn(c.Context(), allIDs, operatorID, reason)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Bulk attendance undone successfully", fiber.Map{
+		"affected_count": affected,
+	}, nil)
 }

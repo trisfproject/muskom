@@ -47,6 +47,11 @@ func (m *MockService) UndoCheckIn(ctx context.Context, checkInID string, operato
 	return args.Error(0)
 }
 
+func (m *MockService) BulkUndoCheckIn(ctx context.Context, ids []string, operatorID string, reason string) (int, error) {
+	args := m.Called(ctx, ids, operatorID, reason)
+	return args.Int(0), args.Error(1)
+}
+
 func (m *MockService) GetSummary(ctx context.Context, eventID string) (*AttendanceSummary, error) {
 	args := m.Called(ctx, eventID)
 	if args.Get(0) != nil {

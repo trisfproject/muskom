@@ -63,6 +63,11 @@ func (m *MockRepository) UndoCheckIn(ctx context.Context, tx *sqlx.Tx, checkInID
 	return args.Error(0)
 }
 
+func (m *MockRepository) BulkUndo(ctx context.Context, tx *sqlx.Tx, ids []string, operatorID string, reason string) (int, error) {
+	args := m.Called(ctx, tx, ids, operatorID, reason)
+	return args.Int(0), args.Error(1)
+}
+
 func (m *MockRepository) GetSummaryByEvent(ctx context.Context, eventID string) (*AttendanceSummary, error) {
 	args := m.Called(ctx, eventID)
 	if args.Get(0) != nil {

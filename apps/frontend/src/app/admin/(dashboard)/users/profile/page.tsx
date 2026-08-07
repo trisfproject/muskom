@@ -83,8 +83,8 @@ export default function ProfilePage() {
       toast.error("Password saat ini harus diisi");
       return;
     }
-    if (newPassword.length < 6) {
-      toast.error("Password baru minimal 6 karakter");
+    if (newPassword.length < 8) {
+      toast.error("Password baru minimal 8 karakter");
       return;
     }
     if (newPassword !== confirmPassword) {

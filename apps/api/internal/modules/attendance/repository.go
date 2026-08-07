@@ -13,6 +13,7 @@ type Repository interface {
 	BeginTx(ctx context.Context) (*sqlx.Tx, error)
 	CreateAttendance(ctx context.Context, tx *sqlx.Tx, participantID string, operatorID string) (bool, error)
 	UndoCheckIn(ctx context.Context, tx *sqlx.Tx, checkInID string, operatorID string, reason string) error
+	BulkUndo(ctx context.Context, tx *sqlx.Tx, ids []string, operatorID string, reason string) (int, error)
 	GetSummaryByEvent(ctx context.Context, eventID string) (*AttendanceSummary, error)
 	LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error
 	ListAttendances(ctx context.Context, filter AttendanceListRequest) ([]AttendanceItemResponse, int, error)
@@ -82,7 +83,7 @@ func (r *repository) UndoCheckIn(ctx context.Context, tx *sqlx.Tx, checkInID str
 	query := `
 		UPDATE attendance
 		SET undone_at = NOW(), undone_by = $1, undo_reason = $2
-		WHERE id = $3 AND undone_at IS NULL
+		WHERE (id = $3 OR participant_id = $3) AND undone_at IS NULL
 	`
 	executor := r.db.ExecContext
 	if tx != nil {
@@ -106,6 +107,40 @@ func (r *repository) UndoCheckIn(ctx context.Context, tx *sqlx.Tx, checkInID str
 	return nil
 }
 
+func (r *repository) BulkUndo(ctx context.Context, tx *sqlx.Tx, ids []string, operatorID string, reason string) (int, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+
+	query, args, err := sqlx.In(`
+		UPDATE attendance
+		SET undone_at = NOW(), undone_by = ?, undo_reason = ?
+		WHERE (id IN (?) OR participant_id IN (?)) AND undone_at IS NULL
+	`, operatorID, reason, ids, ids)
+	if err != nil {
+		return 0, err
+	}
+
+	query = r.db.Rebind(query)
+
+	executor := r.db.ExecContext
+	if tx != nil {
+		executor = tx.ExecContext
+	}
+
+	res, err := executor(ctx, query, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(rows), nil
+}
+
 func (r *repository) GetSummaryByEvent(ctx context.Context, eventID string) (*AttendanceSummary, error) {
 	query := `
 		SELECT 
@@ -117,7 +152,7 @@ func (r *repository) GetSummaryByEvent(ctx context.Context, eventID string) (*At
 		WHERE p.deleted_at IS NULL AND p.status IN ('Verified', 'APPROVED', 'Pending')
 	`
 	var summary AttendanceSummary
-	if err := r.db.GetContext(ctx, &summary, query, eventID); err != nil {
+	if err := r.db.GetContext(ctx, &summary, query); err != nil {
 		return nil, err
 	}
 	return &summary, nil

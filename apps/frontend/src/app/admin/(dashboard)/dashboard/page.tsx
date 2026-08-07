@@ -3,10 +3,28 @@
 import { useEffect, useState } from "react";
 import { dashboardService } from "@/services/dashboard";
 import { DashboardData } from "@/types/dashboard";
-import { Users, UserCheck, ShieldAlert, Settings2, Calendar, FileText, ArrowRight, Activity, Database, CheckCircle2 } from "lucide-react";
+import { 
+  Users, 
+  UserCheck, 
+  ShieldAlert, 
+  Settings2, 
+  Calendar, 
+  Activity, 
+  Database, 
+  CheckCircle2, 
+  Clock, 
+  ArrowRight,
+  ShieldCheck,
+  Server,
+  Layers,
+  History,
+  QrCode,
+  Percent
+} from "lucide-react";
 import { SectionHeader } from "@/components/ui/section-header";
 import Link from "next/link";
 import { StatusChip } from "@/components/ui/status-chip";
+import { format } from "date-fns";
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -20,7 +38,15 @@ export default function AdminDashboardPage() {
   }, []);
 
   if (loading) {
-    return <div className="p-8 pg-muted animate-pulse">Memuat dashboard operasional...</div>;
+    return (
+      <div className="space-y-6">
+        <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="col-span-2 h-48 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+          <div className="col-span-1 h-48 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+        </div>
+      </div>
+    );
   }
 
   if (!data) {
@@ -37,106 +63,194 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const { status, summary, health } = data;
+  const { status, summary, health, recent_activity } = data;
+  const isHealthy = health.api_status === 'OPERATIONAL' || health.api_status === 'OK';
   
-  const isHealthy = health.api_status === 'OK' && health.database_status === 'OK';
-  const totalPending = summary.total_participants - summary.approved_participants; // simplified pending calculation
+  const quorumPercentage = summary.approved_participants > 0
+    ? Math.round((summary.checked_in / summary.approved_participants) * 100)
+    : 0;
+  const isQuorumReached = quorumPercentage >= 50;
 
   return (
     <div className="space-y-6">
       <SectionHeader 
         title="Dashboard Operasional" 
-        description="Monitoring dan manajemen status musyawarah"
+        description="Monitoring kuorum, kepesertaan, dan seluruh aktivitas musyawarah secara langsung."
       >
         <StatusChip status={status.phase} />
       </SectionHeader>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Main Highlights Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Widget 1: Current Active Phase */}
-        <div className="col-span-1 md:col-span-2 pg-surface border pg-border rounded-xl p-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--color-primary)]/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-          <div className="relative z-10">
-            <h3 className="text-sm font-medium pg-muted mb-1">Fase Saat Ini</h3>
-            <div className="text-3xl font-bold pg-text mb-4 capitalize">
-              {status.phase.replace(/_/g, ' ').toLowerCase() || 'BELUM DIMULAI'}
+        {/* Active Phase & Timeline Widget */}
+        <div className="lg:col-span-2 pg-surface border pg-border rounded-2xl p-6 relative overflow-hidden shadow-sm flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+          <div className="relative z-10 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider pg-muted flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-primary" /> Linimasa Acara Berjalan
+              </span>
+              <span className="px-3 py-0.5 rounded-full text-[11px] font-bold bg-primary/10 text-primary border border-primary/20">
+                Official Timeline Active
+              </span>
             </div>
-            
-            <div className="flex flex-col sm:flex-row flex-wrap gap-3 mt-6">
-              <Link href="/admin/website/timeline" className="inline-flex items-center justify-center min-h-[44px] gap-2 bg-primary hover:bg-primary-active pg-text px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-blue-700 w-full sm:w-auto">
-                <Calendar className="w-4 h-4" /> Kelola Timeline
+
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-bold pg-text tracking-tight capitalize">
+                {status.phase.replace(/_/g, ' ').toLowerCase() || 'Belum Dimulai'}
+              </h2>
+              <p className="text-xs pg-muted mt-1">
+                Website Timeline adalah sumber otoritas tunggal jalannya registrasi, verifikasi, presensi, dan pemilihan musyawarah.
+              </p>
+            </div>
+
+            {/* Quick Operational Actions */}
+            <div className="flex flex-wrap gap-2.5 pt-2">
+              <Link 
+                href="/admin/attendance" 
+                className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-lg bg-primary hover:bg-primary-active text-white transition-colors shadow-sm"
+              >
+                <QrCode className="w-3.5 h-3.5" /> Presensi & Quorum
               </Link>
-              <Link href="/admin/verifications" className="inline-flex items-center justify-center min-h-[44px] gap-2 pg-surface-elevated hover:pg-surface-elevated/80 pg-text px-4 py-2 rounded-lg text-sm font-medium transition-colors border pg-border w-full sm:w-auto">
-                <ShieldAlert className="w-4 h-4" /> Verifikasi ({summary.pending_notifications})
+              <Link 
+                href="/admin/verifications" 
+                className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-500" /> Verifikasi ({summary.pending_notifications || 0})
               </Link>
-              {status.phase === 'VOTING' && (
-                <Link href="/admin/voting" className="inline-flex items-center justify-center min-h-[44px] gap-2 bg-rose-500 hover:bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-rose-600 w-full sm:w-auto">
-                  <Activity className="w-4 h-4" /> Monitor Voting
-                </Link>
-              )}
+              <Link 
+                href="/admin/audit" 
+                className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+              >
+                <History className="w-3.5 h-3.5 text-blue-500" /> Audit Log
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* Widget 2: Health Status */}
-        <div className="col-span-1 rounded-xl p-6 border flex flex-col justify-between pg-surface pg-border">
+        {/* Live Quorum Gauge Mini */}
+        <div className="pg-surface border pg-border rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-4">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider pg-muted flex items-center gap-1.5">
+                <Percent className="w-4 h-4 text-emerald-500" /> Status Kuorum
+              </h3>
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                isQuorumReached 
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+              }`}>
+                {isQuorumReached ? "Kuorum Sah (≥50%)" : "Belum Kuorum"}
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs font-semibold pg-text">
+                <span>Kehadiran Peserta</span>
+                <span className="font-bold">{quorumPercentage}% ({summary.checked_in}/{summary.approved_participants})</span>
+              </div>
+              <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border pg-border">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${isQuorumReached ? "bg-emerald-500" : "bg-amber-500"}`} 
+                  style={{ width: `${Math.min(quorumPercentage, 100)}%` }} 
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* System Health Info */}
+          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border pg-border flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Server className="w-4 h-4 text-slate-400" />
+              <span className="text-xs font-semibold pg-text">Status Sistem</span>
+            </div>
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Normal
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Link href="/admin/participants" className="pg-surface border pg-border p-5 rounded-2xl flex items-center gap-4 hover:border-primary/50 transition-all shadow-sm group">
+          <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <Users className="w-6 h-6 text-blue-500" />
+          </div>
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Database className="w-5 h-5 pg-muted" />
-              <h3 className="text-sm font-medium pg-muted">System Health</h3>
-            </div>
-            <div className={`text-2xl font-bold mb-2 ${isHealthy ? 'text-emerald-500' : 'text-amber-500'}`}>
-              {isHealthy ? 'All Systems Operational' : 'Degraded'}
-            </div>
-            <p className="text-sm pg-muted">
-              API: {health.api_status} | DB: {health.database_status}
-            </p>
+            <div className="text-2xl font-bold pg-text">{summary.approved_participants} <span className="text-xs pg-muted font-normal">/ {summary.total_participants}</span></div>
+            <div className="text-xs font-bold uppercase tracking-wider pg-muted">Peserta Terverifikasi</div>
+          </div>
+        </Link>
+        
+        <Link href="/admin/candidates" className="pg-surface border pg-border p-5 rounded-2xl flex items-center gap-4 hover:border-purple-500/50 transition-all shadow-sm group">
+          <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <UserCheck className="w-6 h-6 text-purple-500" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold pg-text">{summary.total_candidates}</div>
+            <div className="text-xs font-bold uppercase tracking-wider pg-muted">Kandidat Terdaftar</div>
+          </div>
+        </Link>
+
+        <Link href="/admin/attendance" className="pg-surface border pg-border p-5 rounded-2xl flex items-center gap-4 hover:border-emerald-500/50 transition-all shadow-sm group">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold pg-text">{summary.checked_in}</div>
+            <div className="text-xs font-bold uppercase tracking-wider pg-muted">Peserta Hadir Fisik</div>
+          </div>
+        </Link>
+
+        <div className="pg-surface border pg-border p-5 rounded-2xl flex items-center gap-4 shadow-sm">
+          <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center">
+            <Activity className="w-6 h-6 text-rose-500" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold pg-text">{summary.votes_cast}</div>
+            <div className="text-xs font-bold uppercase tracking-wider pg-muted">Suara Pemilihan</div>
           </div>
         </div>
+      </div>
 
-        {/* Widget 3: Quick Stats */}
-        <div className="col-span-1 md:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="pg-surface border pg-border p-5 rounded-xl flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center">
-              <Users className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold pg-text">{summary.approved_participants} / {summary.total_participants}</div>
-              <div className="text-xs font-medium pg-muted uppercase tracking-wider">Peserta Disetujui</div>
-            </div>
+      {/* Recent Activity Timeline Widget */}
+      <div className="pg-surface border pg-border rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-primary" />
+            <h3 className="font-bold text-sm pg-text">Linimasa Aktivitas Terkini</h3>
           </div>
-          
-          <div className="pg-surface border pg-border p-5 rounded-xl flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-              <UserCheck className="w-5 h-5 text-purple-500" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold pg-text">{summary.total_candidates}</div>
-              <div className="text-xs font-medium pg-muted uppercase tracking-wider">Total Kandidat</div>
-            </div>
-          </div>
-
-          <div className="pg-surface border pg-border p-5 rounded-xl flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold pg-text">{summary.checked_in}</div>
-              <div className="text-xs font-medium pg-muted uppercase tracking-wider">Peserta Hadir</div>
-            </div>
-          </div>
-
-          <div className="pg-surface border pg-border p-5 rounded-xl flex items-center gap-4">
-            <div className="w-10 h-10 rounded-lg bg-rose-500/10 flex items-center justify-center">
-              <Activity className="w-5 h-5 text-rose-500" />
-            </div>
-            <div>
-              <div className="text-2xl font-bold pg-text">{summary.votes_cast}</div>
-              <div className="text-xs font-medium pg-muted uppercase tracking-wider">Suara Masuk</div>
-            </div>
-          </div>
+          <Link href="/admin/audit" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+            Lihat Semua Log <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
+        {recent_activity && recent_activity.length > 0 ? (
+          <div className="divide-y pg-border">
+            {recent_activity.slice(0, 6).map((act) => (
+              <div key={act.id} className="py-3 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold pg-muted">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold pg-text">{act.action}</p>
+                    <p className="text-[11px] pg-muted">Oleh <strong>{act.actor || "Sistem"}</strong> ({act.role || "Admin"})</p>
+                  </div>
+                </div>
+                <span className="text-[11px] pg-muted whitespace-nowrap">
+                  {format(new Date(act.timestamp), "dd MMM, HH:mm")}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-8 text-center text-xs pg-muted">
+            Belum ada catatan aktivitas baru.
+          </div>
+        )}
       </div>
     </div>
   );
