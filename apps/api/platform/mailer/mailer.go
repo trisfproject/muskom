@@ -14,7 +14,6 @@ import (
 type Mailer interface {
 	SendRegistrationConfirmation(to, participantName, regNumber, musyawarahName, company, regTime, status string) error
 	SendVerification(to, participantName, regNumber, musyawarahName string) error
-	SendEmailVerificationLink(to, participantName, verificationURL string) error
 	SendRejection(to, participantName, musyawarahName, reason string) error
 	SendTestEmail(to string) error
 	TestConnection() error
@@ -191,60 +190,6 @@ func (m *smtpMailer) SendRejection(to, participantName, musyawarahName, reason s
 
 	if err := tmpl.Execute(&body, data); err != nil {
 		m.log.Error("Failed to execute rejection email template", zap.Error(err))
-		return fmt.Errorf("failed to execute template: %w", err)
-	}
-
-	return m.sendSMTP(to, body.Bytes())
-}
-
-func (m *smtpMailer) SendEmailVerificationLink(to, participantName, verificationURL string) error {
-	if !m.cfg.MailEnabled {
-		m.log.Info("Mail is disabled, skipping sending verification link email", zap.String("to", to))
-		return nil
-	}
-
-	subject := "Verifikasi Email Pendaftaran Anda"
-
-	var body bytes.Buffer
-	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
-	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", m.cfg.SmtpFromName, m.cfg.SmtpFrom))
-	body.WriteString(fmt.Sprintf("Subject: %s\r\n", subject))
-	body.WriteString("MIME-version: 1.0;\r\n")
-	body.WriteString("Content-Type: text/html; charset=\"UTF-8\";\r\n\r\n")
-
-	htmlTemplate := `
-	<html>
-		<body>
-			<p>Halo <strong>{{.ParticipantName}}</strong>,</p>
-			<p>Terima kasih telah mendaftar. Silakan klik tombol di bawah ini untuk memverifikasi alamat email Anda dan mengaktifkan akun Anda.</p>
-			<p style="margin: 30px 0;">
-				<a href="{{.VerificationURL}}" style="background-color: #0f172a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-					Verifikasi Email Saya
-				</a>
-			</p>
-			<p>Atau copy paste link berikut ke browser Anda:<br/>
-			<a href="{{.VerificationURL}}">{{.VerificationURL}}</a></p>
-			<p>Link ini berlaku selama 24 jam.</p>
-			<p>Salam hangat,<br/>Tim Panitia</p>
-		</body>
-	</html>
-	`
-	tmpl, err := template.New("email").Parse(htmlTemplate)
-	if err != nil {
-		m.log.Error("Failed to parse verification link email template", zap.Error(err))
-		return fmt.Errorf("failed to parse template: %w", err)
-	}
-
-	data := struct {
-		ParticipantName string
-		VerificationURL string
-	}{
-		ParticipantName: participantName,
-		VerificationURL: verificationURL,
-	}
-
-	if err := tmpl.Execute(&body, data); err != nil {
-		m.log.Error("Failed to execute verification link email template", zap.Error(err))
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
 

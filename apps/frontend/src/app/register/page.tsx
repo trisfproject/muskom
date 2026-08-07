@@ -53,7 +53,6 @@ export default function RegisterPage() {
   const [musyawarahName, setMusyawarahName] = useState<string>("Musyawarah KOMITKABE 2026");
   const [eventStatus, setEventStatus] = useState<"loading" | "open" | "closed" | "not_started">("loading");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
-  const [resendCooldown, setResendCooldown] = useState(0);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
@@ -154,12 +153,7 @@ export default function RegisterPage() {
     };
   }, [watch, eventStatus]);
 
-  useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendCooldown]);
+
 
   const onNextStep1 = async () => {
     const valid = await trigger(["full_name", "email", "phone"]);
@@ -241,20 +235,9 @@ export default function RegisterPage() {
     setError(null);
     setSuccessInfo(null);
     setSaveStatus("idle");
-    setResendCooldown(0);
     setStep(1);
   };
 
-  const handleResendVerification = async () => {
-    if (!successInfo?.email) return;
-    try {
-      await api.post("/public/participants/resend-verification", { email: successInfo.email });
-      setResendCooldown(60); // 1 minute cooldown
-    } catch (err: any) {
-      // Error toast or something. For now just set a smaller cooldown if it fails
-      setResendCooldown(10);
-    }
-  };
 
   const v = getValues();
 
@@ -612,9 +595,7 @@ export default function RegisterPage() {
                     Pendaftaran Berhasil!
                   </h1>
                   <p className="text-slate-500 text-sm max-w-sm mx-auto">
-                    Data Anda telah diterima. Kami telah mengirimkan tautan verifikasi ke email <strong className="text-slate-700">{successInfo.email}</strong>.
-                    <br/><br/>
-                    Silakan periksa kotak masuk (atau folder spam) Anda dan klik tautan tersebut untuk mengaktifkan akun Anda.
+                    Terima kasih. Data pendaftaran Anda telah kami terima dan sedang menunggu verifikasi administrasi oleh panitia.
                   </p>
 
                   {/* Registration detail card */}
@@ -637,20 +618,12 @@ export default function RegisterPage() {
                         } inline-block`} />
                         {successInfo.status?.toUpperCase() === 'WAITING_LIST' || successInfo.status?.toLowerCase() === 'waiting list'
                           ? 'Waiting List'
-                          : 'Unverified'}
+                          : 'Pending'}
                       </span>
                     </div>
                   </div>
 
                   <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
-                    <button
-                      type="button"
-                      onClick={handleResendVerification}
-                      disabled={resendCooldown > 0}
-                      className="w-full sm:w-auto bg-white border border-slate-200 text-slate-700 font-bold py-4 px-10 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50"
-                    >
-                      {resendCooldown > 0 ? `Kirim Ulang (${resendCooldown}s)` : "Kirim Ulang Email"}
-                    </button>
                     <Link
                       href="/"
                       className="w-full sm:w-auto bg-primary text-white font-bold py-4 px-10 rounded-xl hover:bg-primary-active flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary/20"

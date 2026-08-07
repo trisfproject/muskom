@@ -48,6 +48,4 @@ func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, cfg 
 	router.Get("/capacity", handler.GetStats)
 	router.Post("/register", handler.PublicRegister)
 	router.Post("/lookup", handler.LookupParticipant)
-	router.Get("/verify-email", handler.VerifyEmail)
-	router.Post("/resend-verification", handler.ResendVerification)
 }

@@ -5,9 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
-
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
@@ -36,8 +33,6 @@ type Service interface {
 	BulkUpdateStatus(ctx context.Context, ids []string, status string) error
 	PublicRegister(ctx context.Context, req PublicRegisterParticipantRequest) (*PublicRegisterParticipantResponse, error)
 	GetStats(ctx context.Context) (*ParticipantStats, error)
-	VerifyEmail(ctx context.Context, token string) error
-	ResendVerification(ctx context.Context, email string) error
 }
 
 type service struct {
@@ -281,7 +276,7 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 	}
 
 	regNum := ""
-	initialStatus := "Unverified"
+	initialStatus := "Pending"
 	qrToken := ""
 
 	if isWaitingList {
@@ -322,24 +317,17 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 	})
 
 	go func() {
-		if s.cfg != nil {
-			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-				"sub": p.ID,
-				"exp": time.Now().Add(24 * time.Hour).Unix(),
+		payload := map[string]interface{}{
+			"full_name":  p.FullName,
+			"event_name": "MUSKOM 2026",
+		}
+		if s.notifSvc != nil {
+			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_submitted", p.Email, payload)
+			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "participant_registration_submitted", "system", map[string]interface{}{
+				"title":   "New Participant Registration",
+				"message": p.FullName + " has registered for MUSKOM 2026.",
+				"type":    "info",
 			})
-			tokenString, _ := token.SignedString([]byte(s.cfg.JWTSecret))
-
-			// Determine Base URL (can be from request origin, but we'll use a relative path logic on frontend)
-			// Actually we need the absolute frontend URL for the email link.
-			// The frontend usually runs on the same domain or we can just use a relative /verify-email?token=
-			// Let's use an environment variable or construct from localhost if not available.
-			// Construct from AppBaseURL
-			verificationURL := fmt.Sprintf("%s/verify-email?token=%s", s.cfg.AppBaseURL, tokenString)
-
-			err := s.mailer.SendEmailVerificationLink(req.Email, req.FullName, verificationURL)
-			if err != nil {
-				_ = err
-			}
 		}
 	}()
 
@@ -351,98 +339,6 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 
 func (s *service) GetStats(ctx context.Context) (*ParticipantStats, error) {
 	return s.repo.GetStats(ctx)
-}
-
-func (s *service) VerifyEmail(ctx context.Context, tokenString string) error {
-	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method")
-		}
-		return []byte(s.cfg.JWTSecret), nil
-	})
-
-	if err != nil || !token.Valid {
-		return errors.New("invalid or expired token")
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return errors.New("invalid token claims")
-	}
-
-	participantID, ok := claims["sub"].(string)
-	if !ok {
-		return errors.New("invalid participant ID in token")
-	}
-
-	p, err := s.repo.GetByID(ctx, participantID)
-	if err != nil {
-		return err
-	}
-
-	if p.Status != "Unverified" {
-		// Already verified or processed
-		return nil
-	}
-
-	err = s.repo.UpdateStatus(ctx, p.ID, "Pending")
-	if err == nil {
-		// Queue Registration Received notification
-		go func() {
-			payload := map[string]interface{}{
-				"full_name":  p.FullName,
-				"event_name": "MUSKOM 2026",
-			}
-			if s.notifSvc != nil {
-				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_submitted", p.Email, payload)
-				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "participant_registration_submitted", "system", map[string]interface{}{
-					"title":   "New Participant Registration",
-					"message": p.FullName + " has registered for MUSKOM 2026.",
-					"type":    "info",
-				})
-			}
-		}()
-	}
-	return err
-}
-
-func (s *service) ResendVerification(ctx context.Context, email string) error {
-	p, err := s.repo.FindByEmail(ctx, email)
-	if err != nil {
-		if err == ErrNotFound {
-			// Don't leak if email exists or not
-			return nil
-		}
-		return err
-	}
-
-	if p.Status != "Unverified" {
-		return nil
-	}
-
-	if s.rdb != nil {
-		cooldownKey := fmt.Sprintf("resend_verification:%s", p.ID)
-		exists, _ := s.rdb.Exists(ctx, cooldownKey).Result()
-		if exists > 0 {
-			return errors.New("please wait before requesting another verification email")
-		}
-		s.rdb.Set(ctx, cooldownKey, "1", 1*time.Minute)
-	}
-
-	if s.cfg != nil {
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"sub": p.ID,
-			"exp": time.Now().Add(24 * time.Hour).Unix(),
-		})
-		tokenString, _ := token.SignedString([]byte(s.cfg.JWTSecret))
-		verificationURL := fmt.Sprintf("%s/verify-email?token=%s", s.cfg.AppBaseURL, tokenString)
-
-		go func() {
-			_ = s.mailer.SendEmailVerificationLink(p.Email, p.FullName, verificationURL)
-		}()
-	}
-
-	return nil
 }
 
 func (s *service) BulkDelete(ctx context.Context, ids []string) error {

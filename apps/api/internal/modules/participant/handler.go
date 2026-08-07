@@ -157,40 +157,6 @@ func (h *Handler) GetStats(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Participant statistics retrieved", stats, nil)
 }
 
-func (h *Handler) VerifyEmail(c fiber.Ctx) error {
-	token := c.Query("token")
-	if token == "" {
-		return response.SendError(c, fiber.StatusBadRequest, "Token is required", nil)
-	}
-
-	err := h.service.VerifyEmail(c.Context(), token)
-	if err != nil {
-		return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
-	}
-
-	return response.SendSuccess(c, fiber.StatusOK, "Email verified successfully", nil, nil)
-}
-
-func (h *Handler) ResendVerification(c fiber.Ctx) error {
-	var req struct {
-		Email string `json:"email" validate:"required,email"`
-	}
-	if err := c.Bind().JSON(&req); err != nil {
-		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
-	}
-
-	if errs := h.val.ValidateStruct(&req); len(errs) > 0 {
-		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
-	}
-
-	err := h.service.ResendVerification(c.Context(), req.Email)
-	if err != nil {
-		return response.SendError(c, fiber.StatusBadRequest, err.Error(), nil)
-	}
-
-	return response.SendSuccess(c, fiber.StatusOK, "Verification email sent", nil, nil)
-}
-
 func (h *Handler) BulkDelete(c fiber.Ctx) error {
 	var req BulkDeleteParticipantRequest
 	if err := c.Bind().JSON(&req); err != nil {
