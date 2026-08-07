@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -22,6 +23,8 @@ type Service interface {
 	ListTemplates(ctx context.Context) ([]NotificationTemplate, error)
 	GetTemplate(ctx context.Context, id string) (*NotificationTemplate, error)
 	UpdateTemplate(ctx context.Context, id string, subject *string, body string) error
+	RetryJob(ctx context.Context, id string) error
+	TestSMTP(ctx context.Context, email string) error
 }
 
 type service struct {
@@ -98,4 +101,15 @@ func (s *service) GetTemplate(ctx context.Context, id string) (*NotificationTemp
 
 func (s *service) UpdateTemplate(ctx context.Context, id string, subject *string, body string) error {
 	return s.repo.UpdateTemplate(ctx, id, subject, body)
+}
+
+func (s *service) RetryJob(ctx context.Context, id string) error {
+	return s.repo.RetryJob(ctx, id)
+}
+
+func (s *service) TestSMTP(ctx context.Context, email string) error {
+	payload := map[string]interface{}{
+		"timestamp": time.Now().Format(time.RFC1123),
+	}
+	return s.QueueNotification(ctx, ChannelEmail, "test_email", email, payload)
 }

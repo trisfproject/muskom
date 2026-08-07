@@ -40,6 +40,16 @@ export default function EmailLogsPage() {
     }
   };
 
+  const handleRetry = async (jobId: string) => {
+    try {
+      await api.post(`/admin/notifications/jobs/${jobId}/retry`);
+      toast.success("Job berhasil diantrekan ulang");
+      fetchLogs();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Gagal melakukan retry");
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "SENT":
@@ -106,6 +116,9 @@ export default function EmailLogsPage() {
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider pg-muted">
                     Keterangan
                   </th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider pg-muted text-right">
+                    Aksi
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y pg-border">
@@ -131,6 +144,17 @@ export default function EmailLogsPage() {
                       <div className="text-xs pg-muted truncate max-w-sm" title={log.error_message || "-"}>
                         {log.error_message || "-"}
                       </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {log.status === "FAILED" && (
+                        <button
+                          onClick={() => handleRetry(log.job_id)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          Retry
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

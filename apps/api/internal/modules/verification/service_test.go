@@ -22,7 +22,7 @@ func setupTestService(t *testing.T) (*sqlmock.Sqlmock, *MockRepository, Service,
 	val := validator.New()
 	mockRepo := new(MockRepository)
 
-	svc := NewService(mockRepo, log, val)
+	svc := NewService(mockRepo, log, val, nil)
 	return &mockDB, mockRepo, svc, sqlxDB
 }
 

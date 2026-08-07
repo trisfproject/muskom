@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/google/uuid"
@@ -168,15 +169,24 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 			if regNumber != nil {
 				rn = *regNumber
 			}
+			
+			appBaseUrl := os.Getenv("APP_BASE_URL")
+			if appBaseUrl == "" {
+				appBaseUrl = "http://localhost:3000"
+			}
+			
 			payload := map[string]interface{}{
 				"full_name":           detail.FullName,
 				"registration_number": rn,
 				"event_name":          "MUSKOM 2026",
-				"participant_lookup_url": "http://localhost:3000/peserta", // Should come from config in a real app
+				"participant_lookup_url": fmt.Sprintf("%s/checkin/%s", appBaseUrl, rn),
+				"qr_code_url":         fmt.Sprintf("https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=%s", rn),
 				"event_date": "Tanggal Acara", // Placeholder
 				"venue": "Lokasi Acara",       // Placeholder
 			}
-			_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "participant_registration_approved", detail.Email, payload)
+			if s.notifSvc != nil {
+				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "participant_registration_approved", detail.Email, payload)
+			}
 		} else if req.Status == "REJECTED" {
 			rsn := ""
 			if req.RejectionReason != nil {
@@ -187,7 +197,9 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 				"event_name":       "MUSKOM 2026",
 				"rejection_reason": rsn,
 			}
-			_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "participant_registration_rejected", detail.Email, payload)
+			if s.notifSvc != nil {
+				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "participant_registration_rejected", detail.Email, payload)
+			}
 		}
 	}()
 
@@ -249,7 +261,9 @@ func (s *service) VerifyCandidate(ctx context.Context, id string, req *VerifyCan
 				"event_name": "MUSKOM 2026",
 				"candidate_number": "TBD", // Candidate number comes later usually
 			}
-			_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "candidate_registration_approved", detail.Email, payload)
+			if s.notifSvc != nil {
+				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "candidate_registration_approved", detail.Email, payload)
+			}
 		} else if req.Status == "REJECTED" {
 			rsn := ""
 			if req.Notes != nil {
@@ -260,7 +274,9 @@ func (s *service) VerifyCandidate(ctx context.Context, id string, req *VerifyCan
 				"event_name":       "MUSKOM 2026",
 				"rejection_reason": rsn,
 			}
-			_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "candidate_registration_rejected", detail.Email, payload)
+			if s.notifSvc != nil {
+				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "candidate_registration_rejected", detail.Email, payload)
+			}
 		}
 	}()
 

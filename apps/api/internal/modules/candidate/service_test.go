@@ -110,7 +110,7 @@ func TestService_Create(t *testing.T) {
 	cfg := &config.Config{JWTSecret: "secret"}
 	log := zap.NewNop()
 
-	svc := NewService(repo, auditSvc, st, 5*1024*1024, cfg, log)
+	svc := NewService(repo, auditSvc, st, 5*1024*1024, cfg, log, nil)
 
 	req := CreateCandidateRequest{
 		FullName: "John Doe",
@@ -148,7 +148,7 @@ func TestService_Update(t *testing.T) {
 	cfg := &config.Config{}
 	log := zap.NewNop()
 
-	svc := NewService(repo, auditSvc, st, 10*1024*1024, cfg, log)
+	svc := NewService(repo, auditSvc, st, 10*1024*1024, cfg, log, nil)
 
 	req := UpdateCandidateRequest{
 		FullName: "Jane Doe",
@@ -181,7 +181,7 @@ func TestService_UploadPhoto_EnforcesConfiguredMaxUploadSize(t *testing.T) {
 	log := zap.NewNop()
 
 	// Service configured with 10MB (10485760 bytes)
-	svc := NewService(repo, auditSvc, st, 10485760, cfg, log)
+	svc := NewService(repo, auditSvc, st, 10485760, cfg, log, nil)
 
 	// Create valid 6MB mock JPEG reader
 	img := image.NewRGBA(image.Rect(0, 0, 10, 10))

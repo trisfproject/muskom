@@ -65,3 +65,27 @@ func (h *Handler) UpdateTemplate(c fiber.Ctx) error {
 	}
 	return response.SendSuccess(c, fiber.StatusOK, "Template updated", nil, nil)
 }
+
+func (h *Handler) RetryJob(c fiber.Ctx) error {
+	id := c.Params("id")
+	err := h.service.RetryJob(c.Context(), id)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to retry job", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Job queued for retry", nil, nil)
+}
+
+func (h *Handler) TestSMTP(c fiber.Ctx) error {
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+	
+	err := h.service.TestSMTP(c.Context(), req.Email)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to send test email", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Test email queued", nil, nil)
+}

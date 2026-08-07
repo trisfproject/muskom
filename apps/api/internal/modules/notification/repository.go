@@ -17,6 +17,7 @@ type Repository interface {
 	ListHistory(ctx context.Context, eventID string) ([]NotificationHistory, error)
 	ListTemplates(ctx context.Context) ([]NotificationTemplate, error)
 	UpdateTemplate(ctx context.Context, id string, subject *string, body string) error
+	RetryJob(ctx context.Context, id string) error
 }
 
 type repository struct {
@@ -101,5 +102,11 @@ func (r *repository) ListTemplates(ctx context.Context) ([]NotificationTemplate,
 func (r *repository) UpdateTemplate(ctx context.Context, id string, subject *string, body string) error {
 	query := `UPDATE notification_templates SET subject = $1, body = $2, updated_at = NOW() WHERE id = $3`
 	_, err := r.db.ExecContext(ctx, query, subject, body, id)
+	return err
+}
+
+func (r *repository) RetryJob(ctx context.Context, id string) error {
+	query := `UPDATE notification_jobs SET status = 'PENDING', error_message = NULL, updated_at = NOW() WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, query, id)
 	return err
 }
