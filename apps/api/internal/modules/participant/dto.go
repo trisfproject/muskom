@@ -131,3 +131,18 @@ type PublicRegisterParticipantResponse struct {
 	RegistrationNumber string `json:"registration_number"`
 	QRToken            string `json:"qr_token"`
 }
+
+// ─── Public Lookup DTOs ───────────────────────────────────────────────────────────────
+
+type PublicLookupRequest struct {
+	Query string `json:"query" validate:"required,min=3"`
+}
+
+type PublicLookupResponse struct {
+	FullName           string `json:"full_name"`
+	RegistrationNumber string `json:"registration_number"`
+	CompanyName        string `json:"company_name"`
+	JobTitle           string `json:"job_title"`
+	Status             string `json:"status"`
+	// Additional fields safely exposed
+}

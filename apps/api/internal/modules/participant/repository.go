@@ -27,6 +27,7 @@ type Repository interface {
 	Count(ctx context.Context) (int, error)
 	CountActive(ctx context.Context) (int, error)
 	GetRegistrationLimit(ctx context.Context) (*int, error)
+	LookupPublic(ctx context.Context, query string) (*Participant, error)
 }
 
 type repository struct {
@@ -308,4 +309,23 @@ func (r *repository) CountActive(ctx context.Context) (int, error) {
 func (r *repository) GetRegistrationLimit(ctx context.Context) (*int, error) {
 	// Limit is no longer managed in event_settings. Defaulting to unlimited.
 	return nil, nil
+}
+
+func (r *repository) LookupPublic(ctx context.Context, query string) (*Participant, error) {
+	sqlQuery := `
+		SELECT id, registration_number, full_name, email, phone, company_name, 
+		       industrial_area, job_title, department, status, created_at, updated_at, deleted_at
+		FROM participants
+		WHERE (email = $1 OR registration_number = $1) AND deleted_at IS NULL
+		LIMIT 1
+	`
+	var p Participant
+	err := r.db.GetContext(ctx, &p, sqlQuery, query)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &p, nil
 }

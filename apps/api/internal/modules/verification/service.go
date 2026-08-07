@@ -3,8 +3,10 @@ package verification
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"go.uber.org/zap"
@@ -111,7 +113,13 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 	}
 	defer tx.Rollback()
 
-	if err := s.repo.UpdateParticipantStatus(ctx, tx, id, req.Status, verifierID, req.RejectionReason); err != nil {
+	var regNumber *string
+	if req.Status == "APPROVED" {
+		num := fmt.Sprintf("MK-%s-%s", strings.ToUpper(uuid.New().String()[:4]), strings.ToUpper(uuid.New().String()[:8]))
+		regNumber = &num
+	}
+
+	if err := s.repo.UpdateParticipantStatus(ctx, tx, id, req.Status, verifierID, req.RejectionReason, regNumber); err != nil {
 		return err
 	}
 
