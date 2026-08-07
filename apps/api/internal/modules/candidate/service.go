@@ -116,10 +116,6 @@ func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*Cand
 		Email:              req.Email,
 		Phone:              req.Phone,
 
-		CompanyName:       req.CompanyName,
-		IndustrialArea:    req.IndustrialArea,
-		JobTitle:          req.JobTitle,
-		Department:        req.Department,
 		Biography:         req.Biography,
 		Motivation:        req.Motivation,
 		Vision:            req.Vision,
@@ -203,10 +199,6 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 	c.Email = req.Email
 	c.Phone = req.Phone
 
-	c.CompanyName = req.CompanyName
-	c.IndustrialArea = req.IndustrialArea
-	c.JobTitle = req.JobTitle
-	c.Department = req.Department
 	c.Biography = req.Biography
 	c.Motivation = req.Motivation
 	c.Vision = req.Vision
@@ -285,18 +277,6 @@ func (s *service) Patch(ctx context.Context, id string, req PatchCandidateReques
 		c.Phone = *req.Phone
 	}
 
-	if req.CompanyName != nil {
-		c.CompanyName = req.CompanyName
-	}
-	if req.IndustrialArea != nil {
-		c.IndustrialArea = req.IndustrialArea
-	}
-	if req.JobTitle != nil {
-		c.JobTitle = req.JobTitle
-	}
-	if req.Department != nil {
-		c.Department = req.Department
-	}
 	if req.Biography != nil {
 		c.Biography = req.Biography
 	}
@@ -376,10 +356,6 @@ func (s *service) mapToResponse(c *Candidate) CandidateResponse {
 		Email:              c.Email,
 		Phone:              c.Phone,
 
-		CompanyName:       c.CompanyName,
-		IndustrialArea:    c.IndustrialArea,
-		JobTitle:          c.JobTitle,
-		Department:        c.Department,
 		Biography:         c.Biography,
 		Motivation:        c.Motivation,
 		Vision:            c.Vision,

@@ -11,10 +11,6 @@ type CreateCandidateRequest struct {
 	Email        string  `json:"email" validate:"required,email,max=255"`
 	Phone        string  `json:"phone" validate:"required,max=50"`
 
-	CompanyName       *string `json:"company_name" validate:"omitempty,max=255"`
-	IndustrialArea    *string `json:"industrial_area" validate:"omitempty,max=255"`
-	JobTitle          *string `json:"job_title" validate:"omitempty,max=255"`
-	Department        *string `json:"department" validate:"omitempty,max=255"`
 	Biography         *string `json:"biography"`
 	Motivation        *string `json:"motivation"`
 	Vision            *string `json:"vision"`
@@ -40,10 +36,6 @@ type UpdateCandidateRequest struct {
 	Email    string  `json:"email" validate:"required,email,max=255"`
 	Phone    string  `json:"phone" validate:"required,max=50"`
 
-	CompanyName       *string `json:"company_name" validate:"omitempty,max=255"`
-	IndustrialArea    *string `json:"industrial_area" validate:"omitempty,max=255"`
-	JobTitle          *string `json:"job_title" validate:"omitempty,max=255"`
-	Department        *string `json:"department" validate:"omitempty,max=255"`
 	Biography         *string `json:"biography"`
 	Motivation        *string `json:"motivation"`
 	Vision            *string `json:"vision"`
@@ -66,10 +58,6 @@ type PatchCandidateRequest struct {
 	Email    *string `json:"email" validate:"omitempty,email,max=255"`
 	Phone    *string `json:"phone" validate:"omitempty,max=50"`
 
-	CompanyName    *string `json:"company_name" validate:"omitempty,max=255"`
-	IndustrialArea *string `json:"industrial_area" validate:"omitempty,max=255"`
-	JobTitle       *string `json:"job_title" validate:"omitempty,max=255"`
-	Department     *string `json:"department" validate:"omitempty,max=255"`
 	Biography      *string `json:"biography"`
 	Motivation     *string `json:"motivation"`
 	Vision         *string `json:"vision"`
@@ -87,10 +75,6 @@ type CandidateResponse struct {
 	Email              string  `json:"email"`
 	Phone              string  `json:"phone"`
 
-	CompanyName       *string                     `json:"company_name,omitempty"`
-	IndustrialArea    *string                     `json:"industrial_area,omitempty"`
-	JobTitle          *string                     `json:"job_title,omitempty"`
-	Department        *string                     `json:"department,omitempty"`
 	Biography         *string                     `json:"biography,omitempty"`
 	Motivation        *string                     `json:"motivation,omitempty"`
 	Vision            *string                     `json:"vision,omitempty"`

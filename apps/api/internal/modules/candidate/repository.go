@@ -50,14 +50,12 @@ func (r *repository) Create(ctx context.Context, c *Candidate) error {
 	query := `
 		INSERT INTO candidates (
 			registration_number, full_name, nickname, email, phone,
-			company_name, industrial_area, job_title, department, biography,
-			motivation, vision, mission, profile_photo, status,
+			biography, motivation, vision, mission, profile_photo, status,
 			candidate_number, display_order, publication_status,
 			show_biography, show_vision, show_mission, show_photo
 		) VALUES (
 			:registration_number, :full_name, :nickname, :email, :phone,
-			:company_name, :industrial_area, :job_title, :department, :biography,
-			:motivation, :vision, :mission, :profile_photo, :status,
+			:biography, :motivation, :vision, :mission, :profile_photo, :status,
 			:candidate_number, :display_order, :publication_status,
 			:show_biography, :show_vision, :show_mission, :show_photo
 		) RETURNING id, created_at, updated_at
@@ -84,7 +82,7 @@ func (r *repository) Create(ctx context.Context, c *Candidate) error {
 }
 
 func (r *repository) GetByID(ctx context.Context, id string) (*Candidate, error) {
-	query := `SELECT id, registration_number, full_name, nickname, email, phone, company_name, industrial_area, job_title, department, biography, motivation, vision, mission, profile_photo, status, created_at, updated_at, deleted_at, verification_notes, candidate_number, display_order, publication_status, published_at, show_biography, show_vision, show_mission, show_photo FROM candidates WHERE id = $1 AND deleted_at IS NULL`
+	query := `SELECT id, registration_number, full_name, nickname, email, phone, biography, motivation, vision, mission, profile_photo, status, created_at, updated_at, deleted_at, verification_notes, candidate_number, display_order, publication_status, published_at, show_biography, show_vision, show_mission, show_photo FROM candidates WHERE id = $1 AND deleted_at IS NULL`
 	var c Candidate
 	err := r.db.GetContext(ctx, &c, query, id)
 	if err != nil {
@@ -97,7 +95,7 @@ func (r *repository) GetByID(ctx context.Context, id string) (*Candidate, error)
 }
 
 func (r *repository) FindAll(ctx context.Context) ([]Candidate, error) {
-	query := `SELECT id, registration_number, full_name, nickname, email, phone, company_name, industrial_area, job_title, department, biography, motivation, vision, mission, profile_photo, status, created_at, updated_at, deleted_at, verification_notes, candidate_number, display_order, publication_status, published_at, show_biography, show_vision, show_mission, show_photo FROM candidates WHERE deleted_at IS NULL ORDER BY created_at DESC`
+	query := `SELECT id, registration_number, full_name, nickname, email, phone, biography, motivation, vision, mission, profile_photo, status, created_at, updated_at, deleted_at, verification_notes, candidate_number, display_order, publication_status, published_at, show_biography, show_vision, show_mission, show_photo FROM candidates WHERE deleted_at IS NULL ORDER BY created_at DESC`
 	var candidates []Candidate
 	err := r.db.SelectContext(ctx, &candidates, query)
 	if err != nil {
@@ -113,10 +111,6 @@ func (r *repository) Update(ctx context.Context, c *Candidate) error {
 			nickname = :nickname,
 			email = :email,
 			phone = :phone,
-			company_name = :company_name,
-			industrial_area = :industrial_area,
-			job_title = :job_title,
-			department = :department,
 			biography = :biography,
 			motivation = :motivation,
 			vision = :vision,
@@ -218,7 +212,7 @@ func (r *repository) SaveDocument(ctx context.Context, doc *CandidateDocument) e
 }
 
 func (r *repository) GetDocumentByID(ctx context.Context, id string) (*CandidateDocument, error) {
-	query := `SELECT * FROM candidate_documents WHERE id = $1 AND deleted_at IS NULL`
+	query := `SELECT id, candidate_id, document_type, original_filename, stored_filename, mime_type, file_size, checksum, storage_provider, storage_path, uploaded_at, updated_at, deleted_at, verification_status, verification_notes FROM candidate_documents WHERE id = $1 AND deleted_at IS NULL`
 	var doc CandidateDocument
 	err := r.db.GetContext(ctx, &doc, query, id)
 	if err != nil {
@@ -231,7 +225,7 @@ func (r *repository) GetDocumentByID(ctx context.Context, id string) (*Candidate
 }
 
 func (r *repository) FindDocumentsByCandidateID(ctx context.Context, candidateID string) ([]CandidateDocument, error) {
-	query := `SELECT * FROM candidate_documents WHERE candidate_id = $1 AND deleted_at IS NULL ORDER BY uploaded_at DESC`
+	query := `SELECT id, candidate_id, document_type, original_filename, stored_filename, mime_type, file_size, checksum, storage_provider, storage_path, uploaded_at, updated_at, deleted_at, verification_status, verification_notes FROM candidate_documents WHERE candidate_id = $1 AND deleted_at IS NULL ORDER BY uploaded_at DESC`
 	var docs []CandidateDocument
 	err := r.db.SelectContext(ctx, &docs, query, candidateID)
 	if err != nil {
@@ -260,7 +254,7 @@ func (r *repository) DeleteDocument(ctx context.Context, id string) error {
 }
 
 func (r *repository) AdminListCandidates(ctx context.Context, statusFilter string, search string) ([]Candidate, error) {
-	query := `SELECT id, registration_number, full_name, nickname, email, phone, company_name, industrial_area, job_title, department, biography, motivation, vision, mission, profile_photo, status, created_at, updated_at, deleted_at, verification_notes, candidate_number, display_order, publication_status, published_at, show_biography, show_vision, show_mission, show_photo FROM candidates WHERE deleted_at IS NULL`
+	query := `SELECT id, registration_number, full_name, nickname, email, phone, biography, motivation, vision, mission, profile_photo, status, created_at, updated_at, deleted_at, verification_notes, candidate_number, display_order, publication_status, published_at, show_biography, show_vision, show_mission, show_photo FROM candidates WHERE deleted_at IS NULL`
 	args := []interface{}{}
 	argID := 1
 

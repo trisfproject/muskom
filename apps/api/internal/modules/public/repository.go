@@ -89,7 +89,7 @@ func (r *repository) GetCandidates(ctx context.Context) ([]PublicCandidate, erro
 			id, 
 			candidate_number as sequence_number, 
 			full_name as name, 
-			job_title as title, 
+			'' as title, 
 			CASE WHEN show_vision = true THEN vision ELSE NULL END as vision, 
 			CASE WHEN show_photo = true THEN profile_photo ELSE NULL END as photo_path 
 		FROM candidates 
