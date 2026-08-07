@@ -2,6 +2,7 @@ package verification
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -13,7 +14,7 @@ type Repository interface {
 	GetParticipantDetail(ctx context.Context, registrationID string) (*ParticipantDetailResponse, error)
 	BeginTx(ctx context.Context) (*sqlx.Tx, error)
 	LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error
-	UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string) error
+	UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string, regNumber *string) error
 	GetCandidateDetail(ctx context.Context, candidateID string) (*CandidateDetailResponse, error)
 	UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, candidateID string, status string, verifierID string) error
 }
@@ -172,18 +173,32 @@ func (r *repository) LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, 
 	return err
 }
 
-func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string) error {
+func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string, regNumber *string) error {
 	query := `
 		UPDATE participants
 		SET status = $1, updated_at = NOW()
 		WHERE id = $2 AND deleted_at IS NULL
 	`
+	
 	executor := r.db.ExecContext
 	if tx != nil {
 		executor = tx.ExecContext
 	}
 
-	res, err := executor(ctx, query, status, registrationID)
+	var res sql.Result
+	var err error
+
+	if regNumber != nil {
+		query = `
+			UPDATE participants
+			SET status = $1, registration_number = $2, updated_at = NOW()
+			WHERE id = $3 AND deleted_at IS NULL
+		`
+		res, err = executor(ctx, query, status, *regNumber, registrationID)
+	} else {
+		res, err = executor(ctx, query, status, registrationID)
+	}
+
 	if err != nil {
 		return err
 	}

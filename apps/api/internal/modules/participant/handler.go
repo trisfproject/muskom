@@ -226,3 +226,24 @@ func (h *Handler) BulkUpdateStatus(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusOK, "Participants status updated successfully", nil, nil)
 }
+
+func (h *Handler) LookupParticipant(c fiber.Ctx) error {
+	var req PublicLookupRequest
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+
+	if errs := h.val.ValidateStruct(req); len(errs) > 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
+	}
+
+	res, err := h.service.LookupPublic(c.Context(), req.Query)
+	if err != nil {
+		if err == ErrNotFound {
+			return response.SendError(c, fiber.StatusNotFound, "Participant not found.", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to lookup participant", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Participant found", res, nil)
+}

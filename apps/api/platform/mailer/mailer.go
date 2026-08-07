@@ -13,7 +13,7 @@ import (
 
 type Mailer interface {
 	SendRegistrationConfirmation(to, participantName, regNumber, musyawarahName, company, regTime, status string) error
-	SendVerification(to, participantName, musyawarahName string) error
+	SendVerification(to, participantName, regNumber, musyawarahName string) error
 	SendEmailVerificationLink(to, participantName, verificationURL string) error
 	SendRejection(to, participantName, musyawarahName, reason string) error
 	SendTestEmail(to string) error
@@ -53,14 +53,9 @@ func (m *smtpMailer) SendRegistrationConfirmation(to, participantName, regNumber
 		<body>
 			<p>Halo <strong>{{.ParticipantName}}</strong>,</p>
 			<p>Terima kasih telah mendaftar pada acara <strong>{{.MusyawarahName}}</strong>.</p>
-			<p>Berikut adalah rincian pendaftaran Anda:</p>
-			<ul>
-				<li><strong>Nomor Registrasi:</strong> {{.RegNumber}}</li>
-				<li><strong>Perusahaan:</strong> {{.Company}}</li>
-				<li><strong>Waktu Daftar:</strong> {{.RegTime}}</li>
-				<li><strong>Status:</strong> {{.Status}}</li>
-			</ul>
-			<p>Pendaftaran Anda saat ini sedang dalam status <strong>Pending Verifikasi</strong> oleh panitia. Kami akan menginformasikan kembali jika status pendaftaran Anda berubah.</p>
+			<p>Status Anda saat ini: <strong>Menunggu Verifikasi</strong>.</p>
+			<p>Silakan cek status pendaftaran Anda secara berkala melalui tautan berikut:</p>
+			<p><a href="{{.LookupURL}}">{{.LookupURL}}</a></p>
 			<p>Salam hangat,<br/>Panitia {{.MusyawarahName}}</p>
 		</body>
 	</html>
@@ -75,17 +70,11 @@ func (m *smtpMailer) SendRegistrationConfirmation(to, participantName, regNumber
 	data := struct {
 		ParticipantName string
 		MusyawarahName  string
-		RegNumber       string
-		Company         string
-		RegTime         string
-		Status          string
+		LookupURL       string
 	}{
 		ParticipantName: participantName,
 		MusyawarahName:  musyawarahName,
-		RegNumber:       regNumber,
-		Company:         company,
-		RegTime:         regTime,
-		Status:          status,
+		LookupURL:       fmt.Sprintf("%s/peserta", m.cfg.PublicAppURL),
 	}
 
 	if err := tmpl.Execute(&body, data); err != nil {
@@ -101,13 +90,13 @@ func (m *smtpMailer) SendRegistrationConfirmation(to, participantName, regNumber
 	return nil
 }
 
-func (m *smtpMailer) SendVerification(to, participantName, musyawarahName string) error {
+func (m *smtpMailer) SendVerification(to, participantName, regNumber, musyawarahName string) error {
 	if !m.cfg.MailEnabled {
 		m.log.Info("Mail is disabled, skipping sending verification email", zap.String("to", to))
 		return nil
 	}
 
-	subject := "Pendaftaran Anda Telah Diverifikasi"
+	subject := "Peserta Berhasil Diverifikasi"
 
 	var body bytes.Buffer
 	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
@@ -119,9 +108,12 @@ func (m *smtpMailer) SendVerification(to, participantName, musyawarahName string
 	htmlTemplate := `
 	<html>
 		<body>
-			<p>Halo <strong>{{.ParticipantName}}</strong>,</p>
-			<p>Kabar baik! Pendaftaran Anda untuk acara <strong>{{.MusyawarahName}}</strong> telah <strong>Berhasil Diverifikasi</strong> oleh panitia.</p>
-			<p>Informasi lebih lanjut mengenai kegiatan akan kami informasikan menjelang hari pelaksanaan.</p>
+			<p>Selamat!</p>
+			<p>Pendaftaran Anda telah diverifikasi.</p>
+			<p>Nomor Registrasi:</p>
+			<p><strong>{{.RegNumber}}</strong></p>
+			<p>Silakan membuka kartu peserta melalui:</p>
+			<p><a href="{{.LookupURL}}">{{.LookupURL}}</a></p>
 			<p>Salam hangat,<br/>Panitia {{.MusyawarahName}}</p>
 		</body>
 	</html>
@@ -135,9 +127,13 @@ func (m *smtpMailer) SendVerification(to, participantName, musyawarahName string
 	data := struct {
 		ParticipantName string
 		MusyawarahName  string
+		RegNumber       string
+		LookupURL       string
 	}{
 		ParticipantName: participantName,
 		MusyawarahName:  musyawarahName,
+		RegNumber:       regNumber,
+		LookupURL:       fmt.Sprintf("%s/peserta", m.cfg.PublicAppURL),
 	}
 
 	if err := tmpl.Execute(&body, data); err != nil {

@@ -5,7 +5,7 @@ import { HomeResponse } from "@/types/landing";
 import { ArrowUp, ArrowRight, ShieldCheck, Mail, MapPin, FileText, Phone } from "lucide-react";
 import Link from "next/link";
 
-export function Footer({ data }: { data: HomeResponse | null }) {
+export function Footer({ data }: { data?: HomeResponse | null }) {
   const { config } = useSystemConfig();
   const identity = config?.website_identity;
   const contact = config?.contact;

@@ -25,6 +25,7 @@ var (
 
 type Service interface {
 	Create(ctx context.Context, req CreateParticipantRequest) (*Participant, error)
+	LookupPublic(ctx context.Context, query string) (*PublicLookupResponse, error)
 	GetByID(ctx context.Context, id string) (*Participant, error)
 	GetAll(ctx context.Context) ([]Participant, error)
 	Update(ctx context.Context, id string, req UpdateParticipantRequest) (*Participant, error)
@@ -168,8 +169,8 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 	})
 
 	go func() {
-		if req.Status == "Verified" {
-			err := s.mailer.SendVerification(p.Email, p.FullName, "")
+		if req.Status == "Verified" || req.Status == "Approved" {
+			err := s.mailer.SendVerification(p.Email, p.FullName, p.RegistrationNumber, "")
 			if err != nil {
 				_ = err
 			}
@@ -244,8 +245,8 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 		}
 	}
 
-	// Generate unique registration number
-	regNum := fmt.Sprintf("MK-%s-%s", strings.ToUpper(uuid.New().String()[:4]), strings.ToUpper(uuid.New().String()[:8]))
+	// Generate unique temporary registration number
+	regNum := fmt.Sprintf("PENDING-%s", strings.ToUpper(uuid.New().String()[:8]))
 
 	p := &Participant{
 
@@ -420,4 +421,25 @@ func (s *service) BulkUpdateStatus(ctx context.Context, ids []string, status str
 	})
 
 	return nil
+}
+
+func (s *service) LookupPublic(ctx context.Context, query string) (*PublicLookupResponse, error) {
+	p, err := s.repo.LookupPublic(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	// Hide RegistrationNumber if the participant is not Verified
+	regNumber := ""
+	if strings.ToUpper(p.Status) == "VERIFIED" || strings.ToUpper(p.Status) == "APPROVED" {
+		regNumber = p.RegistrationNumber
+	}
+
+	return &PublicLookupResponse{
+		FullName:           p.FullName,
+		RegistrationNumber: regNumber,
+		CompanyName:        p.CompanyName,
+		JobTitle:           p.JobTitle,
+		Status:             p.Status,
+	}, nil
 }
