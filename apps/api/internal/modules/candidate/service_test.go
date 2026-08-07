@@ -1,7 +1,10 @@
 package candidate
 
 import (
+	"bytes"
 	"context"
+	"image"
+	"image/jpeg"
 	"io"
 	"testing"
 	"time"
@@ -145,7 +148,7 @@ func TestService_Update(t *testing.T) {
 	cfg := &config.Config{}
 	log := zap.NewNop()
 
-	svc := NewService(repo, auditSvc, st, 5*1024*1024, cfg, log)
+	svc := NewService(repo, auditSvc, st, 10*1024*1024, cfg, log)
 
 	req := UpdateCandidateRequest{
 		FullName: "Jane Doe",
@@ -159,3 +162,48 @@ func TestService_Update(t *testing.T) {
 		t.Fatalf("expected result, got nil")
 	}
 }
+
+func TestService_UploadPhoto_EnforcesConfiguredMaxUploadSize(t *testing.T) {
+	repo := &MockRepository{
+		GetByIDFunc: func(ctx context.Context, id string) (*Candidate, error) {
+			return &Candidate{
+				ID:     id,
+				Status: StatusDraft,
+			}, nil
+		},
+		UpdateFunc: func(ctx context.Context, c *Candidate) error {
+			return nil
+		},
+	}
+	auditSvc := &mockAuditService{}
+	st := &mockStorage{}
+	cfg := &config.Config{MaxUploadSize: 10485760}
+	log := zap.NewNop()
+
+	// Service configured with 10MB (10485760 bytes)
+	svc := NewService(repo, auditSvc, st, 10485760, cfg, log)
+
+	// Create valid 6MB mock JPEG reader
+	img := image.NewRGBA(image.Rect(0, 0, 10, 10))
+	var buf bytes.Buffer
+	if err := jpeg.Encode(&buf, img, nil); err != nil {
+		t.Fatalf("failed to encode jpeg: %v", err)
+	}
+	validBytes := buf.Bytes()
+
+	// 1. Valid photo upload below 10MB should succeed
+	res, err := svc.UploadPhoto(context.Background(), "test-uuid", "photo.jpg", "image/jpeg", int64(len(validBytes)), bytes.NewReader(validBytes))
+	if err != nil {
+		t.Fatalf("expected upload below 10MB to succeed, got error: %v", err)
+	}
+	if res == nil {
+		t.Fatalf("expected candidate response, got nil")
+	}
+
+	// 2. Upload with declared size exceeding 10MB should fail with size error
+	_, err = svc.UploadPhoto(context.Background(), "test-uuid", "photo.jpg", "image/jpeg", 11*1024*1024, bytes.NewReader(validBytes))
+	if err == nil || err.Error() != "file size exceeds maximum allowed size" {
+		t.Fatalf("expected 'file size exceeds maximum allowed size', got: %v", err)
+	}
+}
+

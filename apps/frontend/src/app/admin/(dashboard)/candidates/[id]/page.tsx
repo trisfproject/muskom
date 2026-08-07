@@ -166,9 +166,10 @@ export default function CandidateDetailPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate size on frontend (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Ukuran file maksimal 5 MB.");
+    // Validate size on frontend (default 10MB or NEXT_PUBLIC_MAX_UPLOAD_SIZE)
+    const maxUploadSize = Number(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE) || 10485760;
+    if (file.size > maxUploadSize) {
+      toast.error(`Ukuran file maksimal ${Math.round(maxUploadSize / (1024 * 1024))} MB.`);
       return;
     }
 

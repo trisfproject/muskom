@@ -476,7 +476,19 @@ export default function AdminCandidatesPage() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => setCreatePhoto(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (file) {
+                        const maxUploadSize = Number(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE) || 10485760;
+                        if (file.size > maxUploadSize) {
+                          toast.error(`Ukuran file maksimal ${Math.round(maxUploadSize / (1024 * 1024))} MB.`);
+                          e.target.value = "";
+                          setCreatePhoto(null);
+                          return;
+                        }
+                      }
+                      setCreatePhoto(file);
+                    }}
                     className="text-xs pg-muted file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                   />
                 </div>

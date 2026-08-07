@@ -14,8 +14,11 @@ import (
 func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, st storage.Storage, cfg *config.Config) {
 	repo := NewRepository(db)
 	auditSvc := audit.NewService(audit.NewRepository(db), log)
-	// Using default 5MB size limit
-	svc := NewService(repo, auditSvc, st, 5*1024*1024, cfg, log)
+	maxUploadSize := int64(10 * 1024 * 1024)
+	if cfg != nil && cfg.MaxUploadSize > 0 {
+		maxUploadSize = cfg.MaxUploadSize
+	}
+	svc := NewService(repo, auditSvc, st, maxUploadSize, cfg, log)
 	h := NewAdminHandler(svc, val, log)
 
 	// Admin candidate endpoints

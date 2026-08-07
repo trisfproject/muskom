@@ -799,17 +799,22 @@ func (s *service) UploadPhoto(ctx context.Context, candidateID string, filename 
 		return nil, err
 	}
 
-	if size > 5*1024*1024 {
-		return nil, errors.New("file size exceeds maximum allowed size of 5 MB")
+	maxSize := s.maxUploadSize
+	if maxSize <= 0 {
+		maxSize = 10 * 1024 * 1024
 	}
 
-	lr := io.LimitReader(file, 5*1024*1024+1)
+	if size > maxSize {
+		return nil, errors.New("file size exceeds maximum allowed size")
+	}
+
+	lr := io.LimitReader(file, maxSize+1)
 	fileBytes, err := io.ReadAll(lr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
-	if len(fileBytes) > 5*1024*1024 {
-		return nil, errors.New("file size exceeds maximum allowed size of 5 MB")
+	if int64(len(fileBytes)) > maxSize {
+		return nil, errors.New("file size exceeds maximum allowed size")
 	}
 	if len(fileBytes) == 0 {
 		return nil, errors.New("file is empty")

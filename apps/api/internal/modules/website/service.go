@@ -71,21 +71,23 @@ type Service interface {
 }
 
 type service struct {
-	repo      Repository
-	cache     Cache
-	mapper    *Mapper
-	validator *Validator
-	logger    *zap.Logger
-	storage   storage.Storage
+	repo          Repository
+	cache         Cache
+	mapper        *Mapper
+	validator     *Validator
+	logger        *zap.Logger
+	storage       storage.Storage
+	maxUploadSize int64
 }
 
 func NewService(repo Repository, cache Cache, mapper *Mapper, validator *Validator, logger *zap.Logger, opts ...ServiceOption) Service {
 	s := &service{
-		repo:      repo,
-		cache:     cache,
-		mapper:    mapper,
-		validator: validator,
-		logger:    logger,
+		repo:          repo,
+		cache:         cache,
+		mapper:        mapper,
+		validator:     validator,
+		logger:        logger,
+		maxUploadSize: 10 * 1024 * 1024,
 	}
 	for _, opt := range opts {
 		opt(s)
@@ -100,6 +102,15 @@ type ServiceOption func(*service)
 func WithStorage(strg storage.Storage) ServiceOption {
 	return func(s *service) {
 		s.storage = strg
+	}
+}
+
+// WithMaxUploadSize configures the maximum upload size for the website service.
+func WithMaxUploadSize(size int64) ServiceOption {
+	return func(s *service) {
+		if size > 0 {
+			s.maxUploadSize = size
+		}
 	}
 }
 
@@ -838,8 +849,13 @@ func (s *service) UploadMedia(ctx context.Context, file io.Reader, filename, fol
 		return nil, errors.New("storage provider not configured")
 	}
 
-	if size > 2*1024*1024 {
-		return nil, errors.New("file size exceeds maximum allowed size of 2 MB")
+	maxSize := s.maxUploadSize
+	if maxSize <= 0 {
+		maxSize = 10 * 1024 * 1024
+	}
+
+	if size > maxSize {
+		return nil, errors.New("file size exceeds maximum allowed size")
 	}
 
 	allowedMimes := map[string]bool{

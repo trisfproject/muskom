@@ -48,8 +48,8 @@ func (m *MockRepository) LogAudit(ctx context.Context, tx *sqlx.Tx, module, acti
 	return args.Error(0)
 }
 
-func (m *MockRepository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string) error {
-	args := m.Called(ctx, tx, registrationID, status, verifierID, rejectionReason)
+func (m *MockRepository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string, regNumber *string) error {
+	args := m.Called(ctx, tx, registrationID, status, verifierID, rejectionReason, regNumber)
 	return args.Error(0)
 }
 

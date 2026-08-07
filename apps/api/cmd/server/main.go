@@ -82,8 +82,13 @@ func main() {
 	bootstrap.Run(ctx, db, cfg, log)
 
 	// 4. Initialize Fiber App
+	bodyLimit := int(cfg.MaxUploadSize)
+	if bodyLimit <= 0 {
+		bodyLimit = 10 * 1024 * 1024
+	}
 	app := fiber.New(fiber.Config{
 		AppName:      "MUSKOM API v0.1.0",
+		BodyLimit:    bodyLimit,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	})
@@ -136,7 +141,7 @@ func main() {
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
 	configuration.SetupAdminRoutes(adminGroup.Group("/system/config", checker.RequirePermission("system.manage")), db, redisClient, val, log, cfg, mailerSvc)
 	dashboard.SetupAdminRoutes(adminGroup.Group("/dashboard", checker.RequirePermission("audit.view")), db, redisClient, strg, mailerSvc, log)
-	website.SetupAdminRoutes(adminGroup.Group("/website", checker.RequirePermission("website.write")), db, redisClient, strg, val, log)
+	website.SetupAdminRoutes(adminGroup.Group("/website", checker.RequirePermission("website.write")), db, redisClient, strg, val, log, cfg)
 
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications", checker.RequirePermission("participant.approve")), db, log, val)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance", checker.RequirePermission("attendance.manage")), db, log, val)

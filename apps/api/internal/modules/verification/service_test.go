@@ -122,7 +122,7 @@ func TestService_VerifyParticipant(t *testing.T) {
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 
-		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil)).Return(nil).Once()
+		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil), mock.Anything).Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_PARTICIPANT", "registrations", "reg1", "").Return(nil).Once()
 
 		err := svc.VerifyParticipant(ctx, "reg1", req, "u1")
@@ -139,7 +139,7 @@ func TestService_VerifyParticipant(t *testing.T) {
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 
-		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "REJECTED", "u1", &reason).Return(nil).Once()
+		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "REJECTED", "u1", &reason, mock.Anything).Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_PARTICIPANT", "registrations", "reg1", "reason").Return(nil).Once()
 
 		err := svc.VerifyParticipant(ctx, "reg1", req, "u1")
@@ -154,7 +154,7 @@ func TestService_VerifyParticipant(t *testing.T) {
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 
-		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil)).Return(errors.New("db err")).Once()
+		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil), mock.Anything).Return(errors.New("db err")).Once()
 
 		err := svc.VerifyParticipant(ctx, "reg1", req, "u1")
 		assert.Error(t, err)
@@ -168,7 +168,7 @@ func TestService_VerifyParticipant(t *testing.T) {
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 
-		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil)).Return(nil).Once()
+		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil), mock.Anything).Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_PARTICIPANT", "registrations", "reg1", "").Return(errors.New("db err")).Once()
 
 		err := svc.VerifyParticipant(ctx, "reg1", req, "u1")

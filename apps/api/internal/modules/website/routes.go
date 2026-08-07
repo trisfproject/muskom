@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
+	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"go.uber.org/zap"
@@ -32,12 +33,16 @@ func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, redisClient *redis.Clie
 }
 
 // SetupAdminRoutes registers CRUD endpoints for Admin Website CMS.
-func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, redisClient *redis.Client, strg storage.Storage, val *validator.Validator, log *zap.Logger) {
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, redisClient *redis.Client, strg storage.Storage, val *validator.Validator, log *zap.Logger, cfg *config.Config) {
 	repo := NewRepository(db)
 	cache := NewRedisCache(redisClient, log)
 	mapper := NewMapper(strg)
 	v := NewValidator()
-	svc := NewService(repo, cache, mapper, v, log, WithStorage(strg))
+	opts := []ServiceOption{WithStorage(strg)}
+	if cfg != nil && cfg.MaxUploadSize > 0 {
+		opts = append(opts, WithMaxUploadSize(cfg.MaxUploadSize))
+	}
+	svc := NewService(repo, cache, mapper, v, log, opts...)
 	handler := NewHandler(svc, val)
 
 	// Media Upload

@@ -186,21 +186,21 @@ func TestRepository_UpdateParticipantStatus(t *testing.T) {
 
 		mock.ExpectExec("^UPDATE participants").WillReturnResult(sqlmock.NewResult(1, 1))
 
-		err := repo.UpdateParticipantStatus(ctx, tx, "reg1", "APPROVED", "u1", nil)
+		err := repo.UpdateParticipantStatus(ctx, tx, "reg1", "APPROVED", "u1", nil, nil)
 		assert.NoError(t, err)
 		tx.Rollback()
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
 		mock.ExpectExec("^UPDATE participants").WillReturnResult(sqlmock.NewResult(1, 0))
-		err := repo.UpdateParticipantStatus(ctx, nil, "reg1", "APPROVED", "u1", nil)
+		err := repo.UpdateParticipantStatus(ctx, nil, "reg1", "APPROVED", "u1", nil, nil)
 		assert.Error(t, err)
 		assert.Equal(t, "participant not found", err.Error())
 	})
 
 	t.Run("Error", func(t *testing.T) {
 		mock.ExpectExec("^UPDATE participants").WillReturnError(sql.ErrConnDone)
-		err := repo.UpdateParticipantStatus(ctx, nil, "reg1", "APPROVED", "u1", nil)
+		err := repo.UpdateParticipantStatus(ctx, nil, "reg1", "APPROVED", "u1", nil, nil)
 		assert.Error(t, err)
 	})
 }

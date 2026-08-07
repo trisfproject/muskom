@@ -67,6 +67,12 @@ services:
       dockerfile: Dockerfile
     container_name: muskom-nginx
     restart: unless-stopped
+    env_file: .env
+    environment:
+      NGINX_ENVSUBST_OUTPUT_DIR: "/etc/nginx"
+      NGINX_ENVSUBST_TEMPLATE_DIR: "/etc/nginx/templates"
+      NGINX_ENVSUBST_FILTER: "MAX_UPLOAD_SIZE"
+      MAX_UPLOAD_SIZE: "${MAX_UPLOAD_SIZE:-10485760}"
     ports:
       - "80:80"
       - "8080:80"
