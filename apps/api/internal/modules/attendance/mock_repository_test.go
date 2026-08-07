@@ -16,6 +16,11 @@ func (m *MockRepository) GetParticipantStatus(ctx context.Context, registrationI
 	return args.String(0), args.Error(1)
 }
 
+func (m *MockRepository) GetParticipantIDByRegNumber(ctx context.Context, regNum string) (string, error) {
+	args := m.Called(ctx, regNum)
+	return args.String(0), args.Error(1)
+}
+
 func (m *MockRepository) GetAttendanceDetail(ctx context.Context, registrationID string) (*AttendanceDetailResponse, error) {
 	args := m.Called(ctx, registrationID)
 	if args.Get(0) != nil {

@@ -24,7 +24,7 @@ func TestHandler_CheckIn(t *testing.T) {
 	app.Post("/check-in", handler.CheckIn)
 
 	t.Run("Success_New", func(t *testing.T) {
-		reqBody := CheckInRequest{RegistrationID: "reg1"}
+		reqBody := CheckInRequest{ParticipantID: "reg1"}
 		body, _ := json.Marshal(reqBody)
 
 		res := &CheckInResponse{Success: true, IsNew: true}
@@ -38,7 +38,7 @@ func TestHandler_CheckIn(t *testing.T) {
 	})
 
 	t.Run("Success_Existing", func(t *testing.T) {
-		reqBody := CheckInRequest{RegistrationID: "reg1"}
+		reqBody := CheckInRequest{ParticipantID: "reg1"}
 		body, _ := json.Marshal(reqBody)
 
 		res := &CheckInResponse{Success: true, IsNew: false}
@@ -60,7 +60,7 @@ func TestHandler_CheckIn(t *testing.T) {
 	})
 
 	t.Run("ValidationError", func(t *testing.T) {
-		reqBody := CheckInRequest{RegistrationID: "reg1"}
+		reqBody := CheckInRequest{ParticipantID: "reg1"}
 		body, _ := json.Marshal(reqBody)
 
 		mockSvc.On("CheckIn", mock.Anything, &reqBody, "admin1").Return((*CheckInResponse)(nil), &ValidationError{}).Once()
@@ -73,7 +73,7 @@ func TestHandler_CheckIn(t *testing.T) {
 	})
 
 	t.Run("NotApproved", func(t *testing.T) {
-		reqBody := CheckInRequest{RegistrationID: "reg1"}
+		reqBody := CheckInRequest{ParticipantID: "reg1"}
 		body, _ := json.Marshal(reqBody)
 
 		mockSvc.On("CheckIn", mock.Anything, &reqBody, "admin1").Return((*CheckInResponse)(nil), errors.New("cannot check-in: participant is not APPROVED")).Once()
@@ -86,7 +86,7 @@ func TestHandler_CheckIn(t *testing.T) {
 	})
 
 	t.Run("ParticipantNotFound", func(t *testing.T) {
-		reqBody := CheckInRequest{RegistrationID: "reg1"}
+		reqBody := CheckInRequest{ParticipantID: "reg1"}
 		body, _ := json.Marshal(reqBody)
 
 		mockSvc.On("CheckIn", mock.Anything, &reqBody, "admin1").Return((*CheckInResponse)(nil), errors.New("participant not found")).Once()
@@ -99,7 +99,7 @@ func TestHandler_CheckIn(t *testing.T) {
 	})
 
 	t.Run("InternalError", func(t *testing.T) {
-		reqBody := CheckInRequest{RegistrationID: "reg1"}
+		reqBody := CheckInRequest{ParticipantID: "reg1"}
 		body, _ := json.Marshal(reqBody)
 
 		mockSvc.On("CheckIn", mock.Anything, &reqBody, "admin1").Return((*CheckInResponse)(nil), errors.New("db err")).Once()
@@ -120,7 +120,7 @@ func TestHandler_CheckIn_Unauthorized(t *testing.T) {
 	app.Post("/check-in", handler.CheckIn)
 
 	t.Run("Unauthorized", func(t *testing.T) {
-		reqBody := CheckInRequest{RegistrationID: "reg1"}
+		reqBody := CheckInRequest{ParticipantID: "reg1"}
 		body, _ := json.Marshal(reqBody)
 
 		req := httptest.NewRequest("POST", "/check-in", bytes.NewReader(body))

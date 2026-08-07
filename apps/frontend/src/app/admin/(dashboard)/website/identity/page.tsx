@@ -17,6 +17,7 @@ import {
   Phone,
   MapPin,
   Sparkles,
+  Users,
 } from "lucide-react";
 
 export default function AdminWebsiteGeneralPage() {
@@ -339,6 +340,78 @@ export default function AdminWebsiteGeneralPage() {
                 placeholder="Petunjuk atau catatan penting bagi pendaftar..."
                 className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] resize-none"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Registration Capacity Management */}
+        <div className="pg-surface border pg-border rounded-2xl p-6">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
+              <Users className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold pg-text">Kapasitas Pendaftaran (Registration Capacity)</h2>
+              <p className="text-xs pg-muted">
+                Atur batas kuota peserta yang TERVERIFIKASI dan kebijakan sistem saat kuota terpenuhi.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Kapasitas Maksimum Peserta (Maximum Participant Capacity)
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={formData.registration.participant_limit ?? 0}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    registration: {
+                      ...formData.registration,
+                      participant_limit: parseInt(e.target.value, 10) || 0,
+                    },
+                  })
+                }
+                className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                placeholder="0 untuk tak terbatas (Unlimited)"
+              />
+              <p className="text-[11px] pg-muted mt-1.5">
+                Isi <strong>0</strong> untuk kuota tak terbatas (Unlimited). Hanya peserta dengan status <strong>VERIFIED</strong> yang menggunakan kuota.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Mode Kapasitas (Capacity Mode)
+              </label>
+              <select
+                value={formData.registration.capacity_mode || "CLOSE"}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    registration: {
+                      ...formData.registration,
+                      capacity_mode: e.target.value,
+                    },
+                  })
+                }
+                className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+              >
+                <option value="CLOSE">Tutup Pendaftaran (Close Registration When Full)</option>
+                <option value="WAITING_LIST">Daftar Tunggu (Waiting List)</option>
+                <option value="UNLIMITED">Izinkan Pendaftaran (Allow Registration / Unlimited Queue)</option>
+              </select>
+              <p className="text-[11px] pg-muted mt-1.5">
+                {formData.registration.capacity_mode === "WAITING_LIST"
+                  ? "Pendaftar baru setelah kuota penuh akan otomatis berstatus Waiting List."
+                  : formData.registration.capacity_mode === "UNLIMITED"
+                  ? "Pendaftaran tetap dibuka normal tanpa batasan antrian."
+                  : "Formulir pendaftaran publik akan langsung ditolak/ditutup ketika kuota terverifikasi terpenuhi."}
+              </p>
             </div>
           </div>
         </div>

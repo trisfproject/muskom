@@ -230,37 +230,58 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 		return nil, findErr
 	}
 
-	// Check Registration Limit
-	limit, err := s.repo.GetRegistrationLimit(ctx)
+	// Check Registration Capacity
+	limit, mode, err := s.repo.GetCapacitySettings(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if limit != nil && *limit > 0 {
-		count, err := s.repo.CountActive(ctx)
+
+	isWaitingList := false
+	if limit > 0 {
+		verifiedCount, err := s.repo.CountVerified(ctx)
 		if err != nil {
 			return nil, err
 		}
-		if count >= *limit {
-			return nil, ErrQuotaReached
+		if verifiedCount >= limit {
+			switch strings.ToUpper(strings.TrimSpace(mode)) {
+			case "CLOSE":
+				return nil, ErrQuotaReached
+			case "WAITING_LIST":
+				isWaitingList = true
+			case "ALLOW":
+				// Allow registration normally
+			default:
+				return nil, ErrQuotaReached
+			}
 		}
 	}
 
-	// Generate unique temporary registration number
-	regNum := fmt.Sprintf("PENDING-%s", strings.ToUpper(uuid.New().String()[:8]))
+	regNum := ""
+	initialStatus := "Unverified"
+	qrToken := ""
+
+	if isWaitingList {
+		initialStatus = "Waiting List"
+		// No registration number and no QR code
+		regNum = ""
+		qrToken = ""
+	} else {
+		// Generate unique temporary registration number
+		regNum = fmt.Sprintf("PENDING-%s", strings.ToUpper(uuid.New().String()[:8]))
+		qrToken = regNum
+	}
 
 	p := &Participant{
-
 		RegistrationNumber: regNum,
 		FullName:           req.FullName,
 		Nickname:           req.Nickname,
-
-		Email:          req.Email,
-		Phone:          req.Phone,
-		CompanyName:    req.CompanyName,
-		IndustrialArea: req.IndustrialArea,
-		JobTitle:       req.JobTitle,
-		Department:     req.Department,
-		Status:         "Unverified",
+		Email:              req.Email,
+		Phone:              req.Phone,
+		CompanyName:        req.CompanyName,
+		IndustrialArea:     req.IndustrialArea,
+		JobTitle:           req.JobTitle,
+		Department:         req.Department,
+		Status:             initialStatus,
 	}
 
 	err = s.repo.Create(ctx, p)
@@ -301,7 +322,7 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 
 	return &PublicRegisterParticipantResponse{
 		RegistrationNumber: regNum,
-		QRToken:            regNum,
+		QRToken:            qrToken,
 	}, nil
 }
 

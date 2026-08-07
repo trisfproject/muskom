@@ -3,6 +3,8 @@ package verification
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -14,6 +16,8 @@ type Repository interface {
 	GetParticipantDetail(ctx context.Context, registrationID string) (*ParticipantDetailResponse, error)
 	BeginTx(ctx context.Context) (*sqlx.Tx, error)
 	LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error
+	GetParticipantLimitAndLockTx(ctx context.Context, tx *sqlx.Tx) (int, error)
+	CountVerifiedInTx(ctx context.Context, tx *sqlx.Tx) (int, error)
 	UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string, regNumber *string) error
 	GetCandidateDetail(ctx context.Context, candidateID string) (*CandidateDetailResponse, error)
 	UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, candidateID string, status string, verifierID string) error
@@ -171,6 +175,42 @@ func (r *repository) LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, 
 
 	_, err := executor(ctx, query, module, action, entity, entityID, userID, metadata)
 	return err
+}
+
+func (r *repository) GetParticipantLimitAndLockTx(ctx context.Context, tx *sqlx.Tx) (int, error) {
+	var settingsJSON []byte
+	query := `SELECT settings FROM system_configurations WHERE group_name = 'registration' FOR UPDATE`
+	var err error
+	if tx != nil {
+		err = tx.GetContext(ctx, &settingsJSON, query)
+	} else {
+		err = r.db.GetContext(ctx, &settingsJSON, query)
+	}
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	var cfg struct {
+		ParticipantLimit int `json:"participant_limit"`
+	}
+	if err := json.Unmarshal(settingsJSON, &cfg); err != nil {
+		return 0, nil
+	}
+	return cfg.ParticipantLimit, nil
+}
+
+func (r *repository) CountVerifiedInTx(ctx context.Context, tx *sqlx.Tx) (int, error) {
+	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(status) IN ('VERIFIED', 'APPROVED')`
+	var count int
+	var err error
+	if tx != nil {
+		err = tx.GetContext(ctx, &count, query)
+	} else {
+		err = r.db.GetContext(ctx, &count, query)
+	}
+	return count, err
 }
 
 func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string, regNumber *string) error {

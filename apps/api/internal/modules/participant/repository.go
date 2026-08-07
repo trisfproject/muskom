@@ -3,7 +3,9 @@ package participant
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -26,6 +28,8 @@ type Repository interface {
 	GetStats(ctx context.Context) (*ParticipantStats, error)
 	Count(ctx context.Context) (int, error)
 	CountActive(ctx context.Context) (int, error)
+	CountVerified(ctx context.Context) (int, error)
+	GetCapacitySettings(ctx context.Context) (limit int, mode string, err error)
 	GetRegistrationLimit(ctx context.Context) (*int, error)
 	LookupPublic(ctx context.Context, query string) (*Participant, error)
 }
@@ -199,6 +203,28 @@ func (r *repository) FindByEmail(ctx context.Context, email string) (*Participan
 	return &p, nil
 }
 
+func (r *repository) GetCapacitySettings(ctx context.Context) (int, string, error) {
+	var settingsJSON []byte
+	err := r.db.GetContext(ctx, &settingsJSON, `SELECT settings FROM system_configurations WHERE group_name = 'registration'`)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, "CLOSE", nil
+		}
+		return 0, "CLOSE", err
+	}
+	var cfg struct {
+		ParticipantLimit int    `json:"participant_limit"`
+		CapacityMode     string `json:"capacity_mode"`
+	}
+	if err := json.Unmarshal(settingsJSON, &cfg); err != nil {
+		return 0, "CLOSE", nil
+	}
+	if cfg.CapacityMode == "" {
+		cfg.CapacityMode = "CLOSE"
+	}
+	return cfg.ParticipantLimit, cfg.CapacityMode, nil
+}
+
 func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 	stats := &ParticipantStats{
 		ByIndustrialArea: []LabelCount{},
@@ -207,9 +233,12 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 		Recent:           []RecentParticipant{},
 	}
 
-	// Fetch Limit (Removed in single-event architecture, currently unlimited)
-	var limit *int = nil
-	stats.Limit = limit
+	// Fetch Capacity Settings
+	limitVal, modeVal, _ := r.GetCapacitySettings(ctx)
+	stats.CapacityMode = modeVal
+	if limitVal > 0 {
+		stats.Limit = &limitVal
+	}
 
 	// 1. Summary counts (single query, avoid N+1)
 	var rows []struct {
@@ -232,14 +261,25 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 	for _, r := range rows {
 		stats.Total += r.Count
 		stats.Today += r.Today
-		switch r.Status {
-		case "Pending":
-			stats.Pending = r.Count
-		case "Verified":
-			stats.Verified = r.Count
-		case "Rejected":
-			stats.Rejected = r.Count
+		normalizedStatus := strings.ToUpper(strings.TrimSpace(r.Status))
+		switch {
+		case normalizedStatus == "PENDING" || normalizedStatus == "UNVERIFIED":
+			stats.Pending += r.Count
+		case normalizedStatus == "VERIFIED" || normalizedStatus == "APPROVED":
+			stats.Verified += r.Count
+		case normalizedStatus == "REJECTED":
+			stats.Rejected += r.Count
+		case normalizedStatus == "WAITING LIST" || normalizedStatus == "WAITINGLIST" || normalizedStatus == "WAITING_LIST":
+			stats.WaitingList += r.Count
 		}
+	}
+
+	if limitVal > 0 {
+		rem := limitVal - stats.Verified
+		if rem < 0 {
+			rem = 0
+		}
+		stats.RemainingCapacity = &rem
 	}
 
 	// 2. By Industrial Area (top 10)
@@ -297,7 +337,17 @@ func (r *repository) Count(ctx context.Context) (int, error) {
 }
 
 func (r *repository) CountActive(ctx context.Context) (int, error) {
-	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND status != 'Rejected'`
+	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(status) != 'REJECTED'`
+	var count int
+	err := r.db.GetContext(ctx, &count, query)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *repository) CountVerified(ctx context.Context) (int, error) {
+	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(status) IN ('VERIFIED', 'APPROVED')`
 	var count int
 	err := r.db.GetContext(ctx, &count, query)
 	if err != nil {
@@ -307,7 +357,13 @@ func (r *repository) CountActive(ctx context.Context) (int, error) {
 }
 
 func (r *repository) GetRegistrationLimit(ctx context.Context) (*int, error) {
-	// Limit is no longer managed in event_settings. Defaulting to unlimited.
+	limit, _, err := r.GetCapacitySettings(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if limit > 0 {
+		return &limit, nil
+	}
 	return nil, nil
 }
 

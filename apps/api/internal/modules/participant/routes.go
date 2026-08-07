@@ -43,6 +43,8 @@ func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, cfg 
 	svc := NewService(repo, resolver, auditSvc, m, rdb, cfg)
 	handler := NewHandler(svc, val)
 
+	router.Get("/stats", handler.GetStats)
+	router.Get("/capacity", handler.GetStats)
 	router.Post("/register", handler.PublicRegister)
 	router.Post("/lookup", handler.LookupParticipant)
 	router.Get("/verify-email", handler.VerifyEmail)

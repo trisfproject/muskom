@@ -30,11 +30,12 @@ type RecentParticipant struct {
 // ParticipantStats is the aggregated response for the dashboard stats endpoint.
 type ParticipantStats struct {
 	// Summary counts
-	Total    int `json:"total"`
-	Pending  int `json:"pending"`
-	Verified int `json:"verified"`
-	Rejected int `json:"rejected"`
-	Today    int `json:"today"`
+	Total       int `json:"total"`
+	Pending     int `json:"pending"`
+	Verified    int `json:"verified"`
+	Rejected    int `json:"rejected"`
+	WaitingList int `json:"waiting_list"`
+	Today       int `json:"today"`
 
 	// Chart breakdowns
 	ByIndustrialArea []LabelCount `json:"by_industrial_area"`
@@ -45,7 +46,9 @@ type ParticipantStats struct {
 	Recent []RecentParticipant `json:"recent"`
 
 	// Configuration
-	Limit *int `json:"limit"`
+	Limit             *int   `json:"limit"`
+	CapacityMode      string `json:"capacity_mode"`
+	RemainingCapacity *int   `json:"remaining_capacity"`
 }
 
 // Participant represents the participants table in the database
@@ -80,7 +83,7 @@ type CreateParticipantRequest struct {
 	IndustrialArea string  `json:"industrial_area" validate:"required"`
 	JobTitle       string  `json:"job_title" validate:"required"`
 	Department     *string `json:"department"`
-	Status         string  `json:"status" validate:"required,oneof=Unverified Pending Verified Rejected Eligible"`
+	Status         string  `json:"status" validate:"required,oneof=Unverified Pending Verified Approved Rejected Eligible 'Waiting List' WaitingList"`
 }
 
 // UpdateParticipantRequest represents the payload for updating an existing participant
@@ -99,7 +102,7 @@ type UpdateParticipantRequest struct {
 
 // UpdateStatusRequest represents the payload for updating a participant's status
 type UpdateStatusRequest struct {
-	Status string  `json:"status" validate:"required,oneof=Unverified Pending Verified Rejected Eligible"`
+	Status string  `json:"status" validate:"required,oneof=Unverified Pending Verified Approved Rejected Eligible 'Waiting List' WaitingList"`
 	Reason *string `json:"reason" validate:"omitempty,max=500"`
 }
 
@@ -109,7 +112,7 @@ type BulkDeleteParticipantRequest struct {
 
 type BulkUpdateParticipantStatusRequest struct {
 	IDs    []string `json:"ids" validate:"required,min=1"`
-	Status string   `json:"status" validate:"required,oneof=Unverified Pending Verified Rejected Eligible"`
+	Status string   `json:"status" validate:"required,oneof=Unverified Pending Verified Approved Rejected Eligible 'Waiting List' WaitingList"`
 	Reason *string  `json:"reason" validate:"omitempty,max=500"`
 }
 

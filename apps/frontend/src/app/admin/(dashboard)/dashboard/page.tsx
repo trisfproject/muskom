@@ -172,6 +172,85 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
+      {/* Participant Capacity Quota Management Widget */}
+      <div className="pg-surface border pg-border rounded-2xl p-6 shadow-sm relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold pg-text">Kapasitas Kuota Peserta Terverifikasi</h3>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                  summary.capacity_status === 'Full' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' :
+                  summary.capacity_status === 'Critical' ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20' :
+                  summary.capacity_status === 'Warning' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
+                  'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                }`}>
+                  Status: {summary.capacity_status || (summary.participant_limit && summary.participant_limit > 0 ? (summary.approved_participants >= summary.participant_limit ? 'Full' : 'Normal') : 'Normal')}
+                </span>
+              </div>
+              <p className="text-xs pg-muted">
+                Hanya peserta berstatus <strong>VERIFIED</strong> yang mengonsumsi kuota peserta acara.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin/website/identity"
+              className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-lg border border-primary/20"
+            >
+              <Settings2 className="w-3.5 h-3.5" /> Konfigurasi Kapasitas
+            </Link>
+          </div>
+        </div>
+
+        {/* Progress Bar & Details */}
+        <div className="space-y-3 pt-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs font-semibold gap-2">
+            <div className="flex items-center gap-2">
+              <span className="pg-muted">Peserta Terverifikasi:</span>
+              <span className="text-sm font-bold pg-text">
+                {summary.approved_participants} / {summary.participant_limit && summary.participant_limit > 0 ? summary.participant_limit : "∞ (Tak Terbatas)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div>
+                <span className="pg-muted">Sisa Kursi: </span>
+                <span className={`font-bold ${summary.remaining_capacity === 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                  {summary.remaining_capacity != null ? `${summary.remaining_capacity} kursi` : "Tak Terbatas"}
+                </span>
+              </div>
+              <div>
+                <span className="pg-muted">Mode: </span>
+                <span className="font-bold pg-text">
+                  {summary.capacity_mode === 'WAITING_LIST' ? 'Waiting List' : summary.capacity_mode === 'UNLIMITED' ? 'Antrian Bebas' : 'Tutup saat Penuh'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border pg-border">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                summary.capacity_status === 'Full' ? 'bg-rose-500' :
+                summary.capacity_status === 'Critical' ? 'bg-orange-500' :
+                summary.capacity_status === 'Warning' ? 'bg-amber-500' :
+                'bg-emerald-500'
+              }`}
+              style={{
+                width: `${
+                  summary.participant_limit && summary.participant_limit > 0
+                    ? Math.min(Math.round((summary.approved_participants / summary.participant_limit) * 100), 100)
+                    : 100
+                }%`
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Link href="/admin/participants" className="pg-surface border pg-border p-5 rounded-2xl flex items-center gap-4 hover:border-primary/50 transition-all shadow-sm group">

@@ -92,7 +92,12 @@ export default function OperationalDashboardPage() {
                 <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">Peserta</div>
                 <div className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg"><Users className="w-5 h-5" /></div>
               </div>
-              <div className="text-3xl font-black pg-text mb-4">{participants.total}</div>
+              <div className="flex items-baseline gap-2 mb-4">
+                <div className="text-3xl font-black pg-text">{participants.total}</div>
+                {participants.limit && participants.limit > 0 ? (
+                  <div className="text-xs font-semibold text-slate-500">/ Kuota {participants.limit}</div>
+                ) : null}
+              </div>
               <div className="grid grid-cols-3 gap-2 text-center text-xs">
                 <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-2">
                   <div className="font-bold text-emerald-600 dark:text-emerald-400">{participants.verified}</div>

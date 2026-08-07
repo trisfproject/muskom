@@ -16,12 +16,17 @@ type EventStatus struct {
 }
 
 type DashboardSummary struct {
-	TotalParticipants    int `json:"total_participants"`
-	ApprovedParticipants int `json:"approved_participants"`
-	TotalCandidates      int `json:"total_candidates"`
-	CheckedIn            int `json:"checked_in"`
-	VotesCast            int `json:"votes_cast"`
-	PendingNotifications int `json:"pending_notifications"`
+	TotalParticipants    int      `json:"total_participants"`
+	ApprovedParticipants int      `json:"approved_participants"`
+	ParticipantLimit     *int     `json:"participant_limit"`
+	CapacityMode         string   `json:"capacity_mode"`
+	RemainingCapacity    *int     `json:"remaining_capacity"`
+	CapacityPercentage   float64  `json:"capacity_percentage"`
+	CapacityStatus       string   `json:"capacity_status"`
+	TotalCandidates      int      `json:"total_candidates"`
+	CheckedIn            int      `json:"checked_in"`
+	VotesCast            int      `json:"votes_cast"`
+	PendingNotifications int      `json:"pending_notifications"`
 }
 
 type RecentActivity struct {
@@ -41,10 +46,14 @@ type DashboardData struct {
 }
 
 type ParticipantStats struct {
-	Total    int `json:"total"`
-	Verified int `json:"verified"`
-	Pending  int `json:"pending"`
-	Rejected int `json:"rejected"`
+	Total             int    `json:"total"`
+	Verified          int    `json:"verified"`
+	Pending           int    `json:"pending"`
+	Rejected          int    `json:"rejected"`
+	WaitingList       int    `json:"waiting_list"`
+	Limit             *int   `json:"limit"`
+	CapacityMode      string `json:"capacity_mode"`
+	RemainingCapacity *int   `json:"remaining_capacity"`
 }
 
 type CandidateStats struct {

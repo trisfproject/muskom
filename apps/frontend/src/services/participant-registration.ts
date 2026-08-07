@@ -16,6 +16,8 @@ export interface PublicParticipantRegistrationPayload {
 export interface PublicParticipantRegistrationResponse {
   registration_number: string;
   qr_token: string;
+  status?: string;
+  is_waiting_list?: boolean;
 }
 
 export const participantRegistrationService = {

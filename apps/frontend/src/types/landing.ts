@@ -135,4 +135,7 @@ export type PublicSettingsDTO = {
   show_announcements: boolean;
   participant_limit?: number;
   participant_count?: number;
+  capacity_mode?: string;
+  remaining_capacity?: number;
+  capacity_status?: string;
 };

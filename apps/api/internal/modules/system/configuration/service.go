@@ -60,6 +60,9 @@ func (s *service) GetSystemConfig(ctx context.Context) (*FullSystemConfig, error
 			_ = json.Unmarshal(c.Settings, &fullConfig.Publication)
 		case "registration":
 			_ = json.Unmarshal(c.Settings, &fullConfig.Registration)
+			if fullConfig.Registration.CapacityMode == "" {
+				fullConfig.Registration.CapacityMode = "CLOSE"
+			}
 		case "contact":
 			_ = json.Unmarshal(c.Settings, &fullConfig.Contact)
 		case "seo":

@@ -61,6 +61,16 @@ func (m *MockRepository) GetCandidateDetail(ctx context.Context, candidateID str
 	return nil, args.Error(1)
 }
 
+func (m *MockRepository) GetParticipantLimitAndLockTx(ctx context.Context, tx *sqlx.Tx) (int, error) {
+	args := m.Called(ctx, tx)
+	return args.Int(0), args.Error(1)
+}
+
+func (m *MockRepository) CountVerifiedInTx(ctx context.Context, tx *sqlx.Tx) (int, error) {
+	args := m.Called(ctx, tx)
+	return args.Int(0), args.Error(1)
+}
+
 func (m *MockRepository) UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, candidateID string, status string, verifierID string) error {
 	args := m.Called(ctx, tx, candidateID, status, verifierID)
 	return args.Error(0)

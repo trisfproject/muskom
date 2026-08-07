@@ -18,6 +18,11 @@ export interface DashboardSummary {
   checked_in: number;
   votes_cast: number;
   pending_notifications: number;
+  participant_limit?: number | null;
+  capacity_mode?: string;
+  remaining_capacity?: number | null;
+  capacity_status?: string;
+  capacity_percentage?: number;
 }
 
 export interface RecentActivity {

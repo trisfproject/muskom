@@ -18,6 +18,8 @@ export interface PublicationConfig {
 export interface RegistrationConfig {
   candidate_registration: boolean;
   participant_registration: boolean;
+  participant_limit?: number;
+  capacity_mode?: string;
   opening_date: string | null;
   closing_date: string | null;
   registration_information: string;

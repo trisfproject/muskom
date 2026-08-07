@@ -35,6 +35,7 @@ interface SuccessInfo {
   email: string;
   musyawarahName: string;
   submittedAt: string;
+  status?: string;
 }
 
 const STEPS = [
@@ -87,9 +88,12 @@ export default function RegisterPage() {
         // 2. Check quota
         const limit = data?.settings?.participant_limit || 0;
         const count = data?.settings?.participant_count || 0;
+        const mode = (data?.settings?.capacity_mode || "CLOSE").toUpperCase();
         if (limit > 0 && count >= limit) {
-          setEventStatus("closed");
-          return;
+          if (mode === "CLOSE") {
+            setEventStatus("closed");
+            return;
+          }
         }
 
         // 3. Check Website Timeline
@@ -200,6 +204,7 @@ export default function RegisterPage() {
           fullName: data.full_name,
           email: data.email,
           musyawarahName,
+          status: res.status || "Unverified",
           submittedAt: new Date().toLocaleString("id-ID", {
             day: "numeric",
             month: "long",
@@ -620,9 +625,19 @@ export default function RegisterPage() {
                     <DetailRow label="Waktu Daftar" value={successInfo.submittedAt} />
                     <div className="flex items-center justify-between pt-1">
                       <span className="text-xs text-slate-500 font-medium">Status</span>
-                      <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-slate-200 text-slate-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500 inline-block" />
-                        Unverified
+                      <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${
+                        successInfo.status?.toUpperCase() === 'WAITING_LIST' || successInfo.status?.toLowerCase() === 'waiting list'
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-slate-200 text-slate-700'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          successInfo.status?.toUpperCase() === 'WAITING_LIST' || successInfo.status?.toLowerCase() === 'waiting list'
+                            ? 'bg-amber-500'
+                            : 'bg-slate-500'
+                        } inline-block`} />
+                        {successInfo.status?.toUpperCase() === 'WAITING_LIST' || successInfo.status?.toLowerCase() === 'waiting list'
+                          ? 'Waiting List'
+                          : 'Unverified'}
                       </span>
                     </div>
                   </div>

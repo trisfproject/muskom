@@ -2,6 +2,8 @@ package dashboard
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
@@ -34,6 +36,25 @@ func NewService(db *sqlx.DB, redisClient *redis.Client, strg storage.Storage, ma
 		resolver:    website.NewPhaseResolver(db),
 		log:         log,
 	}
+}
+
+func (s *service) getRegistrationCapacitySettings(ctx context.Context) (int, string) {
+	var settingsJSON []byte
+	err := s.db.GetContext(ctx, &settingsJSON, `SELECT settings FROM system_configurations WHERE group_name = 'registration'`)
+	if err != nil {
+		return 0, "CLOSE"
+	}
+	var cfg struct {
+		ParticipantLimit int    `json:"participant_limit"`
+		CapacityMode     string `json:"capacity_mode"`
+	}
+	if err := json.Unmarshal(settingsJSON, &cfg); err != nil {
+		return 0, "CLOSE"
+	}
+	if cfg.CapacityMode == "" {
+		cfg.CapacityMode = "CLOSE"
+	}
+	return cfg.ParticipantLimit, cfg.CapacityMode
 }
 
 func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) {
@@ -73,11 +94,36 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 	// Sequential quick COUNT queries against canonical tables.
 
 	s.db.GetContext(ctx, &data.Summary.TotalParticipants, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL`)
-	s.db.GetContext(ctx, &data.Summary.ApprovedParticipants, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND status IN ('Verified', 'APPROVED')`)
+	s.db.GetContext(ctx, &data.Summary.ApprovedParticipants, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(status) IN ('VERIFIED', 'APPROVED')`)
 	s.db.GetContext(ctx, &data.Summary.TotalCandidates, `SELECT COUNT(*) FROM candidates WHERE deleted_at IS NULL AND publication_status = 'Published'`)
 	s.db.GetContext(ctx, &data.Summary.CheckedIn, `SELECT COUNT(*) FROM attendance WHERE undone_at IS NULL`)
 	s.db.GetContext(ctx, &data.Summary.VotesCast, `SELECT COUNT(*) FROM votes`)
 	s.db.GetContext(ctx, &data.Summary.PendingNotifications, `SELECT COUNT(*) FROM notification_jobs WHERE status IN ('PENDING', 'QUEUED', 'PROCESSING')`)
+
+	limitVal, modeVal := s.getRegistrationCapacitySettings(ctx)
+	data.Summary.CapacityMode = modeVal
+	if limitVal > 0 {
+		data.Summary.ParticipantLimit = &limitVal
+		rem := limitVal - data.Summary.ApprovedParticipants
+		if rem < 0 {
+			rem = 0
+		}
+		data.Summary.RemainingCapacity = &rem
+		pct := (float64(data.Summary.ApprovedParticipants) / float64(limitVal)) * 100.0
+		data.Summary.CapacityPercentage = pct
+
+		if pct >= 100.0 {
+			data.Summary.CapacityStatus = "FULL"
+		} else if pct >= 90.0 {
+			data.Summary.CapacityStatus = "CRITICAL"
+		} else if pct >= 70.0 {
+			data.Summary.CapacityStatus = "WARNING"
+		} else {
+			data.Summary.CapacityStatus = "NORMAL"
+		}
+	} else {
+		data.Summary.CapacityStatus = "UNLIMITED"
+	}
 
 	// 4. Fetch Recent Activity (Audit logs)
 	query := `
@@ -137,14 +183,28 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 	s.db.SelectContext(ctx, &partStats, `SELECT status, count(*) as count FROM participants WHERE deleted_at IS NULL GROUP BY status`)
 	for _, p := range partStats {
 		data.Participants.Total += p.Count
-		switch p.Status {
-		case "Verified", "APPROVED":
+		normalized := strings.ToUpper(strings.TrimSpace(p.Status))
+		switch {
+		case normalized == "VERIFIED" || normalized == "APPROVED":
 			data.Participants.Verified += p.Count
-		case "Pending":
+		case normalized == "PENDING" || normalized == "UNVERIFIED":
 			data.Participants.Pending += p.Count
-		case "Rejected":
+		case normalized == "REJECTED":
 			data.Participants.Rejected += p.Count
+		case normalized == "WAITING LIST" || normalized == "WAITINGLIST" || normalized == "WAITING_LIST":
+			data.Participants.WaitingList += p.Count
 		}
+	}
+
+	limitVal, modeVal := s.getRegistrationCapacitySettings(ctx)
+	data.Participants.CapacityMode = modeVal
+	if limitVal > 0 {
+		data.Participants.Limit = &limitVal
+		rem := limitVal - data.Participants.Verified
+		if rem < 0 {
+			rem = 0
+		}
+		data.Participants.RemainingCapacity = &rem
 	}
 
 	// Fetch Candidates Stats

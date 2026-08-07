@@ -40,7 +40,7 @@ func TestService_CheckIn(t *testing.T) {
 	})
 
 	t.Run("ParticipantNotFound", func(t *testing.T) {
-		req := &CheckInRequest{RegistrationID: "00000000-0000-0000-0000-000000000000"}
+		req := &CheckInRequest{ParticipantID: "00000000-0000-0000-0000-000000000000"}
 		mockRepo.On("GetParticipantStatus", mock.Anything, "00000000-0000-0000-0000-000000000000").Return("", errors.New("db err")).Once()
 
 		res, err := svc.CheckIn(ctx, req, "op1")
@@ -49,7 +49,7 @@ func TestService_CheckIn(t *testing.T) {
 	})
 
 	t.Run("NotApproved", func(t *testing.T) {
-		req := &CheckInRequest{RegistrationID: "00000000-0000-0000-0000-000000000000"}
+		req := &CheckInRequest{ParticipantID: "00000000-0000-0000-0000-000000000000"}
 		mockRepo.On("GetParticipantStatus", mock.Anything, "00000000-0000-0000-0000-000000000000").Return("PENDING", nil).Once()
 
 		res, err := svc.CheckIn(ctx, req, "op1")
@@ -58,7 +58,7 @@ func TestService_CheckIn(t *testing.T) {
 	})
 
 	t.Run("BeginTxFailed", func(t *testing.T) {
-		req := &CheckInRequest{RegistrationID: "00000000-0000-0000-0000-000000000000"}
+		req := &CheckInRequest{ParticipantID: "00000000-0000-0000-0000-000000000000"}
 		mockRepo.On("GetParticipantStatus", mock.Anything, "00000000-0000-0000-0000-000000000000").Return("APPROVED", nil).Once()
 		mockRepo.On("BeginTx", mock.Anything).Return((*sqlx.Tx)(nil), errors.New("tx err")).Once()
 
@@ -68,14 +68,14 @@ func TestService_CheckIn(t *testing.T) {
 	})
 
 	t.Run("CreateAttendanceFailed", func(t *testing.T) {
-		req := &CheckInRequest{RegistrationID: "00000000-0000-0000-0000-000000000000"}
+		req := &CheckInRequest{ParticipantID: "00000000-0000-0000-0000-000000000000"}
 		mockRepo.On("GetParticipantStatus", mock.Anything, "00000000-0000-0000-0000-000000000000").Return("APPROVED", nil).Once()
 
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 
-		mockRepo.On("CreateAttendance", mock.Anything, tx, req.RegistrationID, "op1").Return(false, errors.New("db err")).Once()
+		mockRepo.On("CreateAttendance", mock.Anything, tx, req.ParticipantID, "op1").Return(false, errors.New("db err")).Once()
 
 		res, err := svc.CheckIn(ctx, req, "op1")
 		assert.Error(t, err)
@@ -83,7 +83,7 @@ func TestService_CheckIn(t *testing.T) {
 	})
 
 	t.Run("Success_Existing", func(t *testing.T) {
-		req := &CheckInRequest{RegistrationID: "00000000-0000-0000-0000-000000000000"}
+		req := &CheckInRequest{ParticipantID: "00000000-0000-0000-0000-000000000000"}
 		mockRepo.On("GetParticipantStatus", mock.Anything, "00000000-0000-0000-0000-000000000000").Return("APPROVED", nil).Once()
 
 		(*mockDB).ExpectBegin()
@@ -91,7 +91,8 @@ func TestService_CheckIn(t *testing.T) {
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 
-		mockRepo.On("CreateAttendance", mock.Anything, tx, req.RegistrationID, "op1").Return(false, nil).Once()
+		mockRepo.On("CreateAttendance", mock.Anything, tx, req.ParticipantID, "op1").Return(false, nil).Once()
+		mockRepo.On("GetAttendanceDetail", mock.Anything, req.ParticipantID).Return(&AttendanceDetailResponse{FullName: "John", RegistrationNumber: "MK-001"}, nil).Once()
 
 		res, err := svc.CheckIn(ctx, req, "op1")
 		assert.NoError(t, err)
@@ -99,7 +100,7 @@ func TestService_CheckIn(t *testing.T) {
 	})
 
 	t.Run("Success_New", func(t *testing.T) {
-		req := &CheckInRequest{RegistrationID: "00000000-0000-0000-0000-000000000000"}
+		req := &CheckInRequest{ParticipantID: "00000000-0000-0000-0000-000000000000"}
 		mockRepo.On("GetParticipantStatus", mock.Anything, "00000000-0000-0000-0000-000000000000").Return("APPROVED", nil).Once()
 
 		(*mockDB).ExpectBegin()
@@ -107,8 +108,9 @@ func TestService_CheckIn(t *testing.T) {
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 
-		mockRepo.On("CreateAttendance", mock.Anything, tx, req.RegistrationID, "op1").Return(true, nil).Once()
+		mockRepo.On("CreateAttendance", mock.Anything, tx, req.ParticipantID, "op1").Return(true, nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+		mockRepo.On("GetAttendanceDetail", mock.Anything, req.ParticipantID).Return(&AttendanceDetailResponse{FullName: "John", RegistrationNumber: "MK-001"}, nil).Once()
 
 		res, err := svc.CheckIn(ctx, req, "op1")
 		assert.NoError(t, err)

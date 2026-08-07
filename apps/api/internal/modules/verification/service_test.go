@@ -121,12 +121,29 @@ func TestService_VerifyParticipant(t *testing.T) {
 		(*mockDB).ExpectCommit()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
+		mockRepo.On("GetParticipantLimitAndLockTx", mock.Anything, tx).Return(0, nil).Once()
 
 		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil), mock.Anything).Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_PARTICIPANT", "registrations", "reg1", "").Return(nil).Once()
 
 		err := svc.VerifyParticipant(ctx, "reg1", req, "u1")
 		assert.NoError(t, err)
+	})
+
+	t.Run("QuotaExceeded_Approved", func(t *testing.T) {
+		req := &VerifyParticipantRequest{Status: "APPROVED"}
+		mockRepo.On("GetParticipantDetail", mock.Anything, "reg1").Return(&ParticipantDetailResponse{Status: "PENDING"}, nil).Once()
+
+		(*mockDB).ExpectBegin()
+		(*mockDB).ExpectRollback()
+		tx, _ := sqlxDB.BeginTxx(ctx, nil)
+		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
+		mockRepo.On("GetParticipantLimitAndLockTx", mock.Anything, tx).Return(100, nil).Once()
+		mockRepo.On("CountVerifiedInTx", mock.Anything, tx).Return(100, nil).Once()
+
+		err := svc.VerifyParticipant(ctx, "reg1", req, "u1")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Participant capacity has reached its limit")
 	})
 
 	t.Run("Success_Rejected", func(t *testing.T) {
@@ -153,6 +170,7 @@ func TestService_VerifyParticipant(t *testing.T) {
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
+		mockRepo.On("GetParticipantLimitAndLockTx", mock.Anything, tx).Return(0, nil).Once()
 
 		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil), mock.Anything).Return(errors.New("db err")).Once()
 
@@ -167,6 +185,7 @@ func TestService_VerifyParticipant(t *testing.T) {
 		(*mockDB).ExpectBegin()
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
+		mockRepo.On("GetParticipantLimitAndLockTx", mock.Anything, tx).Return(0, nil).Once()
 
 		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil), mock.Anything).Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_PARTICIPANT", "registrations", "reg1", "").Return(errors.New("db err")).Once()

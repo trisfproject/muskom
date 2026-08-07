@@ -115,6 +115,27 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 
 	var regNumber *string
 	if req.Status == "APPROVED" {
+		limit, err := s.repo.GetParticipantLimitAndLockTx(ctx, tx)
+		if err != nil {
+			return err
+		}
+		if limit > 0 {
+			verifiedCount, err := s.repo.CountVerifiedInTx(ctx, tx)
+			if err != nil {
+				return err
+			}
+			if verifiedCount >= limit {
+				return &ValidationError{
+					Details: []response.ErrorDetail{
+						{
+							Field:   "quota",
+							Message: "Participant capacity has reached its limit",
+						},
+					},
+				}
+			}
+		}
+
 		num := fmt.Sprintf("MK-%s-%s", strings.ToUpper(uuid.New().String()[:4]), strings.ToUpper(uuid.New().String()[:8]))
 		regNumber = &num
 	}

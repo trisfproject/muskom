@@ -39,6 +39,8 @@ type RegistrationConfig struct {
 	OpeningDate             *string `json:"opening_date" validate:"omitempty,datetime=2006-01-02T15:04:05Z07:00"`
 	ClosingDate             *string `json:"closing_date" validate:"omitempty,datetime=2006-01-02T15:04:05Z07:00"`
 	RegistrationInformation string  `json:"registration_information" validate:"omitempty"`
+	ParticipantLimit        int     `json:"participant_limit" validate:"min=0"`
+	CapacityMode            string  `json:"capacity_mode" validate:"required,oneof=CLOSE WAITING_LIST ALLOW"`
 }
 
 type SEOConfig struct {
