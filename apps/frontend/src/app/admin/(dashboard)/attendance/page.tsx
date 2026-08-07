@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { UserCheck, Search, QrCode, RefreshCw, Undo2, CheckCircle2, XCircle, Users, Percent } from "lucide-react";
 import { toast } from "sonner";
-import Cookies from "js-cookie";
+import api from "@/lib/api";
 
 interface AttendanceItem {
   participant_id: string;
@@ -32,18 +32,19 @@ export default function AdminAttendancePage() {
   const fetchAttendanceData = async () => {
     try {
       setLoading(true);
-      const token = Cookies.get("access_token");
-      const headers = { Authorization: `Bearer ${token}` };
 
       // Fetch summary
-      const sumRes = await fetch("/api/v1/admin/attendance/summary?event_id=", { headers });
-      const sumData = await sumRes.json();
-      if (sumData.success && sumData.data) {
-        setSummary(sumData.data);
+      try {
+        const sumRes = await api.get("/admin/attendance/summary");
+        if (sumRes.data?.data) {
+          setSummary(sumRes.data.data);
+        }
+      } catch (e) {
+        console.warn("Failed to fetch attendance summary", e);
       }
 
       // Fetch list
-      let url = `/api/v1/admin/attendance?limit=50`;
+      let url = `/admin/attendance?limit=50`;
       if (statusFilter !== "ALL") {
         url += `&attendance_status=${statusFilter}`;
       }
@@ -51,11 +52,9 @@ export default function AdminAttendancePage() {
         url += `&participant_name=${encodeURIComponent(search)}`;
       }
 
-      const listRes = await fetch(url, { headers });
-      const listData = await listRes.json();
-      if (listData.success && listData.data?.items) {
-        setAttendances(listData.data.items);
-      }
+      const listRes = await api.get(url);
+      const items = listRes.data?.data?.items ?? listRes.data?.data ?? listRes.data?.items ?? [];
+      setAttendances(items);
     } catch (err) {
       console.error(err);
       toast.error("Gagal memuat data presensi");
@@ -74,30 +73,26 @@ export default function AdminAttendancePage() {
 
     try {
       setSubmitting(true);
-      const token = Cookies.get("access_token");
-      const res = await fetch("/api/v1/admin/attendance/check-in", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ participant_id: scanToken.trim() }),
+      const res = await api.post("/admin/attendance/check-in", {
+        participant_id: scanToken.trim(),
+        registration_id: scanToken.trim(),
       });
 
-      const data = await res.json();
-      if (res.ok && data.success) {
+      if (res.data?.success) {
         toast.success("Check-in Berhasil!", {
-          description: data.data?.is_new ? "Peserta baru saja di-check-in." : "Peserta sudah check-in sebelumnya.",
+          description: res.data?.data?.is_new ? "Peserta baru saja di-check-in." : "Peserta sudah check-in sebelumnya.",
         });
         setScanToken("");
         fetchAttendanceData();
       } else {
         toast.error("Check-in Gagal", {
-          description: data.message || "Peserta tidak ditemukan atau belum diverifikasi.",
+          description: res.data?.message || "Peserta tidak ditemukan atau belum diverifikasi.",
         });
       }
-    } catch (err) {
-      toast.error("Terjadi kesalahan sistem saat check-in.");
+    } catch (err: any) {
+      toast.error("Check-in Gagal", {
+        description: err.response?.data?.message || "Peserta tidak ditemukan atau belum diverifikasi.",
+      });
     } finally {
       setSubmitting(false);
     }

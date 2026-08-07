@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/lib/public-api';
+import api from '@/lib/api';
 
 export function useCheckIn() {
   const queryClient = useQueryClient();
@@ -9,7 +9,7 @@ export function useCheckIn() {
       const res = await api.post('/admin/attendance/check-in', {
         registration_id: registrationId,
       });
-      return res.data;
+      return res.data?.data ?? res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });

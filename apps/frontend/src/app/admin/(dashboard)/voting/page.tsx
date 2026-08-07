@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Vote, Play, Pause, Square, RefreshCw, BarChart2, Shield, Award, Users, Percent, Download } from "lucide-react";
 import { toast } from "sonner";
-import Cookies from "js-cookie";
+import api from "@/lib/api";
 
 interface VotingSession {
   id: string;
@@ -35,21 +35,25 @@ export default function AdminVotingPage() {
   const fetchVotingData = async () => {
     try {
       setLoading(true);
-      const token = Cookies.get("access_token");
-      const headers = { Authorization: `Bearer ${token}` };
 
       // Fetch Session
-      const sessRes = await fetch("/api/v1/admin/votes/session", { headers });
-      const sessData = await sessRes.json();
-      if (sessData.success) {
-        setSession(sessData.data);
+      try {
+        const sessRes = await api.get("/admin/votes/session");
+        if (sessRes.data?.data) {
+          setSession(sessRes.data.data);
+        }
+      } catch (e) {
+        console.warn("Failed to fetch voting session", e);
       }
 
       // Fetch Summary & Tally
-      const sumRes = await fetch("/api/v1/admin/votes/summary", { headers });
-      const sumData = await sumRes.json();
-      if (sumData.success) {
-        setSummary(sumData.data);
+      try {
+        const sumRes = await api.get("/admin/votes/summary");
+        if (sumRes.data?.data) {
+          setSummary(sumRes.data.data);
+        }
+      } catch (e) {
+        console.warn("Failed to fetch voting summary", e);
       }
     } catch (err) {
       console.error(err);
@@ -66,20 +70,15 @@ export default function AdminVotingPage() {
   const handleUpdateStatus = async (action: "start" | "pause" | "resume" | "stop") => {
     try {
       setActionLoading(true);
-      const token = Cookies.get("access_token");
-      const res = await fetch(`/api/v1/admin/votes/session/${action}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
+      const res = await api.post(`/admin/votes/session/${action}`);
+      if (res.data?.success) {
         toast.success(`Sesi Voting Berhasil Didefinisikan: ${action.toUpperCase()}`);
         fetchVotingData();
       } else {
-        toast.error(`Gagal mengubah status sesi: ${data.message || "Kesalahan server"}`);
+        toast.error(`Gagal mengubah status sesi: ${res.data?.message || "Kesalahan server"}`);
       }
-    } catch (err) {
-      toast.error("Terjadi kesalahan sistem.");
+    } catch (err: any) {
+      toast.error(`Gagal mengubah status sesi: ${err.response?.data?.message || "Terjadi kesalahan sistem."}`);
     } finally {
       setActionLoading(false);
     }

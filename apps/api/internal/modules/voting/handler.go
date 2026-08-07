@@ -51,3 +51,24 @@ func (h *Handler) GetSummary(c fiber.Ctx) error {
 	}
 	return response.SendSuccess(c, fiber.StatusOK, "Summary retrieved", summary, nil)
 }
+
+func (h *Handler) GetSession(c fiber.Ctx) error {
+	session, err := h.service.GetSession(c.Context(), "")
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get voting session", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Voting session retrieved", session, nil)
+}
+
+func (h *Handler) UpdateSession(c fiber.Ctx) error {
+	action := c.Params("action")
+	if action == "" {
+		action = "start"
+	}
+
+	session, err := h.service.UpdateSessionStatus(c.Context(), "", action)
+	if err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Failed to update voting session", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Voting session updated", session, nil)
+}

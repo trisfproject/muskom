@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import api from '@/lib/public-api';
+import api from '@/lib/api';
 import { AttendanceItem, AttendanceFilters, AttendanceSummary } from './types';
 import { defaultPollingProvider } from '@/providers/PollingProvider';
 import { useEffect } from 'react';
@@ -14,9 +14,10 @@ export function useAttendanceSearch(filters: AttendanceFilters) {
     });
     
     const res = await api.get(`/admin/attendance?${params.toString()}`);
+    const payload = res.data?.data ?? res.data;
     return {
-      items: res.data.items as AttendanceItem[],
-      total: res.data.total as number,
+      items: (payload?.items ?? payload ?? []) as AttendanceItem[],
+      total: (payload?.total ?? 0) as number,
     };
   };
 

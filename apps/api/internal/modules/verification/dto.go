@@ -46,7 +46,7 @@ type ParticipantDetailResponse struct {
 }
 
 type VerifyParticipantRequest struct {
-	Status          string  `json:"status" validate:"required,oneof=APPROVED REJECTED"`
+	Status          string  `json:"status" validate:"required,oneof=APPROVED REJECTED Approved Rejected Verified VERIFIED approve approved reject rejected"`
 	RejectionReason *string `json:"rejection_reason" validate:"omitempty"`
 }
 
@@ -72,6 +72,6 @@ type CandidateDetailResponse struct {
 }
 
 type VerifyCandidateRequest struct {
-	Status string  `json:"status" validate:"required,oneof=REVIEWING ACCEPTED REJECTED"`
+	Status string  `json:"status" validate:"required,oneof=REVIEWING ACCEPTED REJECTED Reviewing Accepted Rejected Approved APPROVE reviewing accepted rejected"`
 	Notes  *string `json:"notes" validate:"omitempty"`
 }

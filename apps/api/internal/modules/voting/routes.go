@@ -24,4 +24,7 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eve
 
 	// Admin / Operator Routes
 	router.Get("/summary", handler.GetSummary)
+	router.Get("/session", handler.GetSession)
+	router.Post("/session/:action", handler.UpdateSession)
+	router.Put("/session/:action", handler.UpdateSession)
 }

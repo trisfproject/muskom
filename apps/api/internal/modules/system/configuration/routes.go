@@ -19,19 +19,23 @@ func RegisterRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, val *va
 	service := NewService(repo, cache, auditService, log, val)
 	handler := NewHandler(service, val, cfg, m)
 
-	// Define routes
-	group := router.Group("/system/config")
+	// Define routes on both /system/config and /admin/system/config for compatibility
+	groups := []fiber.Router{
+		router.Group("/system/config"),
+		router.Group("/admin/system/config"),
+	}
 
-	// Public/Global GET configuration
-	group.Get("/", handler.HandleGetConfig)
+	for _, group := range groups {
+		// Public/Global GET configuration
+		group.Get("/", handler.HandleGetConfig)
 
-	// Admin SMTP
-	group.Get("/smtp/config", handler.HandleGetSMTPConfig)
-	group.Put("/smtp/config", handler.HandleUpdateSMTPConfig)
-	group.Post("/smtp/test-connection", handler.HandleTestSMTPConnection)
-	group.Post("/smtp/test", handler.HandleTestSMTP)
+		// Admin SMTP
+		group.Get("/smtp/config", handler.HandleGetSMTPConfig)
+		group.Put("/smtp/config", handler.HandleUpdateSMTPConfig)
+		group.Post("/smtp/test-connection", handler.HandleTestSMTPConnection)
+		group.Post("/smtp/test", handler.HandleTestSMTP)
 
-	// Admin update configuration
-	// Note: In a real system, you would attach an RBAC/Admin middleware here
-	group.Put("/:group", handler.HandleUpdateConfig)
+		// Admin update configuration
+		group.Put("/:group", handler.HandleUpdateConfig)
+	}
 }

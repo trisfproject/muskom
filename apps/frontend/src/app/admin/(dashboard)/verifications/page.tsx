@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ShieldCheck, CheckCircle2, XCircle, Search, RefreshCw, X, FileText } from "lucide-react";
 import { toast } from "sonner";
-import Cookies from "js-cookie";
+import api from "@/lib/api";
 
 interface VerificationItem {
   id: string;
@@ -23,18 +23,17 @@ export default function AdminVerificationsPage() {
   const fetchVerifications = async () => {
     try {
       setLoading(true);
-      const token = Cookies.get("access_token");
-      let url = `/api/v1/admin/verifications?queue_type=${queueType}&limit=50`;
+      let url = `/admin/verifications?queue_type=${queueType}&limit=50`;
       if (search) {
         url += `&applicant_name=${encodeURIComponent(search)}`;
       }
 
-      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-      const data = await res.json();
-      if (data.success) {
-        setItems(data.data.items || []);
-        setTotal(data.data.total || 0);
-      }
+      const res = await api.get(url);
+      const resData = res.data?.data ?? res.data;
+      const list = resData?.items ?? resData?.data ?? (Array.isArray(resData) ? resData : []);
+      const totalCount = resData?.total ?? list.length ?? 0;
+      setItems(list);
+      setTotal(totalCount);
     } catch (err) {
       toast.error("Gagal memuat daftar verifikasi");
     } finally {
@@ -49,28 +48,24 @@ export default function AdminVerificationsPage() {
 
   const handleUpdateStatus = async (item: VerificationItem, newStatus: "Verified" | "Rejected") => {
     try {
-      const token = Cookies.get("access_token");
       const endpoint = item.queue_type === "participant" 
-        ? `/api/v1/admin/verifications/participant/${item.id}/status`
-        : `/api/v1/admin/verifications/candidate/${item.id}/status`;
+        ? `/admin/verifications/participants/${item.id}`
+        : `/admin/verifications/candidates/${item.id}`;
 
-      const res = await fetch(endpoint, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: newStatus, reason: newStatus === "Rejected" ? "Ditolak oleh admin" : undefined }),
+      const res = await api.patch(endpoint, {
+        status: newStatus === "Verified" ? "APPROVED" : "REJECTED",
+        rejection_reason: newStatus === "Rejected" ? "Ditolak oleh admin" : undefined,
+        notes: newStatus === "Rejected" ? "Ditolak oleh admin" : undefined,
       });
-      const data = await res.json();
-      if (data.success) {
+
+      if (res.data?.success) {
         toast.success(`Berhasil update status menjadi ${newStatus}`);
         fetchVerifications();
       } else {
-        toast.error(data.message || "Gagal update status");
+        toast.error(res.data?.message || "Gagal update status");
       }
-    } catch (err) {
-      toast.error("Terjadi kesalahan jaringan");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Terjadi kesalahan sistem saat verifikasi");
     }
   };
 

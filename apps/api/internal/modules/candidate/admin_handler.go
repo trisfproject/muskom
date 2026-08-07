@@ -75,6 +75,13 @@ func (h *AdminHandler) GetCandidateDetail(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Candidate retrieved", candidate, nil)
 }
 
+func getAdminUserID(c fiber.Ctx) string {
+	if uid, ok := c.Locals("user_id").(string); ok && uid != "" {
+		return uid
+	}
+	return "admin"
+}
+
 func (h *AdminHandler) VerifyCandidate(c fiber.Ctx) error {
 	id := c.Params("id")
 
@@ -87,7 +94,7 @@ func (h *AdminHandler) VerifyCandidate(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusBadRequest, "Validation error", errs)
 	}
 
-	adminUserID := c.Locals("user_id").(string)
+	adminUserID := getAdminUserID(c)
 
 	err := h.service.AdminVerifyCandidate(c.Context(), id, req, adminUserID)
 	if err != nil {
@@ -114,7 +121,7 @@ func (h *AdminHandler) VerifyDocument(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusBadRequest, "Validation error", errs)
 	}
 
-	adminUserID := c.Locals("user_id").(string)
+	adminUserID := getAdminUserID(c)
 
 	err := h.service.AdminVerifyDocument(c.Context(), id, docID, req, adminUserID)
 	if err != nil {
@@ -140,7 +147,7 @@ func (h *AdminHandler) StreamDocument(c fiber.Ctx) error {
 
 func (h *AdminHandler) PublishCandidate(c fiber.Ctx) error {
 	id := c.Params("id")
-	adminUserID := c.Locals("user_id").(string)
+	adminUserID := getAdminUserID(c)
 
 	err := h.service.AdminPublishCandidate(c.Context(), id, adminUserID)
 	if err != nil {
@@ -152,7 +159,7 @@ func (h *AdminHandler) PublishCandidate(c fiber.Ctx) error {
 
 func (h *AdminHandler) UnpublishCandidate(c fiber.Ctx) error {
 	id := c.Params("id")
-	adminUserID := c.Locals("user_id").(string)
+	adminUserID := getAdminUserID(c)
 
 	err := h.service.AdminUnpublishCandidate(c.Context(), id, adminUserID)
 	if err != nil {
@@ -173,7 +180,7 @@ func (h *AdminHandler) UpdatePublicationSettings(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusBadRequest, "Validation error", errs)
 	}
 
-	adminUserID := c.Locals("user_id").(string)
+	adminUserID := getAdminUserID(c)
 
 	err := h.service.AdminUpdatePublicationSettings(c.Context(), id, req, adminUserID)
 	if err != nil {
@@ -193,7 +200,7 @@ func (h *AdminHandler) ReorderCandidates(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusBadRequest, "Validation error", errs)
 	}
 
-	adminUserID := c.Locals("user_id").(string)
+	adminUserID := getAdminUserID(c)
 
 	err := h.service.AdminReorderCandidates(c.Context(), req, adminUserID)
 	if err != nil {
@@ -224,7 +231,7 @@ func (h *AdminHandler) UpdateCandidate(c fiber.Ctx) error {
 
 func (h *AdminHandler) DeleteCandidate(c fiber.Ctx) error {
 	id := c.Params("id")
-	adminUserID := c.Locals("user_id").(string)
+	adminUserID := getAdminUserID(c)
 
 	if err := h.service.AdminDeleteCandidate(c.Context(), id, adminUserID); err != nil {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to delete candidate: "+err.Error(), nil)
@@ -243,7 +250,7 @@ func (h *AdminHandler) BulkDeleteCandidates(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", errs)
 	}
 
-	adminUserID := c.Locals("user_id").(string)
+	adminUserID := getAdminUserID(c)
 	if err := h.service.AdminBulkDeleteCandidates(c.Context(), req.IDs, adminUserID); err != nil {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to delete candidates: "+err.Error(), nil)
 	}

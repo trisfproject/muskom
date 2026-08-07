@@ -31,6 +31,7 @@ func (h *Handler) ListVerifications(c fiber.Ctx) error {
 	}
 
 	return response.SendSuccess(c, fiber.StatusOK, "Verification queue retrieved successfully", fiber.Map{
+		"items": list,
 		"data":  list,
 		"total": total,
 	}, nil)

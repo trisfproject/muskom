@@ -3,7 +3,7 @@ package attendance
 import "time"
 
 type CheckInRequest struct {
-	ParticipantID  string `json:"participant_id" validate:"required,uuid"`
+	ParticipantID  string `json:"participant_id" validate:"required"`
 	RegistrationID string `json:"registration_id"` // Alias for backward compatibility
 }
 

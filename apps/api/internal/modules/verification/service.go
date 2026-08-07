@@ -3,6 +3,7 @@ package verification
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
@@ -90,12 +91,17 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 		return &ValidationError{Details: errs}
 	}
 
+	req.Status = strings.ToUpper(req.Status)
+	if req.Status == "VERIFIED" {
+		req.Status = "APPROVED"
+	}
+
 	detail, err := s.repo.GetParticipantDetail(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	if err := s.validateTransition("participant", detail.Status, req.Status); err != nil {
+	if err := s.validateTransition("participant", strings.ToUpper(detail.Status), req.Status); err != nil {
 		return err
 	}
 
@@ -130,12 +136,17 @@ func (s *service) VerifyCandidate(ctx context.Context, id string, req *VerifyCan
 		return &ValidationError{Details: errs}
 	}
 
+	req.Status = strings.ToUpper(req.Status)
+	if req.Status == "APPROVED" || req.Status == "VERIFIED" {
+		req.Status = "ACCEPTED"
+	}
+
 	detail, err := s.repo.GetCandidateDetail(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	if err := s.validateTransition("candidate", detail.Status, req.Status); err != nil {
+	if err := s.validateTransition("candidate", strings.ToUpper(detail.Status), req.Status); err != nil {
 		return err
 	}
 

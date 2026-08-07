@@ -21,6 +21,8 @@ type Service interface {
 	GetBallot(ctx context.Context, eventID string) (*Ballot, error)
 	CastVote(ctx context.Context, eventID, participantID, candidateID string) error
 	GetSummary(ctx context.Context, eventID string) (*VoteSummary, error)
+	GetSession(ctx context.Context, eventID string) (*VotingSession, error)
+	UpdateSessionStatus(ctx context.Context, eventID string, action string) (*VotingSession, error)
 }
 
 type service struct {
@@ -120,5 +122,43 @@ func (s *service) GetSummary(ctx context.Context, eventID string) (*VoteSummary,
 		VotesCast:        totalVotesCast,
 		ParticipationPct: pct,
 		Results:          results,
+	}, nil
+}
+
+func (s *service) GetSession(ctx context.Context, eventID string) (*VotingSession, error) {
+	phase, err := s.resolver.GetCurrentPhase(ctx)
+	status := SessionNotStarted
+	if err == nil && phase != nil {
+		if phase.Title == "VOTING" {
+			status = SessionRunning
+		} else if phase.Status == "past" {
+			status = SessionClosed
+		}
+	}
+
+	return &VotingSession{
+		ID:      "active-session",
+		EventID: eventID,
+		Status:  status,
+	}, nil
+}
+
+func (s *service) UpdateSessionStatus(ctx context.Context, eventID string, action string) (*VotingSession, error) {
+	var status SessionStatus
+	switch action {
+	case "start", "resume":
+		status = SessionRunning
+	case "pause":
+		status = SessionPaused
+	case "stop", "close":
+		status = SessionClosed
+	default:
+		status = SessionRunning
+	}
+
+	return &VotingSession{
+		ID:      "active-session",
+		EventID: eventID,
+		Status:  status,
 	}, nil
 }
