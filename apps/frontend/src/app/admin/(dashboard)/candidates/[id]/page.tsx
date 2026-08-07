@@ -67,6 +67,8 @@ export default function CandidateDetailPage() {
 
   // Photo upload state
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -162,13 +164,25 @@ export default function CandidateDetailPage() {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validate size on frontend (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran file maksimal 5 MB.");
+      return;
+    }
+
+    const localUrl = URL.createObjectURL(file);
+    setLocalPreview(localUrl);
+    setImageError(false);
     setUploadingPhoto(true);
+
     try {
       await candidateAdminService.uploadPhoto(id, file);
       toast.success("Foto kandidat berhasil diunggah.");
       fetchData();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Gagal mengunggah foto.");
+      setLocalPreview(null);
     } finally {
       setUploadingPhoto(false);
     }
@@ -269,19 +283,29 @@ export default function CandidateDetailPage() {
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 mb-6">
               <div className="relative group">
-                <div className="w-24 h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner">
-                  {candidate.profile_photo ? (
+                <div className="relative w-24 h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner">
+                  {localPreview ? (
+                    <img src={localPreview} alt="Preview" className="w-full h-full object-cover" />
+                  ) : candidate.profile_photo && !imageError ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={candidate.profile_photo}
                       alt="Profile"
                       className="w-full h-full object-cover"
+                      onError={() => setImageError(true)}
                     />
                   ) : (
-                    <User className="w-10 h-10 text-slate-400" />
+                    <span className="text-3xl font-bold text-slate-400">
+                      {candidate.full_name?.charAt(0) || "?"}
+                    </span>
+                  )}
+                  {uploadingPhoto && (
+                    <div className="absolute inset-0 bg-white/50 dark:bg-black/50 flex items-center justify-center backdrop-blur-sm z-10">
+                      <RefreshCw className="w-6 h-6 animate-spin text-primary" />
+                    </div>
                   )}
                 </div>
-                <label className="absolute inset-0 rounded-2xl bg-black/40 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-[10px] font-semibold">
+                <label className="absolute inset-0 rounded-2xl bg-black/40 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-[10px] font-semibold z-20">
                   <Upload className="w-4 h-4 mb-0.5" />
                   {uploadingPhoto ? "..." : "Ganti Foto"}
                   <input

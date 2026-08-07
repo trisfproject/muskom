@@ -1,6 +1,7 @@
 package candidate
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -9,12 +10,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/disintegration/imaging"
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"go.uber.org/zap"
+	_ "golang.org/x/image/webp"
 )
 
 type Service interface {
@@ -800,26 +804,50 @@ func (s *service) UploadPhoto(ctx context.Context, candidateID string, filename 
 		return nil, err
 	}
 
-	if size > 2*1024*1024 {
-		return nil, errors.New("file size exceeds maximum allowed size of 2 MB")
+	if size > 5*1024*1024 {
+		return nil, errors.New("file size exceeds maximum allowed size of 5 MB")
 	}
+
+	lr := io.LimitReader(file, 5*1024*1024+1)
+	fileBytes, err := io.ReadAll(lr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+	if len(fileBytes) > 5*1024*1024 {
+		return nil, errors.New("file size exceeds maximum allowed size of 5 MB")
+	}
+	if len(fileBytes) == 0 {
+		return nil, errors.New("file is empty")
+	}
+
+	detectedMime := mimetype.Detect(fileBytes)
+	actualMime := detectedMime.String()
 
 	allowedMimes := map[string]bool{
 		"image/jpeg": true,
 		"image/png":  true,
 		"image/webp": true,
+		"image/gif":  true,
 	}
-	if !allowedMimes[mimeType] {
-		return nil, errors.New("invalid file type. Only JPEG, PNG, and WebP are allowed")
+	if !allowedMimes[actualMime] {
+		return nil, errors.New("invalid file type. Only JPEG, PNG, WebP, and GIF are allowed")
 	}
 
-	ext := filepath.Ext(filename)
-	if ext == "" {
-		ext = ".png"
+	img, err := imaging.Decode(bytes.NewReader(fileBytes), imaging.AutoOrientation(true))
+	if err != nil {
+		return nil, fmt.Errorf("failed to process image: %w", err)
 	}
+
+	var processedBuf bytes.Buffer
+	err = imaging.Encode(&processedBuf, img, imaging.JPEG, imaging.JPEGQuality(90))
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode processed image: %w", err)
+	}
+
+	ext := ".jpg"
 	storagePath := fmt.Sprintf("candidates/%s/%s%s", candidateID, uuid.New().String(), ext)
 
-	info, err := s.storage.Upload(ctx, file, storagePath)
+	info, err := s.storage.Upload(ctx, bytes.NewReader(processedBuf.Bytes()), storagePath)
 	if err != nil {
 		s.log.Error("Failed to store photo", zap.Error(err))
 		return nil, fmt.Errorf("failed to save photo: %w", err)
