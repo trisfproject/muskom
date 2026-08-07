@@ -206,13 +206,8 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 		Recent:           []RecentParticipant{},
 	}
 
-	// Fetch Limit from event_settings
-	var limit *int
-	_ = r.db.GetContext(ctx, &limit, `
-		SELECT registration_limit 
-		FROM event_settings
-		LIMIT 1
-	`)
+	// Fetch Limit (Removed in single-event architecture, currently unlimited)
+	var limit *int = nil
 	stats.Limit = limit
 
 	// 1. Summary counts (single query, avoid N+1)
@@ -311,14 +306,6 @@ func (r *repository) CountActive(ctx context.Context) (int, error) {
 }
 
 func (r *repository) GetRegistrationLimit(ctx context.Context) (*int, error) {
-	query := `SELECT registration_limit FROM event_settings LIMIT 1`
-	var limit *int
-	err := r.db.GetContext(ctx, &limit, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return limit, nil
+	// Limit is no longer managed in event_settings. Defaulting to unlimited.
+	return nil, nil
 }
