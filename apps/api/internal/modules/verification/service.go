@@ -186,6 +186,11 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 			}
 			if s.notifSvc != nil {
 				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "participant_registration_approved", detail.Email, payload)
+				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelInApp, "participant_registration_approved", "system", map[string]interface{}{
+					"title":   "Participant Approved",
+					"message": detail.FullName + " registration has been approved.",
+					"type":    "success",
+				})
 			}
 		} else if req.Status == "REJECTED" {
 			rsn := ""
@@ -199,6 +204,11 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 			}
 			if s.notifSvc != nil {
 				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "participant_registration_rejected", detail.Email, payload)
+				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelInApp, "participant_registration_rejected", "system", map[string]interface{}{
+					"title":   "Participant Rejected",
+					"message": detail.FullName + " registration has been rejected.",
+					"type":    "warning",
+				})
 			}
 		}
 	}()
@@ -263,6 +273,11 @@ func (s *service) VerifyCandidate(ctx context.Context, id string, req *VerifyCan
 			}
 			if s.notifSvc != nil {
 				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "candidate_registration_approved", detail.Email, payload)
+				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelInApp, "candidate_registration_approved", "system", map[string]interface{}{
+					"title":   "Candidate Approved",
+					"message": detail.FullName + " candidate registration has been approved.",
+					"type":    "success",
+				})
 			}
 		} else if req.Status == "REJECTED" {
 			rsn := ""
@@ -276,6 +291,11 @@ func (s *service) VerifyCandidate(ctx context.Context, id string, req *VerifyCan
 			}
 			if s.notifSvc != nil {
 				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "candidate_registration_rejected", detail.Email, payload)
+				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelInApp, "candidate_registration_rejected", "system", map[string]interface{}{
+					"title":   "Candidate Rejected",
+					"message": detail.FullName + " candidate registration has been rejected.",
+					"type":    "warning",
+				})
 			}
 		}
 	}()

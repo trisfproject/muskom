@@ -18,6 +18,14 @@ type Repository interface {
 	ListTemplates(ctx context.Context) ([]NotificationTemplate, error)
 	UpdateTemplate(ctx context.Context, id string, subject *string, body string) error
 	RetryJob(ctx context.Context, id string) error
+
+	// In-App Notification Methods
+	CreateInAppNotification(ctx context.Context, notif *InAppNotification) error
+	ListInAppNotifications(ctx context.Context, userID *string, limit int, offset int) ([]InAppNotification, int, error)
+	GetUnreadInAppCount(ctx context.Context, userID *string) (int, error)
+	MarkInAppRead(ctx context.Context, id string) error
+	MarkAllInAppRead(ctx context.Context, userID *string) error
+	DeleteInAppNotification(ctx context.Context, id string) error
 }
 
 type repository struct {
@@ -107,6 +115,61 @@ func (r *repository) UpdateTemplate(ctx context.Context, id string, subject *str
 
 func (r *repository) RetryJob(ctx context.Context, id string) error {
 	query := `UPDATE notification_jobs SET status = 'PENDING', error_message = NULL, updated_at = NOW() WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, query, id)
+	return err
+}
+
+func (r *repository) CreateInAppNotification(ctx context.Context, notif *InAppNotification) error {
+	query := `
+		INSERT INTO in_app_notifications (user_id, type, priority, title, message, action_url)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id, is_read, created_at
+	`
+	return r.db.QueryRowContext(ctx, query,
+		notif.UserID, notif.Type, notif.Priority, notif.Title, notif.Message, notif.ActionURL,
+	).Scan(&notif.ID, &notif.IsRead, &notif.CreatedAt)
+}
+
+func (r *repository) ListInAppNotifications(ctx context.Context, userID *string, limit int, offset int) ([]InAppNotification, int, error) {
+	var notifs []InAppNotification
+	var total int
+
+	countQuery := `SELECT COUNT(*) FROM in_app_notifications WHERE user_id = $1 OR user_id IS NULL`
+	if err := r.db.GetContext(ctx, &total, countQuery, userID); err != nil {
+		return nil, 0, err
+	}
+
+	query := `
+		SELECT * FROM in_app_notifications 
+		WHERE user_id = $1 OR user_id IS NULL
+		ORDER BY created_at DESC 
+		LIMIT $2 OFFSET $3
+	`
+	err := r.db.SelectContext(ctx, &notifs, query, userID, limit, offset)
+	return notifs, total, err
+}
+
+func (r *repository) GetUnreadInAppCount(ctx context.Context, userID *string) (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM in_app_notifications WHERE (user_id = $1 OR user_id IS NULL) AND is_read = FALSE`
+	err := r.db.GetContext(ctx, &count, query, userID)
+	return count, err
+}
+
+func (r *repository) MarkInAppRead(ctx context.Context, id string) error {
+	query := `UPDATE in_app_notifications SET is_read = TRUE, read_at = NOW() WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, query, id)
+	return err
+}
+
+func (r *repository) MarkAllInAppRead(ctx context.Context, userID *string) error {
+	query := `UPDATE in_app_notifications SET is_read = TRUE, read_at = NOW() WHERE (user_id = $1 OR user_id IS NULL) AND is_read = FALSE`
+	_, err := r.db.ExecContext(ctx, query, userID)
+	return err
+}
+
+func (r *repository) DeleteInAppNotification(ctx context.Context, id string) error {
+	query := `DELETE FROM in_app_notifications WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id)
 	return err
 }

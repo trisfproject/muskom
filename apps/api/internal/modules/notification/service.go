@@ -25,6 +25,13 @@ type Service interface {
 	UpdateTemplate(ctx context.Context, id string, subject *string, body string) error
 	RetryJob(ctx context.Context, id string) error
 	TestSMTP(ctx context.Context, email string) error
+
+	// In-App Notification Methods
+	ListInAppNotifications(ctx context.Context, userID *string, limit int, offset int) ([]InAppNotification, int, error)
+	GetUnreadInAppCount(ctx context.Context, userID *string) (int, error)
+	MarkInAppRead(ctx context.Context, id string) error
+	MarkAllInAppRead(ctx context.Context, userID *string) error
+	DeleteInAppNotification(ctx context.Context, id string) error
 }
 
 type service struct {
@@ -112,4 +119,24 @@ func (s *service) TestSMTP(ctx context.Context, email string) error {
 		"timestamp": time.Now().Format(time.RFC1123),
 	}
 	return s.QueueNotification(ctx, ChannelEmail, "test_email", email, payload)
+}
+
+func (s *service) ListInAppNotifications(ctx context.Context, userID *string, limit int, offset int) ([]InAppNotification, int, error) {
+	return s.repo.ListInAppNotifications(ctx, userID, limit, offset)
+}
+
+func (s *service) GetUnreadInAppCount(ctx context.Context, userID *string) (int, error) {
+	return s.repo.GetUnreadInAppCount(ctx, userID)
+}
+
+func (s *service) MarkInAppRead(ctx context.Context, id string) error {
+	return s.repo.MarkInAppRead(ctx, id)
+}
+
+func (s *service) MarkAllInAppRead(ctx context.Context, userID *string) error {
+	return s.repo.MarkAllInAppRead(ctx, userID)
+}
+
+func (s *service) DeleteInAppNotification(ctx context.Context, id string) error {
+	return s.repo.DeleteInAppNotification(ctx, id)
 }

@@ -34,6 +34,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/middleware"
+	"github.com/trisfproject/muskom/apps/api/platform/realtime"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
@@ -100,10 +101,11 @@ func main() {
 	val := validator.New()
 	bus := eventbus.NewSyncBus(log)
 	mailerSvc := mailer.NewSMTPMailer(cfg, log)
+	hub := realtime.GetHub(log)
 	
 	// Create Notification Service
 	notifRepo := notification.NewRepository(db)
-	notifRegistry := notification.NewProviderRegistry(mailerSvc)
+	notifRegistry := notification.NewProviderRegistry(mailerSvc, hub, notifRepo)
 	notifSvc := notification.NewService(notifRepo, notifRegistry, log)
 
 	// 6.5. RBAC Initialization
@@ -151,7 +153,7 @@ func main() {
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications", checker.RequirePermission("participant.approve")), db, log, val, notifSvc)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance", checker.RequirePermission("attendance.manage")), db, log, val)
 	attendance.SetupRootAdminRoutes(adminGroup.Group("/", checker.RequirePermission("attendance.manage")), db, log, val)
-	notification.SetupAdminRoutesWithService(adminGroup.Group("/notifications", checker.RequirePermission("notification.send")), notifSvc)
+	notification.SetupAdminRoutesWithService(adminGroup.Group("/notifications", checker.RequirePermission("notification.send")), notifSvc, hub)
 	audit.SetupAdminRoutes(adminGroup.Group("/audit", checker.RequirePermission("audit.view")), db, log)
 	reporting.SetupAdminRoutes(adminGroup.Group("/reporting", checker.RequirePermission("report.export")), db, log)
 	voting.SetupAdminRoutes(adminGroup.Group("/votes", checker.RequirePermission("voting.manage")), db, log, bus, notifSvc)

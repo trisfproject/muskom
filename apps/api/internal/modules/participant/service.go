@@ -181,7 +181,14 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 				"event_date": "Tanggal Acara", // Placeholder for actual event date
 				"venue": "Lokasi Acara",       // Placeholder for actual venue
 			}
-			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_approved", p.Email, payload)
+			if s.notifSvc != nil {
+				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_approved", p.Email, payload)
+				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "participant_registration_approved", "system", map[string]interface{}{
+					"title":   "Participant Approved",
+					"message": p.FullName + " registration has been approved.",
+					"type":    "success",
+				})
+			}
 		} else if req.Status == "Rejected" {
 			var rsn string
 			if req.Reason != nil {
@@ -192,7 +199,14 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 				"event_name":       "MUSKOM 2026",
 				"rejection_reason": rsn,
 			}
-			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_rejected", p.Email, payload)
+			if s.notifSvc != nil {
+				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_rejected", p.Email, payload)
+				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "participant_registration_rejected", "system", map[string]interface{}{
+					"title":   "Participant Rejected",
+					"message": p.FullName + " registration has been rejected.",
+					"type":    "warning",
+				})
+			}
 		}
 	}()
 
@@ -380,7 +394,14 @@ func (s *service) VerifyEmail(ctx context.Context, tokenString string) error {
 				"full_name":  p.FullName,
 				"event_name": "MUSKOM 2026",
 			}
-			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_submitted", p.Email, payload)
+			if s.notifSvc != nil {
+				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_submitted", p.Email, payload)
+				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "participant_registration_submitted", "system", map[string]interface{}{
+					"title":   "New Participant Registration",
+					"message": p.FullName + " has registered for MUSKOM 2026.",
+					"type":    "info",
+				})
+			}
 		}()
 	}
 	return err

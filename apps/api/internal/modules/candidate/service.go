@@ -330,7 +330,14 @@ func (s *service) Patch(ctx context.Context, id string, req PatchCandidateReques
 				"full_name":  c.FullName,
 				"event_name": "MUSKOM 2026",
 			}
-			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "candidate_registration_submitted", c.Email, payload)
+			if s.notifSvc != nil {
+				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "candidate_registration_submitted", c.Email, payload)
+				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "candidate_registration_submitted", "system", map[string]interface{}{
+					"title":   "New Candidate Registration",
+					"message": c.FullName + " has registered as a candidate.",
+					"type":    "info",
+				})
+			}
 		}()
 	}
 
@@ -728,7 +735,14 @@ func (s *service) AdminPublishCandidate(ctx context.Context, id string, adminUse
 			"event_name": "MUSKOM 2026",
 			"candidate_url": fmt.Sprintf("%s/kandidat/%s", s.cfg.PublicAppURL, c.ID),
 		}
-		_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "candidate_published", c.Email, payload)
+		if s.notifSvc != nil {
+			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "candidate_published", c.Email, payload)
+			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "candidate_published", "system", map[string]interface{}{
+				"title":   "Candidate Published",
+				"message": c.FullName + " has been published.",
+				"type":    "success",
+			})
+		}
 	}()
 
 	return nil
@@ -768,7 +782,14 @@ func (s *service) AdminUnpublishCandidate(ctx context.Context, id string, adminU
 			"full_name":  c.FullName,
 			"event_name": "MUSKOM 2026",
 		}
-		_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "candidate_unpublished", c.Email, payload)
+		if s.notifSvc != nil {
+			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "candidate_unpublished", c.Email, payload)
+			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "candidate_unpublished", "system", map[string]interface{}{
+				"title":   "Candidate Unpublished",
+				"message": c.FullName + " has been unpublished.",
+				"type":    "warning",
+			})
+		}
 	}()
 
 	return nil

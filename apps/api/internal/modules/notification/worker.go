@@ -109,7 +109,7 @@ func (w *Worker) processJob(ctx context.Context, job NotificationJob) {
 	}
 
 	// 4. Send
-	err = provider.Send(ctx, job.Recipient, subject, body)
+	err = provider.Send(ctx, job.Recipient, subject, body, payload)
 
 	// 5. Transition to Final State
 	now := time.Now()

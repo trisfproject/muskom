@@ -1,8 +1,12 @@
 package notification
 
 import (
+	"strconv"
+	"github.com/fasthttp/websocket"
 	"github.com/gofiber/fiber/v3"
+	"github.com/valyala/fasthttp"
 
+	"github.com/trisfproject/muskom/apps/api/platform/realtime"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 )
 
@@ -88,4 +92,116 @@ func (h *Handler) TestSMTP(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to send test email", nil)
 	}
 	return response.SendSuccess(c, fiber.StatusOK, "Test email queued", nil, nil)
+}
+
+var upgrader = websocket.FastHTTPUpgrader{
+	CheckOrigin: func(ctx *fasthttp.RequestCtx) bool { return true }, // Or properly check origin
+}
+
+func (h *Handler) WebSocketHandler(hub *realtime.Hub) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		if websocket.FastHTTPIsWebSocketUpgrade(c.RequestCtx()) {
+			// Extract user from locals if we have auth middleware before this
+			userID := c.Locals("user_id")
+			var uid string
+			if userID != nil {
+				uid = userID.(string)
+			}
+			clientID := c.Query("client_id", "anonymous")
+
+			err := upgrader.Upgrade(c.RequestCtx(), func(conn *websocket.Conn) {
+				client := &realtime.Client{
+					ID:     clientID,
+					UserID: uid,
+					Conn:   conn,
+					Send:   make(chan []byte, 256),
+				}
+				hub.Register() <- client
+				go client.WritePump()
+				client.ReadPump(hub)
+			})
+			return err
+		}
+		return fiber.ErrUpgradeRequired
+	}
+}
+
+func (h *Handler) ListInAppNotifications(c fiber.Ctx) error {
+	var uid *string
+	userID := c.Locals("user_id")
+	if userID != nil {
+		u := userID.(string)
+		uid = &u
+	}
+	
+	limit := 50
+	offset := 0
+	if l := c.Query("limit"); l != "" {
+		if pl, err := strconv.Atoi(l); err == nil && pl > 0 {
+			limit = pl
+		}
+	}
+	if o := c.Query("offset"); o != "" {
+		if po, err := strconv.Atoi(o); err == nil && po >= 0 {
+			offset = po
+		}
+	}
+
+	notifs, total, err := h.service.ListInAppNotifications(c.Context(), uid, limit, offset)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get notifications", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Notifications retrieved", fiber.Map{
+		"items": notifs,
+		"total": total,
+	}, nil)
+}
+
+func (h *Handler) GetUnreadInAppCount(c fiber.Ctx) error {
+	var uid *string
+	userID := c.Locals("user_id")
+	if userID != nil {
+		u := userID.(string)
+		uid = &u
+	}
+
+	count, err := h.service.GetUnreadInAppCount(c.Context(), uid)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get unread count", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Unread count retrieved", fiber.Map{
+		"count": count,
+	}, nil)
+}
+
+func (h *Handler) MarkInAppRead(c fiber.Ctx) error {
+	id := c.Params("id")
+	if err := h.service.MarkInAppRead(c.Context(), id); err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to mark as read", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Notification marked as read", nil, nil)
+}
+
+func (h *Handler) MarkAllInAppRead(c fiber.Ctx) error {
+	var uid *string
+	userID := c.Locals("user_id")
+	if userID != nil {
+		u := userID.(string)
+		uid = &u
+	}
+
+	if err := h.service.MarkAllInAppRead(c.Context(), uid); err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to mark all as read", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "All notifications marked as read", nil, nil)
+}
+
+func (h *Handler) DeleteInAppNotification(c fiber.Ctx) error {
+	id := c.Params("id")
+	if err := h.service.DeleteInAppNotification(c.Context(), id); err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to delete notification", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Notification deleted", nil, nil)
 }
