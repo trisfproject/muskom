@@ -3,26 +3,30 @@ package attendance
 import "time"
 
 type CheckInRequest struct {
-	ParticipantID  string `json:"participant_id" validate:"required"`
-	RegistrationID string `json:"registration_id"` // Alias for backward compatibility
+	ParticipantID      string `json:"participant_id,omitempty"`
+	RegistrationNumber string `json:"registration_number,omitempty"`
 }
 
 type CheckInResponse struct {
-	Success bool `json:"success"`
-	IsNew   bool `json:"is_new"`
+	Success            bool       `json:"success"`
+	IsNew              bool       `json:"is_new"`
+	ParticipantName    string     `json:"participant_name,omitempty"`
+	RegistrationNumber string     `json:"registration_number,omitempty"`
+	CheckedInAt        *time.Time `json:"checked_in_at,omitempty"`
 }
 
 type AttendanceDetailResponse struct {
-	ID            string    `json:"id" db:"id"`
-	ParticipantID string    `json:"participant_id" db:"participant_id"`
-	CheckedInAt   time.Time `json:"checked_in_at" db:"checked_in_at"`
-	CheckedInBy   *string   `json:"checked_in_by,omitempty" db:"checked_in_by"`
-	CreatedAt     time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at" db:"updated_at"`
-	FullName      string    `json:"full_name" db:"full_name"`
-	Email         string    `json:"email" db:"email"`
-	Phone         string    `json:"phone" db:"phone"`
-	Institution   string    `json:"institution" db:"institution"`
+	ID                 string    `json:"id" db:"id"`
+	ParticipantID      string    `json:"participant_id" db:"participant_id"`
+	RegistrationNumber string    `json:"registration_number" db:"registration_number"`
+	CheckedInAt        time.Time `json:"checked_in_at" db:"checked_in_at"`
+	CheckedInBy        *string   `json:"checked_in_by,omitempty" db:"checked_in_by"`
+	CreatedAt          time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at" db:"updated_at"`
+	FullName           string    `json:"full_name" db:"full_name"`
+	Email              string    `json:"email" db:"email"`
+	Phone              string    `json:"phone" db:"phone"`
+	Institution        string    `json:"institution" db:"institution"`
 }
 
 type AttendanceListRequest struct {

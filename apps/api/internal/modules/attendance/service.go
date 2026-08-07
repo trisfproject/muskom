@@ -45,8 +45,16 @@ func (e *ValidationError) Error() string {
 }
 
 func (s *service) CheckIn(ctx context.Context, req *CheckInRequest, operatorID string) (*CheckInResponse, error) {
-	if req.ParticipantID == "" && req.RegistrationID != "" {
-		req.ParticipantID = req.RegistrationID
+	if req.ParticipantID == "" && req.RegistrationNumber != "" {
+		id, err := s.repo.GetParticipantIDByRegNumber(ctx, req.RegistrationNumber)
+		if err != nil {
+			return nil, errors.New("participant not found")
+		}
+		req.ParticipantID = id
+	}
+
+	if req.ParticipantID == "" {
+		return nil, errors.New("participant ID or registration number is required")
 	}
 
 	if errs := s.validator.ValidateStruct(req); len(errs) > 0 {
@@ -58,7 +66,7 @@ func (s *service) CheckIn(ctx context.Context, req *CheckInRequest, operatorID s
 		return nil, errors.New("participant not found")
 	}
 
-	if status != "APPROVED" && status != "Verified" && status != "Pending" {
+	if status != "APPROVED" && status != "Verified" {
 		return nil, errors.New("cannot check-in: participant status is invalid")
 	}
 
@@ -74,7 +82,7 @@ func (s *service) CheckIn(ctx context.Context, req *CheckInRequest, operatorID s
 	}
 
 	if inserted {
-		if err := s.repo.LogAudit(ctx, tx, "attendance", "CHECK_IN_PARTICIPANT", "attendance", req.ParticipantID, "Participant checked in successfully"); err != nil {
+		if err := s.repo.LogAudit(ctx, tx, "attendance", "CHECK_IN_PARTICIPANT", "attendance", req.ParticipantID, "Participant checked in successfully via QR/Manual"); err != nil {
 			return nil, err
 		}
 	}
@@ -83,9 +91,17 @@ func (s *service) CheckIn(ctx context.Context, req *CheckInRequest, operatorID s
 		return nil, err
 	}
 
+	detail, err := s.repo.GetAttendanceDetail(ctx, req.ParticipantID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &CheckInResponse{
-		Success: true,
-		IsNew:   inserted,
+		Success:            true,
+		IsNew:              inserted,
+		ParticipantName:    detail.FullName,
+		RegistrationNumber: detail.RegistrationNumber,
+		CheckedInAt:        &detail.CheckedInAt,
 	}, nil
 }
 

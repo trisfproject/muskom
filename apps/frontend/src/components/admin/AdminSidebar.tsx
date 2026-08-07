@@ -83,6 +83,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
     {
       title: "Operasional",
       items: [
+        { label: "QR Check-in", href: "/admin/checkin", icon: Activity },
         { label: "Verifikasi Berkas", href: "/admin/verifications", icon: ShieldCheck },
         { label: "Presensi Kehadiran", href: "/admin/attendance", icon: UserCheck },
         { label: "Monitor E-Voting", href: "/admin/voting", icon: Activity },

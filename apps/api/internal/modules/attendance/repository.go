@@ -18,6 +18,7 @@ type Repository interface {
 	LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error
 	ListAttendances(ctx context.Context, filter AttendanceListRequest) ([]AttendanceItemResponse, int, error)
 	GetAttendanceByID(ctx context.Context, attendanceID string) (*AttendanceDetailResponse, error)
+	GetParticipantIDByRegNumber(ctx context.Context, regNum string) (string, error)
 }
 
 type repository struct {
@@ -35,11 +36,18 @@ func (r *repository) GetParticipantStatus(ctx context.Context, participantID str
 	return status, err
 }
 
+func (r *repository) GetParticipantIDByRegNumber(ctx context.Context, regNum string) (string, error) {
+	query := `SELECT id FROM participants WHERE registration_number = $1 AND deleted_at IS NULL`
+	var id string
+	err := r.db.GetContext(ctx, &id, query, regNum)
+	return id, err
+}
+
 func (r *repository) GetAttendanceDetail(ctx context.Context, participantID string) (*AttendanceDetailResponse, error) {
 	query := `
 		SELECT 
 			a.id, a.participant_id, a.checked_in_at, a.checked_in_by, a.created_at, a.updated_at,
-			p.full_name, p.email, p.phone, p.company_name as institution
+			p.full_name, p.email, p.phone, p.company_name as institution, p.registration_number
 		FROM attendance a
 		JOIN participants p ON a.participant_id = p.id
 		WHERE a.participant_id = $1 AND a.undone_at IS NULL AND p.deleted_at IS NULL

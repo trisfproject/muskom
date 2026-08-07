@@ -5,9 +5,9 @@ export function useCheckIn() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (registrationId: string) => {
-      const res = await api.post('/admin/attendance/check-in', {
-        registration_id: registrationId,
+    mutationFn: async (registrationNumber: string) => {
+      const res = await api.post('/admin/checkin', {
+        registration_number: registrationNumber,
       });
       return res.data?.data ?? res.data;
     },
