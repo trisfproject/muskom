@@ -2,8 +2,15 @@ package website
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"io"
+	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"go.uber.org/zap"
 )
 
@@ -58,6 +65,9 @@ type Service interface {
 	CreateAdminInformationPage(ctx context.Context, req *CreateInformationPageRequest) (*WebsiteInformationPage, error)
 	UpdateAdminInformationPage(ctx context.Context, id string, req *UpdateInformationPageRequest) (*WebsiteInformationPage, error)
 	DeleteAdminInformationPage(ctx context.Context, id string) error
+
+	// Media Upload
+	UploadMedia(ctx context.Context, file io.Reader, filename, folder string) (*MediaUploadResponse, error)
 }
 
 type service struct {
@@ -66,6 +76,7 @@ type service struct {
 	mapper    *Mapper
 	validator *Validator
 	logger    *zap.Logger
+	storage   storage.Storage
 }
 
 func NewService(repo Repository, cache Cache, mapper *Mapper, validator *Validator, logger *zap.Logger, opts ...ServiceOption) Service {
@@ -84,6 +95,14 @@ func NewService(repo Repository, cache Cache, mapper *Mapper, validator *Validat
 
 // ServiceOption allows injecting optional dependencies into the website service.
 type ServiceOption func(*service)
+
+// WithStorage configures storage for the website service.
+func WithStorage(strg storage.Storage) ServiceOption {
+	return func(s *service) {
+		s.storage = strg
+	}
+}
+
 
 // ----------------------------------------------------------------------------
 // Shared Helpers
@@ -814,3 +833,36 @@ func (s *service) DeleteAdminInformationPage(ctx context.Context, id string) err
 	}
 	return err
 }
+
+func (s *service) UploadMedia(ctx context.Context, file io.Reader, filename, folder string) (*MediaUploadResponse, error) {
+	if s.storage == nil {
+		return nil, errors.New("storage provider not configured")
+	}
+
+	ext := filepath.Ext(filename)
+	if ext == "" {
+		ext = ".png"
+	}
+	cleanFolder := strings.Trim(folder, "/")
+	if cleanFolder == "" {
+		cleanFolder = "website"
+	}
+
+	baseName := strings.TrimSuffix(filepath.Base(filename), ext)
+	baseName = strings.ReplaceAll(baseName, " ", "_")
+	uniqueName := fmt.Sprintf("%s_%s%s", baseName, uuid.New().String()[:8], ext)
+	storagePath := fmt.Sprintf("%s/%s", cleanFolder, uniqueName)
+
+	info, err := s.storage.Upload(ctx, file, storagePath)
+	if err != nil {
+		s.logger.Error("Failed to upload media", zap.Error(err))
+		return nil, fmt.Errorf("failed to upload media: %w", err)
+	}
+
+	return &MediaUploadResponse{
+		Path: info.Path,
+		URL:  s.storage.URL(info.Path),
+		Size: info.Size,
+	}, nil
+}
+

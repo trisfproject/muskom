@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -97,6 +98,14 @@ func main() {
 
 	// 6.5. RBAC Initialization
 	checker, authSvc := rbac.InitRBAC(db, log)
+
+	// Static Files (Uploads)
+	app.Get("/uploads/*", func(c fiber.Ctx) error {
+		path := c.Params("*")
+		cleanPath := filepath.Clean("/" + path)
+		fullPath := filepath.Join(cfg.StorageRoot, cleanPath)
+		return c.SendFile(fullPath)
+	})
 
 	// 7. Routes
 	v1 := app.Group("/api/v1")

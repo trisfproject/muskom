@@ -278,4 +278,18 @@ export const websiteService = {
       throw err;
     }
   },
+
+  // Media Upload
+  async uploadMedia(file: File, folder: string = "website"): Promise<{ path: string; url: string; size: number }> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", folder);
+    const res = await api.post("/admin/website/media/upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data.data;
+  },
 };
+

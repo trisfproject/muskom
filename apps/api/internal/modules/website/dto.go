@@ -303,3 +303,10 @@ type UpdateInformationPageRequest struct {
 	Content     string `json:"content" validate:"required"`
 	IsPublished bool   `json:"is_published"`
 }
+
+type MediaUploadResponse struct {
+	Path string `json:"path"`
+	URL  string `json:"url"`
+	Size int64  `json:"size"`
+}
+

@@ -37,8 +37,11 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, redisClient *redis.Clien
 	cache := NewRedisCache(redisClient, log)
 	mapper := NewMapper(strg)
 	v := NewValidator()
-	svc := NewService(repo, cache, mapper, v, log)
+	svc := NewService(repo, cache, mapper, v, log, WithStorage(strg))
 	handler := NewHandler(svc, val)
+
+	// Media Upload
+	router.Post("/media/upload", handler.UploadMedia)
 
 	// General
 	router.Get("/general", handler.GetAdminGeneral)

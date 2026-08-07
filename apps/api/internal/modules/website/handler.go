@@ -422,3 +422,33 @@ func (h *Handler) DeleteAdminInformationPage(c fiber.Ctx) error {
 	}
 	return response.SendSuccess(c, fiber.StatusOK, "Information page deleted successfully", nil, nil)
 }
+
+// ----------------------------------------------------------------------------
+// Admin Handlers: Media Upload
+// ----------------------------------------------------------------------------
+
+func (h *Handler) UploadMedia(c fiber.Ctx) error {
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "No file uploaded (field 'file' is required)", nil)
+	}
+
+	folder := c.FormValue("folder")
+	if folder == "" {
+		folder = "website"
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to open uploaded file", nil)
+	}
+	defer file.Close()
+
+	res, err := h.service.UploadMedia(c.Context(), file, fileHeader.Filename, folder)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, err.Error(), nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Media uploaded successfully", res, nil)
+}
+
