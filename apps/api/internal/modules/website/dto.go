@@ -141,7 +141,6 @@ type PublicCandidateDTO struct {
 	Biography      *string `json:"biography,omitempty"`
 	Mission        *string `json:"mission,omitempty"`
 	Organization   *string `json:"organization,omitempty"`
-	MusyawarahID   *string `json:"omitempty"`
 }
 
 type WebsiteFooterDTO struct {

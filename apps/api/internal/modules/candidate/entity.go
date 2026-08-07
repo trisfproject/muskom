@@ -25,7 +25,6 @@ const (
 // Candidate represents a candidate for Musyawarah.
 type Candidate struct {
 	ID                 string  `db:"id"`
-	MusyawarahID       string  `db:"musyawarah_id"`
 	RegistrationNumber string  `db:"registration_number"`
 	FullName           string  `db:"full_name"`
 	Nickname           *string `db:"nickname"`

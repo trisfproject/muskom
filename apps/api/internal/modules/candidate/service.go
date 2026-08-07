@@ -36,7 +36,7 @@ type Service interface {
 	StreamDocument(ctx context.Context, candidateID string, docID string) (io.ReadCloser, string, error)
 
 	// Admin methods
-	AdminListCandidates(ctx context.Context, statusFilter string, musyawarahFilter string, search string) ([]CandidateResponse, error)
+	AdminListCandidates(ctx context.Context, statusFilter string, search string) ([]CandidateResponse, error)
 	AdminDeleteCandidate(ctx context.Context, id string, adminUserID string) error
 	AdminBulkDeleteCandidates(ctx context.Context, ids []string, adminUserID string) error
 	AdminVerifyCandidate(ctx context.Context, id string, req AdminVerifyCandidateRequest, adminUserID string) error
@@ -72,9 +72,6 @@ func NewService(repo Repository, auditService audit.AuditService, st storage.Sto
 func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*CandidateResponse, error) {
 	// Generate unique registration number
 	prefix := "MUS"
-	if len(req.MusyawarahID) >= 4 {
-		prefix = req.MusyawarahID[:4]
-	}
 	regNum := fmt.Sprintf("CAN-%s-%s", strings.ToUpper(prefix), strings.ToUpper(uuid.New().String()[:8]))
 
 	status := StatusDraft
@@ -113,7 +110,6 @@ func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*Cand
 	}
 
 	c := &Candidate{
-		MusyawarahID:       req.MusyawarahID,
 		RegistrationNumber: regNum,
 		FullName:           req.FullName,
 		Nickname:           req.Nickname,
@@ -374,7 +370,6 @@ func (s *service) mapToResponse(c *Candidate) CandidateResponse {
 
 	return CandidateResponse{
 		ID:                 c.ID,
-		MusyawarahID:       c.MusyawarahID,
 		RegistrationNumber: c.RegistrationNumber,
 		FullName:           c.FullName,
 		Nickname:           c.Nickname,
@@ -584,8 +579,8 @@ func (s *service) StreamDocument(ctx context.Context, candidateID string, docID 
 }
 
 // Admin Methods
-func (s *service) AdminListCandidates(ctx context.Context, statusFilter string, musyawarahFilter string, search string) ([]CandidateResponse, error) {
-	candidates, err := s.repo.AdminListCandidates(ctx, statusFilter, musyawarahFilter, search)
+func (s *service) AdminListCandidates(ctx context.Context, statusFilter string, search string) ([]CandidateResponse, error) {
+	candidates, err := s.repo.AdminListCandidates(ctx, statusFilter, search)
 	if err != nil {
 		return nil, err
 	}

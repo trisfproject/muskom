@@ -2,7 +2,6 @@ import api from "@/lib/api";
 
 export interface CandidateAdminResponse {
   id: string;
-  musyawarah_id: string;
   registration_number: string;
   full_name: string;
   nickname?: string;
@@ -49,7 +48,6 @@ export const candidateAdminService = {
   // Get all candidates with filters
   getCandidates: async (params?: {
     status?: string;
-    musyawarah_id?: string;
     search?: string;
   }) => {
     const { data } = await api.get<{ data: CandidateAdminResponse[] }>(

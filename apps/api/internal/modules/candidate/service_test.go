@@ -93,7 +93,6 @@ func TestService_Create(t *testing.T) {
 		GetByIDFunc: func(ctx context.Context, id string) (*Candidate, error) {
 			return &Candidate{
 				ID:                 "test-uuid",
-				MusyawarahID:       "c1a25176-0bf1-477c-9b55-d36cda7a7605",
 				RegistrationNumber: "CAN-M-1-ABC",
 				FullName:           "John Doe",
 				Email:              "john@example.com",
@@ -111,10 +110,9 @@ func TestService_Create(t *testing.T) {
 	svc := NewService(repo, auditSvc, st, 5*1024*1024, cfg, log)
 
 	req := CreateCandidateRequest{
-		MusyawarahID: "c1a25176-0bf1-477c-9b55-d36cda7a7605",
-		FullName:     "John Doe",
-		Email:        "john@example.com",
-		Phone:        "123",
+		FullName: "John Doe",
+		Email:    "john@example.com",
+		Phone:    "123",
 	}
 
 	res, err := svc.Create(context.Background(), req)

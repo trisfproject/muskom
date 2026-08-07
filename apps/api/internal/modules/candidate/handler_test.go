@@ -56,10 +56,9 @@ func TestHandler_Create_Success(t *testing.T) {
 	app := setupTestApp(svc)
 
 	reqBody := CreateCandidateRequest{
-		MusyawarahID: "c1a25176-0bf1-477c-9b55-d36cda7a7605",
-		FullName:     "John Doe",
-		Email:        "test@test.com",
-		Phone:        "123",
+		FullName: "John Doe",
+		Email:    "test@test.com",
+		Phone:    "123",
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 

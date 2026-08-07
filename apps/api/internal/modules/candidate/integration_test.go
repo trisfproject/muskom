@@ -17,7 +17,6 @@ import (
 func TestIntegration_CandidateFlow(t *testing.T) {
 	// Simple in-memory state for mock
 	mockCandidate := &Candidate{
-		MusyawarahID:       "c1a25176-0bf1-477c-9b55-d36cda7a7605",
 		RegistrationNumber: "CAN-M-1-ABC",
 		FullName:           "John Doe",
 		Email:              "john@example.com",
@@ -78,10 +77,9 @@ func TestIntegration_CandidateFlow(t *testing.T) {
 
 	// 1. Create Candidate
 	reqBody := CreateCandidateRequest{
-		MusyawarahID: "c1a25176-0bf1-477c-9b55-d36cda7a7605",
-		FullName:     "John Doe",
-		Email:        "john@example.com",
-		Phone:        "123",
+		FullName: "John Doe",
+		Email:    "john@example.com",
+		Phone:    "123",
 	}
 	bodyBytes, _ := json.Marshal(reqBody)
 	req1 := httptest.NewRequest("POST", "/candidates", bytes.NewReader(bodyBytes))

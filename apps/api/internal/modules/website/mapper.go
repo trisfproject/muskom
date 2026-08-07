@@ -201,7 +201,6 @@ func (m *Mapper) MapCandidate(c *CandidateEntity) PublicCandidateDTO {
 		Biography:      c.Biography,
 		Mission:        c.Mission,
 		Organization:   c.Organization,
-		MusyawarahID:   c.MusyawarahID,
 		PhotoURL:       photoURL,
 	}
 }

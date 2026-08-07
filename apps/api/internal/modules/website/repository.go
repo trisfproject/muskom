@@ -17,7 +17,6 @@ type CandidateEntity struct {
 	Biography      *string `db:"biography"`
 	Mission        *string `db:"mission"`
 	Organization   *string `db:"organization"`
-	MusyawarahID   *string `db:"musyawarah_id"`
 	PhotoPath      *string `db:"photo_path"`
 }
 

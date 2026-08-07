@@ -6,8 +6,7 @@ import (
 
 // CreateCandidateRequest represents the payload for creating a new candidate.
 type CreateCandidateRequest struct {
-	MusyawarahID string  `json:"musyawarah_id" validate:"omitempty,uuid"`
-	FullName     string  `json:"full_name" validate:"required,max=255"`
+	FullName string  `json:"full_name" validate:"required,max=255"`
 	Nickname     *string `json:"nickname" validate:"omitempty,max=100"`
 	Email        string  `json:"email" validate:"required,email,max=255"`
 	Phone        string  `json:"phone" validate:"required,max=50"`
@@ -82,7 +81,6 @@ type PatchCandidateRequest struct {
 // CandidateResponse represents the response payload for a candidate.
 type CandidateResponse struct {
 	ID                 string  `json:"id"`
-	MusyawarahID       string  `json:"musyawarah_id"`
 	RegistrationNumber string  `json:"registration_number"`
 	FullName           string  `json:"full_name"`
 	Nickname           *string `json:"nickname,omitempty"`

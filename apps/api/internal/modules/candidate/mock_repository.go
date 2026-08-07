@@ -15,7 +15,7 @@ type MockRepository struct {
 	GetDocumentByIDFunc                func(ctx context.Context, id string) (*CandidateDocument, error)
 	FindDocumentsByCandidateIDFunc     func(ctx context.Context, candidateID string) ([]CandidateDocument, error)
 	DeleteDocumentFunc                 func(ctx context.Context, id string) error
-	AdminListCandidatesFunc            func(ctx context.Context, statusFilter string, musyawarahFilter string, search string) ([]Candidate, error)
+	AdminListCandidatesFunc            func(ctx context.Context, statusFilter string, search string) ([]Candidate, error)
 	AdminUpdateStatusFunc              func(ctx context.Context, id string, status string, notes *string) error
 	AdminUpdateDocumentStatusFunc      func(ctx context.Context, docID string, status string, notes *string) error
 	AdminUpdatePublicationStatusFunc   func(ctx context.Context, id string, status string) error
@@ -93,9 +93,9 @@ func (m *MockRepository) DeleteDocument(ctx context.Context, id string) error {
 	return nil
 }
 
-func (m *MockRepository) AdminListCandidates(ctx context.Context, statusFilter string, musyawarahFilter string, search string) ([]Candidate, error) {
+func (m *MockRepository) AdminListCandidates(ctx context.Context, statusFilter string, search string) ([]Candidate, error) {
 	if m.AdminListCandidatesFunc != nil {
-		return m.AdminListCandidatesFunc(ctx, statusFilter, musyawarahFilter, search)
+		return m.AdminListCandidatesFunc(ctx, statusFilter, search)
 	}
 	return nil, nil
 }
