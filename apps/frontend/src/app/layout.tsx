@@ -4,6 +4,7 @@ import "./globals.css"
 import { QueryProvider } from "@/providers/QueryProvider"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { ConfigProvider } from "@/contexts/ConfigContext"
+import { NotificationProvider } from "@/contexts/NotificationContext"
 import { Toaster } from "sonner"
 
 const inter = Inter({
@@ -87,15 +88,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body suppressHydrationWarning>
         <ConfigProvider>
           <AuthProvider>
-            <QueryProvider>
-              {children}
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  style: { background: "#0f172a", border: "1px solid rgba(255,255,255,0.08)", color: "#f8fafc" },
-                }}
-              />
-            </QueryProvider>
+            <NotificationProvider>
+              <QueryProvider>
+                {children}
+                <Toaster
+                  position="top-right"
+                  toastOptions={{
+                    style: { background: "#0f172a", border: "1px solid rgba(255,255,255,0.08)", color: "#f8fafc" },
+                  }}
+                />
+              </QueryProvider>
+            </NotificationProvider>
           </AuthProvider>
         </ConfigProvider>
       </body>

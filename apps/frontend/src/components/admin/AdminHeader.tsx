@@ -7,6 +7,7 @@ import { dashboardService } from "@/services/dashboard";
 import { DashboardData } from "@/types/dashboard";
 import Link from "next/link";
 import { useSystemConfig } from "@/contexts/ConfigContext";
+import { NotificationBell } from "./NotificationBell";
 
 interface AdminHeaderProps {
   onOpenSidebar?: () => void;
@@ -88,45 +89,7 @@ export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
         <div className="h-6 w-px bg-[var(--color-border)] hidden md:block"></div>
 
         {/* Quick Actions / Notifications */}
-        <div className="relative group">
-          <button className="relative p-2 min-h-[44px] min-w-[44px] flex items-center justify-center pg-muted hover:pg-text hover:pg-surface-elevated rounded-full transition-colors">
-            <Bell className="w-5 h-5" />
-            {pendingNotifs > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full border border-slate-950"></span>
-            )}
-          </button>
-
-          {/* Notifications Dropdown (Hover) */}
-          <div className="absolute right-0 mt-2 w-72 pg-surface border border-[var(--color-border)] rounded-xl shadow-xl shadow-black/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all origin-top-right z-50">
-            <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
-              <span className="text-sm font-semibold pg-text">Notifikasi Operasional</span>
-              <span className="text-[10px] font-medium bg-[var(--color-primary)]/10 text-primary px-2 py-0.5 rounded-full">
-                {pendingNotifs} Baru
-              </span>
-            </div>
-            <div className="p-2 max-h-64 overflow-y-auto">
-              {pendingNotifs > 0 && (
-                <Link href="/admin/verifications" className="flex items-start gap-3 p-3 hover:pg-surface-elevated rounded-lg transition-colors group/item">
-                  <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <UserIcon className="w-4 h-4 text-amber-500" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium pg-muted group-hover/item:pg-text transition-colors">
-                      {pendingNotifs} Menunggu Verifikasi
-                    </div>
-                    <div className="text-xs pg-faint mt-0.5">Harap segera tinjau data pendaftaran baru.</div>
-                  </div>
-                </Link>
-              )}
-
-              {pendingNotifs === 0 && (
-                <div className="p-4 text-center text-sm pg-muted">
-                  Tidak ada notifikasi tugas operasional saat ini.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <NotificationBell />
 
         {/* User Profile */}
         <div className="relative group">
