@@ -90,14 +90,14 @@ type CreateParticipantRequest struct {
 type UpdateParticipantRequest struct {
 	RegistrationNumber string  `json:"registration_number" validate:"required"`
 	FullName           string  `json:"full_name" validate:"required"`
-	Nickname           *string `json:"nickname"`
+	Nickname           *string `json:"nickname" validate:"omitempty"`
 
 	Email          string  `json:"email" validate:"required,email"`
 	Phone          string  `json:"phone" validate:"required"`
 	CompanyName    string  `json:"company_name" validate:"required"`
 	IndustrialArea string  `json:"industrial_area" validate:"required"`
 	JobTitle       string  `json:"job_title" validate:"required"`
-	Department     *string `json:"department"`
+	Department     *string `json:"department" validate:"omitempty"`
 }
 
 // UpdateStatusRequest represents the payload for updating a participant's status

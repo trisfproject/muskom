@@ -213,7 +213,12 @@ export default function AdminParticipantsPage() {
       }
       fetchData();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal memperbarui data peserta.");
+      const data = err?.response?.data;
+      if (data?.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+        toast.error(`Validasi gagal: ${data.errors[0].field} ${data.errors[0].message}`);
+      } else {
+        toast.error(data?.message || "Gagal memperbarui data peserta.");
+      }
     } finally {
       setSavingEdit(false);
     }
