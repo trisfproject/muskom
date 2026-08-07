@@ -833,6 +833,12 @@ func (s *service) UploadPhoto(ctx context.Context, candidateID string, filename 
 		return nil, errors.New("invalid file type. Only JPEG, PNG, WebP, and GIF are allowed")
 	}
 
+	s.log.Info("Upload received",
+		zap.String("candidateID", candidateID),
+		zap.String("filename", filename),
+		zap.String("mime", mimeType),
+		zap.Int64("size", size),
+	)
 	img, err := imaging.Decode(bytes.NewReader(fileBytes), imaging.AutoOrientation(true))
 	if err != nil {
 		return nil, fmt.Errorf("failed to process image: %w", err)
@@ -849,15 +855,16 @@ func (s *service) UploadPhoto(ctx context.Context, candidateID string, filename 
 
 	info, err := s.storage.Upload(ctx, bytes.NewReader(processedBuf.Bytes()), storagePath)
 	if err != nil {
-		s.log.Error("Failed to store photo", zap.Error(err))
 		return nil, fmt.Errorf("failed to save photo: %w", err)
 	}
 
 	c.ProfilePhoto = &info.Path
 	err = s.repo.Update(ctx, c)
 	if err != nil {
+		s.log.Error("Failed to update candidate with photo", zap.Error(err))
 		return nil, err
 	}
+	s.log.Info("Database updated", zap.String("candidateID", candidateID))
 
 	res := s.mapToResponse(c)
 	return &res, nil

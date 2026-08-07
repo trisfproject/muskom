@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -41,6 +42,17 @@ func (s *localStorage) Upload(ctx context.Context, file io.Reader, filename stri
 	written, err := io.Copy(out, file)
 	if err != nil {
 		return nil, ErrUploadFailed
+	}
+
+	// STEP 6: Run os.Stat() immediately after save
+	fileInfo, statErr := os.Stat(fullPath)
+	if os.IsNotExist(statErr) {
+		return nil, errors.New("file was not written to disk despite successful copy")
+	}
+	if fileInfo.Size() == 0 {
+		// Just a debug warning, or maybe an error
+		// We'll return an error if it's 0 bytes because it shouldn't be empty
+		return nil, errors.New("file was written but has 0 bytes")
 	}
 
 	return &FileInfo{
