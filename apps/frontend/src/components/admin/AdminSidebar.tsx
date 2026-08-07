@@ -105,6 +105,8 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
         { label: "Manajemen Pengguna", href: "/admin/users", icon: Users },
         { label: "Audit Log", href: "/admin/audit", icon: Activity },
         { label: "Konfigurasi SMTP", href: "/admin/system/smtp", icon: Mail },
+        { label: "Template Email", href: "/admin/system/templates", icon: Mail },
+        { label: "Log Email", href: "/admin/system/email-logs", icon: Activity },
       ],
     },
   ];

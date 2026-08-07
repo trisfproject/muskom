@@ -72,3 +72,19 @@ func (h *Handler) UpdateSession(c fiber.Ctx) error {
 	}
 	return response.SendSuccess(c, fiber.StatusOK, "Voting session updated", session, nil)
 }
+
+func (h *Handler) BroadcastInvitation(c fiber.Ctx) error {
+	err := h.service.BroadcastVotingInvitation(c.Context(), "")
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to broadcast voting invitations", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Voting invitations broadcasted", nil, nil)
+}
+
+func (h *Handler) BroadcastReminder(c fiber.Ctx) error {
+	err := h.service.SendVotingReminder(c.Context(), "")
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to broadcast voting reminders", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Voting reminders broadcasted", nil, nil)
+}

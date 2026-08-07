@@ -100,6 +100,11 @@ func main() {
 	val := validator.New()
 	bus := eventbus.NewSyncBus(log)
 	mailerSvc := mailer.NewSMTPMailer(cfg, log)
+	
+	// Create Notification Service
+	notifRepo := notification.NewRepository(db)
+	notifRegistry := notification.NewProviderRegistry(mailerSvc)
+	notifSvc := notification.NewService(notifRepo, notifRegistry, log)
 
 	// 6.5. RBAC Initialization
 	checker, authSvc := rbac.InitRBAC(db, log)
@@ -131,11 +136,11 @@ func main() {
 	configuration.SetupPublicRoutes(v1.Group("/system/config"), db, redisClient, val, log, cfg, mailerSvc)
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
-	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, redisClient, cfg, log, val, mailerSvc)
+	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, redisClient, cfg, log, val, mailerSvc, notifSvc)
 
 	// Protected Participant Routes
 	participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
-	voting.SetupRoutes(participantGroup, db, log, bus)
+	voting.SetupRoutes(participantGroup, db, log, bus, notifSvc)
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
@@ -143,17 +148,17 @@ func main() {
 	dashboard.SetupAdminRoutes(adminGroup.Group("/dashboard", checker.RequirePermission("audit.view")), db, redisClient, strg, mailerSvc, log)
 	website.SetupAdminRoutes(adminGroup.Group("/website", checker.RequirePermission("website.write")), db, redisClient, strg, val, log, cfg)
 
-	verification.SetupAdminRoutes(adminGroup.Group("/verifications", checker.RequirePermission("participant.approve")), db, log, val)
+	verification.SetupAdminRoutes(adminGroup.Group("/verifications", checker.RequirePermission("participant.approve")), db, log, val, notifSvc)
 	attendance.SetupAdminRoutes(adminGroup.Group("/attendance", checker.RequirePermission("attendance.manage")), db, log, val)
 	attendance.SetupRootAdminRoutes(adminGroup.Group("/", checker.RequirePermission("attendance.manage")), db, log, val)
-	notification.SetupAdminRoutes(adminGroup.Group("/notifications", checker.RequirePermission("notification.send")), db, log)
+	notification.SetupAdminRoutesWithService(adminGroup.Group("/notifications", checker.RequirePermission("notification.send")), notifSvc)
 	audit.SetupAdminRoutes(adminGroup.Group("/audit", checker.RequirePermission("audit.view")), db, log)
 	reporting.SetupAdminRoutes(adminGroup.Group("/reporting", checker.RequirePermission("report.export")), db, log)
-	voting.SetupAdminRoutes(adminGroup.Group("/votes", checker.RequirePermission("voting.manage")), db, log, bus)
+	voting.SetupAdminRoutes(adminGroup.Group("/votes", checker.RequirePermission("voting.manage")), db, log, bus, notifSvc)
 	result.SetupAdminRoutes(adminGroup.Group("/result", checker.RequirePermission("voting.view")), db, log)
 	user.SetupRoutes(adminGroup.Group("/users"), db, log, val, checker)
-	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, log, val, strg, cfg)
-	participant.SetupAdminRoutes(adminGroup.Group("/participants", checker.RequirePermission("participant.approve")), db, log, val, mailerSvc)
+	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, log, val, strg, cfg, notifSvc)
+	participant.SetupAdminRoutes(adminGroup.Group("/participants", checker.RequirePermission("participant.approve")), db, log, val, mailerSvc, notifSvc)
 
 	// 8. Graceful Shutdown
 	go func() {

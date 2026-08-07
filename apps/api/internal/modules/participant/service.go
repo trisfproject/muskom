@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
@@ -44,16 +45,18 @@ type service struct {
 	resolver     website.PhaseResolver
 	auditService audit.AuditService
 	mailer       mailer.Mailer
+	notifSvc     notification.Service
 	rdb          *redis.Client
 	cfg          *config.Config
 }
 
-func NewService(repo Repository, resolver website.PhaseResolver, auditService audit.AuditService, m mailer.Mailer, rdb *redis.Client, cfg *config.Config) Service {
+func NewService(repo Repository, resolver website.PhaseResolver, auditService audit.AuditService, m mailer.Mailer, rdb *redis.Client, cfg *config.Config, notifSvc notification.Service) Service {
 	return &service{
 		repo:         repo,
 		resolver:     resolver,
 		auditService: auditService,
 		mailer:       m,
+		notifSvc:     notifSvc,
 		rdb:          rdb,
 		cfg:          cfg,
 	}
@@ -170,19 +173,26 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 
 	go func() {
 		if req.Status == "Verified" || req.Status == "Approved" {
-			err := s.mailer.SendVerification(p.Email, p.FullName, p.RegistrationNumber, "")
-			if err != nil {
-				_ = err
+			payload := map[string]interface{}{
+				"full_name":           p.FullName,
+				"registration_number": p.RegistrationNumber,
+				"event_name":          "MUSKOM 2026",
+				"participant_lookup_url": fmt.Sprintf("%s/peserta", s.cfg.PublicAppURL),
+				"event_date": "Tanggal Acara", // Placeholder for actual event date
+				"venue": "Lokasi Acara",       // Placeholder for actual venue
 			}
+			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_approved", p.Email, payload)
 		} else if req.Status == "Rejected" {
 			var rsn string
 			if req.Reason != nil {
 				rsn = *req.Reason
 			}
-			err := s.mailer.SendRejection(p.Email, p.FullName, "", rsn)
-			if err != nil {
-				_ = err
+			payload := map[string]interface{}{
+				"full_name":        p.FullName,
+				"event_name":       "MUSKOM 2026",
+				"rejection_reason": rsn,
 			}
+			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_rejected", p.Email, payload)
 		}
 	}()
 
@@ -362,7 +372,18 @@ func (s *service) VerifyEmail(ctx context.Context, tokenString string) error {
 		return nil
 	}
 
-	return s.repo.UpdateStatus(ctx, p.ID, "Pending")
+	err = s.repo.UpdateStatus(ctx, p.ID, "Pending")
+	if err == nil {
+		// Queue Registration Received notification
+		go func() {
+			payload := map[string]interface{}{
+				"full_name":  p.FullName,
+				"event_name": "MUSKOM 2026",
+			}
+			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_submitted", p.Email, payload)
+		}()
+	}
+	return err
 }
 
 func (s *service) ResendVerification(ctx context.Context, email string) error {

@@ -5,6 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
@@ -13,13 +14,13 @@ import (
 )
 
 // SetupAdminRoutes registers participant module routes for admin
-func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, m mailer.Mailer) {
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, m mailer.Mailer, notifSvc notification.Service) {
 	// Initialize Dependencies
 	repo := NewRepository(db)
 	auditRepo := audit.NewRepository(db)
 	auditSvc := audit.NewService(auditRepo, log)
 	resolver := website.NewPhaseResolver(db)
-	svc := NewService(repo, resolver, auditSvc, m, nil, nil)
+	svc := NewService(repo, resolver, auditSvc, m, nil, nil, notifSvc)
 	handler := NewHandler(svc, val)
 
 	// Routes
@@ -35,12 +36,12 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 }
 
 // SetupPublicRoutes registers public participant endpoints
-func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, cfg *config.Config, log *zap.Logger, val *validator.Validator, m mailer.Mailer) {
+func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, cfg *config.Config, log *zap.Logger, val *validator.Validator, m mailer.Mailer, notifSvc notification.Service) {
 	repo := NewRepository(db)
 	auditRepo := audit.NewRepository(db)
 	auditSvc := audit.NewService(auditRepo, log)
 	resolver := website.NewPhaseResolver(db)
-	svc := NewService(repo, resolver, auditSvc, m, rdb, cfg)
+	svc := NewService(repo, resolver, auditSvc, m, rdb, cfg, notifSvc)
 	handler := NewHandler(svc, val)
 
 	router.Get("/stats", handler.GetStats)

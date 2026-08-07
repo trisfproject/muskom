@@ -15,6 +15,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"go.uber.org/zap"
@@ -56,9 +57,10 @@ type service struct {
 	maxUploadSize int64
 	cfg           *config.Config
 	log           *zap.Logger
+	notifSvc      notification.Service
 }
 
-func NewService(repo Repository, auditService audit.AuditService, st storage.Storage, maxUploadSize int64, cfg *config.Config, log *zap.Logger) Service {
+func NewService(repo Repository, auditService audit.AuditService, st storage.Storage, maxUploadSize int64, cfg *config.Config, log *zap.Logger, notifSvc notification.Service) Service {
 	return &service{
 		repo:          repo,
 		auditService:  auditService,
@@ -66,6 +68,7 @@ func NewService(repo Repository, auditService audit.AuditService, st storage.Sto
 		maxUploadSize: maxUploadSize,
 		cfg:           cfg,
 		log:           log,
+		notifSvc:      notifSvc,
 	}
 }
 
@@ -319,6 +322,16 @@ func (s *service) Patch(ctx context.Context, id string, req PatchCandidateReques
 	err = s.repo.Update(ctx, c)
 	if err != nil {
 		return nil, err
+	}
+
+	if oldVal.Status != StatusSubmitted && c.Status == StatusSubmitted {
+		go func() {
+			payload := map[string]interface{}{
+				"full_name":  c.FullName,
+				"event_name": "MUSKOM 2026",
+			}
+			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "candidate_registration_submitted", c.Email, payload)
+		}()
 	}
 
 	c, _ = s.repo.GetByID(ctx, id)
@@ -709,6 +722,15 @@ func (s *service) AdminPublishCandidate(ctx context.Context, id string, adminUse
 		ActorID: &adminUserID,
 	})
 
+	go func() {
+		payload := map[string]interface{}{
+			"full_name":  c.FullName,
+			"event_name": "MUSKOM 2026",
+			"candidate_url": fmt.Sprintf("%s/kandidat/%s", s.cfg.PublicAppURL, c.ID),
+		}
+		_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "candidate_published", c.Email, payload)
+	}()
+
 	return nil
 }
 
@@ -740,6 +762,14 @@ func (s *service) AdminUnpublishCandidate(ctx context.Context, id string, adminU
 		},
 		ActorID: &adminUserID,
 	})
+
+	go func() {
+		payload := map[string]interface{}{
+			"full_name":  c.FullName,
+			"event_name": "MUSKOM 2026",
+		}
+		_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "candidate_unpublished", c.Email, payload)
+	}()
 
 	return nil
 }

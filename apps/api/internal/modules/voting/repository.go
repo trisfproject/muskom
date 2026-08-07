@@ -14,6 +14,9 @@ type Repository interface {
 	GetBallotCandidates(ctx context.Context, eventID string) ([]CandidateSnapshot, error)
 	GetResults(ctx context.Context, eventID string) ([]VoteResult, error)
 	GetTotalCheckedIn(ctx context.Context, eventID string) (int, error)
+
+	GetVerifiedVoterEmails(ctx context.Context, eventID string) ([]string, error)
+	GetUnvotedVerifiedVoterEmails(ctx context.Context, eventID string) ([]string, error)
 }
 
 type repository struct {
@@ -93,4 +96,26 @@ func (r *repository) GetTotalCheckedIn(ctx context.Context, eventID string) (int
 		WHERE a.undone_at IS NULL AND p.deleted_at IS NULL
 	`, eventID)
 	return count, err
+}
+
+func (r *repository) GetVerifiedVoterEmails(ctx context.Context, eventID string) ([]string, error) {
+	var emails []string
+	query := `SELECT email FROM participants WHERE status IN ('Verified', 'VERIFIED', 'Approved', 'APPROVED') AND deleted_at IS NULL AND email IS NOT NULL AND email != ''`
+	err := r.db.SelectContext(ctx, &emails, query)
+	return emails, err
+}
+
+func (r *repository) GetUnvotedVerifiedVoterEmails(ctx context.Context, eventID string) ([]string, error) {
+	var emails []string
+	query := `
+		SELECT p.email 
+		FROM participants p 
+		WHERE p.status IN ('Verified', 'VERIFIED', 'Approved', 'APPROVED') 
+		  AND p.deleted_at IS NULL 
+		  AND p.email IS NOT NULL 
+		  AND p.email != ''
+		  AND p.id NOT IN (SELECT participant_id FROM votes)
+	`
+	err := r.db.SelectContext(ctx, &emails, query)
+	return emails, err
 }

@@ -1,7 +1,10 @@
 package notification
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"html/template"
 	"time"
 
 	"go.uber.org/zap"
@@ -60,16 +63,53 @@ func (w *Worker) processJob(ctx context.Context, job NotificationJob) {
 		return
 	}
 
-	// 3. Render Template (Mocked)
-	body := "Mock Rendered Body"
+	// 3. Render Template
+	tpl, err := w.repo.GetTemplateByID(ctx, job.TemplateID)
+	if err != nil {
+		errMsg := "Template not found: " + err.Error()
+		_ = w.repo.UpdateJobStatus(ctx, job.ID, StatusFailed, &errMsg)
+		w.logHistory(ctx, job, StatusFailed, &errMsg)
+		return
+	}
+
+	var payload map[string]interface{}
+	if job.Payload != nil {
+		_ = json.Unmarshal([]byte(*job.Payload), &payload)
+	}
+
+	// Parse body
+	parsedBody, err := template.New("body").Parse(tpl.Body)
+	if err != nil {
+		errMsg := "Failed to parse body template: " + err.Error()
+		_ = w.repo.UpdateJobStatus(ctx, job.ID, StatusFailed, &errMsg)
+		w.logHistory(ctx, job, StatusFailed, &errMsg)
+		return
+	}
+
+	var bodyBuf bytes.Buffer
+	if err := parsedBody.Execute(&bodyBuf, payload); err != nil {
+		errMsg := "Failed to execute body template: " + err.Error()
+		_ = w.repo.UpdateJobStatus(ctx, job.ID, StatusFailed, &errMsg)
+		w.logHistory(ctx, job, StatusFailed, &errMsg)
+		return
+	}
+	body := bodyBuf.String()
+
+	// Parse subject
 	var subject *string
-	if job.Channel == ChannelEmail {
-		s := "Mock Subject"
-		subject = &s
+	if tpl.Subject != nil {
+		parsedSubj, err := template.New("subject").Parse(*tpl.Subject)
+		if err == nil {
+			var subjBuf bytes.Buffer
+			if err := parsedSubj.Execute(&subjBuf, payload); err == nil {
+				s := subjBuf.String()
+				subject = &s
+			}
+		}
 	}
 
 	// 4. Send
-	err := provider.Send(ctx, job.Recipient, subject, body)
+	err = provider.Send(ctx, job.Recipient, subject, body)
 
 	// 5. Transition to Final State
 	now := time.Now()
@@ -93,7 +133,6 @@ func (w *Worker) logHistory(ctx context.Context, job NotificationJob, status Job
 
 	history := &NotificationHistory{
 		JobID:        &job.ID,
-		EventID:      job.EventID,
 		Channel:      job.Channel,
 		Recipient:    job.Recipient,
 		Status:       status,

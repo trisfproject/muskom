@@ -2,8 +2,8 @@ package notification
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
-	"strings"
 
 	"go.uber.org/zap"
 )
@@ -14,12 +14,14 @@ var (
 )
 
 type Service interface {
-	QueueNotification(ctx context.Context, eventID string, channel Channel, templateName, recipient string, payload *string) error
-	Broadcast(ctx context.Context, eventID string, channel Channel, templateName string, recipients []string, payload *string) error
+	QueueNotification(ctx context.Context, channel Channel, templateName, recipient string, payload map[string]interface{}) error
+	Broadcast(ctx context.Context, channel Channel, templateName string, recipients []string, payload map[string]interface{}) error
 
-	ListJobs(ctx context.Context, eventID string) ([]NotificationJob, error)
-	ListHistory(ctx context.Context, eventID string) ([]NotificationHistory, error)
+	ListJobs(ctx context.Context) ([]NotificationJob, error)
+	ListHistory(ctx context.Context) ([]NotificationHistory, error)
 	ListTemplates(ctx context.Context) ([]NotificationTemplate, error)
+	GetTemplate(ctx context.Context, id string) (*NotificationTemplate, error)
+	UpdateTemplate(ctx context.Context, id string, subject *string, body string) error
 }
 
 type service struct {
@@ -41,59 +43,59 @@ func NewService(repo Repository, providers *ProviderRegistry, log *zap.Logger) S
 	return svc
 }
 
-func (s *service) QueueNotification(ctx context.Context, eventID string, channel Channel, templateName, recipient string, payload *string) error {
+func (s *service) QueueNotification(ctx context.Context, channel Channel, templateName, recipient string, payload map[string]interface{}) error {
 	tpl, err := s.repo.GetTemplateByName(ctx, templateName, channel)
 	if err != nil {
-		// Mock auto-provisioning for architecture test
-		tpl = &NotificationTemplate{
-			ID: "mock-tpl-id", // Note: This will fail real FK constraints unless inserted.
-			// In a real system, we'd insert it if it doesn't exist for the mock.
-			// But since we just need the architecture to compile and run, we'll bypass actual DB insertion for this strict mock.
-		}
-		// return ErrTemplateNotFound (Commented out to allow mock execution without pre-seeding)
+		s.log.Error("Template not found", zap.String("name", templateName), zap.Error(err))
+		return ErrTemplateNotFound
+	}
+
+	var payloadStr *string
+	if payload != nil {
+		b, _ := json.Marshal(payload)
+		str := string(b)
+		payloadStr = &str
 	}
 
 	job := &NotificationJob{
-		EventID:    eventID,
 		TemplateID: tpl.ID,
 		Channel:    channel,
 		Recipient:  recipient,
-		Payload:    payload,
+		Payload:    payloadStr,
 		Status:     StatusPending,
 	}
 
 	err = s.repo.CreateJob(ctx, job)
 	if err != nil {
-		// If FK fails due to mock template, we just log it and pretend it queued for the sake of RC2 architecture demo.
-		s.log.Warn("Failed to insert job natively, relying on mock worker flow", zap.Error(err))
+		s.log.Error("Failed to queue notification", zap.Error(err))
+		return err
 	}
 	return nil
 }
 
-func (s *service) Broadcast(ctx context.Context, eventID string, channel Channel, templateName string, recipients []string, payload *string) error {
+func (s *service) Broadcast(ctx context.Context, channel Channel, templateName string, recipients []string, payload map[string]interface{}) error {
 	for _, r := range recipients {
-		_ = s.QueueNotification(ctx, eventID, channel, templateName, r, payload)
+		_ = s.QueueNotification(ctx, channel, templateName, r, payload)
 	}
 	return nil
 }
 
-func (s *service) ListJobs(ctx context.Context, eventID string) ([]NotificationJob, error) {
-	return s.repo.ListJobs(ctx, eventID)
+func (s *service) ListJobs(ctx context.Context) ([]NotificationJob, error) {
+	return s.repo.ListJobs(ctx, "")
 }
 
-func (s *service) ListHistory(ctx context.Context, eventID string) ([]NotificationHistory, error) {
-	return s.repo.ListHistory(ctx, eventID)
+func (s *service) ListHistory(ctx context.Context) ([]NotificationHistory, error) {
+	return s.repo.ListHistory(ctx, "")
 }
 
 func (s *service) ListTemplates(ctx context.Context) ([]NotificationTemplate, error) {
 	return s.repo.ListTemplates(ctx)
 }
 
-// Basic Template Renderer
-func renderTemplate(body string, payload *string) string {
-	// Simple string replacement mock
-	if payload != nil {
-		return strings.ReplaceAll(body, "{{payload}}", *payload)
-	}
-	return body
+func (s *service) GetTemplate(ctx context.Context, id string) (*NotificationTemplate, error) {
+	return s.repo.GetTemplateByID(ctx, id)
+}
+
+func (s *service) UpdateTemplate(ctx context.Context, id string, subject *string, body string) error {
+	return s.repo.UpdateTemplate(ctx, id, subject, body)
 }

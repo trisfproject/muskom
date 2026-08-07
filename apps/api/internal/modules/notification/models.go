@@ -22,7 +22,6 @@ const (
 
 type NotificationTemplate struct {
 	ID        string    `json:"id" db:"id"`
-	EventID   *string   `json:"event_id" db:"event_id"`
 	Name      string    `json:"name" db:"name"`
 	Channel   Channel   `json:"channel" db:"channel"`
 	Subject   *string   `json:"subject" db:"subject"`
@@ -32,7 +31,6 @@ type NotificationTemplate struct {
 
 type NotificationJob struct {
 	ID           string    `json:"id" db:"id"`
-	EventID      string    `json:"event_id" db:"event_id"`
 	TemplateID   string    `json:"template_id" db:"template_id"`
 	Channel      Channel   `json:"channel" db:"channel"`
 	Recipient    string    `json:"recipient" db:"recipient"`
@@ -47,7 +45,6 @@ type NotificationJob struct {
 type NotificationHistory struct {
 	ID           string     `json:"id" db:"id"`
 	JobID        *string    `json:"job_id" db:"job_id"`
-	EventID      string     `json:"event_id" db:"event_id"`
 	Channel      Channel    `json:"channel" db:"channel"`
 	Recipient    string     `json:"recipient" db:"recipient"`
 	Status       JobStatus  `json:"status" db:"status"`

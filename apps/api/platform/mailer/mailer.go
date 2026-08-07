@@ -18,6 +18,7 @@ type Mailer interface {
 	SendRejection(to, participantName, musyawarahName, reason string) error
 	SendTestEmail(to string) error
 	TestConnection() error
+	SendRaw(to, subject, bodyHTML string) error
 }
 
 type smtpMailer struct {
@@ -287,6 +288,29 @@ func (m *smtpMailer) SendTestEmail(to string) error {
 	}
 
 	return m.sendSMTP(to, body.Bytes())
+}
+
+func (m *smtpMailer) SendRaw(to, subject, bodyHTML string) error {
+	if !m.cfg.MailEnabled {
+		m.log.Info("Mail is disabled, skipping SendRaw", zap.String("to", to))
+		return nil
+	}
+
+	var body bytes.Buffer
+	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
+	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", m.cfg.SmtpFromName, m.cfg.SmtpFrom))
+	body.WriteString(fmt.Sprintf("Subject: %s\r\n", subject))
+	body.WriteString("MIME-version: 1.0;\r\n")
+	body.WriteString("Content-Type: text/html; charset=\"UTF-8\";\r\n\r\n")
+	body.WriteString(bodyHTML)
+
+	if err := m.sendSMTP(to, body.Bytes()); err != nil {
+		m.log.Error("Failed to send raw email", zap.Error(err))
+		return err
+	}
+
+	m.log.Info("Raw email sent successfully", zap.String("to", to))
+	return nil
 }
 
 func (m *smtpMailer) sendSMTP(to string, body []byte) error {

@@ -3,13 +3,14 @@ package voting
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
 	"go.uber.org/zap"
 )
 
-func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus.EventDispatcher) {
+func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus.EventDispatcher, notifSvc notification.Service) {
 	repo := NewRepository(db)
-	svc := NewService(db, repo, bus, log)
+	svc := NewService(db, repo, bus, log, notifSvc)
 	handler := NewHandler(svc)
 
 	// Public / Voter Routes
@@ -17,9 +18,9 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus
 	router.Post("/cast", handler.CastVote)
 }
 
-func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus.EventDispatcher) {
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus.EventDispatcher, notifSvc notification.Service) {
 	repo := NewRepository(db)
-	svc := NewService(db, repo, bus, log)
+	svc := NewService(db, repo, bus, log, notifSvc)
 	handler := NewHandler(svc)
 
 	// Admin / Operator Routes
@@ -27,4 +28,7 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eve
 	router.Get("/session", handler.GetSession)
 	router.Post("/session/:action", handler.UpdateSession)
 	router.Put("/session/:action", handler.UpdateSession)
+	
+	router.Post("/broadcast-invitation", handler.BroadcastInvitation)
+	router.Post("/broadcast-reminder", handler.BroadcastReminder)
 }

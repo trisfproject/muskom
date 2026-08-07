@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
 	"go.uber.org/zap"
@@ -23,6 +24,9 @@ type Service interface {
 	GetSummary(ctx context.Context, eventID string) (*VoteSummary, error)
 	GetSession(ctx context.Context, eventID string) (*VotingSession, error)
 	UpdateSessionStatus(ctx context.Context, eventID string, action string) (*VotingSession, error)
+
+	BroadcastVotingInvitation(ctx context.Context, eventID string) error
+	SendVotingReminder(ctx context.Context, eventID string) error
 }
 
 type service struct {
@@ -31,10 +35,11 @@ type service struct {
 	bus      eventbus.EventDispatcher
 	log      *zap.Logger
 	resolver website.PhaseResolver
+	notifSvc notification.Service
 }
 
-func NewService(db *sqlx.DB, repo Repository, bus eventbus.EventDispatcher, log *zap.Logger) Service {
-	return &service{db: db, repo: repo, bus: bus, log: log, resolver: website.NewPhaseResolver(db)}
+func NewService(db *sqlx.DB, repo Repository, bus eventbus.EventDispatcher, log *zap.Logger, notifSvc notification.Service) Service {
+	return &service{db: db, repo: repo, bus: bus, log: log, resolver: website.NewPhaseResolver(db), notifSvc: notifSvc}
 }
 
 func (s *service) GetBallot(ctx context.Context, eventID string) (*Ballot, error) {
@@ -161,4 +166,28 @@ func (s *service) UpdateSessionStatus(ctx context.Context, eventID string, actio
 		EventID: eventID,
 		Status:  status,
 	}, nil
+}
+
+func (s *service) BroadcastVotingInvitation(ctx context.Context, eventID string) error {
+	emails, err := s.repo.GetVerifiedVoterEmails(ctx, eventID)
+	if err != nil {
+		return err
+	}
+	payload := map[string]interface{}{
+		"event_name": "MUSKOM 2026",
+		"voting_url": "http://localhost:3000/voting", // Example URL
+	}
+	return s.notifSvc.Broadcast(ctx, notification.ChannelEmail, "voting_invitation", emails, payload)
+}
+
+func (s *service) SendVotingReminder(ctx context.Context, eventID string) error {
+	emails, err := s.repo.GetUnvotedVerifiedVoterEmails(ctx, eventID)
+	if err != nil {
+		return err
+	}
+	payload := map[string]interface{}{
+		"event_name": "MUSKOM 2026",
+		"voting_url": "http://localhost:3000/voting",
+	}
+	return s.notifSvc.Broadcast(ctx, notification.ChannelEmail, "voting_reminder", emails, payload)
 }

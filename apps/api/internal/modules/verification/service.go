@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"go.uber.org/zap"
@@ -25,13 +26,15 @@ type service struct {
 	repo      Repository
 	log       *zap.Logger
 	validator *validator.Validator
+	notifSvc  notification.Service
 }
 
-func NewService(repo Repository, log *zap.Logger, val *validator.Validator) Service {
+func NewService(repo Repository, log *zap.Logger, val *validator.Validator, notifSvc notification.Service) Service {
 	return &service{
 		repo:      repo,
 		log:       log,
 		validator: val,
+		notifSvc:  notifSvc,
 	}
 }
 
@@ -153,7 +156,42 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 		return err
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// Queue notifications
+	go func() {
+		ctxBG := context.Background()
+		if req.Status == "APPROVED" {
+			rn := ""
+			if regNumber != nil {
+				rn = *regNumber
+			}
+			payload := map[string]interface{}{
+				"full_name":           detail.FullName,
+				"registration_number": rn,
+				"event_name":          "MUSKOM 2026",
+				"participant_lookup_url": "http://localhost:3000/peserta", // Should come from config in a real app
+				"event_date": "Tanggal Acara", // Placeholder
+				"venue": "Lokasi Acara",       // Placeholder
+			}
+			_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "participant_registration_approved", detail.Email, payload)
+		} else if req.Status == "REJECTED" {
+			rsn := ""
+			if req.RejectionReason != nil {
+				rsn = *req.RejectionReason
+			}
+			payload := map[string]interface{}{
+				"full_name":        detail.FullName,
+				"event_name":       "MUSKOM 2026",
+				"rejection_reason": rsn,
+			}
+			_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "participant_registration_rejected", detail.Email, payload)
+		}
+	}()
+
+	return nil
 }
 
 func (s *service) GetCandidateVerification(ctx context.Context, id string) (*CandidateDetailResponse, error) {
@@ -198,5 +236,33 @@ func (s *service) VerifyCandidate(ctx context.Context, id string, req *VerifyCan
 		return err
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// Queue notifications
+	go func() {
+		ctxBG := context.Background()
+		if req.Status == "ACCEPTED" {
+			payload := map[string]interface{}{
+				"full_name":  detail.FullName,
+				"event_name": "MUSKOM 2026",
+				"candidate_number": "TBD", // Candidate number comes later usually
+			}
+			_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "candidate_registration_approved", detail.Email, payload)
+		} else if req.Status == "REJECTED" {
+			rsn := ""
+			if req.Notes != nil {
+				rsn = *req.Notes
+			}
+			payload := map[string]interface{}{
+				"full_name":        detail.FullName,
+				"event_name":       "MUSKOM 2026",
+				"rejection_reason": rsn,
+			}
+			_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "candidate_registration_rejected", detail.Email, payload)
+		}
+	}()
+
+	return nil
 }
