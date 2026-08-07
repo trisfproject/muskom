@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"go.uber.org/zap"
 
+	"github.com/trisfproject/muskom/apps/api/internal/modules/announcement"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/attendance"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
@@ -108,6 +109,13 @@ func main() {
 	notifRegistry := notification.NewProviderRegistry(mailerSvc, hub, notifRepo)
 	notifSvc := notification.NewService(notifRepo, notifRegistry, log)
 
+	// Create Announcement Service
+	annRepo := announcement.NewRepository(db, log)
+	annSvc := announcement.NewService(annRepo, log)
+	annHandler := announcement.NewHandler(annSvc)
+	annWorker := announcement.NewWorker(annRepo, mailerSvc, hub, log)
+	go annWorker.Start(context.Background())
+
 	// 6.5. RBAC Initialization
 	checker, authSvc := rbac.InitRBAC(db, log)
 
@@ -161,6 +169,8 @@ func main() {
 	user.SetupRoutes(adminGroup.Group("/users"), db, log, val, checker)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, log, val, strg, cfg, notifSvc)
 	participant.SetupAdminRoutes(adminGroup.Group("/participants", checker.RequirePermission("participant.approve")), db, log, val, mailerSvc, notifSvc)
+
+	announcement.RegisterRoutes(v1, annHandler, auth.JWTMiddleware(cfg, log), checker.RequirePermission)
 
 	// 8. Graceful Shutdown
 	go func() {

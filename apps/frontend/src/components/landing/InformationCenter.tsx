@@ -131,6 +131,12 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
                 })}
               </div>
             )}
+
+            <div className="mt-6 text-center sm:text-right">
+              <Link href="/pengumuman" className="text-sm font-semibold text-primary hover:text-primary-hover transition-colors inline-flex items-center gap-1">
+                Lihat Semua Pengumuman <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
 
           {/* Right Column: Panduan & Tata Tertib (Official Pages) */}
