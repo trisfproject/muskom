@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -16,6 +17,7 @@ var (
 
 type Service interface {
 	QueueNotification(ctx context.Context, channel Channel, templateName, recipient string, payload map[string]interface{}) error
+	QueueNotificationTx(ctx context.Context, tx *sqlx.Tx, channel Channel, templateName, recipient string, payload map[string]interface{}) error
 	Broadcast(ctx context.Context, channel Channel, templateName string, recipients []string, payload map[string]interface{}) error
 
 	ListJobs(ctx context.Context) ([]NotificationJob, error)
@@ -80,6 +82,36 @@ func (s *service) QueueNotification(ctx context.Context, channel Channel, templa
 	err = s.repo.CreateJob(ctx, job)
 	if err != nil {
 		s.log.Error("Failed to queue notification", zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+func (s *service) QueueNotificationTx(ctx context.Context, tx *sqlx.Tx, channel Channel, templateName, recipient string, payload map[string]interface{}) error {
+	tpl, err := s.repo.GetTemplateByName(ctx, templateName, channel)
+	if err != nil {
+		s.log.Error("Template not found", zap.String("name", templateName), zap.Error(err))
+		return ErrTemplateNotFound
+	}
+
+	var payloadStr *string
+	if payload != nil {
+		b, _ := json.Marshal(payload)
+		str := string(b)
+		payloadStr = &str
+	}
+
+	job := &NotificationJob{
+		TemplateID: tpl.ID,
+		Channel:    channel,
+		Recipient:  recipient,
+		Payload:    payloadStr,
+		Status:     StatusPending,
+	}
+
+	err = s.repo.CreateJobTx(ctx, tx, job)
+	if err != nil {
+		s.log.Error("Failed to queue notification in transaction", zap.Error(err))
 		return err
 	}
 	return nil

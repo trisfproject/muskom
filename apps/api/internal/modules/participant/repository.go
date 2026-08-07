@@ -32,6 +32,10 @@ type Repository interface {
 	GetCapacitySettings(ctx context.Context) (limit int, mode string, err error)
 	GetRegistrationLimit(ctx context.Context) (*int, error)
 	LookupPublic(ctx context.Context, query string) (*Participant, error)
+	ExecuteTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error
+	GetByIDTx(ctx context.Context, tx *sqlx.Tx, id string) (*Participant, error)
+	UpdateStatusAndNumberTx(ctx context.Context, tx *sqlx.Tx, id string, status string, regNum string) error
+	GetMaxOfficialRegistrationNumberTx(ctx context.Context, tx *sqlx.Tx) (int, error)
 }
 
 type repository struct {
@@ -146,6 +150,64 @@ func (r *repository) UpdateStatus(ctx context.Context, id string, status string)
 		return ErrNotFound
 	}
 	return nil
+}
+
+func (r *repository) ExecuteTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	if err := fn(tx); err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit()
+}
+
+func (r *repository) GetByIDTx(ctx context.Context, tx *sqlx.Tx, id string) (*Participant, error) {
+	query := `SELECT * FROM participants WHERE id = $1 AND deleted_at IS NULL FOR UPDATE`
+	var p Participant
+	err := tx.GetContext(ctx, &p, query, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r *repository) UpdateStatusAndNumberTx(ctx context.Context, tx *sqlx.Tx, id string, status string, regNum string) error {
+	query := `UPDATE participants SET status = $1, registration_number = $2, updated_at = NOW() WHERE id = $3 AND deleted_at IS NULL`
+	res, err := tx.ExecContext(ctx, query, status, regNum, id)
+	if err != nil {
+		return err
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (r *repository) GetMaxOfficialRegistrationNumberTx(ctx context.Context, tx *sqlx.Tx) (int, error) {
+	query := `
+		SELECT COALESCE(
+			MAX(CAST(REGEXP_REPLACE(registration_number, '^MUSKOM-\d{4}-', '') AS INTEGER)), 
+			0
+		) 
+		FROM participants 
+		WHERE registration_number LIKE 'MUSKOM-%'
+	`
+	var max int
+	err := tx.GetContext(ctx, &max, query)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return 0, err
+	}
+	return max, nil
 }
 
 func (r *repository) Delete(ctx context.Context, id string) error {

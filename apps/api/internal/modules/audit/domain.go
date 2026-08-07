@@ -3,6 +3,8 @@ package audit
 import (
 	"context"
 	"time"
+	
+	"github.com/jmoiron/sqlx"
 )
 
 type AuditModule string
@@ -49,12 +51,14 @@ type AuditFilter struct {
 
 type AuditService interface {
 	LogActivityAsync(ctx context.Context, entry AuditEntry)
+	LogActivityTx(ctx context.Context, tx *sqlx.Tx, entry AuditEntry) error
 	Search(ctx context.Context, filter AuditFilter, operatorID string) ([]AuditEntry, int, error)
 	GetByID(ctx context.Context, id string, operatorID string) (*AuditEntry, error)
 }
 
 type AuditRepository interface {
 	Insert(ctx context.Context, entry AuditEntry) error
+	InsertTx(ctx context.Context, tx *sqlx.Tx, entry AuditEntry) error
 	Search(ctx context.Context, filter AuditFilter) ([]AuditEntry, int, error)
 	GetByID(ctx context.Context, id string) (*AuditEntry, error)
 }

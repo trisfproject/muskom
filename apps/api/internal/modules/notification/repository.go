@@ -11,6 +11,7 @@ type Repository interface {
 	GetTemplateByID(ctx context.Context, id string) (*NotificationTemplate, error)
 	CreateTemplate(ctx context.Context, tpl *NotificationTemplate) error
 	CreateJob(ctx context.Context, job *NotificationJob) error
+	CreateJobTx(ctx context.Context, tx *sqlx.Tx, job *NotificationJob) error
 	GetPendingJobs(ctx context.Context, limit int) ([]NotificationJob, error)
 	UpdateJobStatus(ctx context.Context, id string, status JobStatus, errMsg *string) error
 	CreateHistory(ctx context.Context, history *NotificationHistory) error
@@ -69,6 +70,17 @@ func (r *repository) CreateJob(ctx context.Context, job *NotificationJob) error 
 		RETURNING id, created_at, updated_at
 	`
 	return r.db.QueryRowContext(ctx, query,
+		job.TemplateID, job.Channel, job.Recipient, job.Payload, job.Status,
+	).Scan(&job.ID, &job.CreatedAt, &job.UpdatedAt)
+}
+
+func (r *repository) CreateJobTx(ctx context.Context, tx *sqlx.Tx, job *NotificationJob) error {
+	query := `
+		INSERT INTO notification_jobs ( template_id, channel, recipient, payload, status)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, created_at, updated_at
+	`
+	return tx.QueryRowContext(ctx, query,
 		job.TemplateID, job.Channel, job.Recipient, job.Payload, job.Status,
 	).Scan(&job.ID, &job.CreatedAt, &job.UpdatedAt)
 }

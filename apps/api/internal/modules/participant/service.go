@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
@@ -142,6 +143,86 @@ func (s *service) Update(ctx context.Context, id string, req UpdateParticipantRe
 }
 
 func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusRequest) (*Participant, error) {
+	if req.Status == "Verified" || req.Status == "Approved" {
+		var finalP *Participant
+		
+		err := s.repo.ExecuteTx(ctx, func(tx *sqlx.Tx) error {
+			p, err := s.repo.GetByIDTx(ctx, tx, id)
+			if err != nil {
+				return err
+			}
+			oldVal := *p
+
+			if p.Status == "Verified" || p.Status == "Approved" {
+				finalP = p
+				return nil // Already approved
+			}
+
+			// Generate official registration number
+			max, err := s.repo.GetMaxOfficialRegistrationNumberTx(ctx, tx)
+			if err != nil {
+				return err
+			}
+			newRegNum := fmt.Sprintf("MUSKOM-2026-%06d", max+1)
+
+			err = s.repo.UpdateStatusAndNumberTx(ctx, tx, id, req.Status, newRegNum)
+			if err != nil {
+				return err
+			}
+			
+			p.Status = req.Status
+			p.RegistrationNumber = newRegNum
+			finalP = p
+
+			// 5. Queue Approval Email in Tx
+			payload := map[string]interface{}{
+				"full_name":              p.FullName,
+				"registration_number":    p.RegistrationNumber,
+				"event_name":             "MUSKOM 2026",
+				"qr_code":                fmt.Sprintf("%s/api/v1/public/qr/%s.png", s.cfg.AppBaseURL, p.RegistrationNumber),
+				"participant_lookup_url": fmt.Sprintf("%s/peserta", s.cfg.AppBaseURL),
+				"event_date":             "Tanggal Acara",
+				"venue":                  "Lokasi Acara",
+			}
+			if s.notifSvc != nil {
+				err = s.notifSvc.QueueNotificationTx(ctx, tx, notification.ChannelEmail, "participant_registration_approved", p.Email, payload)
+				if err != nil {
+					return err
+				}
+				// Optionally queue in-app (not critical to fail transaction but we'll do it for consistency)
+				_ = s.notifSvc.QueueNotificationTx(ctx, tx, notification.ChannelInApp, "participant_registration_approved", "system", map[string]interface{}{
+					"title":   "Participant Approved",
+					"message": p.FullName + " registration has been approved.",
+					"type":    "success",
+				})
+			}
+
+			// 6. Audit Log in Tx
+			err = s.auditService.LogActivityTx(ctx, tx, audit.AuditEntry{
+				Module:        audit.ModuleParticipant,
+				Entity:        "participants",
+				EntityID:      p.ID,
+				Action:        "UPDATE_STATUS",
+				Reason:        req.Reason,
+				PreviousValue: oldVal,
+				NewValue:      p,
+			})
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			return nil, err
+		}
+		return finalP, nil
+	}
+
+	// For non-approved statuses (e.g. Rejected), we don't need a strict transaction 
+	// for registration number generation since they don't get one. 
+	// We'll keep it simple and just do the update.
 	p, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -167,24 +248,7 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 	})
 
 	go func() {
-		if req.Status == "Verified" || req.Status == "Approved" {
-			payload := map[string]interface{}{
-				"full_name":           p.FullName,
-				"registration_number": p.RegistrationNumber,
-				"event_name":          "MUSKOM 2026",
-				"qr_code":             fmt.Sprintf("%s/api/v1/public/qr/%s.png", s.cfg.AppBaseURL, p.RegistrationNumber),
-				"event_date":          "Tanggal Acara",
-				"venue":               "Lokasi Acara",
-			}
-			if s.notifSvc != nil {
-				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_approved", p.Email, payload)
-				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "participant_registration_approved", "system", map[string]interface{}{
-					"title":   "Participant Approved",
-					"message": p.FullName + " registration has been approved.",
-					"type":    "success",
-				})
-			}
-		} else if req.Status == "Rejected" {
+		if req.Status == "Rejected" {
 			var rsn string
 			if req.Reason != nil {
 				rsn = *req.Reason

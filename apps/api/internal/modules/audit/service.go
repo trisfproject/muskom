@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -27,6 +28,17 @@ func (s *service) LogActivityAsync(ctx context.Context, entry AuditEntry) {
 			}
 		}
 	}(entry)
+}
+
+func (s *service) LogActivityTx(ctx context.Context, tx *sqlx.Tx, entry AuditEntry) error {
+	err := s.repo.InsertTx(ctx, tx, entry)
+	if err != nil {
+		if s.log != nil {
+			s.log.Error("Failed to write audit log in transaction", zap.Error(err), zap.String("module", string(entry.Module)), zap.String("action", string(entry.Action)))
+		}
+		return err
+	}
+	return nil
 }
 
 // In RC2, we only allow access if operator is authenticated. Real authorization checks (e.g. Super Admin)

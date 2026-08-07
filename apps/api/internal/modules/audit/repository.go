@@ -24,6 +24,15 @@ func (r *repository) Insert(ctx context.Context, entry AuditEntry) error {
 	return err
 }
 
+func (r *repository) InsertTx(ctx context.Context, tx *sqlx.Tx, entry AuditEntry) error {
+	query := `
+		INSERT INTO audit_logs (module, entity, entity_id, action, user_id, actor_role, reason, ip_address, user_agent, metadata, previous_value, new_value, correlation_id)
+		VALUES (:module, :entity, :entity_id, :action, :user_id, :actor_role, :reason, :ip_address, :user_agent, :metadata, :previous_value, :new_value, :correlation_id)
+	`
+	_, err := tx.NamedExecContext(ctx, query, entry)
+	return err
+}
+
 func (r *repository) Search(ctx context.Context, filter AuditFilter) ([]AuditEntry, int, error) {
 	page := filter.Page
 	if page < 1 {
