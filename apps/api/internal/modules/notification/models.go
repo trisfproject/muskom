@@ -67,6 +67,7 @@ type NotificationHistory struct {
 	Status       JobStatus  `json:"status" db:"status"`
 	SentAt       *time.Time `json:"sent_at" db:"sent_at"`
 	ErrorMessage *string    `json:"error_message" db:"error_message"`
+	Template     string     `json:"template" db:"template"`
 }
 
 type InAppNotification struct {

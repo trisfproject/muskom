@@ -120,7 +120,32 @@ func (r *repository) ListJobs(ctx context.Context, _ string) ([]NotificationJob,
 
 func (r *repository) ListHistory(ctx context.Context, _ string) ([]NotificationHistory, error) {
 	var history []NotificationHistory
-	query := `SELECT * FROM notification_history ORDER BY sent_at DESC NULLS LAST LIMIT 50`
+	query := `
+		SELECT * FROM (
+			SELECT 
+				id, 
+				NULL::uuid as job_id, 
+				'EMAIL' as channel, 
+				recipient_email as recipient, 
+				status, 
+				COALESCE(sent_at, updated_at) as sent_at, 
+				last_error as error_message,
+				email_type as template
+			FROM email_logs
+			UNION ALL
+			SELECT 
+				id, 
+				job_id, 
+				channel, 
+				recipient, 
+				status, 
+				sent_at, 
+				error_message,
+				'' as template
+			FROM notification_history
+		) as combined_logs
+		ORDER BY sent_at DESC NULLS LAST LIMIT 50
+	`
 	err := r.db.SelectContext(ctx, &history, query)
 	return history, err
 }

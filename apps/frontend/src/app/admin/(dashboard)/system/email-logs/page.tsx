@@ -16,6 +16,7 @@ interface NotificationHistory {
   status: "SENT" | "FAILED";
   sent_at: string;
   error_message?: string;
+  template?: string;
 }
 
 export default function EmailLogsPage() {
@@ -111,6 +112,9 @@ export default function EmailLogsPage() {
                     Penerima
                   </th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider pg-muted">
+                    Template / Jenis
+                  </th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider pg-muted">
                     Status
                   </th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider pg-muted">
@@ -132,6 +136,11 @@ export default function EmailLogsPage() {
                     <td className="px-6 py-4">
                       <div className="text-sm pg-text font-medium truncate max-w-[200px]" title={log.recipient}>
                         {log.recipient}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm pg-text font-medium truncate max-w-[200px]" title={log.template || "-"}>
+                        {log.template || "-"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
