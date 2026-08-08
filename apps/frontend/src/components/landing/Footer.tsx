@@ -193,7 +193,7 @@ export function Footer({ data }: { data?: HomeResponse | null }) {
           </div>
 
           <div className="flex items-center gap-4 mt-4 lg:mt-0">
-            <span>Asas LUBER JURDIL</span>
+            <span>Crafted with ☕ by τяιѕƒ</span>
             <span>•</span>
             <span>Platform E-Voting Digital</span>
           </div>
