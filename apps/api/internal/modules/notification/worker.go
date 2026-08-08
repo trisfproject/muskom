@@ -82,13 +82,17 @@ func (w *Worker) processJob(ctx context.Context, job NotificationJob) {
 	if identity, err := w.repo.GetWebsiteIdentity(ctx); err == nil && identity != nil {
 		if title, ok := identity["website_title"].(string); ok && title != "" {
 			payload["website_title"] = title
-			// Also set legacy variables to ensure backward compatibility and override hardcodes
 			payload["portal_title"] = title
-			payload["event_name"] = title
 		}
 		if comm, ok := identity["community_name"].(string); ok && comm != "" {
 			payload["organization_name"] = comm
 			payload["community_name"] = comm
+		}
+		// Event details
+		if eventName, ok := identity["event_name"].(string); ok && eventName != "" {
+			payload["event_name"] = eventName
+		} else if title, ok := identity["website_title"].(string); ok && title != "" {
+			payload["event_name"] = title // fallback
 		}
 		// Event details
 		if eventDate, ok := identity["event_date"].(string); ok && eventDate != "" {

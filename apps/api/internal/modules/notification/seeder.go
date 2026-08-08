@@ -133,20 +133,22 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
             <div class="text">
                 <p>Selamat!</p>
                 <p>Pendaftaran Anda untuk <strong>{{.website_title}}</strong> telah disetujui oleh panitia.</p>
+                <p>Kami dengan senang hati menyambut kehadiran Anda dalam kegiatan <strong>{{.event_name}}</strong>.</p>
             </div>
             
             <div class="info-card">
                 <div class="info-section">
-                    <p class="info-title">Informasi Peserta</p>
-                    <p class="info-value">Nomor Registrasi: <span style="font-family: monospace; color: #2563eb;">{{.registration_number}}</span></p>
+                    <p class="info-title">INFORMASI ACARA</p>
+                    <p class="info-value" style="font-size: 14px; margin-top: 4px;">Tanggal:<br/>{{.event_date}}</p>
+                    <p class="info-value" style="font-size: 14px; margin-top: 4px;">Waktu:<br/>{{.event_time}}</p>
+                    <p class="info-value" style="font-size: 14px; margin-top: 4px;">Lokasi:<br/>{{.event_location}}</p>
                 </div>
-                <div style="height: 1px; background-color: #e5e7eb; margin: 16px 0;"></div>
-                <div class="info-section">
-                    <p class="info-title">Informasi Acara</p>
-                    <p class="info-value" style="font-size: 14px; margin-top: 4px;">Tanggal: {{.event_date}}</p>
-                    <p class="info-value" style="font-size: 14px; margin-top: 4px;">Waktu: {{.event_time}}</p>
-                    <p class="info-value" style="font-size: 14px; margin-top: 4px;">Lokasi: {{.event_location}}</p>
-                </div>
+            </div>
+
+            <div class="text" style="margin-top: 24px;">
+                <p>Mohon hadir sesuai waktu yang telah ditentukan untuk proses registrasi dan persiapan sebelum acara dimulai.</p>
+                <p>Kami tunggu kehadiran Anda dan sampai jumpa di lokasi acara.</p>
+                <p>Untuk melihat atau mengunduh Kartu Peserta Anda, silakan klik tombol berikut:</p>
             </div>
             
             <div class="cta-container">

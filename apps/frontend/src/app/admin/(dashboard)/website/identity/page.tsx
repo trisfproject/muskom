@@ -111,6 +111,7 @@ export default function AdminWebsiteGeneralPage() {
 
       // 2. Sync System Configuration groups
       await configService.updateConfigGroup("website_identity", formData.website_identity);
+      await configService.updateConfigGroup("event", formData.event);
       await configService.updateConfigGroup("publication", formData.publication);
       await configService.updateConfigGroup("registration", formData.registration);
       await configService.updateConfigGroup("contact", formData.contact);
@@ -264,6 +265,85 @@ export default function AdminWebsiteGeneralPage() {
                   })
                 }
                 className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] resize-none"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Event Information */}
+        <div className="pg-surface border pg-border rounded-2xl p-6">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold pg-text">Informasi Acara</h2>
+              <p className="text-xs pg-muted">Nama kegiatan, tanggal, waktu, dan lokasi acara (digunakan di email & website).</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Nama Kegiatan (Event Name)</label>
+              <input
+                type="text"
+                value={formData.event.event_name}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    event: { ...formData.event, event_name: e.target.value },
+                  })
+                }
+                className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Tanggal Acara</label>
+              <input
+                type="text"
+                placeholder="Contoh: 29 Agustus 2026"
+                value={formData.event.event_date}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    event: { ...formData.event, event_date: e.target.value },
+                  })
+                }
+                className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Waktu Acara</label>
+              <input
+                type="text"
+                placeholder="Contoh: 09:00 WIB"
+                value={formData.event.event_time}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    event: { ...formData.event, event_time: e.target.value },
+                  })
+                }
+                className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                required
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Lokasi Acara</label>
+              <input
+                type="text"
+                placeholder="Contoh: Gedung Serbaguna KOMITKABE"
+                value={formData.event.event_location}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    event: { ...formData.event, event_location: e.target.value },
+                  })
+                }
+                className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors"
                 required
               />
             </div>

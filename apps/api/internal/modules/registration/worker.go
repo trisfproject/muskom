@@ -205,25 +205,21 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 
 	baseURL := w.resolvePublicBaseURL(ctx)
 
+	if baseURL == "" {
+		baseURL = "https://muskom.komitkabe.com" // Safety fallback per requirement
+	}
+	
 	// 6. Build participant lookup URL (always absolute)
 	lookupQuery := regNum
 	if lookupQuery == "" {
 		lookupQuery = regAdmin.Email
 	}
+
 	var lookupURL string
-	if baseURL != "" {
-		if lookupQuery != "" {
-			lookupURL = fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(lookupQuery))
-		} else {
-			lookupURL = fmt.Sprintf("%s/peserta", baseURL)
-		}
+	if lookupQuery != "" {
+		lookupURL = fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(lookupQuery))
 	} else {
-		// baseURL unknown — still provide relative URL so link is functional on-domain
-		if lookupQuery != "" {
-			lookupURL = fmt.Sprintf("/peserta?q=%s", url.QueryEscape(lookupQuery))
-		} else {
-			lookupURL = "/peserta"
-		}
+		lookupURL = fmt.Sprintf("%s/peserta", baseURL)
 	}
 
 	// 7. Construct payload
