@@ -431,7 +431,6 @@ func (s *service) BulkDelete(ctx context.Context, ids []string) error {
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleParticipant,
 		Entity:   "participants",
-		EntityID: "bulk",
 		Action:   "BULK_DELETE",
 		Metadata: map[string]interface{}{"participant_ids": ids},
 	})
@@ -451,7 +450,6 @@ func (s *service) BulkUpdateStatus(ctx context.Context, ids []string, status str
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleParticipant,
 		Entity:   "participants",
-		EntityID: "bulk",
 		Action:   "BULK_UPDATE_STATUS",
 		Metadata: map[string]interface{}{"participant_ids": ids, "status": status},
 	})

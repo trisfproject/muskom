@@ -2,8 +2,10 @@ package audit
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -15,29 +17,58 @@ func NewRepository(db *sqlx.DB) AuditRepository {
 	return &repository{db: db}
 }
 
+func parseUUID(id string) *string {
+	if id == "" {
+		return nil
+	}
+	if _, err := uuid.Parse(id); err == nil {
+		return &id
+	}
+	return nil
+}
+
+func marshalJSON(v interface{}) interface{} {
+	if v == nil {
+		return nil
+	}
+	switch val := v.(type) {
+	case string:
+		return val
+	case []byte:
+		return string(val)
+	default:
+		b, err := json.Marshal(v)
+		if err != nil {
+			return nil
+		}
+		return string(b)
+	}
+}
+
 func (r *repository) Insert(ctx context.Context, entry AuditEntry) error {
 	query := `
 		INSERT INTO audit_logs (module, entity, entity_id, action, user_id, actor_role, reason, ip_address, user_agent, metadata, previous_value, new_value, correlation_id)
 		VALUES (:module, :entity, :entity_id, :action, :user_id, :actor_role, :reason, :ip_address, :user_agent, :metadata, :previous_value, :new_value, :correlation_id)
 	`
-	var entityID *string
-	if entry.EntityID != "" && entry.EntityID != "bulk" {
-		entityID = &entry.EntityID
+	entityID := parseUUID(entry.EntityID)
+	var actorID *string
+	if entry.ActorID != nil {
+		actorID = parseUUID(*entry.ActorID)
 	}
-	
+
 	_, err := r.db.NamedExecContext(ctx, query, map[string]interface{}{
 		"module":         entry.Module,
 		"entity":         entry.Entity,
 		"entity_id":      entityID,
 		"action":         entry.Action,
-		"user_id":        entry.ActorID,
+		"user_id":        actorID,
 		"actor_role":     entry.ActorRole,
 		"reason":         entry.Reason,
 		"ip_address":     entry.IPAddress,
 		"user_agent":     entry.UserAgent,
-		"metadata":       entry.Metadata,
-		"previous_value": entry.PreviousValue,
-		"new_value":      entry.NewValue,
+		"metadata":       marshalJSON(entry.Metadata),
+		"previous_value": marshalJSON(entry.PreviousValue),
+		"new_value":      marshalJSON(entry.NewValue),
 		"correlation_id": entry.CorrelationID,
 	})
 	return err
@@ -48,24 +79,25 @@ func (r *repository) InsertTx(ctx context.Context, tx *sqlx.Tx, entry AuditEntry
 		INSERT INTO audit_logs (module, entity, entity_id, action, user_id, actor_role, reason, ip_address, user_agent, metadata, previous_value, new_value, correlation_id)
 		VALUES (:module, :entity, :entity_id, :action, :user_id, :actor_role, :reason, :ip_address, :user_agent, :metadata, :previous_value, :new_value, :correlation_id)
 	`
-	var entityID *string
-	if entry.EntityID != "" && entry.EntityID != "bulk" {
-		entityID = &entry.EntityID
+	entityID := parseUUID(entry.EntityID)
+	var actorID *string
+	if entry.ActorID != nil {
+		actorID = parseUUID(*entry.ActorID)
 	}
-	
+
 	_, err := tx.NamedExecContext(ctx, query, map[string]interface{}{
 		"module":         entry.Module,
 		"entity":         entry.Entity,
 		"entity_id":      entityID,
 		"action":         entry.Action,
-		"user_id":        entry.ActorID,
+		"user_id":        actorID,
 		"actor_role":     entry.ActorRole,
 		"reason":         entry.Reason,
 		"ip_address":     entry.IPAddress,
 		"user_agent":     entry.UserAgent,
-		"metadata":       entry.Metadata,
-		"previous_value": entry.PreviousValue,
-		"new_value":      entry.NewValue,
+		"metadata":       marshalJSON(entry.Metadata),
+		"previous_value": marshalJSON(entry.PreviousValue),
+		"new_value":      marshalJSON(entry.NewValue),
 		"correlation_id": entry.CorrelationID,
 	})
 	return err
@@ -105,9 +137,11 @@ func (r *repository) Search(ctx context.Context, filter AuditFilter) ([]AuditEnt
 	}
 
 	if filter.EntityID != "" {
-		whereClause += fmt.Sprintf(" AND entity_id = $%d", argIdx)
-		args = append(args, filter.EntityID)
-		argIdx++
+		if _, err := uuid.Parse(filter.EntityID); err == nil {
+			whereClause += fmt.Sprintf(" AND entity_id = $%d", argIdx)
+			args = append(args, filter.EntityID)
+			argIdx++
+		}
 	}
 
 	if filter.ActorID != "" {
