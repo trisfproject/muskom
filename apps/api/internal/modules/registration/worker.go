@@ -11,7 +11,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 
-	"github.com/skip2/go-qrcode"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
@@ -146,6 +145,23 @@ func (w *EmailWorker) processQueue() {
 	}
 }
 
+// resolvePublicBaseURL returns the public-facing website base URL.
+// Priority: (1) system_configurations.website_identity.website_base_url,
+//
+//	(2) config.AppBaseURL,
+//	(3) empty string (caller must handle).
+func (w *EmailWorker) resolvePublicBaseURL(ctx context.Context) string {
+	// Try DB first (allows admin to configure without redeploying)
+	if dbURL, err := w.repo.GetPublicBaseURL(ctx); err == nil && dbURL != "" {
+		return dbURL
+	}
+	// Fall back to env config
+	if w.cfg != nil && w.cfg.AppBaseURL != "" {
+		return strings.TrimRight(w.cfg.AppBaseURL, "/")
+	}
+	return ""
+}
+
 func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 	// 1. Fetch registration detail with person info
 	regAdmin, err := w.repo.GetRegistrationAdminByID(ctx, logItem.RegistrationID)
@@ -181,80 +197,69 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 		return fmt.Errorf("email template %s not found", templateName)
 	}
 
-	// 5. Construct payload with all variables and aliases
+	// 5. Resolve public base URL (DB config → env config)
 	regNum := regAdmin.RegistrationNumber
-	appBaseURL := ""
-	if w.cfg != nil {
-		appBaseURL = w.cfg.AppBaseURL
+	if logItem.EmailType == "REGISTRATION_APPROVED" && regNum == "" {
+		return fmt.Errorf("cannot send approved email: registration number is empty for registration %s", logItem.RegistrationID)
 	}
 
-	qrURL := ""
-	var attachments []mailer.Attachment
-	if logItem.EmailType == "REGISTRATION_APPROVED" {
-		if regNum == "" {
-			return fmt.Errorf("cannot send approved email: registration number is empty for registration %s", logItem.RegistrationID)
-		}
+	baseURL := w.resolvePublicBaseURL(ctx)
 
-		qrData := fmt.Sprintf("%s/checkin/%s", appBaseURL, regNum)
-		if appBaseURL == "" {
-			qrData = regNum
-		}
-
-		qrPNG, err := qrcode.Encode(qrData, qrcode.Medium, 256)
-		if err != nil {
-			return fmt.Errorf("failed to generate QR code for registration %s: %w", logItem.RegistrationID, err)
-		}
-
-		qrURL = "cid:qrcode"
-		attachments = append(attachments, mailer.Attachment{
-			Filename:    "qrcode.png",
-			ContentType: "image/png",
-			ContentID:   "qrcode",
-			Data:        qrPNG,
-			Inline:      true,
-		})
-	}
-
-	baseURL := strings.TrimRight(appBaseURL, "/")
+	// 6. Build participant lookup URL (always absolute)
 	lookupQuery := regNum
 	if lookupQuery == "" {
 		lookupQuery = regAdmin.Email
 	}
-	lookupURL := fmt.Sprintf("%s/peserta", baseURL)
-	if lookupQuery != "" {
-		lookupURL = fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(lookupQuery))
+	var lookupURL string
+	if baseURL != "" {
+		if lookupQuery != "" {
+			lookupURL = fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(lookupQuery))
+		} else {
+			lookupURL = fmt.Sprintf("%s/peserta", baseURL)
+		}
+	} else {
+		// baseURL unknown — still provide relative URL so link is functional on-domain
+		if lookupQuery != "" {
+			lookupURL = fmt.Sprintf("/peserta?q=%s", url.QueryEscape(lookupQuery))
+		} else {
+			lookupURL = "/peserta"
+		}
 	}
 
+	// 7. Construct payload
 	rejectionReason := regAdmin.SpecialNotes
 	if rejectionReason == "" {
 		rejectionReason = "Persyaratan belum terpenuhi"
 	}
 
 	payload := map[string]interface{}{
-		"portal_title":           portalTitle,
-		"event_name":             portalTitle,
-		"community_name":         portalTitle,
-		"full_name":              regAdmin.ParticipantName,
-		"participant_name":       regAdmin.ParticipantName,
-		"name":                   regAdmin.ParticipantName,
-		"registration_number":    regNum,
-		"reg_number":             regNum,
-		"participant_lookup_url": lookupURL,
-		"lookup_url":             lookupURL,
-		"qr_code":                qrURL,
-		"qr_code_url":            qrURL,
-		"rejection_reason":       rejectionReason,
-		"reason":                 rejectionReason,
-		"company":                regAdmin.Company,
-		"company_name":           regAdmin.Company,
-		"job_title":              regAdmin.JobTitle,
-		"phone":                  regAdmin.Phone,
-		"email":                  regAdmin.Email,
-		"event_date":             "",
-		"venue":                  "",
+		"portal_title":            portalTitle,
+		"event_name":              portalTitle,
+		"community_name":          portalTitle,
+		"full_name":               regAdmin.ParticipantName,
+		"participant_name":        regAdmin.ParticipantName,
+		"name":                    regAdmin.ParticipantName,
+		"registration_number":     regNum,
+		"reg_number":              regNum,
+		"participant_lookup_url":  lookupURL,
+		"lookup_url":              lookupURL,
+		// QR code fields: empty — template should use CTA link, not inline QR image
+		"qr_code":                 "",
+		"qr_code_url":             "",
+		"rejection_reason":        rejectionReason,
+		"reason":                  rejectionReason,
+		"company":                 regAdmin.Company,
+		"company_name":            regAdmin.Company,
+		"job_title":               regAdmin.JobTitle,
+		"phone":                   regAdmin.Phone,
+		"email":                   regAdmin.Email,
+		// event_date and venue: not available in current schema (events table removed).
+		// Template must conditional-render these; pass empty to suppress display.
+		"event_date":              "",
+		"venue":                   "",
 	}
 
-	// 6. Render template using shared renderer
+	// 8. Render template using shared renderer
 	subject, bodyHTML, err := notification.RenderTemplate(tpl.Subject, tpl.Body, payload)
 	if err != nil {
 		return fmt.Errorf("failed to render email template: %w", err)
@@ -264,7 +269,7 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 		subject = "Pemberitahuan Pendaftaran - " + portalTitle
 	}
 
-	// 7. Send email
-	return w.mailerSvc.SendRawWithAttachments(logItem.RecipientEmail, subject, bodyHTML, attachments)
+	// 9. Send email (no attachments — QR removed for RC1)
+	return w.mailerSvc.SendRawWithAttachments(logItem.RecipientEmail, subject, bodyHTML, nil)
 }
 

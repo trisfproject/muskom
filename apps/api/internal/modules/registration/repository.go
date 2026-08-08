@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -51,6 +52,7 @@ type Repository interface {
 	RetryEmailLog(ctx context.Context, logID string) error
 	CountResendAttempts(ctx context.Context, registrationID string, sinceMinutes int) (int, error)
 	GetPortalTitle(ctx context.Context) (string, error)
+	GetPublicBaseURL(ctx context.Context) (string, error)
 }
 
 type RegistrationConfirmationData struct {
@@ -117,6 +119,17 @@ func (r *repository) GetPortalTitle(ctx context.Context) (string, error) {
 		return "Musyawarah", nil // fallback
 	}
 	return title, nil
+}
+
+func (r *repository) GetPublicBaseURL(ctx context.Context) (string, error) {
+	// Try to read website_base_url from system_configurations website_identity
+	query := `SELECT settings->>'website_base_url' FROM system_configurations WHERE group_name = 'website_identity'`
+	var baseURL string
+	err := r.db.GetContext(ctx, &baseURL, query)
+	if err != nil || baseURL == "" {
+		return "", nil // caller will fall back to config.AppBaseURL
+	}
+	return strings.TrimRight(baseURL, "/"), nil
 }
 
 func (r *repository) CheckExistingRegistration(ctx context.Context, eventID string, email string) (bool, error) {

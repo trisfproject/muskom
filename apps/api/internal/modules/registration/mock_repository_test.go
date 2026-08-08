@@ -134,6 +134,11 @@ func (m *MockRepository) GetPortalTitle(ctx context.Context) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
+func (m *MockRepository) GetPublicBaseURL(ctx context.Context) (string, error) {
+	args := m.Called(ctx)
+	return args.String(0), args.Error(1)
+}
+
 func (m *MockRepository) CreateEmailLog(ctx context.Context, tx *sqlx.Tx, log *EmailLog) error {
 	args := m.Called(ctx, tx, log)
 	return args.Error(0)

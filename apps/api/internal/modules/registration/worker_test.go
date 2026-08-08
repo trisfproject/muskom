@@ -190,6 +190,7 @@ func TestEmailWorker_SendEmail_RegistrationReceived(t *testing.T) {
 	}, nil)
 
 	mockRepo.On("GetPortalTitle", ctx).Return("Musyawarah Nasional", nil)
+	mockRepo.On("GetPublicBaseURL", ctx).Return("", nil)
 
 	subjTpl := "Registration Received - {{portal_title}}"
 	bodyTpl := "<p>Hello {{.full_name}}, welcome to {{.portal_title}}</p>"
@@ -241,8 +242,10 @@ func TestEmailWorker_SendEmail_RegistrationApproved(t *testing.T) {
 	}, nil)
 
 	mockRepo.On("GetPortalTitle", ctx).Return("Kongres Tahunan", nil)
+	mockRepo.On("GetPublicBaseURL", ctx).Return("https://example.com", nil)
 
 	subjTpl := "Registration Approved - {{.portal_title}}"
+	// qr_code is now empty (no inline QR in RC1); lookup URL is absolute
 	bodyTpl := "<p>Hi {{.full_name}}, your number is {{.registration_number}}, qr is {{.qr_code}}, lookup at {{.lookup_url}}</p>"
 	mockNotifRepo.On("GetTemplateByName", ctx, "participant_registration_approved", notification.ChannelEmail).Return(&notification.NotificationTemplate{
 		Name:    "participant_registration_approved",
@@ -251,17 +254,12 @@ func TestEmailWorker_SendEmail_RegistrationApproved(t *testing.T) {
 		Body:    bodyTpl,
 	}, nil)
 
+	// qr is now empty string; lookup URL is absolute; no attachments
 	mockMailer.On("SendRawWithAttachments",
 		"dewi@example.com",
 		"Registration Approved - Kongres Tahunan",
-		"<p>Hi Dewi Lestari, your number is REG-99999, qr is cid:qrcode, lookup at https://example.com/peserta?q=REG-99999</p>",
-		mock.MatchedBy(func(atts []mailer.Attachment) bool {
-			return len(atts) == 1 &&
-				atts[0].ContentID == "qrcode" &&
-				atts[0].Inline &&
-				atts[0].ContentType == "image/png" &&
-				len(atts[0].Data) > 0
-		}),
+		"<p>Hi Dewi Lestari, your number is REG-99999, qr is , lookup at https://example.com/peserta?q=REG-99999</p>",
+		[]mailer.Attachment(nil),
 	).Return(nil)
 
 	err := worker.sendEmail(ctx, EmailLog{
@@ -303,6 +301,7 @@ func TestEmailWorker_SendEmail_RegistrationApproved_MissingRegNumber(t *testing.
 	}, nil)
 
 	mockRepo.On("GetPortalTitle", ctx).Return("Kongres", nil)
+	mockRepo.On("GetPublicBaseURL", ctx).Return("", nil)
 
 	mockNotifRepo.On("GetTemplateByName", ctx, "participant_registration_approved", notification.ChannelEmail).Return(&notification.NotificationTemplate{
 		Name:    "participant_registration_approved",
@@ -346,6 +345,7 @@ func TestEmailWorker_SendEmail_RegistrationRejected(t *testing.T) {
 	}, nil)
 
 	mockRepo.On("GetPortalTitle", ctx).Return("Musyawarah", nil)
+	mockRepo.On("GetPublicBaseURL", ctx).Return("", nil)
 
 	subjTpl := "Registration Status - {{.portal_title}}"
 	bodyTpl := "<p>Hi {{.full_name}}, status rejected. Reason: {{.rejection_reason}}</p>"
@@ -449,6 +449,7 @@ func TestEmailWorker_ProcessQueue_MaxRetryReached_StopsAndSetsFailed(t *testing.
 	}, nil)
 
 	mockRepo.On("GetPortalTitle", mock.Anything).Return("Musyawarah", nil)
+	mockRepo.On("GetPublicBaseURL", mock.Anything).Return("", nil)
 
 	subj := "Pendaftaran Berhasil"
 	body := "<p>Halo {{.full_name}}</p>"
