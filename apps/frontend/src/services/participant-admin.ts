@@ -5,13 +5,20 @@ export interface AdminParticipantResponse {
   event_id: string;
   registration_number: string;
   event_name: string;
+  // Backend list API returns full_name as participant_name via query alias
   participant_name: string;
+  // Backend returns company_name (from registrations.company_name)
+  company_name: string;
+  // Legacy alias kept for edit-form backward compat (editForm.company)
+  company: string;
+  // Backend returns industrial_area (derived from registrations.region)
+  industrial_area: string;
+  // Legacy alias kept for edit-form backward compat (editForm.region)
+  region: string;
   nickname: string;
   email: string;
   phone: string;
-  company: string;
   job_title: string;
-  region: string;
   community: string;
   participant_category: string;
   source: string;
