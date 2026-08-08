@@ -549,9 +549,12 @@ func itoa(i int) string {
 }
 
 func (r *repository) CreateEmailLog(ctx context.Context, tx *sqlx.Tx, log *EmailLog) error {
+	if log.MaxRetry <= 0 {
+		log.MaxRetry = 5
+	}
 	query := `
-		INSERT INTO email_logs (registration_id, email_type, recipient_email, status, created_by, created_at, updated_at)
-		VALUES (:registration_id, :email_type, :recipient_email, :status, :created_by, NOW(), NOW())
+		INSERT INTO email_logs (registration_id, email_type, recipient_email, status, max_retry, created_by, created_at, updated_at)
+		VALUES (:registration_id, :email_type, :recipient_email, :status, :max_retry, :created_by, NOW(), NOW())
 		RETURNING id, created_at, updated_at
 	`
 	if tx != nil {
@@ -595,6 +598,7 @@ func (r *repository) GetPendingEmails(ctx context.Context, limit int) ([]EmailLo
 	query := `
 		SELECT * FROM email_logs
 		WHERE status = 'PENDING' 
+		AND retry_count < COALESCE(NULLIF(max_retry, 0), 5)
 		AND (next_retry_at IS NULL OR next_retry_at <= NOW())
 		ORDER BY created_at ASC
 		LIMIT $1
@@ -624,8 +628,14 @@ func (r *repository) UpdateEmailLogFailure(ctx context.Context, logID string, er
 			retry_count = retry_count + 1,
 			last_error = $1,
 			last_retry_at = NOW(),
-			next_retry_at = $2,
-			status = CASE WHEN retry_count + 1 >= max_retry THEN 'FAILED' ELSE 'PENDING' END,
+			next_retry_at = CASE 
+				WHEN retry_count + 1 >= COALESCE(NULLIF(max_retry, 0), 5) THEN NULL 
+				ELSE $2 
+			END,
+			status = CASE 
+				WHEN retry_count + 1 >= COALESCE(NULLIF(max_retry, 0), 5) THEN 'FAILED' 
+				ELSE 'PENDING' 
+			END,
 			updated_at = NOW()
 		WHERE id = $3
 	`

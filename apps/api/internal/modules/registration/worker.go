@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -24,6 +25,7 @@ type EmailWorker struct {
 	mailerSvc mailer.Mailer
 	cfg       *config.Config
 	stopCh    chan struct{}
+	mu        sync.Mutex
 }
 
 func NewEmailWorker(db *sqlx.DB, log *zap.Logger, mailerSvc mailer.Mailer, cfg *config.Config, notifRepo ...notification.Repository) *EmailWorker {
@@ -88,6 +90,11 @@ func (w *EmailWorker) runLoop() {
 }
 
 func (w *EmailWorker) processQueue() {
+	if !w.mu.TryLock() {
+		return
+	}
+	defer w.mu.Unlock()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
@@ -105,25 +112,33 @@ func (w *EmailWorker) processQueue() {
 			
 			// Calculate next retry based on new retry count (which will be logItem.RetryCount + 1)
 			newRetryCount := logItem.RetryCount + 1
-			var nextRetryAt time.Time
-			
-			switch newRetryCount {
-			case 1:
-				nextRetryAt = time.Now().Add(1 * time.Minute)
-			case 2:
-				nextRetryAt = time.Now().Add(5 * time.Minute)
-			case 3:
-				nextRetryAt = time.Now().Add(15 * time.Minute)
-			case 4:
-				nextRetryAt = time.Now().Add(1 * time.Hour)
-			default:
-				nextRetryAt = time.Now().Add(6 * time.Hour)
+			maxRetry := logItem.MaxRetry
+			if maxRetry <= 0 {
+				maxRetry = 5
 			}
 			
-			_ = w.repo.UpdateEmailLogFailure(ctx, logItem.ID, err.Error(), &nextRetryAt)
+			var nextRetryAt *time.Time
+			if newRetryCount < maxRetry {
+				var t time.Time
+				switch newRetryCount {
+				case 1:
+					t = time.Now().Add(1 * time.Minute)
+				case 2:
+					t = time.Now().Add(5 * time.Minute)
+				case 3:
+					t = time.Now().Add(15 * time.Minute)
+				case 4:
+					t = time.Now().Add(1 * time.Hour)
+				default:
+					t = time.Now().Add(6 * time.Hour)
+				}
+				nextRetryAt = &t
+			}
 			
-			if newRetryCount >= logItem.MaxRetry {
-				w.log.Error("Email permanently failed after max retries.", zap.String("id", logItem.ID))
+			_ = w.repo.UpdateEmailLogFailure(ctx, logItem.ID, err.Error(), nextRetryAt)
+			
+			if newRetryCount >= maxRetry {
+				w.log.Error("Email permanently failed after max retries.", zap.String("id", logItem.ID), zap.Int("retry_count", newRetryCount), zap.Int("max_retry", maxRetry))
 			}
 		} else {
 			_ = w.repo.UpdateEmailLogSuccess(ctx, logItem.ID)
@@ -161,6 +176,9 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 	tpl, err := w.notifRepo.GetTemplateByName(ctx, templateName, notification.ChannelEmail)
 	if err != nil {
 		return fmt.Errorf("failed to get email template %s: %w", templateName, err)
+	}
+	if tpl == nil {
+		return fmt.Errorf("email template %s not found", templateName)
 	}
 
 	// 5. Construct payload with all variables and aliases

@@ -3,6 +3,7 @@ package registration
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
@@ -413,3 +414,56 @@ func TestRepository_LookupParticipant(t *testing.T) {
 		assert.Equal(t, "APPROVED", resp.Status)
 	})
 }
+
+func TestRepository_GetPendingEmails(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	sqlxDB := sqlx.NewDb(db, "postgres")
+	repo := NewRepository(sqlxDB)
+	ctx := context.Background()
+
+	t.Run("ReturnsPendingUnderMaxRetry", func(t *testing.T) {
+		now := time.Now()
+		rows := sqlmock.NewRows([]string{
+			"id", "registration_id", "email_type", "recipient_email", "status",
+			"retry_count", "max_retry", "created_at", "updated_at",
+		}).AddRow(
+			"email-1", "reg-1", "REGISTRATION_RECEIVED", "test@example.com", "PENDING",
+			0, 5, now, now,
+		)
+
+		mock.ExpectQuery("^SELECT (.+) FROM email_logs").
+			WithArgs(10).
+			WillReturnRows(rows)
+
+		logs, err := repo.GetPendingEmails(ctx, 10)
+		assert.NoError(t, err)
+		assert.Len(t, logs, 1)
+		assert.Equal(t, "email-1", logs[0].ID)
+		assert.Equal(t, "PENDING", logs[0].Status)
+		assert.Equal(t, 0, logs[0].RetryCount)
+		assert.Equal(t, 5, logs[0].MaxRetry)
+	})
+}
+
+func TestRepository_UpdateEmailLogFailure(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	sqlxDB := sqlx.NewDb(db, "postgres")
+	repo := NewRepository(sqlxDB)
+	ctx := context.Background()
+
+	t.Run("UpdateFailureSuccess", func(t *testing.T) {
+		mock.ExpectExec("^UPDATE email_logs").
+			WithArgs("SMTP Error", nil, "email-1").
+			WillReturnResult(sqlmock.NewResult(1, 1))
+
+		err := repo.UpdateEmailLogFailure(ctx, "email-1", "SMTP Error", nil)
+		assert.NoError(t, err)
+	})
+}
+

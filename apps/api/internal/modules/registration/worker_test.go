@@ -2,7 +2,9 @@ package registration
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
@@ -372,3 +374,101 @@ func TestEmailWorker_SendEmail_RegistrationRejected(t *testing.T) {
 	mockNotifRepo.AssertExpectations(t)
 	mockMailer.AssertExpectations(t)
 }
+
+func TestEmailWorker_ProcessQueue_RetryIncrementAndBackoff(t *testing.T) {
+	log := zaptest.NewLogger(t)
+	mockRepo := new(MockRepository)
+	mockMailer := new(MockMailer)
+	mockNotifRepo := new(MockNotifRepository)
+
+	worker := &EmailWorker{
+		repo:      mockRepo,
+		notifRepo: mockNotifRepo,
+		log:       log,
+		mailerSvc: mockMailer,
+		cfg:       &config.Config{AppBaseURL: "https://example.com"},
+		stopCh:    make(chan struct{}),
+	}
+
+	mockRepo.On("GetPendingEmails", mock.Anything, 10).Return([]EmailLog{
+		{
+			ID:             "email-log-1",
+			RegistrationID: "reg-1",
+			EmailType:      "REGISTRATION_RECEIVED",
+			RecipientEmail: "user@example.com",
+			Status:         "PENDING",
+			RetryCount:     0,
+			MaxRetry:       5,
+		},
+	}, nil)
+
+	// Simulate send failure (e.g. SMTP transient or connection error)
+	mockRepo.On("GetRegistrationAdminByID", mock.Anything, "reg-1").Return(nil, assert.AnError)
+
+	mockRepo.On("UpdateEmailLogFailure", mock.Anything, "email-log-1", mock.Anything, mock.MatchedBy(func(nextRetry *time.Time) bool {
+		return nextRetry != nil && nextRetry.After(time.Now())
+	})).Return(nil)
+
+	worker.processQueue()
+
+	mockRepo.AssertExpectations(t)
+}
+
+func TestEmailWorker_ProcessQueue_MaxRetryReached_StopsAndSetsFailed(t *testing.T) {
+	log := zaptest.NewLogger(t)
+	mockRepo := new(MockRepository)
+	mockMailer := new(MockMailer)
+	mockNotifRepo := new(MockNotifRepository)
+
+	worker := &EmailWorker{
+		repo:      mockRepo,
+		notifRepo: mockNotifRepo,
+		log:       log,
+		mailerSvc: mockMailer,
+		cfg:       &config.Config{AppBaseURL: "https://example.com"},
+		stopCh:    make(chan struct{}),
+	}
+
+	// Email log that has already retried 4 times out of max_retry=5
+	mockRepo.On("GetPendingEmails", mock.Anything, 10).Return([]EmailLog{
+		{
+			ID:             "email-log-max",
+			RegistrationID: "reg-max",
+			EmailType:      "REGISTRATION_RECEIVED",
+			RecipientEmail: "user@example.com",
+			Status:         "PENDING",
+			RetryCount:     4,
+			MaxRetry:       5,
+		},
+	}, nil)
+
+	mockRepo.On("GetRegistrationAdminByID", mock.Anything, "reg-max").Return(&AdminRegistrationResponse{
+		ID:              "reg-max",
+		ParticipantName: "John Doe",
+		Email:           "user@example.com",
+	}, nil)
+
+	mockRepo.On("GetPortalTitle", mock.Anything).Return("Musyawarah", nil)
+
+	subj := "Pendaftaran Berhasil"
+	body := "<p>Halo {{.full_name}}</p>"
+	mockNotifRepo.On("GetTemplateByName", mock.Anything, "participant_registration_submitted", notification.ChannelEmail).Return(&notification.NotificationTemplate{
+		Name:    "participant_registration_submitted",
+		Channel: notification.ChannelEmail,
+		Subject: &subj,
+		Body:    body,
+	}, nil)
+
+	// Simulate SMTP error: "550 5.4.5 Daily user sending limit exceeded"
+	smtpErr := fmt.Errorf("550 5.4.5 Daily user sending limit exceeded")
+	mockMailer.On("SendRawWithAttachments", "user@example.com", "Pendaftaran Berhasil", "<p>Halo John Doe</p>", []mailer.Attachment(nil)).Return(smtpErr)
+
+	// On 5th failure (4 + 1 >= 5), nextRetryAt must be nil (status will transition to FAILED and stop retry)
+	mockRepo.On("UpdateEmailLogFailure", mock.Anything, "email-log-max", smtpErr.Error(), (*time.Time)(nil)).Return(nil)
+
+	worker.processQueue()
+
+	mockRepo.AssertExpectations(t)
+	mockMailer.AssertExpectations(t)
+}
+
