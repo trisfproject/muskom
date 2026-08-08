@@ -46,35 +46,74 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
-func (r *repository) Create(ctx context.Context, p *Participant) error {
-	query := `
-		INSERT INTO participants (
-			 registration_number, full_name, nickname, email, phone, 
-			company_name, industrial_area, job_title, department, status
-		) VALUES (
-			:registration_number, :full_name, :nickname, :email, :phone, 
-			:company_name, :industrial_area, :job_title, :department, :status
-		) RETURNING id, created_at, updated_at
-	`
+// participantSelect is the common SELECT clause to map registrations+persons to Participant
+const participantSelect = `
+	SELECT 
+		r.id, 
+		COALESCE(r.registration_number, '') AS registration_number, 
+		p.full_name, 
+		NULL AS nickname, 
+		p.email, 
+		COALESCE(p.phone, '') AS phone, 
+		COALESCE(p.company, '') AS company_name, 
+		COALESCE(r.region, '') AS industrial_area, 
+		COALESCE(p.job_title, '') AS job_title, 
+		COALESCE(r.community, '') AS department, 
+		r.status, 
+		r.created_at, 
+		r.updated_at
+	FROM registrations r
+	JOIN persons p ON r.person_id = p.id
+`
 
-	stmt, err := r.db.PrepareNamedContext(ctx, query)
+func (r *repository) Create(ctx context.Context, p *Participant) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer tx.Rollback()
 
-	err = stmt.GetContext(ctx, p, p)
+	// 1. Insert person
+	var personID string
+	personQuery := `
+		INSERT INTO persons (full_name, email, phone, company, job_title, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+		ON CONFLICT (email) DO UPDATE SET
+			full_name = EXCLUDED.full_name,
+			phone = EXCLUDED.phone,
+			company = EXCLUDED.company,
+			job_title = EXCLUDED.job_title,
+			updated_at = NOW()
+		RETURNING id
+	`
+	err = tx.QueryRowContext(ctx, personQuery, p.FullName, p.Email, p.Phone, p.CompanyName, p.JobTitle).Scan(&personID)
 	if err != nil {
-		if err.Error() == "pq: duplicate key value violates unique constraint \"participants_registration_number_key\"" {
+		return err
+	}
+
+	// 2. Insert registration
+	regQuery := `
+		INSERT INTO registrations (
+			person_id, participant_category, source, status, 
+			registration_number, region, community, created_at, updated_at
+		) VALUES (
+			$1, 'DELEGATE', 'ADMIN', $2, 
+			NULLIF($3, ''), $4, $5, NOW(), NOW()
+		) RETURNING id, created_at, updated_at
+	`
+	err = tx.QueryRowContext(ctx, regQuery, personID, p.Status, p.RegistrationNumber, p.IndustrialArea, p.Department).Scan(&p.ID, &p.CreatedAt, &p.UpdatedAt)
+	if err != nil {
+		if strings.Contains(err.Error(), "registrations_registration_number_key") {
 			return ErrDuplicateReg
 		}
 		return err
 	}
-	return nil
+
+	return tx.Commit()
 }
 
 func (r *repository) GetByID(ctx context.Context, id string) (*Participant, error) {
-	query := `SELECT * FROM participants WHERE id = $1 AND deleted_at IS NULL`
+	query := participantSelect + ` WHERE r.id = $1`
 	var p Participant
 	err := r.db.GetContext(ctx, &p, query, id)
 	if err != nil {
@@ -87,7 +126,7 @@ func (r *repository) GetByID(ctx context.Context, id string) (*Participant, erro
 }
 
 func (r *repository) FindAll(ctx context.Context) ([]Participant, error) {
-	query := `SELECT * FROM participants WHERE deleted_at IS NULL ORDER BY created_at DESC`
+	query := participantSelect + ` ORDER BY r.created_at DESC`
 	var list []Participant
 	err := r.db.SelectContext(ctx, &list, query)
 	if err != nil {
@@ -100,44 +139,46 @@ func (r *repository) FindAll(ctx context.Context) ([]Participant, error) {
 }
 
 func (r *repository) Update(ctx context.Context, p *Participant) error {
-	query := `
-		UPDATE participants SET
-			registration_number = :registration_number,
-			full_name = :full_name,
-			nickname = :nickname,
-
-			email = :email,
-			phone = :phone,
-			company_name = :company_name,
-			industrial_area = :industrial_area,
-			job_title = :job_title,
-			department = :department,
-			updated_at = NOW()
-		WHERE id = :id AND deleted_at IS NULL
-		RETURNING updated_at
-	`
-
-	stmt, err := r.db.PrepareNamedContext(ctx, query)
+	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
 	}
-	defer stmt.Close()
+	defer tx.Rollback()
 
-	err = stmt.GetContext(ctx, p, p)
+	// Update Person
+	personQuery := `
+		UPDATE persons SET 
+			full_name = $1, email = $2, phone = $3, company = $4, job_title = $5, updated_at = NOW()
+		WHERE id = (SELECT person_id FROM registrations WHERE id = $6)
+	`
+	_, err = tx.ExecContext(ctx, personQuery, p.FullName, p.Email, p.Phone, p.CompanyName, p.JobTitle, p.ID)
+	if err != nil {
+		return err
+	}
+
+	// Update Registration
+	regQuery := `
+		UPDATE registrations SET
+			region = $1, community = $2, updated_at = NOW(), registration_number = NULLIF($3, '')
+		WHERE id = $4
+		RETURNING updated_at
+	`
+	err = tx.QueryRowContext(ctx, regQuery, p.IndustrialArea, p.Department, p.RegistrationNumber, p.ID).Scan(&p.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrNotFound
 		}
-		if err.Error() == "pq: duplicate key value violates unique constraint \"participants_registration_number_key\"" {
+		if strings.Contains(err.Error(), "registrations_registration_number_key") {
 			return ErrDuplicateReg
 		}
 		return err
 	}
-	return nil
+
+	return tx.Commit()
 }
 
 func (r *repository) UpdateStatus(ctx context.Context, id string, status string) error {
-	query := `UPDATE participants SET status = $1, updated_at = NOW() WHERE id = $2 AND deleted_at IS NULL`
+	query := `UPDATE registrations SET status = $1, updated_at = NOW() WHERE id = $2`
 	res, err := r.db.ExecContext(ctx, query, status, id)
 	if err != nil {
 		return err
@@ -165,7 +206,7 @@ func (r *repository) ExecuteTx(ctx context.Context, fn func(tx *sqlx.Tx) error) 
 }
 
 func (r *repository) GetByIDTx(ctx context.Context, tx *sqlx.Tx, id string) (*Participant, error) {
-	query := `SELECT * FROM participants WHERE id = $1 AND deleted_at IS NULL FOR UPDATE`
+	query := participantSelect + ` WHERE r.id = $1 FOR UPDATE`
 	var p Participant
 	err := tx.GetContext(ctx, &p, query, id)
 	if err != nil {
@@ -178,7 +219,7 @@ func (r *repository) GetByIDTx(ctx context.Context, tx *sqlx.Tx, id string) (*Pa
 }
 
 func (r *repository) UpdateStatusAndNumberTx(ctx context.Context, tx *sqlx.Tx, id string, status string, regNum string) error {
-	query := `UPDATE participants SET status = $1, registration_number = $2, updated_at = NOW() WHERE id = $3 AND deleted_at IS NULL`
+	query := `UPDATE registrations SET status = $1, registration_number = NULLIF($2, ''), updated_at = NOW() WHERE id = $3`
 	res, err := tx.ExecContext(ctx, query, status, regNum, id)
 	if err != nil {
 		return err
@@ -199,7 +240,7 @@ func (r *repository) GetMaxOfficialRegistrationNumberTx(ctx context.Context, tx 
 			MAX(CAST(REGEXP_REPLACE(registration_number, '^MUSKOM-\d{4}-', '') AS INTEGER)), 
 			0
 		) 
-		FROM participants 
+		FROM registrations 
 		WHERE registration_number LIKE 'MUSKOM-%'
 	`
 	var max int
@@ -211,7 +252,7 @@ func (r *repository) GetMaxOfficialRegistrationNumberTx(ctx context.Context, tx 
 }
 
 func (r *repository) Delete(ctx context.Context, id string) error {
-	query := `UPDATE participants SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL`
+	query := `DELETE FROM registrations WHERE id = $1`
 	res, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
@@ -230,7 +271,7 @@ func (r *repository) BulkDelete(ctx context.Context, ids []string) error {
 	if len(ids) == 0 {
 		return nil
 	}
-	query, args, err := sqlx.In(`UPDATE participants SET deleted_at = NOW() WHERE id IN (?) AND deleted_at IS NULL`, ids)
+	query, args, err := sqlx.In(`DELETE FROM registrations WHERE id IN (?)`, ids)
 	if err != nil {
 		return err
 	}
@@ -243,7 +284,7 @@ func (r *repository) BulkUpdateStatus(ctx context.Context, ids []string, status 
 	if len(ids) == 0 {
 		return nil
 	}
-	query, args, err := sqlx.In(`UPDATE participants SET status = ?, updated_at = NOW() WHERE id IN (?) AND deleted_at IS NULL`, status, ids)
+	query, args, err := sqlx.In(`UPDATE registrations SET status = ?, updated_at = NOW() WHERE id IN (?)`, status, ids)
 	if err != nil {
 		return err
 	}
@@ -253,7 +294,7 @@ func (r *repository) BulkUpdateStatus(ctx context.Context, ids []string, status 
 }
 
 func (r *repository) FindByEmail(ctx context.Context, email string) (*Participant, error) {
-	query := `SELECT * FROM participants WHERE email = $1 AND deleted_at IS NULL LIMIT 1`
+	query := participantSelect + ` WHERE p.email = $1 LIMIT 1`
 	var p Participant
 	err := r.db.GetContext(ctx, &p, query, email)
 	if err != nil {
@@ -302,7 +343,7 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 		stats.Limit = &limitVal
 	}
 
-	// 1. Summary counts (single query, avoid N+1)
+	// 1. Summary counts
 	var rows []struct {
 		Status string `db:"status"`
 		Count  int    `db:"count"`
@@ -313,8 +354,7 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 			status,
 			COUNT(*) AS count,
 			COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE) AS today
-		FROM participants
-		WHERE deleted_at IS NULL
+		FROM registrations
 		GROUP BY status
 	`)
 	if err != nil {
@@ -346,20 +386,19 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 
 	// 2. By Industrial Area (top 10)
 	_ = r.db.SelectContext(ctx, &stats.ByIndustrialArea, `
-		SELECT industrial_area AS label, COUNT(*) AS count
-		FROM participants
-		WHERE deleted_at IS NULL
-		GROUP BY industrial_area
+		SELECT COALESCE(region, 'Unknown') AS label, COUNT(*) AS count
+		FROM registrations
+		GROUP BY region
 		ORDER BY count DESC
 		LIMIT 10
 	`)
 
 	// 3. By Company (top 10)
 	_ = r.db.SelectContext(ctx, &stats.ByCompany, `
-		SELECT company_name AS label, COUNT(*) AS count
-		FROM participants
-		WHERE deleted_at IS NULL
-		GROUP BY company_name
+		SELECT COALESCE(p.company, 'Unknown') AS label, COUNT(*) AS count
+		FROM registrations r
+		JOIN persons p ON r.person_id = p.id
+		GROUP BY p.company
 		ORDER BY count DESC
 		LIMIT 10
 	`)
@@ -369,19 +408,25 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 		SELECT
 			TO_CHAR(created_at::date, 'YYYY-MM-DD') AS date,
 			COUNT(*) AS count
-		FROM participants
-		WHERE deleted_at IS NULL
-		  AND created_at >= CURRENT_DATE - INTERVAL '13 days'
+		FROM registrations
+		WHERE created_at >= CURRENT_DATE - INTERVAL '13 days'
 		GROUP BY date
 		ORDER BY date ASC
 	`)
 
 	// 5. 10 most recent participants
 	_ = r.db.SelectContext(ctx, &stats.Recent, `
-		SELECT id, registration_number, full_name, company_name, industrial_area, status, created_at
-		FROM participants
-		WHERE deleted_at IS NULL
-		ORDER BY created_at DESC
+		SELECT 
+			r.id, 
+			COALESCE(r.registration_number, '') AS registration_number, 
+			p.full_name, 
+			COALESCE(p.company, '') AS company_name, 
+			COALESCE(r.region, '') AS industrial_area, 
+			r.status, 
+			r.created_at
+		FROM registrations r
+		JOIN persons p ON r.person_id = p.id
+		ORDER BY r.created_at DESC
 		LIMIT 10
 	`)
 
@@ -389,7 +434,7 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 }
 
 func (r *repository) Count(ctx context.Context) (int, error) {
-	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL`
+	query := `SELECT COUNT(*) FROM registrations`
 	var count int
 	err := r.db.GetContext(ctx, &count, query)
 	if err != nil {
@@ -399,7 +444,7 @@ func (r *repository) Count(ctx context.Context) (int, error) {
 }
 
 func (r *repository) CountActive(ctx context.Context) (int, error) {
-	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(status) != 'REJECTED'`
+	query := `SELECT COUNT(*) FROM registrations WHERE UPPER(status) != 'REJECTED'`
 	var count int
 	err := r.db.GetContext(ctx, &count, query)
 	if err != nil {
@@ -409,7 +454,7 @@ func (r *repository) CountActive(ctx context.Context) (int, error) {
 }
 
 func (r *repository) CountVerified(ctx context.Context) (int, error) {
-	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(status) IN ('VERIFIED', 'APPROVED')`
+	query := `SELECT COUNT(*) FROM registrations WHERE UPPER(status) IN ('VERIFIED', 'APPROVED')`
 	var count int
 	err := r.db.GetContext(ctx, &count, query)
 	if err != nil {
@@ -430,11 +475,8 @@ func (r *repository) GetRegistrationLimit(ctx context.Context) (*int, error) {
 }
 
 func (r *repository) LookupPublic(ctx context.Context, query string) (*Participant, error) {
-	sqlQuery := `
-		SELECT id, registration_number, full_name, email, phone, company_name, 
-		       industrial_area, job_title, department, status, created_at, updated_at, deleted_at
-		FROM participants
-		WHERE (email = $1 OR registration_number = $1) AND deleted_at IS NULL
+	sqlQuery := participantSelect + `
+		WHERE (p.email = $1 OR r.registration_number = $1)
 		LIMIT 1
 	`
 	var p Participant
