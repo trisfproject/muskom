@@ -14,5 +14,4 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, redisClient *redis.Clien
 	handler := NewHandler(svc)
 
 	router.Get("/summary", handler.GetDashboardSummary)
-	router.Get("/operations", handler.GetOperationsDashboard)
 }

@@ -322,21 +322,21 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Recent Activity Timeline Widget */}
+      {/* Recent Activity Widget */}
       <div className="pg-surface border pg-border rounded-2xl p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <History className="w-4 h-4 text-primary" />
-            <h3 className="font-bold text-sm pg-text">Linimasa Aktivitas Terkini</h3>
+            <h3 className="font-bold text-sm pg-text">Aktivitas Terkini</h3>
           </div>
           <Link href="/admin/audit" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
-            Lihat Semua Log <ArrowRight className="w-3.5 h-3.5" />
+            Lihat Semua <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {recent_activity && recent_activity.length > 0 ? (
           <div className="divide-y pg-border">
-            {recent_activity.slice(0, 6).map((act) => (
+            {recent_activity.slice(0, 5).map((act) => (
               <div key={act.id} className="py-3 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold pg-muted">

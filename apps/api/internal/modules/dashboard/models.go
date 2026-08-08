@@ -78,38 +78,3 @@ type VotingStats struct {
 	RemainingVoters int    `json:"remaining_voters"`
 }
 
-type SystemHealthStats struct {
-	API      string `json:"api"`
-	Database string `json:"database"`
-	Redis    string `json:"redis"`
-	Storage  string `json:"storage"`
-	SMTP     string `json:"smtp"`
-}
-
-type RecentRegistration struct {
-	ID                 string    `json:"id"`
-	RegistrationNumber *string   `json:"registration_number"`
-	FullName           string    `json:"full_name"`
-	Email              string    `json:"email"`
-	Status             string    `json:"status"`
-	CreatedAt          time.Time `json:"created_at"`
-}
-
-type RecentCandidate struct {
-	ID                string  `json:"id"`
-	Name              string  `json:"name"`
-	PhotoURL          *string `json:"photo_url"`
-	Status            string  `json:"status"`
-	PublicationStatus string  `json:"publication_status"`
-}
-
-type OperationsDashboardData struct {
-	Participants       ParticipantStats     `json:"participants"`
-	Candidates         CandidateStats       `json:"candidates"`
-	Attendance         AttendanceStats      `json:"attendance"`
-	Voting             VotingStats          `json:"voting"`
-	SystemHealth       SystemHealthStats    `json:"system_health"`
-	RecentActivity     []RecentActivity     `json:"recent_activity"`
-	RecentRegistrations []RecentRegistration `json:"recent_registrations"`
-	RecentCandidates   []RecentCandidate    `json:"recent_candidates"`
-}
