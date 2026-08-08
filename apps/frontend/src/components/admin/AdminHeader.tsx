@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Bell, User as UserIcon, LogOut, Settings, Menu } from "lucide-react";
+import { Search, User as UserIcon, LogOut, Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import Cookies from "js-cookie";
 import { dashboardService } from "@/services/dashboard";
 import { DashboardData } from "@/types/dashboard";
@@ -10,10 +10,22 @@ import { useSystemConfig } from "@/contexts/ConfigContext";
 import { NotificationBell } from "./NotificationBell";
 
 interface AdminHeaderProps {
+  /** Opens the mobile off-canvas drawer */
+  onOpenMobileSidebar?: () => void;
+  /** Current desktop sidebar collapsed state */
+  isCollapsed?: boolean;
+  /** Toggle desktop sidebar collapse */
+  onToggleCollapse?: () => void;
+  // Legacy prop kept for backward-compat (unused)
   onOpenSidebar?: () => void;
 }
 
-export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
+export function AdminHeader({
+  onOpenMobileSidebar,
+  isCollapsed = false,
+  onToggleCollapse,
+  onOpenSidebar,
+}: AdminHeaderProps) {
   const { config } = useSystemConfig();
   const [data, setData] = useState<DashboardData | null>(null);
   const [user, setUser] = useState<{ full_name: string; role_name: string } | null>(null);
@@ -42,23 +54,44 @@ export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
     window.location.href = "/admin/login";
   };
 
-  const pendingNotifs = data?.summary?.pending_notifications || 0;
+  // Support legacy onOpenSidebar prop
+  const handleMobileOpen = onOpenMobileSidebar ?? onOpenSidebar;
 
   return (
     <header className="sticky top-0 z-30 bg-[var(--color-bg)]/80 backdrop-blur-md border-b border-[var(--color-border)] flex items-center justify-between px-4 sm:px-6 py-4 h-16 shrink-0">
-      
-      {/* Mobile Hamburger */}
-      {onOpenSidebar && (
-        <button
-          onClick={onOpenSidebar}
-          className="mr-3 lg:hidden p-1.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors shrink-0"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-      )}
 
-      {/* Search Bar Placeholder */}
-      <div className="flex-1 max-w-md hidden sm:block">
+      {/* Left section: Desktop sidebar toggle + Mobile hamburger */}
+      <div className="flex items-center gap-1 shrink-0">
+
+        {/* Desktop sidebar collapse/expand — always visible on lg+ */}
+        {onToggleCollapse && (
+          <button
+            onClick={onToggleCollapse}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+            className="hidden lg:flex items-center justify-center w-9 h-9 rounded-lg hover:pg-surface-elevated text-slate-500 hover:pg-text transition-colors"
+          >
+            {isCollapsed
+              ? <PanelLeftOpen className="w-5 h-5" />
+              : <PanelLeftClose className="w-5 h-5" />
+            }
+          </button>
+        )}
+
+        {/* Mobile / Tablet hamburger — hidden on lg+ */}
+        {handleMobileOpen && (
+          <button
+            onClick={handleMobileOpen}
+            aria-label="Open navigation menu"
+            className="lg:hidden flex items-center justify-center w-9 h-9 min-h-[44px] min-w-[44px] rounded-lg hover:pg-surface-elevated text-slate-500 transition-colors"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
+      {/* Search Bar */}
+      <div className="flex-1 max-w-md hidden sm:block mx-3">
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-primary transition-colors" />
           <input
@@ -75,7 +108,7 @@ export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
 
       {/* Right Actions */}
       <div className="flex items-center gap-4 ml-auto">
-        
+
         {/* Active Musyawarah Indicator */}
         {(config || data) && (
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full pg-surface border border-[var(--color-border)]">
@@ -88,7 +121,7 @@ export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
 
         <div className="h-6 w-px bg-[var(--color-border)] hidden md:block"></div>
 
-        {/* Quick Actions / Notifications */}
+        {/* Notifications */}
         <NotificationBell />
 
         {/* User Profile */}
@@ -114,7 +147,7 @@ export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
                 <UserIcon className="w-4 h-4" />
                 <span>Profil Saya</span>
               </Link>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="w-full flex items-center gap-2 px-3 py-2 min-h-[44px] text-sm text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
               >

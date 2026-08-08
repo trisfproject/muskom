@@ -10,17 +10,13 @@ import {
   Megaphone,
   UserCheck,
   LogOut,
-  ChevronRight,
   ExternalLink,
   Mail,
   Users,
   Info,
   ShieldCheck,
   Activity,
-  ChevronLeft,
-  ChevronRightSquare,
-  PanelLeftClose,
-  PanelLeftOpen
+  X,
 } from "lucide-react";
 import Cookies from "js-cookie";
 
@@ -29,27 +25,23 @@ import { useSystemConfig } from "@/contexts/ConfigContext";
 interface AdminSidebarProps {
   isOpen?: boolean; // For mobile offcanvas
   onClose?: () => void;
+  isCollapsed?: boolean; // Controlled from parent (desktop)
+  onToggleCollapse?: () => void;
 }
 
-export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
+export function AdminSidebar({
+  isOpen = false,
+  onClose,
+  isCollapsed = false,
+}: AdminSidebarProps) {
   const pathname = usePathname();
   const { config } = useSystemConfig();
-  
-  // Collapsible state (Desktop)
-  const [isCollapsed, setIsCollapsed] = useState(false);
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("adminSidebarCollapsed");
-    if (saved === "true") setIsCollapsed(true);
   }, []);
-
-  const toggleCollapse = () => {
-    const newState = !isCollapsed;
-    setIsCollapsed(newState);
-    localStorage.setItem("adminSidebarCollapsed", String(newState));
-  };
 
   // If login page, don't render sidebar
   if (pathname.includes("/admin/login")) {
@@ -144,8 +136,12 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
           
           {/* Mobile close button inside header */}
           {isOpen && (
-            <button onClick={onClose} className="lg:hidden p-1.5 rounded-md hover:pg-surface-elevated text-slate-500">
-              <PanelLeftClose className="w-5 h-5" />
+            <button
+              onClick={onClose}
+              aria-label="Close navigation menu"
+              className="lg:hidden p-1.5 rounded-md hover:pg-surface-elevated text-slate-500"
+            >
+              <X className="w-5 h-5" />
             </button>
           )}
         </div>
@@ -192,17 +188,8 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
           ))}
         </div>
 
-        {/* Footer actions */}
+        {/* Footer actions: External link + Logout only */}
         <div className="p-3 border-t pg-border flex flex-col gap-2">
-          {/* Collapse Toggle */}
-          <button
-            onClick={toggleCollapse}
-            className="hidden lg:flex w-full items-center justify-center p-2 rounded-lg hover:pg-surface-elevated text-slate-500 hover:pg-text transition-colors"
-            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
-            {isCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
-          </button>
-          
           <div className={`flex items-center ${isCollapsed ? 'flex-col gap-2' : 'justify-between'}`}>
             <Link
               href="/"
@@ -212,7 +199,7 @@ export function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
             >
               <ExternalLink className="w-5 h-5" />
             </Link>
-            
+
             <button
               onClick={handleLogout}
               className="p-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
