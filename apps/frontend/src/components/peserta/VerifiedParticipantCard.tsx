@@ -34,10 +34,33 @@ export function VerifiedParticipantCard({ participant }: VerifiedParticipantCard
     try {
       setIsDownloading(true)
       
-      const dataUrl = await htmlToImage.toPng(cardRef.current, {
+      // Ensure fonts are fully loaded
+      if (document.fonts) {
+        await document.fonts.ready
+      }
+      
+      // Small delay to ensure QR and layout are fully painted
+      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      const node = cardRef.current
+      
+      const width = node.offsetWidth
+      const height = node.offsetHeight
+      
+      const dataUrl = await htmlToImage.toPng(node, {
         quality: 1.0,
-        pixelRatio: 2,
-        backgroundColor: '#ffffff', // ensure background is solid white for download
+        pixelRatio: 3, // High resolution
+        backgroundColor: '#ffffff',
+        width: width,
+        height: height,
+        style: {
+          // Reset any transforms or layout constraints during capture
+          transform: 'none',
+          width: `${width}px`,
+          height: `${height}px`,
+          margin: '0',
+          borderRadius: '24px', // Match the rounded-3xl class approximately
+        }
       })
       
       const link = document.createElement("a")
