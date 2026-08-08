@@ -5,7 +5,7 @@ DELETE FROM notification_templates WHERE channel = 'EMAIL';
 
 -- 1. Participant Registration Submitted
 INSERT INTO notification_templates (name, channel, subject, body) VALUES
-('participant_registration_submitted', 'EMAIL', 'Registration Received - MUSKOM 2026',
+('participant_registration_submitted', 'EMAIL', 'Registration Received - {{portal_title}}',
 '<!DOCTYPE html>
 <html lang="id">
 <head>

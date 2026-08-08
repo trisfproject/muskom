@@ -188,7 +188,7 @@ func (s *service) TestTemplate(ctx context.Context, id string, email string) err
 		"candidate_number":       "CAND-001",
 		"company_name":           "PT. Maju Jaya",
 		"job_title":              "Direktur",
-		"event_name":             "Musyawarah Nasional 2026",
+		"event_name":             "MUSKOM",
 		"event_date":             "12 Oktober 2026",
 		"venue":                  "Hotel Mulia Senayan",
 		"verification_url":       "https://congress.trisf.my.id/verify-email?token=123",

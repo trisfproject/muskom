@@ -2,32 +2,17 @@ package configuration
 
 import (
 	"github.com/gofiber/fiber/v3"
-	"github.com/jmoiron/sqlx"
-	"github.com/redis/go-redis/v9"
-	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
-	"go.uber.org/zap"
 )
 
-func SetupPublicRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, val *validator.Validator, log *zap.Logger, cfg *config.Config, m mailer.Mailer) {
-	auditRepo := audit.NewRepository(db)
-	auditService := audit.NewService(auditRepo, log)
-	repo := NewRepository(db)
-	cache := NewCache(rdb)
-	service := NewService(repo, cache, auditService, log, val)
+func SetupPublicRoutes(router fiber.Router, service Service, val *validator.Validator, cfg *config.Config, m mailer.Mailer) {
 	handler := NewHandler(service, val, cfg, m)
-
 	router.Get("/", handler.HandleGetConfig)
 }
 
-func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, val *validator.Validator, log *zap.Logger, cfg *config.Config, m mailer.Mailer) {
-	auditRepo := audit.NewRepository(db)
-	auditService := audit.NewService(auditRepo, log)
-	repo := NewRepository(db)
-	cache := NewCache(rdb)
-	service := NewService(repo, cache, auditService, log, val)
+func SetupAdminRoutes(router fiber.Router, service Service, val *validator.Validator, cfg *config.Config, m mailer.Mailer) {
 	handler := NewHandler(service, val, cfg, m)
 
 	router.Get("/", handler.HandleGetConfig)

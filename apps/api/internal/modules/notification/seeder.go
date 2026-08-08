@@ -12,7 +12,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
 		{
 			Name:    "participant_registration_submitted",
 			Channel: ChannelEmail,
-			Subject: ptr("Registration Received - MUSKOM 2026"),
+			Subject: ptr("Registration Received - {{portal_title}}"),
 			Body: `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -55,7 +55,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
 		{
 			Name:    "participant_registration_approved",
 			Channel: ChannelEmail,
-			Subject: ptr("Registration Approved - MUSKOM 2026"),
+			Subject: ptr("Registration Approved - {{portal_title}}"),
 			Body: `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -114,7 +114,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
 		{
 			Name:    "participant_registration_rejected",
 			Channel: ChannelEmail,
-			Subject: ptr("Registration Rejected - MUSKOM 2026"),
+			Subject: ptr("Registration Rejected - {{portal_title}}"),
 			Body: `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -268,7 +268,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
 		{
 			Name:    "candidate_published",
 			Channel: ChannelEmail,
-			Subject: ptr("Kandidat Dipublikasikan - MUSKOM 2026"),
+			Subject: ptr("Kandidat Dipublikasikan - {{portal_title}}"),
 			Body: `<!DOCTYPE html>
 <html lang="id">
 <head>

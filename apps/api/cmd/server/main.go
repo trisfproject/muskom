@@ -96,7 +96,15 @@ func main() {
 
 	// 6. Common Utilities
 	val := validator.New()
-	mailerSvc := mailer.NewSMTPMailer(cfg, log)
+	
+	// Initialize Config Service for Mailer
+	auditRepo := audit.NewRepository(db)
+	auditService := audit.NewService(auditRepo, log)
+	configRepo := configuration.NewRepository(db)
+	configCache := configuration.NewCache(redisClient)
+	configSvc := configuration.NewService(configRepo, configCache, auditService, log, val)
+	
+	mailerSvc := mailer.NewSMTPMailer(cfg, log, configSvc)
 	hub := realtime.GetHub(log)
 	
 	// Create Notification Service - OUT OF SCOPE FOR RC1
@@ -148,7 +156,7 @@ func main() {
 	// Protected Auth routes (needs JWT for /me/permissions)
 	rbac.SetupAuthRoutes(authGroup.Group("/", auth.JWTMiddleware(cfg, log)), authSvc)
 
-	configuration.SetupPublicRoutes(v1.Group("/system/config"), db, redisClient, val, log, cfg, mailerSvc)
+	configuration.SetupPublicRoutes(v1.Group("/system/config"), configSvc, val, cfg, mailerSvc)
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
 	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, redisClient, cfg, log, val, mailerSvc, nil /*notifSvc*/)
@@ -160,7 +168,7 @@ func main() {
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
-	configuration.SetupAdminRoutes(adminGroup.Group("/system/config", checker.RequirePermission("system.manage")), db, redisClient, val, log, cfg, mailerSvc)
+	configuration.SetupAdminRoutes(adminGroup.Group("/system/config", checker.RequirePermission("system.manage")), configSvc, val, cfg, mailerSvc)
 	dashboard.SetupAdminRoutes(adminGroup.Group("/dashboard", checker.RequirePermission("audit.view")), db, redisClient, strg, mailerSvc, log)
 	website.SetupAdminRoutes(adminGroup.Group("/website", checker.RequirePermission("website.write")), db, redisClient, strg, val, log, cfg)
 

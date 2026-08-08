@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
+	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"go.uber.org/zap"
 )
@@ -13,6 +14,7 @@ import (
 type Service interface {
 	GetSystemConfig(ctx context.Context) (*FullSystemConfig, error)
 	UpdateConfigGroup(ctx context.Context, req UpdateConfigRequest, updatedBy *string) error
+	GetWebsiteBrand(ctx context.Context) (mailer.WebsiteBrand, error)
 }
 
 type service struct {
@@ -125,4 +127,21 @@ func (s *service) UpdateConfigGroup(ctx context.Context, req UpdateConfigRequest
 
 	s.log.Info("Configuration group updated successfully", zap.String("group", req.GroupName))
 	return nil
+}
+
+func (s *service) GetWebsiteBrand(ctx context.Context) (mailer.WebsiteBrand, error) {
+	fullCfg, err := s.GetSystemConfig(ctx)
+	if err != nil {
+		return mailer.WebsiteBrand{}, err
+	}
+	
+	return mailer.WebsiteBrand{
+		CommunityName:     fullCfg.WebsiteIdentity.CommunityName,
+		PortalTitle:       fullCfg.WebsiteIdentity.WebsiteTitle,
+		PortalDescription: fullCfg.WebsiteIdentity.WebsiteDescription,
+		LogoURL:           fullCfg.WebsiteIdentity.LogoURL,
+		WebsiteURL:        "", // Fetched from app config if needed, or left empty
+		ContactEmail:      fullCfg.Contact.Email,
+		ContactPhone:      fullCfg.Contact.WhatsApp,
+	}, nil
 }

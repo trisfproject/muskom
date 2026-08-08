@@ -98,10 +98,10 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 
 	switch logItem.EmailType {
 	case "REGISTRATION_RECEIVED":
-		subject = "Registration Received - MUSKOM 2026"
+		subject = "Registration Received - {{.portal_title}}"
 		htmlContent = "<h2>Registration Received</h2>" +
 			"<p>Hello,</p>" +
-			"<p>Your registration for MUSKOM 2026 has been received.</p>" +
+			"<p>Your registration for {{.portal_title}} has been received.</p>" +
 			"<ul>" +
 			"<li><strong>Submission ID:</strong> " + reg.ID + "</li>" +
 			"<li><strong>Time:</strong> " + reg.CreatedAt.Format("2006-01-02 15:04:05") + "</li>" +
@@ -116,10 +116,10 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 		qrUrl := fmt.Sprintf("%s/api/v1/public/qr/%s.png", w.cfg.AppBaseURL, *reg.RegistrationNumber)
 		lookupUrl := fmt.Sprintf("%s/peserta", w.cfg.AppBaseURL)
 		
-		subject = "Registration Approved - MUSKOM 2026"
+		subject = "Registration Approved - {{.portal_title}}"
 		htmlContent = "<h2>Registration Approved</h2>" +
 			"<p>Hello,</p>" +
-			"<p>Your registration for MUSKOM 2026 has been approved.</p>" +
+			"<p>Your registration for {{.portal_title}} has been approved.</p>" +
 			"<ul>" +
 			"<li><strong>Registration Number:</strong> " + *reg.RegistrationNumber + "</li>" +
 			"<li><strong>QR Code:</strong> <img src='" + qrUrl + "' alt='QR Code' /></li>" +
@@ -128,14 +128,14 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 			"<p>See you at the event!</p>"
 
 	case "REGISTRATION_REJECTED":
-		subject = "Registration Update - MUSKOM 2026"
+		subject = "Registration Update - {{.portal_title}}"
 		reason := "No reason provided."
 		if reg.RejectionReason != nil {
 			reason = *reg.RejectionReason
 		}
 		htmlContent = "<h2>Registration Update</h2>" +
 			"<p>Hello,</p>" +
-			"<p>We regret to inform you that your registration for MUSKOM 2026 was not approved.</p>" +
+			"<p>We regret to inform you that your registration for {{.portal_title}} was not approved.</p>" +
 			"<p><strong>Reason:</strong> " + reason + "</p>" +
 			"<p>If you have any questions, please contact our secretariat.</p>"
 	default:

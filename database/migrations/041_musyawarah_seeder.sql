@@ -23,10 +23,10 @@ INSERT INTO events (
     updated_at
 )
 SELECT 
-    'Musyawarah Nasional 2026',
+    'MUSKOM',
     'munas-2026',
     'Bersama Membangun Bangsa',
-    'Musyawarah Nasional (Munas) merupakan forum pengambilan keputusan tertinggi.',
+    'Musyawarah Komunitas (MUSKOM) merupakan forum pengambilan keputusan tertinggi.',
     'Gedung Serbaguna',
     'Jl. Jend. Sudirman No. 1, Jakarta',
     'https://maps.google.com/?q=Jakarta',

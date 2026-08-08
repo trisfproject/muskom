@@ -15,20 +15,21 @@ interface Template {
   body: string;
 }
 
-const DUMMY_VARS: Record<string, string> = {
-  full_name: "Budi Santoso",
-  registration_number: "PENDING-A1B2C3D4",
+const DEFAULT_VARS: Record<string, string> = {
+  participant_name: "Budi Santoso",
+  reg_number: "PENDING-A1B2C3D4",
   candidate_number: "CAND-001",
   company_name: "PT. Maju Jaya",
   job_title: "Direktur",
-  event_name: "Musyawarah Nasional 2026",
+  event_name: "MUSKOM",
   event_date: "12 Oktober 2026",
   venue: "Hotel Mulia Senayan",
   verification_url: "https://congress.trisf.my.id/verify-email?token=123",
-  participant_lookup_url: "https://congress.trisf.my.id/peserta?q=PENDING-A1B2C3D4",
+  lookup_url: "https://congress.trisf.my.id/peserta",
   candidate_profile_url: "https://congress.trisf.my.id/kandidat/CAND-001",
   qr_code: "https://congress.trisf.my.id/api/v1/public/qr/PENDING-A1B2C3D4.png",
   timestamp: new Date().toLocaleString(),
+  reason: "Persyaratan tidak lengkap",
 };
 
 export default function EditEmailTemplatePage() {
@@ -45,10 +46,33 @@ export default function EditEmailTemplatePage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [testEmail, setTestEmail] = useState("");
   const [isTesting, setIsTesting] = useState(false);
+  const [dummyVars, setDummyVars] = useState<Record<string, string>>(DEFAULT_VARS);
 
   useEffect(() => {
     fetchTemplate();
+    fetchConfig();
   }, [params.id]);
+
+  const fetchConfig = async () => {
+    try {
+      const res = await api.get("/system/config");
+      const cfg = res.data?.data;
+      if (cfg) {
+        setDummyVars(prev => ({
+          ...prev,
+          community_name: cfg.website_identity?.community_name || "MUSKOM",
+          portal_title: cfg.website_identity?.website_title || "MUSKOM",
+          portal_description: cfg.website_identity?.website_description || "",
+          logo_url: cfg.website_identity?.logo_url || "",
+          website_url: window.location.origin,
+          contact_email: cfg.contact?.email || "",
+          contact_phone: cfg.contact?.whatsapp || "",
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to load config", err);
+    }
+  };
 
   const fetchTemplate = async () => {
     try {
@@ -104,9 +128,9 @@ export default function EditEmailTemplatePage() {
     let html = template.body;
     
     // Replace dummy variables
-    Object.keys(DUMMY_VARS).forEach(key => {
+    Object.keys(dummyVars).forEach(key => {
       const regex = new RegExp(`{{\\.${key}}}`, 'g');
-      html = html.replace(regex, DUMMY_VARS[key]);
+      html = html.replace(regex, dummyVars[key]);
     });
     
     // For dark mode, inject prefer-color-scheme via style if supported, or wrap in a div
