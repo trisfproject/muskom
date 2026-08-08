@@ -242,7 +242,7 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 	// Fetch Recent Activity using existing repository
 	opEntries, _, _ := s.auditRepo.Search(ctx, audit.AuditFilter{
 		Page:  1,
-		Limit: 10,
+		Limit: 3,
 	})
 
 	for _, entry := range opEntries {

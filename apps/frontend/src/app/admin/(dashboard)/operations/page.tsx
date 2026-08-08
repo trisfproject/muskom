@@ -224,7 +224,7 @@ export default function OperationalDashboardPage() {
             
             {recent_activity && recent_activity.length > 0 ? (
               <div className="space-y-4">
-                {recent_activity.map((activity: any) => (
+                {recent_activity.slice(0, 3).map((activity: any) => (
                   <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800">
                     <div className="p-2 bg-white dark:bg-slate-800 rounded-lg shadow-sm mt-0.5">
                       <History className="w-4 h-4 text-slate-400" />
