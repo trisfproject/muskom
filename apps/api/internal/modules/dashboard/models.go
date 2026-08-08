@@ -35,8 +35,8 @@ type DashboardSummary struct {
 type RecentActivity struct {
 	ID        string    `json:"id"`
 	Action    string    `json:"action"`
-	Actor     string    `json:"actor"`
-	Role      string    `json:"role"`
+	Actor     *string   `json:"actor"`
+	Role      *string   `json:"role"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
@@ -88,7 +88,7 @@ type SystemHealthStats struct {
 
 type RecentRegistration struct {
 	ID                 string    `json:"id"`
-	RegistrationNumber string    `json:"registration_number"`
+	RegistrationNumber *string   `json:"registration_number"`
 	FullName           string    `json:"full_name"`
 	Email              string    `json:"email"`
 	Status             string    `json:"status"`
@@ -96,11 +96,11 @@ type RecentRegistration struct {
 }
 
 type RecentCandidate struct {
-	ID                string `json:"id"`
-	Name              string `json:"name"`
-	PhotoURL          string `json:"photo_url"`
-	Status            string `json:"status"`
-	PublicationStatus string `json:"publication_status"`
+	ID                string  `json:"id"`
+	Name              string  `json:"name"`
+	PhotoURL          *string `json:"photo_url"`
+	Status            string  `json:"status"`
+	PublicationStatus string  `json:"publication_status"`
 }
 
 type OperationsDashboardData struct {

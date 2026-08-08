@@ -152,10 +152,12 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 
 	// 4. Fetch Recent Activity (Audit logs)
 	query := `
-		SELECT id, action, actor_name as actor, actor_role as role, created_at as timestamp 
-		FROM audit_logs 
-		ORDER BY created_at DESC 
-		LIMIT 10
+		SELECT al.id, al.action, p.full_name as actor, al.actor_role as role, al.created_at as timestamp 
+		FROM audit_logs al
+		LEFT JOIN users u ON al.user_id = u.id
+		LEFT JOIN persons p ON u.person_id = p.id
+		ORDER BY al.created_at DESC 
+		LIMIT 5
 	`
 	var activities []RecentActivity
 	_ = s.db.SelectContext(ctx, &activities, query)
@@ -287,15 +289,15 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 
 	// Fetch Recent Registrations
 	s.db.SelectContext(ctx, &data.RecentRegistrations, `
-		SELECT id, registration_number, full_name, email, status, created_at 
-		FROM registrations 
-		WHERE deleted_at IS NULL 
-		ORDER BY created_at DESC LIMIT 5
+		SELECT r.id, r.registration_number, p.full_name, p.email, r.status, r.created_at 
+		FROM registrations r
+		JOIN persons p ON r.person_id = p.id
+		ORDER BY r.created_at DESC LIMIT 5
 	`)
 
 	// Fetch Recent Candidates
 	s.db.SelectContext(ctx, &data.RecentCandidates, `
-		SELECT id, name, photo_url, status, publication_status 
+		SELECT id, full_name as name, profile_photo as photo_url, status, status as publication_status 
 		FROM candidates 
 		WHERE deleted_at IS NULL 
 		ORDER BY updated_at DESC LIMIT 5
@@ -303,9 +305,11 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 
 	// Fetch Recent Activity
 	s.db.SelectContext(ctx, &data.RecentActivity, `
-		SELECT id, action, actor_name as actor, actor_role as role, created_at as timestamp 
-		FROM audit_logs 
-		ORDER BY created_at DESC LIMIT 5
+		SELECT al.id, al.action, p.full_name as actor, al.actor_role as role, al.created_at as timestamp 
+		FROM audit_logs al
+		LEFT JOIN users u ON al.user_id = u.id
+		LEFT JOIN persons p ON u.person_id = p.id
+		ORDER BY al.created_at DESC LIMIT 5
 	`)
 
 	if data.RecentRegistrations == nil {
