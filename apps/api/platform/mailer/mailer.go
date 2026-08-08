@@ -2,12 +2,15 @@ package mailer
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	"html/template"
+	"math/rand"
 	"net/smtp"
+	"time"
 
-	"context"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"go.uber.org/zap"
 )
@@ -26,6 +29,14 @@ type BrandProvider interface {
 	GetWebsiteBrand(ctx context.Context) (WebsiteBrand, error)
 }
 
+type Attachment struct {
+	Filename    string
+	ContentType string
+	ContentID   string // for inline images (e.g. "qrcode" referenced as cid:qrcode)
+	Data        []byte
+	Inline      bool
+}
+
 type Mailer interface {
 	SendRegistrationConfirmation(to, participantName, regNumber, musyawarahName, company, regTime, status string) error
 	SendVerification(to, participantName, regNumber, musyawarahName string) error
@@ -33,6 +44,7 @@ type Mailer interface {
 	SendTestEmail(to string) error
 	TestConnection() error
 	SendRaw(to, subject, bodyHTML string) error
+	SendRawWithAttachments(to, subject, bodyHTML string, attachments []Attachment) error
 }
 
 type smtpMailer struct {
@@ -242,8 +254,12 @@ func (m *smtpMailer) SendTestEmail(to string) error {
 }
 
 func (m *smtpMailer) SendRaw(to, subject, bodyHTML string) error {
+	return m.SendRawWithAttachments(to, subject, bodyHTML, nil)
+}
+
+func (m *smtpMailer) SendRawWithAttachments(to, subject, bodyHTML string, attachments []Attachment) error {
 	if !m.cfg.MailEnabled {
-		m.log.Info("Mail is disabled, skipping SendRaw", zap.String("to", to))
+		m.log.Info("Mail is disabled, skipping SendRawWithAttachments", zap.String("to", to))
 		return nil
 	}
 
@@ -263,9 +279,51 @@ func (m *smtpMailer) SendRaw(to, subject, bodyHTML string) error {
 	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
 	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", m.cfg.SmtpFromName, m.cfg.SmtpFrom))
 	body.WriteString(fmt.Sprintf("Subject: %s\r\n", parsedSubject))
-	body.WriteString("MIME-version: 1.0;\r\n")
-	body.WriteString("Content-Type: text/html; charset=\"UTF-8\";\r\n\r\n")
-	body.WriteString(parsedBody)
+	body.WriteString("MIME-Version: 1.0\r\n")
+
+	if len(attachments) == 0 {
+		body.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n\r\n")
+		body.WriteString(parsedBody)
+	} else {
+		boundary := fmt.Sprintf("boundary_%d_%x", time.Now().UnixNano(), rand.Uint32())
+		body.WriteString(fmt.Sprintf("Content-Type: multipart/related; boundary=\"%s\"\r\n\r\n", boundary))
+
+		// HTML part
+		body.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+		body.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
+		body.WriteString("Content-Transfer-Encoding: 8bit\r\n\r\n")
+		body.WriteString(parsedBody)
+		body.WriteString("\r\n")
+
+		// Attachments / Inline Images
+		for _, att := range attachments {
+			body.WriteString(fmt.Sprintf("--%s\r\n", boundary))
+			cType := att.ContentType
+			if cType == "" {
+				cType = "application/octet-stream"
+			}
+			body.WriteString(fmt.Sprintf("Content-Type: %s; name=\"%s\"\r\n", cType, att.Filename))
+			body.WriteString("Content-Transfer-Encoding: base64\r\n")
+			if att.ContentID != "" {
+				body.WriteString(fmt.Sprintf("Content-ID: <%s>\r\n", att.ContentID))
+			}
+			if att.Inline {
+				body.WriteString(fmt.Sprintf("Content-Disposition: inline; filename=\"%s\"\r\n\r\n", att.Filename))
+			} else {
+				body.WriteString(fmt.Sprintf("Content-Disposition: attachment; filename=\"%s\"\r\n\r\n", att.Filename))
+			}
+
+			b64 := base64.StdEncoding.EncodeToString(att.Data)
+			for i := 0; i < len(b64); i += 76 {
+				end := i + 76
+				if end > len(b64) {
+					end = len(b64)
+				}
+				body.WriteString(b64[i:end] + "\r\n")
+			}
+		}
+		body.WriteString(fmt.Sprintf("--%s--\r\n", boundary))
+	}
 
 	return m.sendSMTP(to, body.Bytes())
 }

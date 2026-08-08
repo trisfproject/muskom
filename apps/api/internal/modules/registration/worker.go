@@ -8,6 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 
+	"github.com/skip2/go-qrcode"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
@@ -168,9 +169,32 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 	}
 
 	qrURL := ""
-	if regNum != "" {
-		qrURL = fmt.Sprintf("%s/api/v1/public/qr/%s.png", appBaseURL, regNum)
+	var attachments []mailer.Attachment
+	if logItem.EmailType == "REGISTRATION_APPROVED" {
+		if regNum == "" {
+			return fmt.Errorf("cannot send approved email: registration number is empty for registration %s", logItem.RegistrationID)
+		}
+
+		qrData := fmt.Sprintf("%s/checkin/%s", appBaseURL, regNum)
+		if appBaseURL == "" {
+			qrData = regNum
+		}
+
+		qrPNG, err := qrcode.Encode(qrData, qrcode.Medium, 256)
+		if err != nil {
+			return fmt.Errorf("failed to generate QR code for registration %s: %w", logItem.RegistrationID, err)
+		}
+
+		qrURL = "cid:qrcode"
+		attachments = append(attachments, mailer.Attachment{
+			Filename:    "qrcode.png",
+			ContentType: "image/png",
+			ContentID:   "qrcode",
+			Data:        qrPNG,
+			Inline:      true,
+		})
 	}
+
 	lookupURL := fmt.Sprintf("%s/peserta", appBaseURL)
 
 	rejectionReason := regAdmin.SpecialNotes
@@ -213,6 +237,6 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 	}
 
 	// 7. Send email
-	return w.mailerSvc.SendRaw(logItem.RecipientEmail, subject, bodyHTML)
+	return w.mailerSvc.SendRawWithAttachments(logItem.RecipientEmail, subject, bodyHTML, attachments)
 }
 

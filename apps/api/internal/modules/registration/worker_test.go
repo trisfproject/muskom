@@ -11,6 +11,7 @@ import (
 
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
+	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 )
 
 type MockMailer struct {
@@ -44,6 +45,11 @@ func (m *MockMailer) TestConnection() error {
 
 func (m *MockMailer) SendRaw(to, subject, bodyHTML string) error {
 	args := m.Called(to, subject, bodyHTML)
+	return args.Error(0)
+}
+
+func (m *MockMailer) SendRawWithAttachments(to, subject, bodyHTML string, attachments []mailer.Attachment) error {
+	args := m.Called(to, subject, bodyHTML, attachments)
 	return args.Error(0)
 }
 
@@ -192,7 +198,7 @@ func TestEmailWorker_SendEmail_RegistrationReceived(t *testing.T) {
 		Body:    bodyTpl,
 	}, nil)
 
-	mockMailer.On("SendRaw", "fauzi@example.com", "Registration Received - Musyawarah Nasional", "<p>Hello Ahmad Fauzi, welcome to Musyawarah Nasional</p>").Return(nil)
+	mockMailer.On("SendRawWithAttachments", "fauzi@example.com", "Registration Received - Musyawarah Nasional", "<p>Hello Ahmad Fauzi, welcome to Musyawarah Nasional</p>", []mailer.Attachment(nil)).Return(nil)
 
 	err := worker.sendEmail(ctx, EmailLog{
 		RegistrationID: "reg-123",
@@ -235,7 +241,7 @@ func TestEmailWorker_SendEmail_RegistrationApproved(t *testing.T) {
 	mockRepo.On("GetPortalTitle", ctx).Return("Kongres Tahunan", nil)
 
 	subjTpl := "Registration Approved - {{.portal_title}}"
-	bodyTpl := "<p>Hi {{.full_name}}, your number is {{.registration_number}}, lookup at {{.lookup_url}}</p>"
+	bodyTpl := "<p>Hi {{.full_name}}, your number is {{.registration_number}}, qr is {{.qr_code}}, lookup at {{.lookup_url}}</p>"
 	mockNotifRepo.On("GetTemplateByName", ctx, "participant_registration_approved", notification.ChannelEmail).Return(&notification.NotificationTemplate{
 		Name:    "participant_registration_approved",
 		Channel: notification.ChannelEmail,
@@ -243,12 +249,122 @@ func TestEmailWorker_SendEmail_RegistrationApproved(t *testing.T) {
 		Body:    bodyTpl,
 	}, nil)
 
-	mockMailer.On("SendRaw", "dewi@example.com", "Registration Approved - Kongres Tahunan", "<p>Hi Dewi Lestari, your number is REG-99999, lookup at https://example.com/peserta</p>").Return(nil)
+	mockMailer.On("SendRawWithAttachments",
+		"dewi@example.com",
+		"Registration Approved - Kongres Tahunan",
+		"<p>Hi Dewi Lestari, your number is REG-99999, qr is cid:qrcode, lookup at https://example.com/peserta</p>",
+		mock.MatchedBy(func(atts []mailer.Attachment) bool {
+			return len(atts) == 1 &&
+				atts[0].ContentID == "qrcode" &&
+				atts[0].Inline &&
+				atts[0].ContentType == "image/png" &&
+				len(atts[0].Data) > 0
+		}),
+	).Return(nil)
 
 	err := worker.sendEmail(ctx, EmailLog{
 		RegistrationID: "reg-456",
 		RecipientEmail: "dewi@example.com",
 		EmailType:      "REGISTRATION_APPROVED",
+	})
+
+	assert.NoError(t, err)
+	mockRepo.AssertExpectations(t)
+	mockNotifRepo.AssertExpectations(t)
+	mockMailer.AssertExpectations(t)
+}
+
+func TestEmailWorker_SendEmail_RegistrationApproved_MissingRegNumber(t *testing.T) {
+	ctx := context.Background()
+	log := zaptest.NewLogger(t)
+	mockRepo := new(MockRepository)
+	mockMailer := new(MockMailer)
+	mockNotifRepo := new(MockNotifRepository)
+	cfg := &config.Config{
+		AppBaseURL: "https://example.com",
+	}
+
+	worker := &EmailWorker{
+		repo:      mockRepo,
+		notifRepo: mockNotifRepo,
+		log:       log,
+		mailerSvc: mockMailer,
+		cfg:       cfg,
+		stopCh:    make(chan struct{}),
+	}
+
+	mockRepo.On("GetRegistrationAdminByID", ctx, "reg-no-num").Return(&AdminRegistrationResponse{
+		ID:                 "reg-no-num",
+		ParticipantName:    "Budi Santoso",
+		RegistrationNumber: "", // Missing reg number
+		Email:              "budi@example.com",
+	}, nil)
+
+	mockRepo.On("GetPortalTitle", ctx).Return("Kongres", nil)
+
+	mockNotifRepo.On("GetTemplateByName", ctx, "participant_registration_approved", notification.ChannelEmail).Return(&notification.NotificationTemplate{
+		Name:    "participant_registration_approved",
+		Channel: notification.ChannelEmail,
+	}, nil)
+
+	err := worker.sendEmail(ctx, EmailLog{
+		RegistrationID: "reg-no-num",
+		RecipientEmail: "budi@example.com",
+		EmailType:      "REGISTRATION_APPROVED",
+	})
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "registration number is empty")
+}
+
+func TestEmailWorker_SendEmail_RegistrationRejected(t *testing.T) {
+	ctx := context.Background()
+	log := zaptest.NewLogger(t)
+	mockRepo := new(MockRepository)
+	mockMailer := new(MockMailer)
+	mockNotifRepo := new(MockNotifRepository)
+	cfg := &config.Config{
+		AppBaseURL: "https://example.com",
+	}
+
+	worker := &EmailWorker{
+		repo:      mockRepo,
+		notifRepo: mockNotifRepo,
+		log:       log,
+		mailerSvc: mockMailer,
+		cfg:       cfg,
+		stopCh:    make(chan struct{}),
+	}
+
+	mockRepo.On("GetRegistrationAdminByID", ctx, "reg-789").Return(&AdminRegistrationResponse{
+		ID:              "reg-789",
+		ParticipantName: "Rudi Hartono",
+		SpecialNotes:    "Dokumen KTP buram",
+		Email:           "rudi@example.com",
+	}, nil)
+
+	mockRepo.On("GetPortalTitle", ctx).Return("Musyawarah", nil)
+
+	subjTpl := "Registration Status - {{.portal_title}}"
+	bodyTpl := "<p>Hi {{.full_name}}, status rejected. Reason: {{.rejection_reason}}</p>"
+	mockNotifRepo.On("GetTemplateByName", ctx, "participant_registration_rejected", notification.ChannelEmail).Return(&notification.NotificationTemplate{
+		Name:    "participant_registration_rejected",
+		Channel: notification.ChannelEmail,
+		Subject: &subjTpl,
+		Body:    bodyTpl,
+	}, nil)
+
+	mockMailer.On("SendRawWithAttachments",
+		"rudi@example.com",
+		"Registration Status - Musyawarah",
+		"<p>Hi Rudi Hartono, status rejected. Reason: Dokumen KTP buram</p>",
+		[]mailer.Attachment(nil),
+	).Return(nil)
+
+	err := worker.sendEmail(ctx, EmailLog{
+		RegistrationID: "reg-789",
+		RecipientEmail: "rudi@example.com",
+		EmailType:      "REGISTRATION_REJECTED",
 	})
 
 	assert.NoError(t, err)
