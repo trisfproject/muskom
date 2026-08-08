@@ -237,7 +237,7 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 sm:p-8 overflow-y-auto flex-1 prose prose-slate dark:prose-invert prose-blue max-w-none text-sm sm:text-base leading-relaxed">
+            <div className="p-6 sm:p-8 overflow-y-auto flex-1 prose prose-slate dark:prose-invert prose-blue max-w-none text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
               <ReactMarkdown>{selectedAnnouncement.content || selectedAnnouncement.summary || ""}</ReactMarkdown>
             </div>
 

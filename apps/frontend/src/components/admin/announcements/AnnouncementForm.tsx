@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Announcement, CreateAnnouncementRequest, UpdateAnnouncementRequest } from '@/types/announcement';
 import { announcementService } from '@/services/announcement';
 import { toast } from 'sonner';
+import { Bold, Italic, List, ListOrdered, Link as LinkIcon, Eraser } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface AnnouncementFormProps {
   initialData?: Announcement;
@@ -23,6 +25,36 @@ export default function AnnouncementForm({ initialData, isEdit }: AnnouncementFo
     content: initialData?.content || '',
     pinned: initialData?.pinned || false,
   });
+
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  const insertText = (before: string, after: string = '') => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = formData.content;
+    const selectedText = text.substring(start, end);
+
+    let newText = text.substring(0, start) + before + selectedText + after + text.substring(end);
+    
+    // Clear formatting basic logic (removes * and _)
+    if (before === 'clear') {
+       const cleaned = selectedText.replace(/[*_~`#]/g, '');
+       newText = text.substring(0, start) + cleaned + text.substring(end);
+       before = '';
+       after = '';
+    }
+
+    setFormData((prev: any) => ({ ...prev, content: newText }));
+    
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = before === '' && after === '' ? start + selectedText.replace(/[*_~`#]/g, '').length : start + before.length;
+      textarea.setSelectionRange(newCursorPos, end + before.length - (selectedText.length - selectedText.replace(/[*_~`#]/g, '').length));
+    }, 0);
+  };
 
   const categories = ['General', 'Registration', 'Candidate', 'Participant', 'Attendance', 'Voting', 'System', 'Emergency'];
   const priorities = ['Normal', 'Important', 'Urgent', 'Critical'];
@@ -135,17 +167,40 @@ export default function AnnouncementForm({ initialData, isEdit }: AnnouncementFo
         </div>
 
         <div className="sm:col-span-6">
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700">Content (Markdown / Text)</label>
+          <div className="flex items-center justify-between mb-2">
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700">Konten Lengkap</label>
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-md border border-slate-200">
+              <button type="button" onClick={() => insertText('**', '**')} className="p-1.5 hover:bg-white rounded text-slate-700" title="Bold"><Bold className="w-4 h-4" /></button>
+              <button type="button" onClick={() => insertText('*', '*')} className="p-1.5 hover:bg-white rounded text-slate-700" title="Italic"><Italic className="w-4 h-4" /></button>
+              <div className="w-px h-4 bg-slate-300 mx-1"></div>
+              <button type="button" onClick={() => insertText('• ')} className="p-1.5 hover:bg-white rounded text-slate-700" title="Bullet List"><List className="w-4 h-4" /></button>
+              <button type="button" onClick={() => insertText('1. ')} className="p-1.5 hover:bg-white rounded text-slate-700" title="Numbered List"><ListOrdered className="w-4 h-4" /></button>
+              <div className="w-px h-4 bg-slate-300 mx-1"></div>
+              <button type="button" onClick={() => insertText('[', '](https://)')} className="p-1.5 hover:bg-white rounded text-slate-700" title="Link"><LinkIcon className="w-4 h-4" /></button>
+              <button type="button" onClick={() => insertText('clear')} className="p-1.5 hover:bg-white rounded text-rose-600" title="Clear Formatting"><Eraser className="w-4 h-4" /></button>
+            </div>
+          </div>
           <div className="mt-1">
             <textarea
               id="content"
               name="content"
-              rows={10}
+              ref={textareaRef}
+              rows={12}
               required
               value={formData.content}
               onChange={handleChange}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              placeholder="Tulis pengumuman di sini... Enter untuk baris baru, Spasi ganda untuk paragraf."
             />
+          </div>
+        </div>
+
+        <div className="sm:col-span-6">
+          <label className="block text-sm font-bold text-gray-900 mb-2 border-b pb-2">Preview Public</label>
+          <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 min-h-[150px]">
+            <div className="prose prose-slate prose-blue max-w-none text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
+              <ReactMarkdown>{formData.content || formData.summary || "*Preview konten akan muncul di sini...*"}</ReactMarkdown>
+            </div>
           </div>
         </div>
 
