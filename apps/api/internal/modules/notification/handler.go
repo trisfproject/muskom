@@ -28,12 +28,34 @@ func (h *Handler) ListJobs(c fiber.Ctx) error {
 }
 
 func (h *Handler) ListHistory(c fiber.Ctx) error {
+	pageStr := c.Query("page", "1")
+	page, _ := strconv.Atoi(pageStr)
+	if page <= 0 {
+		page = 1
+	}
 
-	history, err := h.service.ListHistory(c.Context())
+	limitStr := c.Query("limit", "10")
+	limit, _ := strconv.Atoi(limitStr)
+	if limit <= 0 {
+		limit = 10
+	} else if limit > 50 {
+		limit = 50
+	}
+
+	history, total, err := h.service.ListHistory(c.Context(), page, limit)
 	if err != nil {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get history", nil)
 	}
-	return response.SendSuccess(c, fiber.StatusOK, "History retrieved", history, nil)
+
+	hasMore := total > (page * limit)
+
+	return response.SendSuccess(c, fiber.StatusOK, "History retrieved", map[string]interface{}{
+		"items":    history,
+		"total":    total,
+		"page":     page,
+		"limit":    limit,
+		"has_more": hasMore,
+	}, nil)
 }
 
 func (h *Handler) ListTemplates(c fiber.Ctx) error {

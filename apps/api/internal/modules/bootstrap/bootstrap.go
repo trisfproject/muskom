@@ -24,32 +24,51 @@ func Run(ctx context.Context, db *sqlx.DB, cfg *config.Config, log *zap.Logger) 
 		roleCode = "SUPER_ADMIN"
 	}
 
-	// Check if a super admin already exists
-	var count int
+	var adminUserID string
 	queryCheck := `
-		SELECT count(*)
+		SELECT u.id
 		FROM users u
 		JOIN roles r ON u.role_id = r.id
 		WHERE UPPER(r.code) = $1 AND u.deleted_at IS NULL
+		LIMIT 1
 	`
-	err := db.GetContext(ctx, &count, queryCheck, roleCode)
-	if err != nil {
+	err := db.GetContext(ctx, &adminUserID, queryCheck, roleCode)
+	if err != nil && err != sql.ErrNoRows {
 		log.Error("Failed to check existing bootstrap administrator", zap.Error(err))
-		return
-	}
-
-	if count > 0 {
-		fmt.Println("--------------------------------------------------")
-		fmt.Println("[BOOTSTRAP]")
-		fmt.Println("Administrator : ALREADY EXISTS")
-		fmt.Println("--------------------------------------------------")
-		log.Info("Bootstrap administrator skipped (already exists)")
 		return
 	}
 
 	// Validate required config
 	if cfg.BootstrapAdminUsername == "" || cfg.BootstrapAdminPassword == "" || cfg.BootstrapAdminEmail == "" {
 		log.Error("Bootstrap administrator failed: missing required configuration (username, password, email)")
+		return
+	}
+
+	// Hash password
+	hash, err := bcrypt.GenerateFromPassword([]byte(cfg.BootstrapAdminPassword), bcrypt.DefaultCost)
+	if err != nil {
+		log.Error("Bootstrap administrator failed: error hashing password", zap.Error(err))
+		return
+	}
+
+	if adminUserID != "" {
+		// Administrator already exists, update credentials
+		updateQuery := `
+			UPDATE users 
+			SET username = $1, password_hash = $2
+			WHERE id = $3
+		`
+		_, err = db.ExecContext(ctx, updateQuery, cfg.BootstrapAdminUsername, string(hash), adminUserID)
+		if err != nil {
+			log.Error("Bootstrap administrator failed to update existing user", zap.Error(err))
+			return
+		}
+		fmt.Println("--------------------------------------------------")
+		fmt.Println("[BOOTSTRAP]")
+		fmt.Println("Administrator : UPDATED")
+		fmt.Printf("Username  : %s\n", cfg.BootstrapAdminUsername)
+		fmt.Println("--------------------------------------------------")
+		log.Info("Bootstrap administrator updated (already exists)")
 		return
 	}
 
@@ -66,12 +85,6 @@ func Run(ctx context.Context, db *sqlx.DB, cfg *config.Config, log *zap.Logger) 
 		return
 	}
 
-	// Hash password
-	hash, err := bcrypt.GenerateFromPassword([]byte(cfg.BootstrapAdminPassword), bcrypt.DefaultCost)
-	if err != nil {
-		log.Error("Bootstrap administrator failed: error hashing password", zap.Error(err))
-		return
-	}
 
 	// Start transaction
 	tx, err := db.BeginTxx(ctx, nil)

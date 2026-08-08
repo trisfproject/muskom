@@ -22,22 +22,43 @@ interface NotificationHistory {
 export default function EmailLogsPage() {
   const [logs, setLogs] = useState<NotificationHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
-    fetchLogs();
+    fetchLogs(false);
   }, []);
 
-  const fetchLogs = async () => {
+  const fetchLogs = async (isLoadMore = false) => {
     try {
-      setIsLoading(true);
-      const res = await api.get("/admin/notifications/history");
+      if (!isLoadMore) {
+        setIsLoading(true);
+        setPage(1);
+      } else {
+        setLoadingMore(true);
+      }
+      
+      const targetPage = isLoadMore ? page + 1 : 1;
+      const res = await api.get("/admin/notifications/history", {
+        params: { page: targetPage, limit: 10 }
+      });
+      
       if (res.data?.data) {
-        setLogs(res.data.data);
+        const newItems = res.data.data.items || [];
+        if (isLoadMore) {
+          setLogs(prev => [...prev, ...newItems]);
+        } else {
+          setLogs(newItems);
+        }
+        setHasMore(res.data.data.has_more);
+        if (isLoadMore) setPage(targetPage);
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Gagal memuat log email");
     } finally {
       setIsLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -81,7 +102,7 @@ export default function EmailLogsPage() {
       >
         <button
           type="button"
-          onClick={fetchLogs}
+          onClick={() => fetchLogs(false)}
           className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
         >
           <RefreshCw className="w-4 h-4" />
@@ -172,6 +193,32 @@ export default function EmailLogsPage() {
           </div>
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {logs.length > 0 && (
+        <div className="flex flex-col items-center justify-center pt-2 pb-6">
+          {hasMore ? (
+            <button
+              onClick={() => fetchLogs(true)}
+              disabled={loadingMore}
+              className="px-6 py-2.5 bg-white dark:bg-slate-800 border pg-border hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-semibold pg-text rounded-full shadow-sm transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              {loadingMore ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" /> Memuat...
+                </>
+              ) : (
+                "Muat Lebih Banyak"
+              )}
+            </button>
+          ) : (
+            <div className="text-sm pg-muted bg-slate-50 dark:bg-slate-800/50 px-6 py-2 rounded-full border pg-border">
+              Semua log email telah ditampilkan.
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 }

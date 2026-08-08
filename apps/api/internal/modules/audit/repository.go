@@ -178,7 +178,7 @@ func (r *repository) Search(ctx context.Context, filter AuditFilter) ([]AuditEnt
 		SELECT id, module, action, entity, entity_id, user_id, actor_role, reason, ip_address, user_agent, metadata, previous_value, new_value, correlation_id, created_at
 		FROM audit_logs
 		%s
-		ORDER BY created_at DESC
+		ORDER BY created_at DESC, id DESC
 		LIMIT $%d OFFSET $%d
 	`, whereClause, argIdx, argIdx+1)
 

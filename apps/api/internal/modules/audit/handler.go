@@ -19,6 +19,15 @@ func (h *Handler) Search(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusBadRequest, "Invalid query parameters", nil)
 	}
 
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 10
+	} else if req.Limit > 50 {
+		req.Limit = 50
+	}
+
 	filter := AuditFilter{
 		Page:      req.Page,
 		Limit:     req.Limit,
@@ -67,9 +76,14 @@ func (h *Handler) Search(c fiber.Ctx) error {
 		responses = []AuditDetailResponse{}
 	}
 
+	hasMore := total > (req.Page * req.Limit)
+
 	return response.SendSuccess(c, fiber.StatusOK, "Audit logs retrieved", map[string]interface{}{
-		"items": responses,
-		"total": total,
+		"items":    responses,
+		"total":    total,
+		"page":     req.Page,
+		"limit":    req.Limit,
+		"has_more": hasMore,
 	}, nil)
 }
 

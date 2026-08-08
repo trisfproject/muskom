@@ -25,7 +25,7 @@ export interface ListAuditLogsResponse {
   total: number;
   page: number;
   limit: number;
-  total_pages: number;
+  has_more: boolean;
 }
 
 export const auditService = {

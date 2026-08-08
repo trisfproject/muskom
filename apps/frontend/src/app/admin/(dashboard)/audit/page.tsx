@@ -41,24 +41,47 @@ export default function AuditPage() {
   const [viewMode, setViewMode] = useState<"table" | "timeline">("table");
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-  const fetchLogs = async () => {
-    setLoading(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const fetchLogs = async (isLoadMore = false) => {
+    if (!isLoadMore) {
+      setLoading(true);
+      setPage(1);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
+      const targetPage = isLoadMore ? page + 1 : 1;
       const res = await auditService.listLogs({ 
         search: search || undefined,
         module: selectedModule || undefined,
-        limit: 100 
+        page: targetPage,
+        limit: 10 
       });
-      setLogs(res.items || []);
+      
+      if (isLoadMore) {
+        setLogs(prev => [...prev, ...(res.items || [])]);
+      } else {
+        setLogs(res.items || []);
+      }
+      
+      setHasMore(res.has_more);
+      if (isLoadMore) {
+        setPage(targetPage);
+      }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Gagal mengambil audit log");
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    fetchLogs();
+    fetchLogs(false);
   }, [search, selectedModule]);
 
   const handleExport = async () => {
@@ -96,7 +119,7 @@ export default function AuditPage() {
       >
         <div className="flex items-center gap-2">
           <button
-            onClick={fetchLogs}
+            onClick={() => fetchLogs(false)}
             disabled={loading}
             className="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
           >
@@ -270,6 +293,31 @@ export default function AuditPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {logs.length > 0 && (
+        <div className="flex flex-col items-center justify-center pt-4 pb-8">
+          {hasMore ? (
+            <button
+              onClick={() => fetchLogs(true)}
+              disabled={loadingMore}
+              className="px-6 py-2.5 bg-white dark:bg-slate-800 border pg-border hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-semibold pg-text rounded-full shadow-sm transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              {loadingMore ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" /> Memuat...
+                </>
+              ) : (
+                "Muat Lebih Banyak"
+              )}
+            </button>
+          ) : (
+            <div className="text-sm pg-muted bg-slate-50 dark:bg-slate-800/50 px-6 py-2 rounded-full border pg-border">
+              Semua aktivitas telah ditampilkan.
             </div>
           )}
         </div>

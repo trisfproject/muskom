@@ -21,7 +21,7 @@ type Service interface {
 	Broadcast(ctx context.Context, channel Channel, templateName string, recipients []string, payload map[string]interface{}) error
 
 	ListJobs(ctx context.Context) ([]NotificationJob, error)
-	ListHistory(ctx context.Context) ([]NotificationHistory, error)
+	ListHistory(ctx context.Context, page, limit int) ([]NotificationHistory, int, error)
 	ListTemplates(ctx context.Context) ([]NotificationTemplate, error)
 	GetTemplate(ctx context.Context, id string) (*NotificationTemplate, error)
 	UpdateTemplate(ctx context.Context, id string, subject *string, body string) error
@@ -128,8 +128,8 @@ func (s *service) ListJobs(ctx context.Context) ([]NotificationJob, error) {
 	return s.repo.ListJobs(ctx, "")
 }
 
-func (s *service) ListHistory(ctx context.Context) ([]NotificationHistory, error) {
-	return s.repo.ListHistory(ctx, "")
+func (s *service) ListHistory(ctx context.Context, page, limit int) ([]NotificationHistory, int, error) {
+	return s.repo.ListHistory(ctx, page, limit)
 }
 
 func (s *service) ListTemplates(ctx context.Context) ([]NotificationTemplate, error) {

@@ -17,7 +17,7 @@ type Repository interface {
 	UpdateJobStatus(ctx context.Context, id string, status JobStatus, errMsg *string) error
 	CreateHistory(ctx context.Context, history *NotificationHistory) error
 	ListJobs(ctx context.Context, eventID string) ([]NotificationJob, error)
-	ListHistory(ctx context.Context, eventID string) ([]NotificationHistory, error)
+	ListHistory(ctx context.Context, page, limit int) ([]NotificationHistory, int, error)
 	ListTemplates(ctx context.Context) ([]NotificationTemplate, error)
 	UpdateTemplate(ctx context.Context, id string, subject *string, body string) error
 	RetryJob(ctx context.Context, id string) error
@@ -118,7 +118,27 @@ func (r *repository) ListJobs(ctx context.Context, _ string) ([]NotificationJob,
 	return jobs, err
 }
 
-func (r *repository) ListHistory(ctx context.Context, _ string) ([]NotificationHistory, error) {
+func (r *repository) ListHistory(ctx context.Context, page, limit int) ([]NotificationHistory, int, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
+
+	var total int
+	countQuery := `
+		SELECT COUNT(1) FROM (
+			SELECT id FROM email_logs
+			UNION ALL
+			SELECT id FROM notification_history
+		) as combined_logs
+	`
+	if err := r.db.GetContext(ctx, &total, countQuery); err != nil {
+		return nil, 0, err
+	}
+
 	var history []NotificationHistory
 	query := `
 		SELECT * FROM (
@@ -144,10 +164,14 @@ func (r *repository) ListHistory(ctx context.Context, _ string) ([]NotificationH
 				'' as template
 			FROM notification_history
 		) as combined_logs
-		ORDER BY sent_at DESC NULLS LAST LIMIT 50
+		ORDER BY sent_at DESC NULLS LAST, id DESC
+		LIMIT $1 OFFSET $2
 	`
-	err := r.db.SelectContext(ctx, &history, query)
-	return history, err
+	err := r.db.SelectContext(ctx, &history, query, limit, offset)
+	if history == nil {
+		history = []NotificationHistory{}
+	}
+	return history, total, err
 }
 
 func (r *repository) ListTemplates(ctx context.Context) ([]NotificationTemplate, error) {

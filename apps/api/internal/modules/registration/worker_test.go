@@ -98,12 +98,12 @@ func (m *MockNotifRepository) ListJobs(ctx context.Context, eventID string) ([]n
 	return nil, args.Error(1)
 }
 
-func (m *MockNotifRepository) ListHistory(ctx context.Context, eventID string) ([]notification.NotificationHistory, error) {
-	args := m.Called(ctx, eventID)
+func (m *MockNotifRepository) ListHistory(ctx context.Context, page, limit int) ([]notification.NotificationHistory, int, error) {
+	args := m.Called(ctx, page, limit)
 	if args.Get(0) != nil {
-		return args.Get(0).([]notification.NotificationHistory), args.Error(1)
+		return args.Get(0).([]notification.NotificationHistory), args.Int(1), args.Error(2)
 	}
-	return nil, args.Error(1)
+	return nil, args.Int(1), args.Error(2)
 }
 
 func (m *MockNotifRepository) ListTemplates(ctx context.Context) ([]notification.NotificationTemplate, error) {
