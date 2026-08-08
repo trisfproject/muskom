@@ -86,9 +86,9 @@ export default function AdminLoginPage() {
         <div className="w-full max-w-[420px]">
           {/* Brand */}
           <div className="flex flex-col items-center mb-10">
-            <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mb-5 shadow-xl shadow-[var(--color-primary)]/20">
-              <span className="text-slate-950 font-black text-2xl">M</span>
-            </div>
+            <span className="text-3xl font-black tracking-[0.18em] text-[var(--color-primary)] uppercase mb-3 select-none">
+              MUSKOM
+            </span>
             <h1 className="text-2xl font-black pg-text tracking-tight mb-1">Portal Admin</h1>
             <p className="text-sm pg-muted text-center max-w-xs">
               Masuk menggunakan kredensial administrator yang telah diberikan oleh panitia.
