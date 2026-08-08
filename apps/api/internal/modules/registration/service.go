@@ -472,7 +472,7 @@ func (s *service) AdminUpdateRegistrationStatus(ctx context.Context, id string, 
 		if err != nil {
 			return err
 		}
-		newRegNum := fmt.Sprintf("REG-%06d", max+1)
+		newRegNum := fmt.Sprintf("MUSKOM-%d-%04d", time.Now().Year(), max+1)
 
 		// 2. Update Status and Number
 		err = s.repo.UpdateRegistrationStatusAndNumberTx(ctx, tx, id, req.Status, newRegNum, adminUserID)

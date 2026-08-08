@@ -88,7 +88,7 @@ type CreateParticipantRequest struct {
 
 // UpdateParticipantRequest represents the payload for updating an existing participant
 type UpdateParticipantRequest struct {
-	RegistrationNumber string  `json:"registration_number" validate:"required"`
+	RegistrationNumber string  `json:"registration_number"`
 	FullName           string  `json:"full_name" validate:"required"`
 	Nickname           *string `json:"nickname" validate:"omitempty"`
 

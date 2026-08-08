@@ -37,30 +37,50 @@ import {
 import { toast } from "sonner";
 
 const STATUS_CFG: Record<string, { label: string; dot: string; badge: string }> = {
-  Pending: {
+  PENDING: {
     label: "Pending",
-    dot: "bg-amber-400",
-    badge: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+    dot: "bg-slate-400",
+    badge: "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-950/40 dark:text-slate-300 dark:border-slate-800",
   },
-  Verified: {
+  VERIFIED: {
     label: "Terverifikasi",
+    dot: "bg-blue-400",
+    badge: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+  },
+  APPROVED: {
+    label: "Approved",
     dot: "bg-emerald-400",
     badge: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
   },
-  Rejected: {
+  REJECTED: {
     label: "Ditolak",
     dot: "bg-red-400",
     badge: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800",
   },
-  Eligible: {
+  WAITING_EMAIL: {
+    label: "Menunggu Email",
+    dot: "bg-orange-400",
+    badge: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800",
+  },
+  FAILED_EMAIL: {
+    label: "Gagal Email",
+    dot: "bg-red-500",
+    badge: "bg-transparent text-red-700 border-red-400 dark:text-red-300 dark:border-red-600 border-dashed",
+  },
+  EMAIL_SENT: {
+    label: "Email Terkirim",
+    dot: "bg-emerald-400",
+    badge: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
+  },
+  ELIGIBLE: {
     label: "Eligible",
-    dot: "bg-blue-400",
-    badge: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+    dot: "bg-indigo-400",
+    badge: "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800",
   },
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const cfg = STATUS_CFG[status] ?? {
+  const cfg = STATUS_CFG[status.toUpperCase()] ?? {
     label: status,
     dot: "bg-slate-400",
     badge: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
@@ -219,7 +239,6 @@ export default function AdminParticipantsPage() {
       phone: p.phone,
       company: p.company,
       job_title: p.job_title,
-      status: p.status,
     });
   };
 
@@ -819,19 +838,6 @@ export default function AdminParticipantsPage() {
                     onChange={(e) => setEditForm({ ...editForm, job_title: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
                   />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold pg-text block mb-1">Status</label>
-                  <select
-                    value={editForm.status || "Pending"}
-                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Verified">Verified</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="Eligible">Eligible</option>
-                  </select>
                 </div>
               </div>
 

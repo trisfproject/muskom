@@ -159,7 +159,7 @@ func (r *repository) Update(ctx context.Context, p *Participant) error {
 	// Update Registration
 	regQuery := `
 		UPDATE registrations SET
-			region = $1, community = $2, updated_at = NOW(), registration_number = NULLIF($3, '')
+			region = $1, community = $2, updated_at = NOW(), registration_number = COALESCE(NULLIF($3, ''), registration_number)
 		WHERE id = $4
 		RETURNING updated_at
 	`

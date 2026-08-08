@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 	"strings"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -163,7 +164,7 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 			if err != nil {
 				return err
 			}
-			newRegNum := fmt.Sprintf("REG-%06d", max+1)
+			newRegNum := fmt.Sprintf("MUSKOM-%d-%04d", time.Now().Year(), max+1)
 
 			err = s.repo.UpdateStatusAndNumberTx(ctx, tx, id, req.Status, newRegNum)
 			if err != nil {
