@@ -90,10 +90,10 @@ export function Header() {
               {/* Portal Admin CTA */}
               <Link
                 href="/admin/login"
-                className="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full border border-slate-200/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 hover:text-primary dark:hover:text-primary hover:border-primary/40 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-xs hover:shadow-sm"
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-sm font-semibold rounded-full border border-slate-200/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 hover:text-primary dark:hover:text-primary hover:border-primary/40 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-xs hover:shadow-sm"
               >
                 <Lock className="w-3.5 h-3.5 text-primary" />
-                Portal Admin
+                <span className="hidden sm:inline">Portal Admin</span>
               </Link>
 
               {/* Mobile Navigation is now handled by MobileBottomNavigation component */}

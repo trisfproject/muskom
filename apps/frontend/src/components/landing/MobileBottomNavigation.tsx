@@ -11,6 +11,7 @@ export function MobileBottomNavigation() {
   const flags = config?.feature_flags
 
   const filteredNavItems = navItems.filter((item) => {
+    if (item.label === "Admin") return false
     if (item.label === "Timeline" && flags && !flags.show_timeline) return false
     if (item.label === "Kandidat" && flags && !flags.show_candidate) return false
     if (item.label === "Informasi" && flags && !flags.show_information) return false
