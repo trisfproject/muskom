@@ -3,6 +3,7 @@ package announcement
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -28,6 +29,13 @@ func NewWorker(repo Repository, mailer mailer.Mailer, hub *realtime.Hub, log *za
 }
 
 func (w *Worker) Start(ctx context.Context) {
+	// Verify broadcast_jobs table exists
+	_, err := w.repo.GetPendingBroadcastJobs(ctx)
+	if err != nil && strings.Contains(err.Error(), "relation \"broadcast_jobs\" does not exist") {
+		w.log.Error("Announcement Broadcast Worker disabled: broadcast_jobs table does not exist")
+		return
+	}
+
 	w.log.Info("Starting Announcement Broadcast Worker")
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()

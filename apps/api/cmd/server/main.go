@@ -17,6 +17,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/bootstrap"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/candidate"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/dashboard"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 
 	"github.com/trisfproject/muskom/apps/api/internal/modules/participant"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/rbac"
@@ -107,10 +108,10 @@ func main() {
 	mailerSvc := mailer.NewSMTPMailer(cfg, log, configSvc)
 	hub := realtime.GetHub(log)
 	
-	// Create Notification Service - OUT OF SCOPE FOR RC1
-	// notifRepo := notification.NewRepository(db)
-	// notifRegistry := notification.NewProviderRegistry(mailerSvc, hub, notifRepo)
-	// notifSvc := notification.NewService(notifRepo, notifRegistry, log)
+	// Create Notification Service
+	notifRepo := notification.NewRepository(db)
+	notifRegistry := notification.NewProviderRegistry(mailerSvc, hub, notifRepo)
+	notifSvc := notification.NewService(notifRepo, notifRegistry, log)
 	
 	// Seed default notification templates
 	// if err := notifSvc.SeedDefaultTemplates(context.Background()); err != nil {
@@ -177,7 +178,7 @@ func main() {
 	// OUT OF SCOPE FOR RC1
 	// attendance.SetupAdminRoutes(adminGroup.Group("/attendance", checker.RequirePermission("attendance.manage")), db, log, val)
 	// attendance.SetupRootAdminRoutes(adminGroup.Group("/", checker.RequirePermission("attendance.manage")), db, log, val)
-	// notification.SetupAdminRoutesWithService(adminGroup.Group("/notifications", checker.RequirePermission("notification.send")), notifSvc, hub)
+	notification.SetupAdminRoutesWithService(adminGroup.Group("/notifications", checker.RequirePermission("notification.send")), notifSvc, hub)
 	
 	audit.SetupAdminRoutes(adminGroup.Group("/audit", checker.RequirePermission("audit.view")), db, log)
 	
