@@ -46,14 +46,16 @@ type DashboardData struct {
 }
 
 type ParticipantStats struct {
-	Total             int    `json:"total"`
-	Verified          int    `json:"verified"`
-	Pending           int    `json:"pending"`
-	Rejected          int    `json:"rejected"`
-	WaitingList       int    `json:"waiting_list"`
-	Limit             *int   `json:"limit"`
-	CapacityMode      string `json:"capacity_mode"`
-	RemainingCapacity *int   `json:"remaining_capacity"`
+	Total                int    `json:"total"`
+	Verified             int    `json:"verified"`
+	Pending              int    `json:"pending"`
+	Rejected             int    `json:"rejected"`
+	WaitingList          int    `json:"waiting_list"`
+	Limit                *int   `json:"limit"`
+	CapacityMode         string `json:"capacity_mode"`
+	RemainingCapacity    *int   `json:"remaining_capacity"`
+	WaitingListCapacity  *int   `json:"waiting_list_capacity"`
+	WaitingListRemaining *int   `json:"waiting_list_remaining"`
 }
 
 type CandidateStats struct {

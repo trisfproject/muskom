@@ -34,6 +34,8 @@ type PublicSettingsDTO struct {
 	ParticipantLimit         int    `json:"participant_limit"`
 	ParticipantCount         int    `json:"participant_count"`
 	CapacityMode             string `json:"capacity_mode"`
+	WaitingListCapacity      int    `json:"waiting_list_capacity"`
+	WaitingListCount         int    `json:"waiting_list_count"`
 	RegistrationEnabled      bool   `json:"registration_enabled"`
 }
 

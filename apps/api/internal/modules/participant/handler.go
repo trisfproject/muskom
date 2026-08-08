@@ -141,7 +141,13 @@ func (h *Handler) PublicRegister(c fiber.Ctx) error {
 			return response.SendError(c, fiber.StatusConflict, "Email already registered", nil)
 		}
 		if err == ErrQuotaReached {
-			return response.SendError(c, fiber.StatusConflict, "Participant registration is closed because the quota has been reached.", nil)
+			return response.SendError(c, fiber.StatusConflict, "Pendaftaran saat ini telah ditutup karena kuota peserta utama dan daftar tunggu telah terpenuhi.", nil)
+		}
+		if err == ErrWaitingListFull {
+			return response.SendError(c, fiber.StatusConflict, "Pendaftaran saat ini telah ditutup karena kuota peserta dan daftar tunggu telah terpenuhi.", nil)
+		}
+		if err == ErrRegistrationClosed {
+			return response.SendError(c, fiber.StatusForbidden, "Pendaftaran peserta belum dibuka atau telah ditutup.", nil)
 		}
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to register participant", nil)
 	}

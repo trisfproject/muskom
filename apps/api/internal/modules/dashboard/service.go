@@ -38,23 +38,24 @@ func NewService(db *sqlx.DB, redisClient *redis.Client, strg storage.Storage, ma
 	}
 }
 
-func (s *service) getRegistrationCapacitySettings(ctx context.Context) (int, string) {
+func (s *service) getRegistrationCapacitySettings(ctx context.Context) (int, int, string) {
 	var settingsJSON []byte
 	err := s.db.GetContext(ctx, &settingsJSON, `SELECT settings FROM system_configurations WHERE group_name = 'registration'`)
 	if err != nil {
-		return 0, "CLOSE"
+		return 0, 0, "CLOSE"
 	}
 	var cfg struct {
-		ParticipantLimit int    `json:"participant_limit"`
-		CapacityMode     string `json:"capacity_mode"`
+		ParticipantLimit    int    `json:"participant_limit"`
+		WaitingListCapacity int    `json:"waiting_list_capacity"`
+		CapacityMode        string `json:"capacity_mode"`
 	}
 	if err := json.Unmarshal(settingsJSON, &cfg); err != nil {
-		return 0, "CLOSE"
+		return 0, 0, "CLOSE"
 	}
 	if cfg.CapacityMode == "" {
 		cfg.CapacityMode = "CLOSE"
 	}
-	return cfg.ParticipantLimit, cfg.CapacityMode
+	return cfg.ParticipantLimit, cfg.WaitingListCapacity, cfg.CapacityMode
 }
 
 func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) {
@@ -100,7 +101,7 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 	s.db.GetContext(ctx, &data.Summary.VotesCast, `SELECT COUNT(*) FROM votes`)
 	s.db.GetContext(ctx, &data.Summary.PendingNotifications, `SELECT COUNT(*) FROM notification_jobs WHERE status IN ('PENDING', 'QUEUED', 'PROCESSING')`)
 
-	limitVal, modeVal := s.getRegistrationCapacitySettings(ctx)
+	limitVal, _, modeVal := s.getRegistrationCapacitySettings(ctx)
 	data.Summary.CapacityMode = modeVal
 	if limitVal > 0 {
 		data.Summary.ParticipantLimit = &limitVal
@@ -196,15 +197,28 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 		}
 	}
 
-	limitVal, modeVal := s.getRegistrationCapacitySettings(ctx)
+	limitVal, wlCap, modeVal := s.getRegistrationCapacitySettings(ctx)
 	data.Participants.CapacityMode = modeVal
 	if limitVal > 0 {
 		data.Participants.Limit = &limitVal
-		rem := limitVal - data.Participants.Verified
+		// Remaining main-pool capacity = mainLimit - mainRegistered (not WL)
+		mainRegistered := data.Participants.Total - data.Participants.WaitingList - data.Participants.Rejected
+		if mainRegistered < 0 {
+			mainRegistered = 0
+		}
+		rem := limitVal - mainRegistered
 		if rem < 0 {
 			rem = 0
 		}
 		data.Participants.RemainingCapacity = &rem
+	}
+	if wlCap > 0 {
+		data.Participants.WaitingListCapacity = &wlCap
+		wlRem := wlCap - data.Participants.WaitingList
+		if wlRem < 0 {
+			wlRem = 0
+		}
+		data.Participants.WaitingListRemaining = &wlRem
 	}
 
 	// Fetch Candidates Stats

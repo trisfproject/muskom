@@ -68,7 +68,8 @@ type Repository interface {
 
 	// Operational Metrics
 	GetParticipantCount(ctx context.Context) (int, error)
-	GetRegistrationLimit(ctx context.Context) (int, string, error)
+	GetRegistrationLimit(ctx context.Context) (int, int, string, error)
+	GetWaitingListCount(ctx context.Context) (int, error)
 }
 
 type repository struct {
@@ -578,23 +579,33 @@ func (r *repository) GetParticipantCount(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-func (r *repository) GetRegistrationLimit(ctx context.Context) (int, string, error) {
+func (r *repository) GetRegistrationLimit(ctx context.Context) (int, int, string, error) {
 	var settingsJSON []byte
 	err := r.db.GetContext(ctx, &settingsJSON, `SELECT settings FROM system_configurations WHERE group_name = 'registration'`)
 	if err != nil {
-		return 0, "CLOSE", nil
+		return 0, 0, "CLOSE", nil
 	}
-	
+
 	var cfg struct {
-		ParticipantLimit int    `json:"participant_limit"`
-		CapacityMode     string `json:"capacity_mode"`
+		ParticipantLimit    int    `json:"participant_limit"`
+		WaitingListCapacity int    `json:"waiting_list_capacity"`
+		CapacityMode        string `json:"capacity_mode"`
 	}
 	if err := json.Unmarshal(settingsJSON, &cfg); err != nil {
-		return 0, "CLOSE", nil
+		return 0, 0, "CLOSE", nil
 	}
 	if cfg.CapacityMode == "" {
 		cfg.CapacityMode = "CLOSE"
 	}
-	
-	return cfg.ParticipantLimit, cfg.CapacityMode, nil
+
+	return cfg.ParticipantLimit, cfg.WaitingListCapacity, cfg.CapacityMode, nil
+}
+
+func (r *repository) GetWaitingListCount(ctx context.Context) (int, error) {
+	var count int
+	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) IN ('WAITING LIST', 'WAITINGLIST', 'WAITING_LIST')`)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

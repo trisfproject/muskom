@@ -155,8 +155,11 @@ func (m *mockRepository) DeleteInformationPage(ctx context.Context, id string) e
 func (m *mockRepository) GetParticipantCount(ctx context.Context) (int, error) {
 	return 10, nil
 }
-func (m *mockRepository) GetRegistrationLimit(ctx context.Context) (int, string, error) {
-	return 0, "CLOSE", nil
+func (m *mockRepository) GetRegistrationLimit(ctx context.Context) (int, int, string, error) {
+	return 0, 0, "CLOSE", nil
+}
+func (m *mockRepository) GetWaitingListCount(ctx context.Context) (int, error) {
+	return 0, nil
 }
 
 func TestGetPublicHome(t *testing.T) {

@@ -286,15 +286,26 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 	}
 
 	partCount, _ := s.repo.GetParticipantCount(ctx)
-	partLimit, capMode, _ := s.repo.GetRegistrationLimit(ctx)
+	partLimit, wlCapacity, capMode, _ := s.repo.GetRegistrationLimit(ctx)
+	wlCount, _ := s.repo.GetWaitingListCount(ctx)
 
 	candStyle, partStyle := "outline", "outline"
 	candOpen := regEnabled && heroPrimaryEnabled && (regType == "CANDIDATE" || regType == "BOTH")
 	partOpen := regEnabled && heroSecondaryEnabled && (regType == "PARTICIPANT" || regType == "BOTH")
 
-	// Capacity Check overrides partOpen
-	if partLimit > 0 && partCount >= partLimit && strings.ToUpper(capMode) == "CLOSE" {
-		partOpen = false
+	// Capacity Check overrides partOpen for CLOSE mode:
+	// Close only when BOTH main AND waiting list are full (or no WL configured)
+	if partLimit > 0 && strings.ToUpper(capMode) == "CLOSE" {
+		mainFull := partCount >= partLimit
+		if mainFull {
+			partOpen = false
+		}
+	} else if partLimit > 0 && strings.ToUpper(capMode) == "WAITING_LIST" {
+		mainFull := partCount >= partLimit
+		wlFull := wlCapacity > 0 && wlCount >= wlCapacity
+		if mainFull && wlFull {
+			partOpen = false
+		}
 	}
 
 	switch regType {
@@ -353,6 +364,8 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 			ParticipantLimit:         partLimit,
 			ParticipantCount:         partCount,
 			CapacityMode:             capMode,
+			WaitingListCapacity:      wlCapacity,
+			WaitingListCount:         wlCount,
 			RegistrationEnabled:      regEnabled,
 		},
 	}

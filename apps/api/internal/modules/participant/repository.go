@@ -29,7 +29,9 @@ type Repository interface {
 	Count(ctx context.Context) (int, error)
 	CountActive(ctx context.Context) (int, error)
 	CountVerified(ctx context.Context) (int, error)
-	GetCapacitySettings(ctx context.Context) (limit int, mode string, err error)
+	CountMainRegistered(ctx context.Context) (int, error)
+	CountWaitingList(ctx context.Context) (int, error)
+	GetCapacitySettings(ctx context.Context) (mainLimit int, wlCapacity int, mode string, err error)
 	GetRegistrationLimit(ctx context.Context) (*int, error)
 	LookupPublic(ctx context.Context, query string) (*Participant, error)
 	ExecuteTx(ctx context.Context, fn func(tx *sqlx.Tx) error) error
@@ -310,26 +312,27 @@ func (r *repository) FindByEmail(ctx context.Context, email string) (*Participan
 	return &p, nil
 }
 
-func (r *repository) GetCapacitySettings(ctx context.Context) (int, string, error) {
+func (r *repository) GetCapacitySettings(ctx context.Context) (int, int, string, error) {
 	var settingsJSON []byte
 	err := r.db.GetContext(ctx, &settingsJSON, `SELECT settings FROM system_configurations WHERE group_name = 'registration'`)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, "CLOSE", nil
+			return 0, 0, "CLOSE", nil
 		}
-		return 0, "CLOSE", err
+		return 0, 0, "CLOSE", err
 	}
 	var cfg struct {
-		ParticipantLimit int    `json:"participant_limit"`
-		CapacityMode     string `json:"capacity_mode"`
+		ParticipantLimit    int    `json:"participant_limit"`
+		WaitingListCapacity int    `json:"waiting_list_capacity"`
+		CapacityMode        string `json:"capacity_mode"`
 	}
 	if err := json.Unmarshal(settingsJSON, &cfg); err != nil {
-		return 0, "CLOSE", nil
+		return 0, 0, "CLOSE", nil
 	}
 	if cfg.CapacityMode == "" {
 		cfg.CapacityMode = "CLOSE"
 	}
-	return cfg.ParticipantLimit, cfg.CapacityMode, nil
+	return cfg.ParticipantLimit, cfg.WaitingListCapacity, cfg.CapacityMode, nil
 }
 
 func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
@@ -341,11 +344,12 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 	}
 
 	// Fetch Capacity Settings
-	limitVal, modeVal, _ := r.GetCapacitySettings(ctx)
+	limitVal, wlCap, modeVal, _ := r.GetCapacitySettings(ctx)
 	stats.CapacityMode = modeVal
 	if limitVal > 0 {
 		stats.Limit = &limitVal
 	}
+	_ = wlCap // available for future expansion
 
 	// 1. Summary counts
 	var rows []struct {
@@ -467,13 +471,34 @@ func (r *repository) CountVerified(ctx context.Context) (int, error) {
 	return count, nil
 }
 
+func (r *repository) CountMainRegistered(ctx context.Context) (int, error) {
+	// Count registrations in the main pool: all non-rejected, non-waiting-list
+	query := `SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) NOT IN ('REJECTED', 'WAITING LIST', 'WAITINGLIST', 'WAITING_LIST')`
+	var count int
+	err := r.db.GetContext(ctx, &count, query)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (r *repository) CountWaitingList(ctx context.Context) (int, error) {
+	query := `SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) IN ('WAITING LIST', 'WAITINGLIST', 'WAITING_LIST')`
+	var count int
+	err := r.db.GetContext(ctx, &count, query)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 func (r *repository) GetRegistrationLimit(ctx context.Context) (*int, error) {
-	limit, _, err := r.GetCapacitySettings(ctx)
+	mainLimit, _, _, err := r.GetCapacitySettings(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if limit > 0 {
-		return &limit, nil
+	if mainLimit > 0 {
+		return &mainLimit, nil
 	}
 	return nil, nil
 }

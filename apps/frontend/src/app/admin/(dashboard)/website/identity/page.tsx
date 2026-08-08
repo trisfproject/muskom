@@ -454,10 +454,10 @@ export default function AdminWebsiteGeneralPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Kapasitas Maksimum Peserta (Maximum Participant Capacity)
+                Kapasitas Peserta Utama
               </label>
               <input
                 type="number"
@@ -473,16 +473,41 @@ export default function AdminWebsiteGeneralPage() {
                   })
                 }
                 className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors"
-                placeholder="0 untuk tak terbatas (Unlimited)"
+                placeholder="0 untuk tak terbatas"
               />
               <p className="text-[11px] pg-muted mt-1.5">
-                Isi <strong>0</strong> untuk kuota tak terbatas (Unlimited). Hanya peserta dengan status <strong>VERIFIED</strong> yang menggunakan kuota.
+                Jumlah pendaftar yang dapat masuk ke kuota utama. Isi <strong>0</strong> untuk tanpa batas.
               </p>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Mode Kapasitas (Capacity Mode)
+                Kapasitas Daftar Tunggu
+              </label>
+              <input
+                type="number"
+                min={0}
+                value={formData.registration.waiting_list_capacity ?? 0}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    registration: {
+                      ...formData.registration,
+                      waiting_list_capacity: parseInt(e.target.value, 10) || 0,
+                    },
+                  })
+                }
+                className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                placeholder="0 untuk tanpa daftar tunggu"
+              />
+              <p className="text-[11px] pg-muted mt-1.5">
+                Setelah kuota utama penuh, pendaftar berikutnya masuk Daftar Tunggu hingga batas ini. Isi <strong>0</strong> untuk tanpa batas tunggu.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Mode Kapasitas
               </label>
               <select
                 value={formData.registration.capacity_mode || "CLOSE"}
@@ -497,19 +522,20 @@ export default function AdminWebsiteGeneralPage() {
                 }
                 className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors"
               >
-                <option value="CLOSE">Tutup Pendaftaran (Close Registration When Full)</option>
+                <option value="CLOSE">Tutup Pendaftaran Ketika Penuh</option>
                 <option value="WAITING_LIST">Daftar Tunggu (Waiting List)</option>
-                <option value="UNLIMITED">Izinkan Pendaftaran (Allow Registration / Unlimited Queue)</option>
+                <option value="ALLOW">Izinkan Semua (Unlimited / Tanpa Batas)</option>
               </select>
               <p className="text-[11px] pg-muted mt-1.5">
                 {formData.registration.capacity_mode === "WAITING_LIST"
-                  ? "Pendaftar baru setelah kuota penuh akan otomatis berstatus Waiting List."
-                  : formData.registration.capacity_mode === "UNLIMITED"
-                  ? "Pendaftaran tetap dibuka normal tanpa batasan antrian."
-                  : "Formulir pendaftaran publik akan langsung ditolak/ditutup ketika kuota terverifikasi terpenuhi."}
+                  ? "Setelah kuota utama penuh, pendaftar masuk Daftar Tunggu. Jika Daftar Tunggu juga penuh, pendaftaran ditutup."
+                  : formData.registration.capacity_mode === "ALLOW"
+                  ? "Pendaftaran selalu dibuka tanpa memperhatikan batas kuota."
+                  : "Pendaftaran ditutup saat kuota utama terpenuhi. Pendaftar baru tidak dapat mendaftar."}
               </p>
             </div>
           </div>
+
         </div>
 
         {/* Publication & Maintenance */}

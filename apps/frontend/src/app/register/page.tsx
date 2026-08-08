@@ -51,7 +51,7 @@ export default function RegisterPage() {
   const [successInfo, setSuccessInfo] = useState<SuccessInfo | null>(null);
   const [musyawarahId, setMusyawarahId] = useState<string>("muskom-2026");
   const [musyawarahName, setMusyawarahName] = useState<string>("Musyawarah KOMITKABE 2026");
-  const [eventStatus, setEventStatus] = useState<"loading" | "open" | "closed" | "not_started">("loading");
+  const [eventStatus, setEventStatus] = useState<"loading" | "open" | "waiting_list" | "closed" | "not_started">("loading");
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -85,36 +85,56 @@ export default function RegisterPage() {
         }
 
         // 2. Check quota
-        const limit = data?.settings?.participant_limit || 0;
-        const count = data?.settings?.participant_count || 0;
+        const mainLimit = data?.settings?.participant_limit || 0;
+        const mainCount = data?.settings?.participant_count || 0;
+        const wlCapacity = data?.settings?.waiting_list_capacity || 0;
+        const wlCount = data?.settings?.waiting_list_count || 0;
         const mode = (data?.settings?.capacity_mode || "CLOSE").toUpperCase();
-        if (limit > 0 && count >= limit) {
-          if (mode === "CLOSE") {
-            setEventStatus("closed");
-            return;
+
+        if (mainLimit > 0 && mode !== "ALLOW") {
+          const mainFull = mainCount >= mainLimit;
+          if (mainFull) {
+            if (mode === "CLOSE") {
+              setEventStatus("closed");
+              return;
+            }
+            if (mode === "WAITING_LIST") {
+              // Check if waiting list also full
+              if (wlCapacity > 0 && wlCount >= wlCapacity) {
+                setEventStatus("closed");
+                return;
+              }
+              // Main full but WL still available
+              setEventStatus("waiting_list");
+              // Don't return — still load draft
+            }
           }
         }
 
-        // 3. Check Website Timeline
-        if (data?.cta?.participant_registration?.open) {
-          setEventStatus("open");
-        } else {
-          const timeline = data?.timeline || [];
-          const partPhases = timeline.filter(p => p.registration_type === 'PARTICIPANT' || p.registration_type === 'BOTH');
-          
-          if (partPhases.some(p => p.status === 'active')) {
+        // 3. Check Website Timeline (skip if already set to waiting_list above)
+        if (eventStatus !== "waiting_list") {
+          if (data?.cta?.participant_registration?.open) {
             setEventStatus("open");
-          } else if (partPhases.some(p => p.status === 'upcoming')) {
-            setEventStatus("not_started");
-          } else if (partPhases.some(p => p.status === 'past')) {
-            setEventStatus("closed");
           } else {
-            if (timeline.some(p => p.status === 'upcoming')) {
+            const timeline = data?.timeline || [];
+            const partPhases = timeline.filter(
+              (p) => p.registration_type === 'PARTICIPANT' || p.registration_type === 'BOTH'
+            );
+
+            if (partPhases.some((p) => p.status === 'active')) {
+              setEventStatus("open");
+            } else if (partPhases.some((p) => p.status === 'upcoming')) {
               setEventStatus("not_started");
-            } else if (timeline.some(p => p.status === 'past')) {
+            } else if (partPhases.some((p) => p.status === 'past')) {
               setEventStatus("closed");
             } else {
-              setEventStatus("not_started");
+              if (timeline.some((p) => p.status === 'upcoming')) {
+                setEventStatus("not_started");
+              } else if (timeline.some((p) => p.status === 'past')) {
+                setEventStatus("closed");
+              } else {
+                setEventStatus("not_started");
+              }
             }
           }
         }
@@ -137,7 +157,7 @@ export default function RegisterPage() {
   }, [reset]);
 
   useEffect(() => {
-    if (eventStatus !== "open") return;
+    if (eventStatus !== "open" && eventStatus !== "waiting_list") return;
     const subscription = watch((value) => {
       setSaveStatus("saving");
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
@@ -189,38 +209,36 @@ export default function RegisterPage() {
         participant_category: "DELEGATE",
       });
 
-      if (res?.registration_code) {
-        localStorage.removeItem("participant_registration_draft");
-        setSuccessInfo({
-          regNumber: res.registration_number || "Menunggu Verifikasi",
-          qr: res.qr_token || "",
-          fullName: data.full_name,
-          email: data.email,
-          musyawarahName,
-          status: res.status || "Unverified",
-          submittedAt: new Date().toLocaleString("id-ID", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        });
-        setStep(4);
-      } else {
-        throw new Error("Gagal mendapatkan kode registrasi");
-      }
+      // Backend now returns registration_number directly (may be empty for WL)
+      const regStatus = res?.status || "Pending";
+      localStorage.removeItem("participant_registration_draft");
+      setSuccessInfo({
+        regNumber: res?.registration_number || (regStatus.toLowerCase().includes("waiting") ? "Daftar Tunggu" : "Menunggu Verifikasi"),
+        qr: res?.qr_token || "",
+        fullName: data.full_name,
+        email: data.email,
+        musyawarahName,
+        status: regStatus,
+        submittedAt: new Date().toLocaleString("id-ID", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      });
+      setStep(4);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } }; message?: string };
       const rawMsg = e?.response?.data?.message || e?.message || "Internal server error.";
       const msg = rawMsg.toLowerCase();
-      
+
       if (msg.includes("already registered") || msg.includes("duplicate")) {
         setError("Email ini sudah terdaftar. Silakan gunakan email lain.");
-      } else if (msg.includes("closed") || msg.includes("ditutup")) {
-        setError("Pendaftaran sudah ditutup.");
-      } else if (msg.includes("quota") || msg.includes("limit") || msg.includes("penuh")) {
-        setError("Kuota peserta telah terpenuhi.");
+      } else if (msg.includes("ditutup") || msg.includes("terpenuhi") || msg.includes("quota") || msg.includes("capacity reached")) {
+        setError("Pendaftaran saat ini telah ditutup karena kuota peserta dan daftar tunggu telah terpenuhi.");
+      } else if (msg.includes("closed") || msg.includes("belum dibuka")) {
+        setError("Pendaftaran peserta belum dibuka atau telah ditutup.");
       } else {
         setError(rawMsg);
       }
@@ -313,7 +331,7 @@ export default function RegisterPage() {
 
       <div className="max-w-[800px] mx-auto px-6 pt-10">
         {/* PROGRESS STEPPER */}
-        {step < 4 && eventStatus === "open" && (
+        {step < 4 && (eventStatus === "open" || eventStatus === "waiting_list") && (
           <div className="mb-10 overflow-x-auto pb-4 hide-scrollbar">
             <div className="flex items-center text-xs font-semibold uppercase tracking-widest text-slate-400 min-w-max">
               <span className={step >= 1 ? "text-primary" : ""}>1. Personal</span>
@@ -337,12 +355,28 @@ export default function RegisterPage() {
           <StatusMessage 
             icon={<AlertCircle className="w-9 h-9 text-amber-500" />}
             iconBg="bg-amber-50"
-            title="Pendaftaran Ditutup"
-            message="Pendaftaran peserta telah ditutup sesuai jadwal yang telah ditentukan atau kuota peserta telah terpenuhi."
+            title="Pendaftaran Telah Ditutup"
+            message="Kuota peserta utama dan daftar tunggu telah terpenuhi. Pendaftaran tidak dapat dilakukan saat ini."
           />
         )}
-        
-        {eventStatus === "open" && (
+
+        {/* Waiting List Banner — shown above form when WL mode active */}
+        {eventStatus === "waiting_list" && step < 4 && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl"
+          >
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-500" />
+            <div>
+              <p className="font-semibold text-sm text-amber-800">Kuota Peserta Utama Telah Terpenuhi</p>
+              <p className="text-sm text-amber-700 mt-0.5">
+                Pendaftaran Anda akan ditempatkan dalam <strong>Daftar Tunggu</strong>. Panitia akan menghubungi Anda apabila tersedia tempat.
+              </p>
+            </div>
+          </motion.div>
+        )}
+        {(eventStatus === "open" || eventStatus === "waiting_list") && (
         <form onSubmit={handleSubmit(onSubmit)}>
           <AnimatePresence mode="wait">
             {/* ─── STEP 1: PERSONAL ─── */}
@@ -545,14 +579,22 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Summary */}
-                <div className="mt-8 bg-primary/5 border border-primary/20 rounded-2xl p-5">
-                  <p className="text-sm text-primary font-semibold">
-                    📋 Ringkasan Pendaftaran
+                <div className={`mt-8 rounded-2xl p-5 border ${
+                  eventStatus === "waiting_list"
+                    ? "bg-amber-50 border-amber-200"
+                    : "bg-primary/5 border-primary/20"
+                }`}>
+                  <p className={`text-sm font-semibold ${
+                    eventStatus === "waiting_list" ? "text-amber-700" : "text-primary"
+                  }`}>
+                    {eventStatus === "waiting_list" ? "⚠️ Daftar Tunggu" : "📋 Ringkasan Pendaftaran"}
                   </p>
                   <p className="text-sm text-slate-600 mt-1">
-                    Pendaftaran sebagai <strong>Peserta</strong> pada acara{" "}
-                    <strong>{musyawarahName || "MUSKOM"}</strong>. Status awal akan
-                    menjadi <span className="font-bold text-amber-600">Pending Verifikasi</span>.
+                    {eventStatus === "waiting_list" ? (
+                      <>Kuota peserta utama telah terpenuhi. Pendaftaran Anda akan ditempatkan dalam <strong>Daftar Tunggu</strong> pada acara <strong>{musyawarahName || "MUSKOM"}</strong>. Panitia akan menghubungi Anda apabila tersedia tempat.</>
+                    ) : (
+                      <>Pendaftaran sebagai <strong>Peserta</strong> pada acara{" "}<strong>{musyawarahName || "MUSKOM"}</strong>. Status awal akan menjadi <span className="font-bold text-amber-600">Pending Verifikasi</span>.</>
+                    )}
                   </p>
                 </div>
 
@@ -586,15 +628,25 @@ export default function RegisterPage() {
                 transition={{ duration: 0.3 }}
               >
                 <div className="bg-white border border-slate-200 rounded-[2rem] p-8 sm:p-14 text-center shadow-xl shadow-slate-200/50">
-                  <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                    <CheckCircle2 className="w-9 h-9 text-emerald-600" />
-                  </div>
+                  {successInfo.status?.toLowerCase().includes('waiting') ? (
+                    <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                      <AlertCircle className="w-9 h-9 text-amber-600" />
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                      <CheckCircle2 className="w-9 h-9 text-emerald-600" />
+                    </div>
+                  )}
 
                   <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-2">
-                    Pendaftaran Berhasil!
+                    {successInfo.status?.toLowerCase().includes('waiting')
+                      ? 'Masuk Daftar Tunggu!'
+                      : 'Pendaftaran Berhasil!'}
                   </h1>
                   <p className="text-slate-500 text-sm max-w-sm mx-auto">
-                    Terima kasih. Data pendaftaran Anda telah kami terima dan sedang menunggu verifikasi administrasi oleh panitia.
+                    {successInfo.status?.toLowerCase().includes('waiting')
+                      ? 'Kuota peserta utama telah penuh. Anda telah terdaftar dalam Daftar Tunggu. Panitia akan menghubungi Anda jika tersedia tempat.'
+                      : 'Terima kasih. Data pendaftaran Anda telah kami terima dan sedang menunggu verifikasi administrasi oleh panitia.'}
                   </p>
 
                   {/* Registration detail card */}

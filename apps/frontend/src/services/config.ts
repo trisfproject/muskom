@@ -20,6 +20,7 @@ export interface RegistrationConfig {
   candidate_registration: boolean;
   participant_registration: boolean;
   participant_limit?: number;
+  waiting_list_capacity?: number;
   capacity_mode?: string;
   opening_date: string | null;
   closing_date: string | null;

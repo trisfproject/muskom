@@ -136,6 +136,9 @@ export type PublicSettingsDTO = {
   participant_limit?: number;
   participant_count?: number;
   capacity_mode?: string;
+  waiting_list_capacity?: number;
+  waiting_list_count?: number;
   remaining_capacity?: number;
   capacity_status?: string;
+  registration_enabled?: boolean;
 };

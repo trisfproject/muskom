@@ -134,6 +134,7 @@ type PublicRegisterParticipantRequest struct {
 type PublicRegisterParticipantResponse struct {
 	RegistrationNumber string `json:"registration_number"`
 	QRToken            string `json:"qr_token"`
+	Status             string `json:"status"` // "Pending" or "Waiting List"
 }
 
 // ─── Public Lookup DTOs ───────────────────────────────────────────────────────────────

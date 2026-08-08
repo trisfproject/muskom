@@ -21,6 +21,7 @@ import (
 var (
 	ErrDuplicateEmail      = errors.New("email already registered")
 	ErrQuotaReached        = errors.New("registration quota reached")
+	ErrWaitingListFull     = errors.New("waiting list capacity reached")
 	ErrRegistrationNotOpen = errors.New("registration is not open yet")
 	ErrRegistrationClosed  = errors.New("registration has closed")
 )
@@ -326,43 +327,84 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 		return nil, findErr
 	}
 
-	// Check Registration Capacity
-	limit, mode, err := s.repo.GetCapacitySettings(ctx)
+	// Fetch capacity configuration
+	mainLimit, wlCapacity, mode, err := s.repo.GetCapacitySettings(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	isWaitingList := false
-	if limit > 0 {
-		verifiedCount, err := s.repo.CountVerified(ctx)
-		if err != nil {
-			return nil, err
-		}
-		if verifiedCount >= limit {
-			switch strings.ToUpper(strings.TrimSpace(mode)) {
-			case "CLOSE":
-				return nil, ErrQuotaReached
-			case "WAITING_LIST":
-				isWaitingList = true
-			case "ALLOW":
-				// Allow registration normally
-			default:
-				return nil, ErrQuotaReached
-			}
-		}
+	normalizedMode := strings.ToUpper(strings.TrimSpace(mode))
+
+	// ALLOW mode: no quota restriction
+	if normalizedMode == "ALLOW" || mainLimit == 0 {
+		return s.doRegister(ctx, req, false)
 	}
 
+	// Use PostgreSQL advisory lock to prevent race conditions on capacity check+insert.
+	// The lock is held for the duration of this operation so concurrent requests are serialized.
+	var regResp *PublicRegisterParticipantResponse
+	err = s.repo.ExecuteTx(ctx, func(tx *sqlx.Tx) error {
+		// Acquire advisory lock (scoped to registration_capacity)
+		if _, lockErr := tx.ExecContext(ctx, `SELECT pg_advisory_xact_lock(hashtext('registration_capacity'))`); lockErr != nil {
+			return lockErr
+		}
+
+		// Count main pool registrations (non-rejected, non-waiting-list)
+		mainRegistered, countErr := s.repo.CountMainRegistered(ctx)
+		if countErr != nil {
+			return countErr
+		}
+
+		if mainRegistered < mainLimit {
+			// Slot available in main pool -> register as Pending
+			resp, innerErr := s.doRegister(ctx, req, false)
+			if innerErr != nil {
+				return innerErr
+			}
+			regResp = resp
+			return nil
+		}
+
+		// Main pool is full
+		if normalizedMode == "CLOSE" {
+			return ErrQuotaReached
+		}
+
+		// mode == WAITING_LIST: check waiting list capacity
+		wlCount, wlErr := s.repo.CountWaitingList(ctx)
+		if wlErr != nil {
+			return wlErr
+		}
+
+		if wlCapacity > 0 && wlCount >= wlCapacity {
+			// Waiting list is also full
+			return ErrWaitingListFull
+		}
+
+		// Register as Waiting List
+		resp, innerErr := s.doRegister(ctx, req, true)
+		if innerErr != nil {
+			return innerErr
+		}
+		regResp = resp
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return regResp, nil
+}
+
+// doRegister creates the participant record with the given waiting-list status.
+func (s *service) doRegister(ctx context.Context, req PublicRegisterParticipantRequest, isWaitingList bool) (*PublicRegisterParticipantResponse, error) {
 	regNum := ""
 	initialStatus := "Pending"
 	qrToken := ""
 
 	if isWaitingList {
 		initialStatus = "Waiting List"
-		// No registration number and no QR code
-		regNum = ""
-		qrToken = ""
 	} else {
-		// Generate unique temporary registration number
 		regNum = fmt.Sprintf("PENDING-%s", strings.ToUpper(uuid.New().String()[:8]))
 		qrToken = regNum
 	}
@@ -380,8 +422,7 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 		Status:             initialStatus,
 	}
 
-	err = s.repo.Create(ctx, p)
-	if err != nil {
+	if err := s.repo.Create(ctx, p); err != nil {
 		return nil, err
 	}
 
@@ -411,6 +452,7 @@ func (s *service) PublicRegister(ctx context.Context, req PublicRegisterParticip
 	return &PublicRegisterParticipantResponse{
 		RegistrationNumber: regNum,
 		QRToken:            qrToken,
+		Status:             initialStatus,
 	}, nil
 }
 
