@@ -9,7 +9,6 @@ import { AnnouncementCard } from "@/components/ui/announcement-card";
 import { websiteService, InformationPage } from "@/services/website";
 import Link from "next/link";
 import { FileText, BookOpen, ShieldCheck, ChevronRight, X, Calendar, Sparkles } from "lucide-react";
-import ReactMarkdown from "react-markdown";
 import { SectionPill } from "@/components/ui/section-pill";
 
 interface AnnouncementItem {
@@ -237,8 +236,8 @@ export function InformationCenter({ data }: { data: HomeResponse | null }) {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 sm:p-8 overflow-y-auto flex-1 prose prose-slate dark:prose-invert prose-blue max-w-none text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
-              <ReactMarkdown>{selectedAnnouncement.content || selectedAnnouncement.summary || ""}</ReactMarkdown>
+            <div className="p-6 sm:p-8 overflow-y-auto flex-1 text-slate-700 dark:text-slate-300 text-sm sm:text-base leading-[1.75] whitespace-pre-wrap">
+              {selectedAnnouncement.content || selectedAnnouncement.summary || ""}
             </div>
 
             {/* Modal Footer */}
