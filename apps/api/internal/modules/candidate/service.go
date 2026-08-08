@@ -152,7 +152,7 @@ func (s *service) Create(ctx context.Context, req CreateCandidateRequest) (*Cand
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleCandidate,
 		Entity:   "candidates",
-		EntityID: c.ID,
+		EntityID: audit.StringPtr(c.ID),
 		Action:   "CREATE",
 		NewValue: c,
 	})
@@ -254,7 +254,7 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:        audit.ModuleCandidate,
 		Entity:        "candidates",
-		EntityID:      c.ID,
+		EntityID: audit.StringPtr(c.ID),
 		Action:        "UPDATE",
 		PreviousValue: oldVal,
 		NewValue:      c,
@@ -346,7 +346,7 @@ func (s *service) Patch(ctx context.Context, id string, req PatchCandidateReques
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:        audit.ModuleCandidate,
 		Entity:        "candidates",
-		EntityID:      c.ID,
+		EntityID: audit.StringPtr(c.ID),
 		Action:        "UPDATE",
 		PreviousValue: oldVal,
 		NewValue:      c,
@@ -373,7 +373,7 @@ func (s *service) Delete(ctx context.Context, id string) error {
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:        audit.ModuleCandidate,
 		Entity:        "candidates",
-		EntityID:      id,
+		EntityID: audit.StringPtr(id),
 		Action:        "DELETE",
 		PreviousValue: c,
 	})
@@ -510,7 +510,7 @@ func (s *service) UploadDocument(ctx context.Context, candidateID string, docTyp
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleCandidate,
 		Entity:   "candidate_documents",
-		EntityID: finalDoc.ID,
+		EntityID: audit.StringPtr(finalDoc.ID),
 		Action:   action,
 		Metadata: map[string]interface{}{
 			"DocumentType": docType,
@@ -560,7 +560,7 @@ func (s *service) DeleteDocument(ctx context.Context, candidateID string, docID 
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleCandidate,
 		Entity:   "candidate_documents",
-		EntityID: docID,
+		EntityID: audit.StringPtr(docID),
 		Action:   "DELETE_DOCUMENT",
 		Metadata: map[string]interface{}{
 			"DocumentType": doc.DocumentType,
@@ -588,7 +588,7 @@ func (s *service) StreamDocument(ctx context.Context, candidateID string, docID 
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleCandidate,
 		Entity:   "candidate_documents",
-		EntityID: docID,
+		EntityID: audit.StringPtr(docID),
 		Action:   "DOWNLOAD_DOCUMENT",
 		Metadata: map[string]interface{}{
 			"DocumentType": doc.DocumentType,
@@ -646,7 +646,7 @@ func (s *service) AdminVerifyCandidate(ctx context.Context, id string, req Admin
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleCandidate,
 		Entity:   "candidates",
-		EntityID: id,
+		EntityID: audit.StringPtr(id),
 		Action:   "ADMIN_VERIFY",
 		PreviousValue: map[string]interface{}{
 			"status":             c.Status,
@@ -680,7 +680,7 @@ func (s *service) AdminVerifyDocument(ctx context.Context, id string, docID stri
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleCandidate,
 		Entity:   "candidate_documents",
-		EntityID: docID,
+		EntityID: audit.StringPtr(docID),
 		Action:   "ADMIN_VERIFY_DOCUMENT",
 		PreviousValue: map[string]interface{}{
 			"verification_status": doc.VerificationStatus,
@@ -718,7 +718,7 @@ func (s *service) AdminPublishCandidate(ctx context.Context, id string, adminUse
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleCandidate,
 		Entity:   "candidates",
-		EntityID: id,
+		EntityID: audit.StringPtr(id),
 		Action:   "ADMIN_PUBLISH",
 		PreviousValue: map[string]interface{}{
 			"publication_status": c.PublicationStatus,
@@ -770,7 +770,7 @@ func (s *service) AdminUnpublishCandidate(ctx context.Context, id string, adminU
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleCandidate,
 		Entity:   "candidates",
-		EntityID: id,
+		EntityID: audit.StringPtr(id),
 		Action:   "ADMIN_UNPUBLISH",
 		PreviousValue: map[string]interface{}{
 			"publication_status": c.PublicationStatus,
@@ -813,7 +813,7 @@ func (s *service) AdminUpdatePublicationSettings(ctx context.Context, id string,
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleCandidate,
 		Entity:   "candidates",
-		EntityID: id,
+		EntityID: audit.StringPtr(id),
 		Action:   "ADMIN_UPDATE_PUBLICATION_SETTINGS",
 		PreviousValue: map[string]interface{}{
 			"candidate_number": c.CandidateNumber,
@@ -839,7 +839,7 @@ func (s *service) AdminReorderCandidates(ctx context.Context, req AdminReorderCa
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleCandidate,
 		Entity:   "candidates",
-		EntityID: "bulk",
+		EntityID: audit.StringPtr("bulk"),
 		Action:   "ADMIN_REORDER_CANDIDATES",
 		NewValue: req.Items,
 		ActorID:  &adminUserID,
@@ -939,7 +939,7 @@ func (s *service) AdminDeleteCandidate(ctx context.Context, id string, adminUser
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:        audit.ModuleCandidate,
 		Entity:        "candidates",
-		EntityID:      id,
+		EntityID: audit.StringPtr(id),
 		Action:        "ADMIN_DELETE",
 		PreviousValue: c,
 		ActorID:       &adminUserID,
@@ -961,7 +961,7 @@ func (s *service) AdminBulkDeleteCandidates(ctx context.Context, ids []string, a
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleCandidate,
 		Entity:   "candidates",
-		EntityID: "bulk",
+		EntityID: audit.StringPtr("bulk"),
 		Action:   "ADMIN_BULK_DELETE",
 		Metadata: map[string]interface{}{"candidate_ids": ids},
 		ActorID:  &adminUserID,

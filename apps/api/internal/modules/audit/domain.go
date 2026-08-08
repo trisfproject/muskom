@@ -23,7 +23,7 @@ type AuditEntry struct {
 	ID            string      `json:"id" db:"id"`
 	Module        AuditModule `json:"module" db:"module"`
 	Entity        string      `json:"entity" db:"entity"`
-	EntityID      string      `json:"entity_id" db:"entity_id"`
+	EntityID      *string     `json:"entity_id" db:"entity_id"`
 	Action        AuditAction `json:"action" db:"action"`
 	ActorID       *string     `json:"actor_id" db:"user_id"`
 	ActorRole     *string     `json:"actor_role" db:"actor_role"`
@@ -61,4 +61,8 @@ type AuditRepository interface {
 	InsertTx(ctx context.Context, tx *sqlx.Tx, entry AuditEntry) error
 	Search(ctx context.Context, filter AuditFilter) ([]AuditEntry, int, error)
 	GetByID(ctx context.Context, id string) (*AuditEntry, error)
+}
+
+func StringPtr(s string) *string {
+	return &s
 }

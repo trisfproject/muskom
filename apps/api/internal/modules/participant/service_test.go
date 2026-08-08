@@ -98,5 +98,5 @@ func TestParticipantService_Delete_Audit(t *testing.T) {
 	entry := mockAudit.asyncEntries[0]
 	assert.Equal(t, audit.ModuleParticipant, entry.Module)
 	assert.Equal(t, audit.AuditAction("DELETE"), entry.Action)
-	assert.Equal(t, targetID, entry.EntityID, "Individual delete must maintain participant UUID")
+	assert.Equal(t, targetID, *entry.EntityID, "Individual delete must maintain participant UUID")
 }

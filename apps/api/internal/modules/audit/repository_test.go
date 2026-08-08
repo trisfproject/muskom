@@ -46,7 +46,7 @@ func TestRepository_Insert(t *testing.T) {
 		err := repo.Insert(context.Background(), AuditEntry{
 			Module:   ModuleParticipant,
 			Entity:   "participants",
-			EntityID: "bulk",
+			EntityID: StringPtr("bulk"),
 			Action:   "BULK_DELETE",
 			Metadata: map[string]interface{}{"participant_ids": []string{"id1", "id2"}},
 		})
@@ -61,7 +61,7 @@ func TestRepository_Insert(t *testing.T) {
 		err := repo.Insert(context.Background(), AuditEntry{
 			Module:   ModuleParticipant,
 			Entity:   "participants",
-			EntityID: validUUID,
+			EntityID: StringPtr(validUUID),
 			Action:   "DELETE",
 		})
 		assert.NoError(t, err)

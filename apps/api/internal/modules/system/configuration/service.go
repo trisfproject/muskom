@@ -116,7 +116,7 @@ func (s *service) UpdateConfigGroup(ctx context.Context, req UpdateConfigRequest
 		Module:        audit.ModuleSystem,
 		Action:        "UPDATE_CONFIG",
 		Entity:        "system_configuration",
-		EntityID:      entityID,
+		EntityID: audit.StringPtr(entityID),
 		ActorID:       updatedBy,
 		PreviousValue: previousValue,
 		NewValue:      newValue,

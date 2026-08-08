@@ -18,7 +18,7 @@ type AuditDetailResponse struct {
 	ID            string      `json:"id"`
 	Module        string      `json:"module"`
 	Entity        string      `json:"entity"`
-	EntityID      string      `json:"entity_id"`
+	EntityID      *string     `json:"entity_id"`
 	Action        string      `json:"action"`
 	ActorID       *string     `json:"actor_id,omitempty"`
 	ActorRole     *string     `json:"actor_role,omitempty"`

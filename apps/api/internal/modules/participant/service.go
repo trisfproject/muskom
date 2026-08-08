@@ -92,7 +92,7 @@ func (s *service) Create(ctx context.Context, req CreateParticipantRequest) (*Pa
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleParticipant,
 		Entity:   "participants",
-		EntityID: p.ID,
+		EntityID: audit.StringPtr(p.ID),
 		Action:   "CREATE",
 		NewValue: p,
 	})
@@ -144,7 +144,7 @@ func (s *service) Update(ctx context.Context, id string, req UpdateParticipantRe
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:        audit.ModuleParticipant,
 		Entity:        "participants",
-		EntityID:      p.ID,
+		EntityID: audit.StringPtr(p.ID),
 		Action:        "UPDATE",
 		PreviousValue: oldVal,
 		NewValue:      p,
@@ -215,7 +215,7 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 			err = s.auditService.LogActivityTx(ctx, tx, audit.AuditEntry{
 				Module:        audit.ModuleParticipant,
 				Entity:        "participants",
-				EntityID:      p.ID,
+				EntityID: audit.StringPtr(p.ID),
 				Action:        "UPDATE_STATUS",
 				Reason:        req.Reason,
 				PreviousValue: oldVal,
@@ -254,7 +254,7 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:        audit.ModuleParticipant,
 		Entity:        "participants",
-		EntityID:      p.ID,
+		EntityID: audit.StringPtr(p.ID),
 		Action:        "UPDATE_STATUS",
 		Reason:        req.Reason,
 		PreviousValue: oldVal,
@@ -300,7 +300,7 @@ func (s *service) Delete(ctx context.Context, id string) error {
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:        audit.ModuleParticipant,
 		Entity:        "participants",
-		EntityID:      id,
+		EntityID: audit.StringPtr(id),
 		Action:        "DELETE",
 		PreviousValue: p,
 	})
@@ -429,7 +429,7 @@ func (s *service) doRegister(ctx context.Context, req PublicRegisterParticipantR
 	s.auditService.LogActivityAsync(ctx, audit.AuditEntry{
 		Module:   audit.ModuleParticipant,
 		Entity:   "participants",
-		EntityID: p.ID,
+		EntityID: audit.StringPtr(p.ID),
 		Action:   "PUBLIC_REGISTER",
 		NewValue: p,
 	})

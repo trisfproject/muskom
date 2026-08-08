@@ -146,7 +146,11 @@ func (h *Handler) Export(c fiber.Ctx) error {
 
 		csvData := "ID,Module,Entity,EntityID,Action,ActorID,ActorRole,CreatedAt\n"
 		for _, item := range items {
-			csvData += item.ID + "," + string(item.Module) + "," + item.Entity + "," + item.EntityID + "," + string(item.Action) + ","
+			entityID := ""
+			if item.EntityID != nil {
+				entityID = *item.EntityID
+			}
+			csvData += item.ID + "," + string(item.Module) + "," + item.Entity + "," + entityID + "," + string(item.Action) + ","
 			if item.ActorID != nil {
 				csvData += *item.ActorID + ","
 			} else {

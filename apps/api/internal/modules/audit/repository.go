@@ -50,7 +50,10 @@ func (r *repository) Insert(ctx context.Context, entry AuditEntry) error {
 		INSERT INTO audit_logs (module, entity, entity_id, action, user_id, actor_role, reason, ip_address, user_agent, metadata, previous_value, new_value, correlation_id)
 		VALUES (:module, :entity, :entity_id, :action, :user_id, :actor_role, :reason, :ip_address, :user_agent, :metadata, :previous_value, :new_value, :correlation_id)
 	`
-	entityID := parseUUID(entry.EntityID)
+	var entityID *string
+	if entry.EntityID != nil {
+		entityID = parseUUID(*entry.EntityID)
+	}
 	var actorID *string
 	if entry.ActorID != nil {
 		actorID = parseUUID(*entry.ActorID)
@@ -79,7 +82,10 @@ func (r *repository) InsertTx(ctx context.Context, tx *sqlx.Tx, entry AuditEntry
 		INSERT INTO audit_logs (module, entity, entity_id, action, user_id, actor_role, reason, ip_address, user_agent, metadata, previous_value, new_value, correlation_id)
 		VALUES (:module, :entity, :entity_id, :action, :user_id, :actor_role, :reason, :ip_address, :user_agent, :metadata, :previous_value, :new_value, :correlation_id)
 	`
-	entityID := parseUUID(entry.EntityID)
+	var entityID *string
+	if entry.EntityID != nil {
+		entityID = parseUUID(*entry.EntityID)
+	}
 	var actorID *string
 	if entry.ActorID != nil {
 		actorID = parseUUID(*entry.ActorID)
