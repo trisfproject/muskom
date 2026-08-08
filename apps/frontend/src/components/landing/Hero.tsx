@@ -112,17 +112,7 @@ export function Hero({ data }: { data: HomeResponse | null }) {
                   );
                 })}
               </div>
-              
-              {/* 5. Quota Badge */}
-              {(data?.settings?.participant_limit ?? 0) > 0 && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-                  </span>
-                  Kuota Peserta: {data?.settings?.participant_count || 0} / {data?.settings?.participant_limit || 0}
-                </div>
-              )}
+
             </SlideUp>
           </div>
 

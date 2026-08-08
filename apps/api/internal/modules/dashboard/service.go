@@ -94,13 +94,13 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 	// 3. Fetch Summary Metrics
 	// Sequential quick COUNT queries against canonical tables.
 
-	s.db.GetContext(ctx, &data.Summary.TotalParticipants, `SELECT COUNT(*) FROM registrations WHERE deleted_at IS NULL`)
+	s.db.GetContext(ctx, &data.Summary.TotalParticipants, `SELECT COUNT(*) FROM registrations`)
 	
 	// ApprovedParticipants now represents the Main Pool count
-	s.db.GetContext(ctx, &data.Summary.ApprovedParticipants, `SELECT COUNT(*) FROM registrations WHERE deleted_at IS NULL AND UPPER(TRIM(status)) NOT IN ('REJECTED', 'WAITING LIST', 'WAITINGLIST', 'WAITING_LIST')`)
+	s.db.GetContext(ctx, &data.Summary.ApprovedParticipants, `SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) NOT IN ('REJECTED', 'WAITING LIST', 'WAITINGLIST', 'WAITING_LIST')`)
 	
 	// Count waiting list
-	s.db.GetContext(ctx, &data.Summary.WaitingList, `SELECT COUNT(*) FROM registrations WHERE deleted_at IS NULL AND UPPER(TRIM(status)) IN ('WAITING LIST', 'WAITINGLIST', 'WAITING_LIST')`)
+	s.db.GetContext(ctx, &data.Summary.WaitingList, `SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) IN ('WAITING LIST', 'WAITINGLIST', 'WAITING_LIST')`)
 
 	s.db.GetContext(ctx, &data.Summary.TotalCandidates, `SELECT COUNT(*) FROM candidates WHERE deleted_at IS NULL AND publication_status = 'Published'`)
 	s.db.GetContext(ctx, &data.Summary.CheckedIn, `SELECT COUNT(*) FROM attendance WHERE undone_at IS NULL`)
@@ -205,7 +205,7 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 		Status string `db:"status"`
 		Count  int    `db:"count"`
 	}
-	s.db.SelectContext(ctx, &partStats, `SELECT status, count(*) as count FROM registrations WHERE deleted_at IS NULL GROUP BY status`)
+	s.db.SelectContext(ctx, &partStats, `SELECT status, count(*) as count FROM registrations GROUP BY status`)
 	for _, p := range partStats {
 		data.Participants.Total += p.Count
 		normalized := strings.ToUpper(strings.TrimSpace(p.Status))
