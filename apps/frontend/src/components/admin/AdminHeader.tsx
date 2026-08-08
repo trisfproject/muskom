@@ -78,20 +78,20 @@ export function AdminHeader({
           </button>
         )}
 
-        {/* Mobile hamburger — visible on < md */}
+        {/* Mobile / Tablet hamburger — visible on < lg */}
         {handleMobileOpen && (
           <button
             onClick={handleMobileOpen}
             aria-label="Open navigation menu"
-            className="md:hidden flex items-center justify-center w-9 h-9 min-h-[44px] min-w-[44px] rounded-lg hover:pg-surface-elevated text-slate-500 transition-colors"
+            className="lg:hidden flex items-center justify-center w-9 h-9 min-h-[44px] min-w-[44px] rounded-lg hover:pg-surface-elevated text-slate-500 hover:pg-text transition-colors cursor-pointer"
           >
             <Menu className="w-5 h-5" />
           </button>
         )}
 
-        {/* Mobile Brand Name (< md) */}
-        <div className="md:hidden flex items-center gap-2">
-          <span className="font-bold text-sm pg-text truncate max-w-[140px] xs:max-w-[180px]">
+        {/* Mobile / Tablet Brand Name (< lg) */}
+        <div className="lg:hidden flex items-center gap-2">
+          <span className="font-bold text-sm pg-text truncate max-w-[140px] xs:max-w-[180px] sm:max-w-[240px]">
             {config?.website_identity?.community_name || "MUSKOM"}
           </span>
         </div>

@@ -23,9 +23,9 @@ import Cookies from "js-cookie";
 import { useSystemConfig } from "@/contexts/ConfigContext";
 
 interface AdminSidebarProps {
-  isOpen?: boolean; // For mobile offcanvas
+  isOpen?: boolean; // For mobile/tablet offcanvas drawer
   onClose?: () => void;
-  isCollapsed?: boolean; // Controlled from parent (desktop)
+  isCollapsed?: boolean; // Controlled from parent (desktop only)
   onToggleCollapse?: () => void;
 }
 
@@ -42,6 +42,31 @@ export function AdminSidebar({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Handle ESC key and resize cleanup when mobile/tablet drawer is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && onClose) {
+        onClose();
+      }
+    };
+
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && onClose) {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [isOpen, onClose]);
 
   // If login page, don't render sidebar
   if (pathname.includes("/admin/login")) {
@@ -107,79 +132,81 @@ export function AdminSidebar({
 
   return (
     <>
-      {/* Mobile Backdrop Overlay (< md) */}
+      {/* Mobile & Tablet Backdrop Overlay (< lg) */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden animate-fade-in" 
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden animate-fade-in" 
           onClick={onClose} 
           aria-hidden="true"
         />
       )}
       
       <aside 
-        className={`pg-bg border-r pg-border pg-muted flex flex-col h-screen fixed inset-y-0 left-0 z-50 md:sticky md:top-0 shrink-0 select-none transform transition-all duration-300 ${
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } w-64 md:w-20 ${isCollapsed ? "lg:w-20" : "lg:w-64"}`}
+        className={`pg-bg border-r pg-border pg-muted flex flex-col h-screen fixed inset-y-0 left-0 z-50 lg:sticky lg:top-0 shrink-0 select-none transition-all duration-300 ease-in-out ${
+          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
+        } w-[280px] md:w-[300px] ${isCollapsed ? "lg:w-20" : "lg:w-64"}`}
       >
         {/* Brand Header */}
         <div className="p-4 border-b pg-border flex items-center justify-between min-h-[72px]">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-8 h-8 shrink-0 rounded-lg bg-primary flex items-center justify-center text-white font-black text-sm shadow-md">
+            <div className="w-9 h-9 shrink-0 rounded-xl bg-primary flex items-center justify-center text-white font-black text-sm shadow-md shadow-primary/20">
               {initial}
             </div>
-            <div className={`${isCollapsed ? "hidden" : "md:hidden lg:block"} truncate transition-opacity duration-300`}>
+            <div className={`${isCollapsed ? "lg:hidden" : "lg:block"} block truncate transition-opacity duration-300`}>
               <h1 className="font-bold pg-text text-sm tracking-tight truncate">{communityName}</h1>
-              <p className="text-[10px] text-primary font-semibold uppercase tracking-wider">Admin</p>
+              <p className="text-[10px] text-primary font-semibold uppercase tracking-wider">Admin Portal</p>
             </div>
           </div>
           
-          {/* Mobile close button inside header (< md) */}
-          {isOpen && (
-            <button
-              onClick={onClose}
-              aria-label="Close navigation menu"
-              className="md:hidden p-1.5 rounded-md hover:pg-surface-elevated text-slate-500 min-h-[44px] min-w-[44px] flex items-center justify-center"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          {/* Mobile & Tablet close button inside drawer (< lg) */}
+          <button
+            onClick={onClose}
+            aria-label="Close navigation menu"
+            className="lg:hidden p-2 rounded-lg hover:pg-surface-elevated text-slate-500 hover:pg-text transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Navigation Groups */}
-        <div className="flex-1 overflow-y-auto py-4 scrollbar-hide space-y-6">
+        <div className="flex-1 overflow-y-auto py-4 space-y-6">
           {navGroups.map((group) => (
             <div key={group.title} className="px-3">
-              {/* Group Title */}
-              <p className={`${isCollapsed ? "hidden" : "md:hidden lg:block"} px-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 truncate`}>
+              {/* Group Title: Always visible on mobile/tablet drawer; conditional on desktop */}
+              <p className={`${isCollapsed ? "lg:hidden" : "lg:block"} block px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 truncate`}>
                 {group.title}
               </p>
               
-              {/* Compact Separator on Tablet / Collapsed Desktop */}
-              <div className={`${isCollapsed ? "flex" : "hidden md:flex lg:hidden"} w-full justify-center mb-2`}>
-                <div className="w-4 h-0.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
-              </div>
+              {/* Compact Separator on Collapsed Desktop only */}
+              {isCollapsed && (
+                <div className="hidden lg:flex w-full justify-center mb-2">
+                  <div className="w-4 h-0.5 bg-slate-300 dark:bg-slate-700 rounded-full" />
+                </div>
+              )}
               
               <div className="space-y-1">
                 {group.items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = pathname.startsWith(item.href);
+                  const isActive = pathname === item.href || (item.href !== "/admin/dashboard" && pathname.startsWith(item.href));
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       onClick={() => {
-                        if (isOpen && onClose) onClose();
+                        if (onClose) onClose();
                       }}
                       title={item.label}
-                      className={`flex items-center ${isCollapsed ? "justify-center px-0" : "md:justify-center md:px-0 lg:justify-between lg:px-3 px-3"} py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-all ${
+                      className={`flex items-center ${
+                        isCollapsed ? "lg:justify-center lg:px-0" : "lg:justify-between lg:px-3"
+                      } px-3 py-2.5 min-h-[44px] rounded-lg text-sm font-medium transition-all ${
                         isActive
-                          ? "pg-primary text-white shadow-sm shadow-primary/20"
-                          : "text-slate-600 dark:text-slate-300 hover:pg-text hover:pg-surface-elevated"
+                          ? "bg-primary text-white shadow-sm shadow-primary/25 font-semibold"
+                          : "text-slate-600 dark:text-slate-300 hover:pg-text hover:bg-slate-100 dark:hover:bg-slate-800/60"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-slate-500 group-hover:pg-text"}`} />
-                        <span className={`${isCollapsed ? "hidden" : "md:hidden lg:inline"} truncate`}>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-slate-500 dark:text-slate-400"}`} />
+                        <span className={`${isCollapsed ? "lg:hidden" : "lg:inline"} inline truncate`}>
                           {item.label}
                         </span>
                       </div>
@@ -192,23 +219,29 @@ export function AdminSidebar({
         </div>
 
         {/* Footer actions */}
-        <div className="p-3 border-t pg-border flex flex-col gap-2">
-          <div className={`flex items-center ${isCollapsed ? "flex-col gap-2" : "md:flex-col md:gap-2 lg:flex-row lg:justify-between justify-between"}`}>
+        <div className="p-3 border-t pg-border flex flex-col gap-2 bg-slate-50/50 dark:bg-slate-900/30">
+          <div className={`flex items-center ${isCollapsed ? "lg:flex-col lg:gap-2" : "lg:flex-row lg:justify-between"} justify-between gap-2`}>
             <Link
               href="/"
               target="_blank"
-              className="p-2 rounded-lg hover:pg-surface-elevated text-slate-500 hover:pg-text transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:pg-text transition-colors min-h-[44px] text-xs font-medium"
               title="Lihat Website Publik"
             >
-              <ExternalLink className="w-5 h-5" />
+              <ExternalLink className="w-4 h-4 shrink-0 text-slate-500" />
+              <span className={`${isCollapsed ? "lg:hidden" : "lg:inline"} inline`}>
+                Website Publik
+              </span>
             </Link>
 
             <button
               onClick={handleLogout}
-              className="p-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 transition-colors min-h-[44px] text-xs font-medium cursor-pointer"
               title="Keluar"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-4 h-4 shrink-0" />
+              <span className={`${isCollapsed ? "lg:hidden" : "lg:inline"} inline`}>
+                Keluar
+              </span>
             </button>
           </div>
         </div>
