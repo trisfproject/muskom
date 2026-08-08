@@ -1,10 +1,8 @@
 package notification
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"html/template"
 	"time"
 
 	"go.uber.org/zap"
@@ -77,35 +75,17 @@ func (w *Worker) processJob(ctx context.Context, job NotificationJob) {
 		_ = json.Unmarshal([]byte(*job.Payload), &payload)
 	}
 
-	// Parse body
-	parsedBody, err := template.New("body").Parse(tpl.Body)
+	renderedSubj, body, err := RenderTemplate(tpl.Subject, tpl.Body, payload)
 	if err != nil {
-		errMsg := "Failed to parse body template: " + err.Error()
+		errMsg := "Template rendering failed: " + err.Error()
 		_ = w.repo.UpdateJobStatus(ctx, job.ID, StatusFailed, &errMsg)
 		w.logHistory(ctx, job, StatusFailed, &errMsg)
 		return
 	}
 
-	var bodyBuf bytes.Buffer
-	if err := parsedBody.Execute(&bodyBuf, payload); err != nil {
-		errMsg := "Failed to execute body template: " + err.Error()
-		_ = w.repo.UpdateJobStatus(ctx, job.ID, StatusFailed, &errMsg)
-		w.logHistory(ctx, job, StatusFailed, &errMsg)
-		return
-	}
-	body := bodyBuf.String()
-
-	// Parse subject
 	var subject *string
-	if tpl.Subject != nil {
-		parsedSubj, err := template.New("subject").Parse(*tpl.Subject)
-		if err == nil {
-			var subjBuf bytes.Buffer
-			if err := parsedSubj.Execute(&subjBuf, payload); err == nil {
-				s := subjBuf.String()
-				subject = &s
-			}
-		}
+	if renderedSubj != "" {
+		subject = &renderedSubj
 	}
 
 	// 4. Send

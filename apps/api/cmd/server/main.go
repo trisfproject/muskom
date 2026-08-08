@@ -126,7 +126,7 @@ func main() {
 	go annWorker.Start(context.Background())
 
 	// Create Registration Email Worker
-	regEmailWorker := registration.NewEmailWorker(db, log, mailerSvc, cfg)
+	regEmailWorker := registration.NewEmailWorker(db, log, mailerSvc, cfg, notifRepo)
 	regEmailWorker.Start()
 	// NOTE: In a real app we'd gracefully stop regEmailWorker.Stop() on shutdown, but this is fine for RC1.
 

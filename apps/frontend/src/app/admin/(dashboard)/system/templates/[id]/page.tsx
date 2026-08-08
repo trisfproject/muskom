@@ -16,9 +16,13 @@ interface Template {
 }
 
 const DEFAULT_VARS: Record<string, string> = {
+  full_name: "Budi Santoso",
   participant_name: "Budi Santoso",
+  name: "Budi Santoso",
+  registration_number: "PENDING-A1B2C3D4",
   reg_number: "PENDING-A1B2C3D4",
   candidate_number: "CAND-001",
+  company: "PT. Maju Jaya",
   company_name: "PT. Maju Jaya",
   job_title: "Direktur",
   event_name: "MUSKOM",
@@ -26,10 +30,14 @@ const DEFAULT_VARS: Record<string, string> = {
   venue: "Hotel Mulia Senayan",
   verification_url: "https://congress.trisf.my.id/verify-email?token=123",
   lookup_url: "https://congress.trisf.my.id/peserta",
+  participant_lookup_url: "https://congress.trisf.my.id/peserta",
   candidate_profile_url: "https://congress.trisf.my.id/kandidat/CAND-001",
+  candidate_public_url: "https://congress.trisf.my.id/kandidat/CAND-001",
   qr_code: "https://congress.trisf.my.id/api/v1/public/qr/PENDING-A1B2C3D4.png",
+  qr_code_url: "https://congress.trisf.my.id/api/v1/public/qr/PENDING-A1B2C3D4.png",
   timestamp: new Date().toLocaleString(),
   reason: "Persyaratan tidak lengkap",
+  rejection_reason: "Persyaratan tidak lengkap",
 };
 
 export default function EditEmailTemplatePage() {
@@ -58,10 +66,12 @@ export default function EditEmailTemplatePage() {
       const res = await api.get("/system/config");
       const cfg = res.data?.data;
       if (cfg) {
+        const portalTitle = cfg.website_identity?.website_title || "MUSKOM";
         setDummyVars(prev => ({
           ...prev,
-          community_name: cfg.website_identity?.community_name || "MUSKOM",
-          portal_title: cfg.website_identity?.website_title || "MUSKOM",
+          community_name: cfg.website_identity?.community_name || portalTitle,
+          portal_title: portalTitle,
+          event_name: portalTitle,
           portal_description: cfg.website_identity?.website_description || "",
           logo_url: cfg.website_identity?.logo_url || "",
           website_url: window.location.origin,
@@ -108,13 +118,17 @@ export default function EditEmailTemplatePage() {
   };
 
   const handleTestEmail = async () => {
-    if (!testEmail || !template) return;
+    if (!testEmail) {
+      toast.error("Masukkan alamat email test");
+      return;
+    }
+
     try {
       setIsTesting(true);
-      await api.post(`/admin/notifications/templates/${template.id}/test`, {
-        email: testEmail
+      await api.post(`/admin/notifications/templates/${params.id}/test`, {
+        email: testEmail,
       });
-      toast.success("Email uji coba sedang dikirim");
+      toast.success(`Email test telah dikirim ke ${testEmail}`);
       setTestEmail("");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Gagal mengirim email test");
@@ -127,10 +141,11 @@ export default function EditEmailTemplatePage() {
     if (!template) return "";
     let html = template.body;
     
-    // Replace dummy variables
+    // Replace dummy variables (handles both {{.key}} and {{key}})
     Object.keys(dummyVars).forEach(key => {
-      const regex = new RegExp(`{{\\.${key}}}`, 'g');
-      html = html.replace(regex, dummyVars[key]);
+      const regexDot = new RegExp(`{{\\.${key}}}`, 'g');
+      const regexNoDot = new RegExp(`{{${key}}}`, 'g');
+      html = html.replace(regexDot, dummyVars[key]).replace(regexNoDot, dummyVars[key]);
     });
     
     // For dark mode, inject prefer-color-scheme via style if supported, or wrap in a div

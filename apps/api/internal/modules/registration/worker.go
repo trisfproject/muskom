@@ -8,6 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 
+	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 )
@@ -15,16 +16,25 @@ import (
 type EmailWorker struct {
 	db        *sqlx.DB
 	repo      Repository
+	notifRepo notification.Repository
 	log       *zap.Logger
 	mailerSvc mailer.Mailer
 	cfg       *config.Config
 	stopCh    chan struct{}
 }
 
-func NewEmailWorker(db *sqlx.DB, log *zap.Logger, mailerSvc mailer.Mailer, cfg *config.Config) *EmailWorker {
+func NewEmailWorker(db *sqlx.DB, log *zap.Logger, mailerSvc mailer.Mailer, cfg *config.Config, notifRepo ...notification.Repository) *EmailWorker {
+	var nr notification.Repository
+	if len(notifRepo) > 0 && notifRepo[0] != nil {
+		nr = notifRepo[0]
+	} else {
+		nr = notification.NewRepository(db)
+	}
+
 	return &EmailWorker{
 		db:        db,
 		repo:      NewRepository(db),
+		notifRepo: nr,
 		log:       log,
 		mailerSvc: mailerSvc,
 		cfg:       cfg,
@@ -119,61 +129,90 @@ func (w *EmailWorker) processQueue() {
 }
 
 func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
-	// Fetch registration to get name, etc
-	reg, err := w.repo.GetRegistrationByID(ctx, logItem.RegistrationID)
+	// 1. Fetch registration detail with person info
+	regAdmin, err := w.repo.GetRegistrationAdminByID(ctx, logItem.RegistrationID)
 	if err != nil {
-		return fmt.Errorf("failed to get registration: %w", err)
+		return fmt.Errorf("failed to get registration detail: %w", err)
 	}
 
-	var subject string
-	var htmlContent string
-	portalTitle, _ := w.repo.GetPortalTitle(ctx)
+	// 2. Fetch Website Identity branding for Portal Title
+	portalTitle, err := w.repo.GetPortalTitle(ctx)
+	if err != nil || portalTitle == "" {
+		portalTitle = "Musyawarah"
+	}
 
+	// 3. Map EmailType to Notification Template Name
+	var templateName string
 	switch logItem.EmailType {
 	case "REGISTRATION_RECEIVED":
-		subject = "Registration Received - " + portalTitle
-		htmlContent = "<h2>Registration Received</h2>" +
-			"<p>Hello,</p>" +
-			"<p>Your registration for " + portalTitle + " has been received.</p>" +
-			"<ul>" +
-			"<li><strong>Submission ID:</strong> " + reg.ID + "</li>" +
-			"<li><strong>Time:</strong> " + reg.CreatedAt.Format("2006-01-02 15:04:05") + "</li>" +
-			"<li><strong>Status:</strong> Pending Verification</li>" +
-			"</ul>" +
-			"<p>Please wait for administrator approval.</p>"
-
+		templateName = "participant_registration_submitted"
 	case "REGISTRATION_APPROVED":
-		if reg.RegistrationNumber == nil {
-			return fmt.Errorf("cannot send approval email, registration number is missing")
-		}
-		qrUrl := fmt.Sprintf("%s/api/v1/public/qr/%s.png", w.cfg.AppBaseURL, *reg.RegistrationNumber)
-		lookupUrl := fmt.Sprintf("%s/peserta", w.cfg.AppBaseURL)
-		
-		subject = "Registration Approved - " + portalTitle
-		htmlContent = "<h2>Registration Approved</h2>" +
-			"<p>Hello,</p>" +
-			"<p>Your registration for " + portalTitle + " has been approved.</p>" +
-			"<ul>" +
-			"<li><strong>Registration Number:</strong> " + *reg.RegistrationNumber + "</li>" +
-			"<li><strong>QR Code:</strong> <img src='" + qrUrl + "' alt='QR Code' /></li>" +
-			"<li><strong>Participant Lookup:</strong> <a href='" + lookupUrl + "'>" + lookupUrl + "</a></li>" +
-			"</ul>" +
-			"<p>See you at the event!</p>"
-
+		templateName = "participant_registration_approved"
 	case "REGISTRATION_REJECTED":
-		subject = "Registration Update - " + portalTitle
-		reason := "No reason provided."
-		if reg.RejectionReason != nil {
-			reason = *reg.RejectionReason
-		}
-		htmlContent = "<h2>Registration Update</h2>" +
-			"<p>Hello,</p>" +
-			"<p>We regret to inform you that your registration for " + portalTitle + " was not approved.</p>" +
-			"<p><strong>Reason:</strong> " + reason + "</p>" +
-			"<p>If you have any questions, please contact our secretariat.</p>"
+		templateName = "participant_registration_rejected"
 	default:
 		return fmt.Errorf("unknown email type: %s", logItem.EmailType)
 	}
 
-	return w.mailerSvc.SendRaw(logItem.RecipientEmail, subject, htmlContent)
+	// 4. Fetch template from database
+	tpl, err := w.notifRepo.GetTemplateByName(ctx, templateName, notification.ChannelEmail)
+	if err != nil {
+		return fmt.Errorf("failed to get email template %s: %w", templateName, err)
+	}
+
+	// 5. Construct payload with all variables and aliases
+	regNum := regAdmin.RegistrationNumber
+	appBaseURL := ""
+	if w.cfg != nil {
+		appBaseURL = w.cfg.AppBaseURL
+	}
+
+	qrURL := ""
+	if regNum != "" {
+		qrURL = fmt.Sprintf("%s/api/v1/public/qr/%s.png", appBaseURL, regNum)
+	}
+	lookupURL := fmt.Sprintf("%s/peserta", appBaseURL)
+
+	rejectionReason := regAdmin.SpecialNotes
+	if rejectionReason == "" {
+		rejectionReason = "Persyaratan belum terpenuhi"
+	}
+
+	payload := map[string]interface{}{
+		"portal_title":           portalTitle,
+		"event_name":             portalTitle,
+		"community_name":         portalTitle,
+		"full_name":              regAdmin.ParticipantName,
+		"participant_name":       regAdmin.ParticipantName,
+		"name":                   regAdmin.ParticipantName,
+		"registration_number":    regNum,
+		"reg_number":             regNum,
+		"participant_lookup_url": lookupURL,
+		"lookup_url":             lookupURL,
+		"qr_code":                qrURL,
+		"qr_code_url":            qrURL,
+		"rejection_reason":       rejectionReason,
+		"reason":                 rejectionReason,
+		"company":                regAdmin.Company,
+		"company_name":           regAdmin.Company,
+		"job_title":              regAdmin.JobTitle,
+		"phone":                  regAdmin.Phone,
+		"email":                  regAdmin.Email,
+		"event_date":             "",
+		"venue":                  "",
+	}
+
+	// 6. Render template using shared renderer
+	subject, bodyHTML, err := notification.RenderTemplate(tpl.Subject, tpl.Body, payload)
+	if err != nil {
+		return fmt.Errorf("failed to render email template: %w", err)
+	}
+
+	if subject == "" {
+		subject = "Pemberitahuan Pendaftaran - " + portalTitle
+	}
+
+	// 7. Send email
+	return w.mailerSvc.SendRaw(logItem.RecipientEmail, subject, bodyHTML)
 }
+
