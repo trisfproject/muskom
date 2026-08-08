@@ -355,11 +355,11 @@ export default function AdminParticipantsPage() {
             Kelola dan verifikasi seluruh peserta musyawarah KOMITKABE.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <button
             onClick={handleExportCSV}
             disabled={exporting}
-            className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-lg border border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-lg border border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
           >
             <Download className={`w-3.5 h-3.5 ${exporting ? "animate-spin" : ""}`} />
             {exporting ? "Mengekspor..." : "Export CSV"}
@@ -367,7 +367,7 @@ export default function AdminParticipantsPage() {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             Segarkan Data
@@ -379,7 +379,7 @@ export default function AdminParticipantsPage() {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
         {/* Filters & Search */}
         <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row gap-4 justify-between bg-slate-50/50 dark:bg-slate-800/30">
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 max-w-full sm:max-w-md">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pg-muted" />
             <input
               type="text"
@@ -391,17 +391,17 @@ export default function AdminParticipantsPage() {
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 pg-muted hover:pg-text"
+                className="absolute right-3 top-1/2 -translate-y-1/2 pg-muted hover:pg-text p-1 min-h-[32px] min-w-[32px] flex items-center justify-center"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:border-blue-600 min-w-[180px] transition-colors"
+              className="w-full sm:w-auto px-4 py-2 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:border-blue-600 min-w-full sm:min-w-[180px] transition-colors"
             >
               <option value="">Semua Status</option>
               <option value="Verified">Terverifikasi</option>
@@ -520,21 +520,21 @@ export default function AdminParticipantsPage() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => openDetail(p)}
-                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600 transition-colors cursor-pointer text-slate-600 dark:text-slate-400"
+                            className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600 transition-colors cursor-pointer text-slate-600 dark:text-slate-400"
                             title="Lihat Detail"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => openEdit(p)}
-                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-amber-500 hover:text-amber-600 transition-colors cursor-pointer text-slate-600 dark:text-slate-400"
+                            className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 hover:border-amber-500 hover:text-amber-600 transition-colors cursor-pointer text-slate-600 dark:text-slate-400"
                             title="Edit Data"
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setDeleteTarget({ id: p.id })}
-                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-red-500 hover:text-red-600 transition-colors cursor-pointer text-slate-600 dark:text-slate-400"
+                            className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 hover:border-red-500 hover:text-red-600 transition-colors cursor-pointer text-slate-600 dark:text-slate-400"
                             title="Hapus Peserta"
                           >
                             <Trash2 className="w-4 h-4" />

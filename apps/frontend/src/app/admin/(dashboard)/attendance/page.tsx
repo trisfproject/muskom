@@ -242,7 +242,7 @@ export default function AdminAttendancePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
             <div className="p-3.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border pg-border text-center">
               <p className="text-[11px] font-bold uppercase tracking-wider pg-muted">Total DPT / Terdaftar</p>
               <p className="text-xl font-bold pg-text mt-1">{summary.total_participants}</p>
@@ -293,7 +293,7 @@ export default function AdminAttendancePage() {
       {/* Attendance List */}
       <div className="pg-surface border pg-border rounded-xl shadow-sm space-y-4 p-6">
         {/* Filter Bar & Bulk Actions */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pg-muted" />
             <input
@@ -302,16 +302,16 @@ export default function AdminAttendancePage() {
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && fetchAttendanceData()}
               placeholder="Cari nama peserta..."
-              className="w-full pl-9 pr-4 py-2 min-h-[40px] bg-slate-50 dark:bg-slate-800/60 border pg-border rounded-lg text-sm pg-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              className="w-full pl-9 pr-4 py-2 min-h-[44px] bg-slate-50 dark:bg-slate-800/60 border pg-border rounded-lg text-sm pg-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             {selectedIds.length > 0 && (
               <button
                 onClick={handleBulkUndo}
                 disabled={submitting}
-                className="flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition-all shadow-sm"
+                className="flex items-center gap-1.5 px-3 py-2 min-h-[40px] bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition-all shadow-sm"
               >
                 <Undo2 className="w-3.5 h-3.5" /> Batalkan Presensi ({selectedIds.length})
               </button>
@@ -321,7 +321,7 @@ export default function AdminAttendancePage() {
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 min-h-[36px] text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                className={`flex-1 sm:flex-initial px-3.5 py-2 min-h-[40px] text-xs font-bold uppercase tracking-wider rounded-lg transition-all text-center ${
                   statusFilter === st
                     ? "bg-primary text-white shadow-sm"
                     : "bg-slate-100 dark:bg-slate-800 pg-muted hover:pg-text hover:bg-slate-200"

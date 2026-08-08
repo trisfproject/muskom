@@ -244,13 +244,13 @@ export default function AdminCandidatesPage() {
         <div>
           <h1 className="text-2xl font-bold pg-text tracking-tight">Data Induk Kandidat</h1>
           <p className="pg-muted text-sm mt-1">
-            Kelola, verifikasi, dan publikasikan seluruh bakal calon pimpinan.
+            Kelola data bakal calon dan kandidat ketua umum KOMITKABE.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors cursor-pointer"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Tambah Kandidat
@@ -258,7 +258,7 @@ export default function AdminCandidatesPage() {
           <button
             onClick={handleExportCSV}
             disabled={exporting}
-            className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-lg border border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-lg border border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
           >
             <Download className={`w-3.5 h-3.5 ${exporting ? "animate-spin" : ""}`} />
             {exporting ? "Mengekspor..." : "Export CSV"}
@@ -266,7 +266,7 @@ export default function AdminCandidatesPage() {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
             Segarkan
@@ -278,7 +278,7 @@ export default function AdminCandidatesPage() {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
         {/* Filters */}
         <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row gap-4 justify-between bg-slate-50/50 dark:bg-slate-800/30">
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 max-w-full sm:max-w-md">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pg-muted pointer-events-none" />
             <input
               type="text"
@@ -290,23 +290,25 @@ export default function AdminCandidatesPage() {
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 pg-muted hover:pg-text"
+                className="absolute right-3 top-1/2 -translate-y-1/2 pg-muted hover:pg-text p-1 min-h-[32px] min-w-[32px] flex items-center justify-center"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:border-blue-600 min-w-[180px] transition-colors"
-          >
-            <option value="">Semua Status</option>
-            <option value="Verified">Verified</option>
-            <option value="Under Review">Under Review</option>
-            <option value="Draft">Draft</option>
-            <option value="Rejected">Rejected</option>
-          </select>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full sm:w-auto px-4 py-2 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:border-blue-600 min-w-full sm:min-w-[180px] transition-colors"
+            >
+              <option value="">Semua Status</option>
+              <option value="Verified">Verified</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Draft">Draft</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
         </div>
 
         {/* Bulk Action Bar */}
@@ -436,13 +438,13 @@ export default function AdminCandidatesPage() {
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             href={`/admin/candidates/${row.id}`}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600 rounded-lg text-xs font-semibold transition-colors"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[40px] border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:text-blue-600 rounded-lg text-xs font-semibold transition-colors"
                           >
                             <ExternalLink className="w-3.5 h-3.5" /> Buka Detail
                           </Link>
                           <button
                             onClick={() => setDeleteTarget({ id: row.id })}
-                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-red-500 hover:text-red-600 transition-colors cursor-pointer text-slate-600 dark:text-slate-400"
+                            className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 hover:border-red-500 hover:text-red-600 transition-colors cursor-pointer text-slate-600 dark:text-slate-400"
                             title="Hapus Kandidat"
                           >
                             <Trash2 className="w-4 h-4" />

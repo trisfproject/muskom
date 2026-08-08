@@ -181,11 +181,11 @@ export default function EditEmailTemplatePage() {
 
   return (
     <div className="space-y-6 max-w-6xl">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/admin/system/templates")}
-            className="p-2 rounded-lg border pg-border bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg border pg-border bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5 pg-text" />
           </button>
@@ -195,18 +195,18 @@ export default function EditEmailTemplatePage() {
           />
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
           <input
             type="email"
             placeholder="Email uji coba..."
             value={testEmail}
             onChange={e => setTestEmail(e.target.value)}
-            className="px-3.5 py-2 text-sm border pg-border rounded-lg bg-white dark:bg-slate-800 pg-text focus:ring-primary focus:border-primary w-64"
+            className="px-3.5 py-2.5 min-h-[44px] text-sm border pg-border rounded-lg bg-white dark:bg-slate-800 pg-text focus:ring-primary focus:border-primary w-full sm:w-64"
           />
           <button
             onClick={handleTestEmail}
             disabled={!testEmail || isTesting}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 pg-text text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 border pg-border"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 pg-text text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 border pg-border cursor-pointer"
           >
             {isTesting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             Kirim Test

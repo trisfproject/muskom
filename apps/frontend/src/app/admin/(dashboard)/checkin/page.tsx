@@ -244,7 +244,7 @@ function CheckInContent() {
   const showScannerPanel = !successData && !errorData && !checkInMutation.isPending;
 
   return (
-    <div className="max-w-2xl mx-auto p-4 md:p-8">
+    <div className="max-w-2xl mx-auto p-2 sm:p-4 md:p-8">
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold pg-text tracking-tight">QR Check-in</h1>
@@ -292,7 +292,7 @@ function CheckInContent() {
             </div>
             <button
               onClick={resetScanner}
-              className="mt-8 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center gap-2 transition-colors w-full max-w-sm justify-center"
+              className="mt-8 px-6 py-3 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center gap-2 transition-colors w-full max-w-sm justify-center"
             >
               <Scan className="w-5 h-5" />
               Scan Peserta Berikutnya
@@ -328,7 +328,7 @@ function CheckInContent() {
             <p className="pg-text font-medium mb-6">{errorData.message}</p>
             <button
               onClick={resetScanner}
-              className={`px-6 py-3 font-bold rounded-xl flex items-center gap-2 transition-colors w-full max-w-sm justify-center text-white ${
+              className={`px-6 py-3 min-h-[44px] font-bold rounded-xl flex items-center gap-2 transition-colors w-full max-w-sm justify-center text-white ${
                 errorData.isDuplicate
                   ? "bg-amber-600 hover:bg-amber-700"
                   : "bg-rose-600 hover:bg-rose-700"
@@ -358,7 +358,7 @@ function CheckInContent() {
                       });
                     }
                   }}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm pg-text focus:outline-none focus:border-blue-600"
+                  className="w-full min-h-[44px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm pg-text focus:outline-none focus:border-blue-600"
                 >
                   {cameras.map((cam) => (
                     <option key={cam.id} value={cam.id}>
@@ -391,7 +391,7 @@ function CheckInContent() {
                 {!scannerActive ? (
                   <button
                     onClick={startScanner}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm"
+                    className="flex items-center gap-2 px-6 py-2.5 min-h-[44px] bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors text-sm"
                   >
                     <Camera className="w-4 h-4" />
                     Mulai Scan
@@ -399,7 +399,7 @@ function CheckInContent() {
                 ) : (
                   <button
                     onClick={stopScanner}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-slate-600 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors text-sm"
+                    className="flex items-center gap-2 px-6 py-2.5 min-h-[44px] bg-slate-600 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors text-sm"
                   >
                     <CameraOff className="w-4 h-4" />
                     Hentikan Scan
@@ -417,12 +417,12 @@ function CheckInContent() {
                   value={manualInput}
                   onChange={(e) => setManualInput(e.target.value)}
                   placeholder="Contoh: MK-A302-1CE9"
-                  className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm pg-text focus:outline-none focus:border-blue-600 font-mono"
+                  className="flex-1 min-h-[44px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm pg-text focus:outline-none focus:border-blue-600 font-mono"
                 />
                 <button
                   type="submit"
                   disabled={!manualInput.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2.5 rounded-xl font-bold flex items-center justify-center transition-colors"
+                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2.5 min-h-[44px] min-w-[44px] rounded-xl font-bold flex items-center justify-center transition-colors"
                 >
                   <Search className="w-4 h-4" />
                 </button>

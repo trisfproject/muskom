@@ -256,20 +256,20 @@ export default function CandidateDetailPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <button
           onClick={() => router.push("/admin/candidates")}
-          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white font-semibold transition-colors cursor-pointer"
+          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white font-semibold transition-colors cursor-pointer min-h-[44px]"
         >
           <ArrowLeft className="w-4 h-4" /> Kembali ke Data Induk Kandidat
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <button
             onClick={openEditModal}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
           >
             <Edit3 className="w-3.5 h-3.5" /> Edit Data
           </button>
           <button
             onClick={fetchData}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Segarkan
           </button>
@@ -473,7 +473,7 @@ export default function CandidateDetailPage() {
                       setSelectedDoc(doc);
                       setDocNotes(doc.verification_notes || "");
                     }}
-                    className="mt-4 flex items-center justify-center gap-2 w-full py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 pg-text font-semibold text-xs rounded-lg transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
+                    className="mt-4 flex items-center justify-center gap-2 w-full py-2.5 min-h-[44px] bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 pg-text font-semibold text-xs rounded-lg transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
                   >
                     <Eye className="w-4 h-4" /> Review Dokumen
                   </button>
@@ -497,7 +497,7 @@ export default function CandidateDetailPage() {
               <select
                 value={verifyStatus}
                 onChange={(e) => setVerifyStatus(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                className="w-full px-3.5 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
               >
                 <option value="Draft">Draft</option>
                 <option value="Submitted">Submitted (Menunggu Review)</option>
@@ -516,14 +516,14 @@ export default function CandidateDetailPage() {
                 value={verifyNotes}
                 onChange={(e) => setVerifyNotes(e.target.value)}
                 placeholder="Catatan verifikasi atau alasan penolakan..."
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-xs focus:outline-none focus:border-blue-600 min-h-[90px]"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-xs focus:outline-none focus:border-blue-600 min-h-[90px]"
               />
             </div>
 
             <button
               onClick={handleVerifyCandidate}
               disabled={verifying}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 min-h-[44px] px-4 rounded-lg text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {verifying ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
               Simpan Status Verifikasi
@@ -539,7 +539,7 @@ export default function CandidateDetailPage() {
 
             <div>
               <label className="block text-xs font-semibold pg-text mb-2">Status Publikasi</label>
-              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700">
                 <div className="flex items-center gap-2">
                   <div
                     className={`w-2.5 h-2.5 rounded-full ${
@@ -551,7 +551,7 @@ export default function CandidateDetailPage() {
                 <button
                   onClick={handlePublishToggle}
                   disabled={savingPub || candidate.status !== "Verified"}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 ${
+                  className={`px-3.5 py-2.5 min-h-[40px] rounded-lg text-xs font-bold transition-colors cursor-pointer disabled:opacity-40 flex items-center justify-center ${
                     pubStatus === "Published"
                       ? "bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 hover:bg-amber-200"
                       : "bg-indigo-600 hover:bg-indigo-700 text-white"
@@ -567,7 +567,7 @@ export default function CandidateDetailPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold pg-text mb-1">Nomor Urut</label>
                 <input
@@ -577,7 +577,7 @@ export default function CandidateDetailPage() {
                     setCandidateNumber(e.target.value === "" ? "" : parseInt(e.target.value))
                   }
                   placeholder="-"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  className="w-full px-3.5 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
                 />
               </div>
               <div>
@@ -586,46 +586,46 @@ export default function CandidateDetailPage() {
                   type="number"
                   value={displayOrder}
                   onChange={(e) => setDisplayOrder(parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  className="w-full px-3.5 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
                 />
               </div>
             </div>
 
             <div className="space-y-2 pt-2">
               <label className="block text-xs font-semibold pg-text">Tampilkan ke Publik</label>
-              <label className="flex items-center gap-2 text-xs pg-text cursor-pointer">
+              <label className="flex items-center gap-2 text-xs pg-text cursor-pointer py-1">
                 <input
                   type="checkbox"
                   checked={showPhoto}
                   onChange={(e) => setShowPhoto(e.target.checked)}
-                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
                 Foto Profil Kandidat
               </label>
-              <label className="flex items-center gap-2 text-xs pg-text cursor-pointer">
+              <label className="flex items-center gap-2 text-xs pg-text cursor-pointer py-1">
                 <input
                   type="checkbox"
                   checked={showBio}
                   onChange={(e) => setShowBio(e.target.checked)}
-                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
                 Biografi Singkat
               </label>
-              <label className="flex items-center gap-2 text-xs pg-text cursor-pointer">
+              <label className="flex items-center gap-2 text-xs pg-text cursor-pointer py-1">
                 <input
                   type="checkbox"
                   checked={showVis}
                   onChange={(e) => setShowVis(e.target.checked)}
-                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
                 Visi
               </label>
-              <label className="flex items-center gap-2 text-xs pg-text cursor-pointer">
+              <label className="flex items-center gap-2 text-xs pg-text cursor-pointer py-1">
                 <input
                   type="checkbox"
                   checked={showMis}
                   onChange={(e) => setShowMis(e.target.checked)}
-                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                 />
                 Misi
               </label>
@@ -634,7 +634,7 @@ export default function CandidateDetailPage() {
             <button
               onClick={handleSavePubSettings}
               disabled={savingPub}
-              className="w-full bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-900 font-bold py-2 px-4 rounded-lg text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-900 font-bold py-2.5 min-h-[44px] px-4 rounded-lg text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {savingPub ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
               Simpan Pengaturan Publikasi
@@ -813,18 +813,18 @@ export default function CandidateDetailPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 pg-text transition-colors cursor-pointer"
+                  className="px-4 py-2.5 min-h-[44px] text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 pg-text transition-colors cursor-pointer flex items-center justify-center"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2.5 min-h-[44px] text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
                 >
                   {savingEdit ? "Menyimpan..." : "Simpan Perubahan"}
                 </button>
@@ -845,13 +845,13 @@ export default function CandidateDetailPage() {
               </div>
               <button
                 onClick={() => setSelectedDoc(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-hidden bg-slate-100 dark:bg-slate-950 flex items-center justify-center relative min-h-[400px]">
+            <div className="flex-1 overflow-hidden bg-slate-100 dark:bg-slate-950 flex items-center justify-center relative min-h-[300px] sm:min-h-[400px]">
               {selectedDoc.mime_type.startsWith("image/") ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -862,7 +862,7 @@ export default function CandidateDetailPage() {
               ) : selectedDoc.mime_type === "application/pdf" ? (
                 <iframe
                   src={candidateAdminService.getDocumentStreamUrl(candidate.id, selectedDoc.id)}
-                  className="w-full h-full min-h-[450px]"
+                  className="w-full h-full min-h-[350px] sm:min-h-[450px]"
                   title="PDF Preview"
                 />
               ) : (
@@ -875,7 +875,7 @@ export default function CandidateDetailPage() {
                     href={candidateAdminService.getDocumentStreamUrl(candidate.id, selectedDoc.id)}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-block mt-4 text-blue-600 hover:underline text-xs font-semibold"
+                    className="inline-flex items-center justify-center px-4 py-2.5 min-h-[44px] mt-4 text-blue-600 hover:underline text-xs font-semibold"
                   >
                     Unduh Berkas
                   </a>
@@ -893,20 +893,20 @@ export default function CandidateDetailPage() {
                   value={docNotes}
                   onChange={(e) => setDocNotes(e.target.value)}
                   placeholder="Alasan berkas tidak valid..."
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-xs focus:outline-none focus:border-blue-600"
+                  className="w-full px-3.5 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-xs focus:outline-none focus:border-blue-600"
                 />
               </div>
 
-              <div className="flex items-center gap-3 justify-end">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 justify-end">
                 <button
                   onClick={() => handleVerifyDocument(selectedDoc.id, "Invalid")}
-                  className="px-4 py-2 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/50 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer border border-red-200 dark:border-red-800"
+                  className="px-4 py-2.5 min-h-[44px] bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/50 font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-red-200 dark:border-red-800"
                 >
                   <XCircle className="w-4 h-4" /> Tandai Invalid
                 </button>
                 <button
                   onClick={() => handleVerifyDocument(selectedDoc.id, "Valid")}
-                  className="px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2.5 min-h-[44px] bg-emerald-600 text-white hover:bg-emerald-700 font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" /> Tandai Valid
                 </button>

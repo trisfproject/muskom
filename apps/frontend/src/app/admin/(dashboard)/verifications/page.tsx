@@ -273,7 +273,7 @@ export default function AdminVerificationsPage() {
       <div className="pg-surface border pg-border rounded-xl shadow-sm overflow-hidden space-y-4 p-6">
         {/* Filters */}
         <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 max-w-full lg:max-w-md">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pg-muted" />
             <input
               type="text"
@@ -281,7 +281,7 @@ export default function AdminVerificationsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && fetchVerifications()}
-              className="w-full pl-9 pr-8 py-2 min-h-[40px] text-sm rounded-lg border pg-border bg-slate-50 dark:bg-slate-800/60 pg-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              className="w-full pl-9 pr-8 py-2 min-h-[44px] text-sm rounded-lg border pg-border bg-slate-50 dark:bg-slate-800/60 pg-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
             {search && (
               <button
@@ -289,7 +289,7 @@ export default function AdminVerificationsPage() {
                   setSearch("");
                   setTimeout(fetchVerifications, 100);
                 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 pg-muted hover:pg-text"
+                className="absolute right-3 top-1/2 -translate-y-1/2 pg-muted hover:pg-text p-1 min-h-[32px] min-w-[32px] flex items-center justify-center"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -298,12 +298,12 @@ export default function AdminVerificationsPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Status Tabs */}
-            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+            <div className="flex flex-wrap bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
               {(["Pending", "APPROVED", "REJECTED", "ALL"] as const).map((st) => (
                 <button
                   key={st}
                   onClick={() => setStatusFilter(st)}
-                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
+                  className={`px-3 py-2 min-h-[38px] text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
                     statusFilter === st
                       ? "bg-white dark:bg-slate-700 pg-text shadow-sm"
                       : "pg-muted hover:pg-text"
@@ -320,7 +320,7 @@ export default function AdminVerificationsPage() {
                 <button
                   key={t}
                   onClick={() => setQueueType(t)}
-                  className={`px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
+                  className={`px-3 py-2 min-h-[38px] text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
                     queueType === t
                       ? "bg-primary text-white shadow-sm"
                       : "pg-muted hover:pg-text"
@@ -392,18 +392,17 @@ export default function AdminVerificationsPage() {
                       })}
                     </td>
                     <td className="px-4 py-3.5 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenDetail(item)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 pg-text transition-colors"
-                          title="Lihat Detail"
+                          className="flex items-center gap-1 px-3 py-2 min-h-[38px] text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 pg-text transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5" /> Detail
                         </button>
                         <button
                           onClick={() => handleApprove(item)}
                           disabled={actionLoading || item.status === "APPROVED" || item.status === "Verified"}
-                          className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-200 dark:border-emerald-900 disabled:opacity-40"
+                          className="flex items-center gap-1 px-3 py-2 min-h-[38px] text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white transition-all border border-emerald-200 dark:border-emerald-900 disabled:opacity-40"
                           title="Setujui"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" /> Setujui
@@ -411,7 +410,7 @@ export default function AdminVerificationsPage() {
                         <button
                           onClick={() => setRejectItem(item)}
                           disabled={actionLoading || item.status === "REJECTED"}
-                          className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white transition-all border border-rose-200 dark:border-rose-900 disabled:opacity-40"
+                          className="flex items-center gap-1 px-3 py-2 min-h-[38px] text-xs font-semibold rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white transition-all border border-rose-200 dark:border-rose-900 disabled:opacity-40"
                           title="Tolak"
                         >
                           <XCircle className="w-3.5 h-3.5" /> Tolak

@@ -60,16 +60,16 @@ export function AdminHeader({
   return (
     <header className="sticky top-0 z-30 bg-[var(--color-bg)]/80 backdrop-blur-md border-b border-[var(--color-border)] flex items-center justify-between px-4 sm:px-6 py-4 h-16 shrink-0">
 
-      {/* Left section: Desktop sidebar toggle + Mobile hamburger */}
-      <div className="flex items-center gap-1 shrink-0">
+      {/* Left section: Desktop sidebar toggle + Mobile hamburger + Mobile Title */}
+      <div className="flex items-center gap-2 shrink-0">
 
-        {/* Desktop sidebar collapse/expand — always visible on lg+ */}
+        {/* Desktop sidebar collapse/expand — visible on lg+ */}
         {onToggleCollapse && (
           <button
             onClick={onToggleCollapse}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-            className="hidden lg:flex items-center justify-center w-9 h-9 rounded-lg hover:pg-surface-elevated text-slate-500 hover:pg-text transition-colors"
+            className="hidden lg:flex items-center justify-center w-9 h-9 rounded-lg hover:pg-surface-elevated text-slate-500 hover:pg-text transition-colors min-h-[44px] min-w-[44px]"
           >
             {isCollapsed
               ? <PanelLeftOpen className="w-5 h-5" />
@@ -78,16 +78,23 @@ export function AdminHeader({
           </button>
         )}
 
-        {/* Mobile / Tablet hamburger — hidden on lg+ */}
+        {/* Mobile hamburger — visible on < md */}
         {handleMobileOpen && (
           <button
             onClick={handleMobileOpen}
             aria-label="Open navigation menu"
-            className="lg:hidden flex items-center justify-center w-9 h-9 min-h-[44px] min-w-[44px] rounded-lg hover:pg-surface-elevated text-slate-500 transition-colors"
+            className="md:hidden flex items-center justify-center w-9 h-9 min-h-[44px] min-w-[44px] rounded-lg hover:pg-surface-elevated text-slate-500 transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
         )}
+
+        {/* Mobile Brand Name (< md) */}
+        <div className="md:hidden flex items-center gap-2">
+          <span className="font-bold text-sm pg-text truncate max-w-[140px] xs:max-w-[180px]">
+            {config?.website_identity?.community_name || "MUSKOM"}
+          </span>
+        </div>
       </div>
 
       {/* Search Bar */}

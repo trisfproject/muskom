@@ -36,14 +36,14 @@ export default function NotificationCenterPage() {
             Manage your alerts, tasks, and system notifications.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="px-4 py-2 bg-[var(--color-primary)] text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2 shadow-sm shadow-blue-500/20"
+              className="px-4 py-2.5 min-h-[44px] bg-[var(--color-primary)] text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 shadow-sm shadow-blue-500/20 w-full sm:w-auto cursor-pointer"
             >
               <Check className="w-4 h-4" />
-              Mark All as Read
+              Tandai Semua Dibaca
             </button>
           )}
         </div>
@@ -89,11 +89,11 @@ export default function NotificationCenterPage() {
                       {notif.message}
                     </p>
                     
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
                       {!notif.read_at && (
                         <button 
                           onClick={() => markAsRead(notif.id)}
-                          className="text-xs font-medium text-blue-500 hover:text-blue-600 flex items-center gap-1.5"
+                          className="text-xs font-medium text-blue-500 hover:text-blue-600 flex items-center gap-1.5 min-h-[36px] cursor-pointer"
                         >
                           <Check className="w-3.5 h-3.5" /> Mark read
                         </button>
@@ -102,17 +102,17 @@ export default function NotificationCenterPage() {
                       {notif.action_url && (
                         <Link 
                           href={notif.action_url}
-                          className="text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-blue-500 flex items-center gap-1.5"
+                          className="text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-blue-500 flex items-center gap-1.5 min-h-[36px]"
                         >
                           <ExternalLink className="w-3.5 h-3.5" /> View Details
                         </Link>
                       )}
                     </div>
                   </div>
-                  <div className="shrink-0 flex sm:flex-col justify-end sm:justify-center mt-2 sm:mt-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="shrink-0 flex sm:flex-col justify-end sm:justify-center mt-2 sm:mt-0 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
                       onClick={() => deleteNotification(notif.id)}
-                      className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
+                      className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
                       title="Delete notification"
                     >
                       <Trash2 className="w-4 h-4" />

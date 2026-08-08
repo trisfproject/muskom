@@ -98,9 +98,9 @@ export default function AdminVotingPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Vote className="w-7 h-7 text-primary" /> E-Voting Control Panel & Tally Engine
@@ -111,7 +111,7 @@ export default function AdminVotingPage() {
         </div>
         <button
           onClick={fetchVotingData}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-sm font-medium w-fit"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-sm font-medium w-full sm:w-fit cursor-pointer"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Refresh Tally
         </button>
@@ -120,15 +120,15 @@ export default function AdminVotingPage() {
       {/* Control Card & Turnout Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Session Control Panel */}
-        <div className="lg:col-span-2 p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-          <div className="flex items-center justify-between">
+        <div className="lg:col-span-2 p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                 <Shield className="w-5 h-5 text-indigo-500" /> Kontrol Sesi Pemilihan
               </h2>
               <p className="text-xs text-slate-500 mt-1">Kelola pembukaan dan penutupan bilik suara digital</p>
             </div>
-            {getStatusBadge(session?.status)}
+            <div>{getStatusBadge(session?.status)}</div>
           </div>
 
           {/* Action Buttons */}
@@ -136,28 +136,28 @@ export default function AdminVotingPage() {
             <button
               onClick={() => handleUpdateStatus("start")}
               disabled={actionLoading || session?.status === "RUNNING"}
-              className="px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex flex-col items-center justify-center gap-1.5"
+              className="px-4 py-3.5 min-h-[56px] bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex flex-col items-center justify-center gap-1.5 cursor-pointer"
             >
               <Play className="w-4 h-4 fill-current" /> Buka Sesi
             </button>
             <button
               onClick={() => handleUpdateStatus("pause")}
               disabled={actionLoading || session?.status !== "RUNNING"}
-              className="px-4 py-3 bg-amber-600 hover:bg-amber-700 disabled:opacity-40 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex flex-col items-center justify-center gap-1.5"
+              className="px-4 py-3.5 min-h-[56px] bg-amber-600 hover:bg-amber-700 disabled:opacity-40 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex flex-col items-center justify-center gap-1.5 cursor-pointer"
             >
               <Pause className="w-4 h-4 fill-current" /> Jeda Sesi
             </button>
             <button
               onClick={() => handleUpdateStatus("resume")}
               disabled={actionLoading || session?.status !== "PAUSED"}
-              className="px-4 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex flex-col items-center justify-center gap-1.5"
+              className="px-4 py-3.5 min-h-[56px] bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex flex-col items-center justify-center gap-1.5 cursor-pointer"
             >
               <Play className="w-4 h-4 fill-current" /> Lanjutkan
             </button>
             <button
               onClick={() => handleUpdateStatus("stop")}
               disabled={actionLoading || session?.status === "CLOSED"}
-              className="px-4 py-3 bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex flex-col items-center justify-center gap-1.5"
+              className="px-4 py-3.5 min-h-[56px] bg-rose-600 hover:bg-rose-700 disabled:opacity-40 text-white font-semibold text-xs rounded-xl transition-all shadow-sm flex flex-col items-center justify-center gap-1.5 cursor-pointer"
             >
               <Square className="w-4 h-4 fill-current" /> Tutup Sesi
             </button>
@@ -165,7 +165,7 @@ export default function AdminVotingPage() {
         </div>
 
         {/* Turnout Gauge Card */}
-        <div className="p-6 rounded-2xl bg-slate-900 text-white border border-slate-800 shadow-sm flex flex-col justify-between">
+        <div className="p-4 sm:p-6 rounded-2xl bg-slate-900 text-white border border-slate-800 shadow-sm flex flex-col justify-between">
           <div className="space-y-2">
             <h2 className="font-semibold text-sm text-slate-300 flex items-center gap-2">
               <Percent className="w-4 h-4 text-indigo-400" /> Voter Turnout
@@ -189,14 +189,14 @@ export default function AdminVotingPage() {
       </div>
 
       {/* Real-time Tally Results */}
-      <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-        <div className="flex items-center justify-between border-b pb-4 border-slate-100 dark:border-slate-800">
+      <div className="p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b pb-4 border-slate-100 dark:border-slate-800">
           <h2 className="font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
             <BarChart2 className="w-5 h-5 text-emerald-500" /> Perolehan Suara Kandidat (Secret Ballot Tally)
           </h2>
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold hover:bg-slate-200"
+            className="flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-semibold hover:bg-slate-200 cursor-pointer w-full sm:w-auto"
           >
             <Download className="w-3.5 h-3.5" /> Cetak Hasil
           </button>

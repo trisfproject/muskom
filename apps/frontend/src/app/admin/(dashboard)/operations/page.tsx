@@ -137,23 +137,23 @@ export default function OperationalDashboardPage() {
             {pending_registrations && pending_registrations.length > 0 ? (
               <div className="divide-y pg-border border-t border-b">
                 {pending_registrations.map((participant: any) => (
-                  <div key={participant.id} className="py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center font-bold text-amber-700 dark:text-amber-500">
+                  <div key={participant.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 shrink-0 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center font-bold text-amber-700 dark:text-amber-500">
                         {participant.full_name.charAt(0)}
                       </div>
-                      <div>
-                        <div className="font-semibold text-sm pg-text">{participant.full_name}</div>
-                        <div className="text-xs text-slate-500">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-sm pg-text truncate">{participant.full_name}</div>
+                        <div className="text-xs text-slate-500 truncate">
                           {participant.email} • Mendaftar: {format(new Date(participant.created_at), "dd MMM, HH:mm")}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
                         {participant.status}
                       </span>
-                      <Link href={`/admin/participants/${participant.id}`} className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-3 py-1.5 rounded-lg transition-colors">
+                      <Link href={`/admin/participants/${participant.id}`} className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-3.5 py-2 min-h-[40px] flex items-center rounded-lg transition-colors">
                         [Review]
                       </Link>
                     </div>
@@ -179,21 +179,21 @@ export default function OperationalDashboardPage() {
             {pending_candidates && pending_candidates.length > 0 ? (
               <div className="divide-y pg-border border-t border-b">
                 {pending_candidates.map((candidate: any) => (
-                  <div key={candidate.id} className="py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center font-bold text-indigo-700 dark:text-indigo-500">
+                  <div key={candidate.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 shrink-0 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center font-bold text-indigo-700 dark:text-indigo-500">
                         <UserSearch className="w-4 h-4" />
                       </div>
-                      <div>
-                        <div className="font-semibold text-sm pg-text">{candidate.name}</div>
-                        <div className="text-xs text-slate-500">Kandidat Ketua Umum</div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-sm pg-text truncate">{candidate.name}</div>
+                        <div className="text-xs text-slate-500 truncate">Kandidat Ketua Umum</div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400">
                         {candidate.status}
                       </span>
-                      <Link href={`/admin/candidates`} className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 px-3 py-1.5 rounded-lg transition-colors">
+                      <Link href={`/admin/candidates`} className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 px-3.5 py-2 min-h-[40px] flex items-center rounded-lg transition-colors">
                         {candidate.status === 'Draft' ? '[Publish]' : '[Review]'}
                       </Link>
                     </div>

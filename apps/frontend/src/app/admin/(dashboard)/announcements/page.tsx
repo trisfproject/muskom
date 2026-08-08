@@ -44,21 +44,21 @@ export default function AnnouncementsPage() {
   };
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold text-gray-900">Announcements</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Manage official announcements and broadcast them to participants, candidates, or admins.
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 w-full max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Pengumuman (Announcements)</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Kelola pengumuman resmi dan siarkan kepada peserta, kandidat, atau panitia.
           </p>
         </div>
-        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+        <div className="w-full sm:w-auto">
           <Link
             href="/admin/announcements/create"
-            className="inline-flex items-center gap-x-2 rounded-md bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 min-h-[44px] text-center text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors w-full sm:w-auto"
           >
-            <Plus className="-ml-0.5 h-5 w-5" aria-hidden="true" />
-            New Announcement
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Tambah Pengumuman
           </Link>
         </div>
       </div>
@@ -112,15 +112,15 @@ export default function AnnouncementsPage() {
                         {ann.publish_date ? format(new Date(ann.publish_date), 'MMM d, yyyy') : '-'}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <div className="flex justify-end gap-x-3">
-                          <Link href={`/admin/announcements/${ann.id}/broadcast`} className="text-blue-600 hover:text-blue-900 flex items-center" title="Broadcast">
-                            <Send className="h-5 w-5" />
+                        <div className="flex justify-end gap-x-2">
+                          <Link href={`/admin/announcements/${ann.id}/broadcast`} className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20" title="Broadcast">
+                            <Send className="h-4 w-4" />
                           </Link>
-                          <Link href={`/admin/announcements/${ann.id}`} className="text-indigo-600 hover:text-indigo-900 flex items-center">
-                            <Edit className="h-5 w-5" />
+                          <Link href={`/admin/announcements/${ann.id}`} className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20" title="Edit">
+                            <Edit className="h-4 w-4" />
                           </Link>
-                          <button onClick={() => handleDelete(ann.id)} className="text-red-600 hover:text-red-900 flex items-center">
-                            <Trash2 className="h-5 w-5" />
+                          <button onClick={() => handleDelete(ann.id)} className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer" title="Delete">
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </td>

@@ -326,17 +326,17 @@ export default function AdminDashboardPage() {
         {recent_activity && recent_activity.length > 0 ? (
           <div className="divide-y pg-border">
             {recent_activity.slice(0, 5).map((act) => (
-              <div key={act.id} className="py-3 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold pg-muted">
+              <div key={act.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 shrink-0 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold pg-muted">
                     <Clock className="w-4 h-4" />
                   </div>
-                  <div>
-                    <p className="text-xs font-bold pg-text">{act.action}</p>
-                    <p className="text-[11px] pg-muted">Oleh <strong>{act.actor || "Sistem"}</strong> ({act.role || "Admin"})</p>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold pg-text truncate">{act.action}</p>
+                    <p className="text-[11px] pg-muted truncate">Oleh <strong>{act.actor || "Sistem"}</strong> ({act.role || "Admin"})</p>
                   </div>
                 </div>
-                <span className="text-[11px] pg-muted whitespace-nowrap">
+                <span className="text-[11px] pg-muted shrink-0 self-end sm:self-auto">
                   {format(new Date(act.timestamp), "dd MMM, HH:mm")}
                 </span>
               </div>

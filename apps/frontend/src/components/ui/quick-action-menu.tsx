@@ -35,13 +35,13 @@ export function QuickActionMenu({ items }: QuickActionMenuProps) {
     <div className="relative inline-block text-left" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-1.5 rounded-md pg-muted hover:pg-text hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        className="p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg pg-muted hover:pg-text hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
       >
         <MoreVertical className="w-4 h-4" />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-48 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg shadow-black/10 dark:shadow-black/50 z-50 py-1">
+        <div className="absolute right-0 mt-1 w-48 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-xl shadow-black/10 dark:shadow-black/50 z-50 py-1.5 overflow-hidden">
           {items.map((item, idx) => {
             const Icon = item.icon;
             
@@ -60,11 +60,11 @@ export function QuickActionMenu({ items }: QuickActionMenuProps) {
                   item.onClick();
                 }}
                 className={cn(
-                  "w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors",
+                  "w-full text-left px-4 py-2.5 min-h-[40px] text-sm flex items-center gap-2.5 transition-colors cursor-pointer",
                   colorClass
                 )}
               >
-                {Icon && <Icon className="w-4 h-4" />}
+                {Icon && <Icon className="w-4 h-4 shrink-0" />}
                 {item.label}
               </button>
             );

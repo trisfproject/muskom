@@ -117,17 +117,17 @@ export default function AuditPage() {
         title="Audit Log & Activity Timeline" 
         description="Pantau dan audit seluruh aktivitas operasional serta perubahan data dalam sistem MUSKOM."
       >
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => fetchLogs(false)}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 py-2.5 min-h-[44px] text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Segarkan
           </button>
           <button 
             onClick={handleExport}
-            className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold bg-primary hover:bg-primary-active text-white rounded-lg transition-colors shadow-sm"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] text-xs font-bold bg-primary hover:bg-primary-active text-white rounded-lg transition-colors shadow-sm cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             Ekspor CSV
@@ -136,8 +136,8 @@ export default function AuditPage() {
       </SectionHeader>
 
       {/* Control Bar */}
-      <div className="pg-surface border pg-border rounded-xl p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto flex-1">
+      <div className="pg-surface border pg-border rounded-xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto flex-1">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pg-muted" />
             <input
@@ -145,14 +145,14 @@ export default function AuditPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari aktivitas, aksi, atau entitas..."
-              className="w-full pl-9 pr-4 py-2 min-h-[40px] text-sm bg-slate-50 dark:bg-slate-800/60 border pg-border rounded-lg pg-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              className="w-full pl-9 pr-4 py-2 min-h-[44px] text-sm bg-slate-50 dark:bg-slate-800/60 border pg-border rounded-lg pg-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
           </div>
 
           <select
             value={selectedModule}
             onChange={(e) => setSelectedModule(e.target.value)}
-            className="w-full sm:w-auto px-3.5 py-2 min-h-[40px] text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border pg-border rounded-lg pg-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            className="w-full sm:w-auto px-3.5 py-2 min-h-[44px] text-xs font-semibold bg-slate-50 dark:bg-slate-800/60 border pg-border rounded-lg pg-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           >
             {MODULE_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -163,10 +163,10 @@ export default function AuditPage() {
         </div>
 
         {/* View Mode Toggle */}
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg self-end md:self-auto">
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg self-stretch sm:self-end md:self-auto">
           <button
             onClick={() => setViewMode("table")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 min-h-[38px] text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
               viewMode === "table" ? "bg-white dark:bg-slate-700 pg-text shadow-sm" : "pg-muted hover:pg-text"
             }`}
           >
@@ -174,7 +174,7 @@ export default function AuditPage() {
           </button>
           <button
             onClick={() => setViewMode("timeline")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 min-h-[38px] text-xs font-bold uppercase tracking-wider rounded-md transition-all ${
               viewMode === "timeline" ? "bg-primary text-white shadow-sm" : "pg-muted hover:pg-text"
             }`}
           >

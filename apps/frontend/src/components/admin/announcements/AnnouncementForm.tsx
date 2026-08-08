@@ -58,10 +58,10 @@ export default function AnnouncementForm({ initialData, isEdit }: AnnouncementFo
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl bg-white p-6 rounded-lg shadow-sm">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 rounded-xl shadow-sm">
       <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
         <div className="sm:col-span-4">
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
+          <label htmlFor="title" className="block text-sm font-semibold pg-text">Judul Pengumuman</label>
           <div className="mt-1">
             <input
               type="text"
@@ -70,20 +70,20 @@ export default function AnnouncementForm({ initialData, isEdit }: AnnouncementFo
               required
               value={formData.title}
               onChange={handleChange}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="block w-full min-h-[44px] px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
             />
           </div>
         </div>
 
         <div className="sm:col-span-2">
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
+          <label htmlFor="category" className="block text-sm font-semibold pg-text">Kategori</label>
           <div className="mt-1">
             <select
               id="category"
               name="category"
               value={formData.category}
               onChange={handleChange}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="block w-full min-h-[44px] px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
             >
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -91,14 +91,14 @@ export default function AnnouncementForm({ initialData, isEdit }: AnnouncementFo
         </div>
 
         <div className="sm:col-span-3">
-          <label htmlFor="priority" className="block text-sm font-medium text-gray-700">Priority</label>
+          <label htmlFor="priority" className="block text-sm font-semibold pg-text">Prioritas</label>
           <div className="mt-1">
             <select
               id="priority"
               name="priority"
               value={formData.priority}
               onChange={handleChange}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="block w-full min-h-[44px] px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
             >
               {priorities.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
@@ -106,14 +106,14 @@ export default function AnnouncementForm({ initialData, isEdit }: AnnouncementFo
         </div>
 
         <div className="sm:col-span-3">
-          <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
+          <label htmlFor="status" className="block text-sm font-semibold pg-text">Status</label>
           <div className="mt-1">
             <select
               id="status"
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="block w-full min-h-[44px] px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
             >
               {statuses.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -121,7 +121,7 @@ export default function AnnouncementForm({ initialData, isEdit }: AnnouncementFo
         </div>
 
         <div className="sm:col-span-6">
-          <label htmlFor="summary" className="block text-sm font-medium text-gray-700">Summary</label>
+          <label htmlFor="summary" className="block text-sm font-semibold pg-text">Ringkasan Singkat</label>
           <div className="mt-1">
             <textarea
               id="summary"
@@ -129,13 +129,13 @@ export default function AnnouncementForm({ initialData, isEdit }: AnnouncementFo
               rows={2}
               value={formData.summary}
               onChange={handleChange}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="block w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
             />
           </div>
         </div>
 
         <div className="sm:col-span-6">
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700">Konten Lengkap</label>
+          <label htmlFor="content" className="block text-sm font-semibold pg-text">Konten Lengkap</label>
           <div className="mt-1">
             <textarea
               id="content"
@@ -144,7 +144,7 @@ export default function AnnouncementForm({ initialData, isEdit }: AnnouncementFo
               required
               value={formData.content}
               onChange={handleChange}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm font-mono"
+              className="block w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm font-mono"
             />
           </div>
         </div>
@@ -158,31 +158,31 @@ export default function AnnouncementForm({ initialData, isEdit }: AnnouncementFo
                 type="checkbox"
                 checked={formData.pinned}
                 onChange={handleChange}
-                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
               />
             </div>
             <div className="ml-3 text-sm">
-              <label htmlFor="pinned" className="font-medium text-gray-700">Pin to top</label>
-              <p className="text-gray-500">This announcement will stay at the top of the public feed.</p>
+              <label htmlFor="pinned" className="font-medium pg-text cursor-pointer">Sematkan di atas (Pin to top)</label>
+              <p className="pg-muted text-xs">Pengumuman ini akan selalu berada di posisi paling atas feed publik.</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="pt-5 flex justify-end gap-x-3 border-t border-gray-200 mt-6">
+      <div className="pt-5 flex flex-col sm:flex-row justify-end gap-3 border-t border-slate-100 dark:border-slate-800 mt-6">
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+          className="rounded-lg bg-white dark:bg-slate-800 px-4 py-2.5 min-h-[44px] text-sm font-semibold pg-text shadow-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer text-center"
         >
-          Cancel
+          Batal
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+          className="inline-flex justify-center items-center rounded-lg bg-indigo-600 px-5 py-2.5 min-h-[44px] text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 cursor-pointer"
         >
-          {loading ? 'Saving...' : 'Save'}
+          {loading ? 'Menyimpan...' : 'Simpan Pengumuman'}
         </button>
       </div>
     </form>
