@@ -60,6 +60,9 @@ func (h *Handler) HandleUpdateConfig(c fiber.Ctx) error {
 	var updatedBy *string = nil
 
 	if err := h.service.UpdateConfigGroup(ctx, req, updatedBy); err != nil {
+		if strings.Contains(err.Error(), "invalid configuration payload") {
+			return response.SendError(c, fiber.StatusBadRequest, "Validation error", []response.ErrorDetail{{Message: err.Error()}})
+		}
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to update configuration", []response.ErrorDetail{{Message: err.Error()}})
 	}
 

@@ -230,6 +230,22 @@ export default function AdminWebsiteGeneralPage() {
                 required
               />
             </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Website Base URL</label>
+              <input
+                type="url"
+                placeholder="Contoh: https://muskom.komitkabe.com"
+                value={formData.website_identity.website_base_url || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    website_identity: { ...formData.website_identity, website_base_url: e.target.value },
+                  })
+                }
+                className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] transition-colors"
+                required
+              />
+            </div>
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1.5">Favicon URL</label>
               <div className="flex gap-2">
