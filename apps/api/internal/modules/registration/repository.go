@@ -219,10 +219,9 @@ func (r *repository) GetRegistrationConfirmation(ctx context.Context, registrati
 			r.id AS registration_code,
 			r.status,
 			r.created_at::text AS registration_date,
-			e.title AS musyawarah_name,
+			'Musyawarah' AS musyawarah_name,
 			p.full_name AS participant_name
 		FROM registrations r
-		JOIN events e ON r.event_id = e.id
 		JOIN persons p ON r.person_id = p.id
 		WHERE r.id = $1
 	`
@@ -235,8 +234,8 @@ func (r *repository) LookupParticipant(ctx context.Context, query string) (*Admi
 	sqlQuery := `
 		SELECT 
 			r.id,
-			r.event_id,
-			e.title AS event_name,
+			'global' AS event_id,
+			'Musyawarah' AS event_name,
 			p.full_name AS participant_name,
 			p.email,
 			p.phone,
@@ -249,7 +248,6 @@ func (r *repository) LookupParticipant(ctx context.Context, query string) (*Admi
 			r.updated_at::text,
 			r.registration_number
 		FROM registrations r
-		JOIN events e ON r.event_id = e.id
 		JOIN persons p ON r.person_id = p.id
 		WHERE (p.full_name ILIKE $1 OR r.registration_number = $2) AND r.status = 'APPROVED'
 		LIMIT 1
@@ -290,7 +288,6 @@ func (r *repository) LookupParticipant(ctx context.Context, query string) (*Admi
 func (r *repository) ListRegistrations(ctx context.Context, filter AdminListRegistrationsRequest) ([]AdminRegistrationResponse, int, error) {
 	baseQuery := `
 		FROM registrations r
-		JOIN events e ON r.event_id = e.id
 		JOIN persons p ON r.person_id = p.id
 		WHERE 1=1
 	`
@@ -361,8 +358,8 @@ func (r *repository) ListRegistrations(ctx context.Context, filter AdminListRegi
 	selectQuery := `
 		SELECT 
 			r.id,
-			r.event_id,
-			e.title AS event_name,
+			'global' AS event_id,
+			'Musyawarah' AS event_name,
 			p.full_name AS participant_name,
 			p.email,
 			p.phone,
@@ -425,8 +422,8 @@ func (r *repository) GetRegistrationAdminByID(ctx context.Context, id string) (*
 	query := `
 		SELECT 
 			r.id,
-			r.event_id,
-			e.title AS event_name,
+			'global' AS event_id,
+			'Musyawarah' AS event_name,
 			p.full_name AS participant_name,
 			p.email,
 			p.phone,
@@ -438,7 +435,6 @@ func (r *repository) GetRegistrationAdminByID(ctx context.Context, id string) (*
 			r.created_at::text,
 			r.updated_at::text
 		FROM registrations r
-		JOIN events e ON r.event_id = e.id
 		JOIN persons p ON r.person_id = p.id
 		WHERE r.id = $1
 	`

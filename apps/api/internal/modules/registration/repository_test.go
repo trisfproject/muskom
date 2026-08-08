@@ -247,7 +247,7 @@ func TestRepository_GetRegistrationAdminByID(t *testing.T) {
 			"status", "created_at", "updated_at",
 		}).
 			AddRow("reg1", "evt1", "Event 1", "John Doe", "john@test.com", "123", "Acme", "Dev", "DELEGATE", "WEB", "PENDING", "2023-01-01", "2023-01-01")
-		mock.ExpectQuery("^SELECT r.id, r.event_id").WillReturnRows(rows)
+		mock.ExpectQuery("^SELECT r.id, 'global' AS event_id").WillReturnRows(rows)
 
 		res, err := repo.GetRegistrationAdminByID(ctx, "reg1")
 		assert.NoError(t, err)
@@ -274,7 +274,7 @@ func TestRepository_ListRegistrations(t *testing.T) {
 			"status", "created_at", "updated_at",
 		}).
 			AddRow("reg1", "evt1", "Event 1", "John Doe", "john@test.com", "123", "Acme", "Dev", "DELEGATE", "WEB", "PENDING", "2023-01-01", "2023-01-01")
-		mock.ExpectQuery("^SELECT r.id, r.event_id").WillReturnRows(rows)
+		mock.ExpectQuery("^SELECT r.id, 'global' AS event_id").WillReturnRows(rows)
 
 		req := AdminListRegistrationsRequest{
 			Page:             1,
