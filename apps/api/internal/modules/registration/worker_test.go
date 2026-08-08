@@ -164,6 +164,14 @@ func (m *MockNotifRepository) DeleteInAppNotification(ctx context.Context, id st
 	return m.Called(ctx, id).Error(0)
 }
 
+func (m *MockNotifRepository) GetWebsiteIdentity(ctx context.Context) (map[string]interface{}, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[string]interface{}), args.Error(1)
+}
+
 func TestEmailWorker_SendEmail_RegistrationReceived(t *testing.T) {
 	ctx := context.Background()
 	log := zaptest.NewLogger(t)

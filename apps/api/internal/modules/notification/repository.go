@@ -2,6 +2,7 @@ package notification
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -28,6 +29,7 @@ type Repository interface {
 	MarkInAppRead(ctx context.Context, id string) error
 	MarkAllInAppRead(ctx context.Context, userID *string) error
 	DeleteInAppNotification(ctx context.Context, id string) error
+	GetWebsiteIdentity(ctx context.Context) (map[string]interface{}, error)
 }
 
 type repository struct {
@@ -195,4 +197,18 @@ func (r *repository) DeleteInAppNotification(ctx context.Context, id string) err
 	query := `DELETE FROM in_app_notifications WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id)
 	return err
+}
+
+func (r *repository) GetWebsiteIdentity(ctx context.Context) (map[string]interface{}, error) {
+	query := `SELECT settings FROM system_configurations WHERE group_name = 'website_identity'`
+	var settingsStr string
+	err := r.db.QueryRowContext(ctx, query).Scan(&settingsStr)
+	if err != nil {
+		return nil, err
+	}
+	var settings map[string]interface{}
+	if err := json.Unmarshal([]byte(settingsStr), &settings); err != nil {
+		return nil, err
+	}
+	return settings, nil
 }

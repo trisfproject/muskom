@@ -74,6 +74,23 @@ func (w *Worker) processJob(ctx context.Context, job NotificationJob) {
 	if job.Payload != nil {
 		_ = json.Unmarshal([]byte(*job.Payload), &payload)
 	}
+	if payload == nil {
+		payload = make(map[string]interface{})
+	}
+
+	// Inject website identity dynamic branding
+	if identity, err := w.repo.GetWebsiteIdentity(ctx); err == nil && identity != nil {
+		if title, ok := identity["website_title"].(string); ok && title != "" {
+			payload["website_title"] = title
+			// Also set legacy variables to ensure backward compatibility and override hardcodes
+			payload["portal_title"] = title
+			payload["event_name"] = title
+		}
+		if comm, ok := identity["community_name"].(string); ok && comm != "" {
+			payload["organization_name"] = comm
+			payload["community_name"] = comm
+		}
+	}
 
 	renderedSubj, body, err := RenderTemplate(tpl.Subject, tpl.Body, payload)
 	if err != nil {
