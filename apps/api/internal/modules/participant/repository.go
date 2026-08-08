@@ -438,7 +438,7 @@ func (r *repository) GetStats(ctx context.Context) (*ParticipantStats, error) {
 }
 
 func (r *repository) Count(ctx context.Context) (int, error) {
-	query := `SELECT COUNT(*) FROM registrations`
+	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL`
 	var count int
 	err := r.db.GetContext(ctx, &count, query)
 	if err != nil {
@@ -448,7 +448,7 @@ func (r *repository) Count(ctx context.Context) (int, error) {
 }
 
 func (r *repository) CountActive(ctx context.Context) (int, error) {
-	query := `SELECT COUNT(*) FROM registrations WHERE UPPER(status) != 'REJECTED'`
+	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(status) != 'REJECTED'`
 	var count int
 	err := r.db.GetContext(ctx, &count, query)
 	if err != nil {
@@ -458,7 +458,7 @@ func (r *repository) CountActive(ctx context.Context) (int, error) {
 }
 
 func (r *repository) CountVerified(ctx context.Context) (int, error) {
-	query := `SELECT COUNT(*) FROM registrations WHERE UPPER(status) IN ('VERIFIED', 'APPROVED')`
+	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(status) IN ('VERIFIED', 'APPROVED')`
 	var count int
 	err := r.db.GetContext(ctx, &count, query)
 	if err != nil {

@@ -3,6 +3,7 @@ package website
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 
 	"github.com/jmoiron/sqlx"
@@ -67,7 +68,7 @@ type Repository interface {
 
 	// Operational Metrics
 	GetParticipantCount(ctx context.Context) (int, error)
-	GetRegistrationLimit(ctx context.Context) (int, error)
+	GetRegistrationLimit(ctx context.Context) (int, string, error)
 }
 
 type repository struct {
@@ -570,18 +571,30 @@ func (r *repository) DeleteInformationPage(ctx context.Context, id string) error
 
 func (r *repository) GetParticipantCount(ctx context.Context) (int, error) {
 	var count int
-	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND status != 'Rejected'`)
+	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(status) IN ('VERIFIED', 'APPROVED')`)
 	if err != nil {
 		return 0, err
 	}
 	return count, nil
 }
 
-func (r *repository) GetRegistrationLimit(ctx context.Context) (int, error) {
-	var limit *int
-	err := r.db.GetContext(ctx, &limit, `SELECT registration_limit FROM event_settings LIMIT 1`)
-	if err != nil || limit == nil {
-		return 0, nil
+func (r *repository) GetRegistrationLimit(ctx context.Context) (int, string, error) {
+	var settingsJSON []byte
+	err := r.db.GetContext(ctx, &settingsJSON, `SELECT settings FROM system_configurations WHERE group_name = 'registration'`)
+	if err != nil {
+		return 0, "CLOSE", nil
 	}
-	return *limit, nil
+	
+	var cfg struct {
+		ParticipantLimit int    `json:"participant_limit"`
+		CapacityMode     string `json:"capacity_mode"`
+	}
+	if err := json.Unmarshal(settingsJSON, &cfg); err != nil {
+		return 0, "CLOSE", nil
+	}
+	if cfg.CapacityMode == "" {
+		cfg.CapacityMode = "CLOSE"
+	}
+	
+	return cfg.ParticipantLimit, cfg.CapacityMode, nil
 }

@@ -33,6 +33,7 @@ type PublicSettingsDTO struct {
 	ShowAnnouncements        bool   `json:"show_announcements"`
 	ParticipantLimit         int    `json:"participant_limit"`
 	ParticipantCount         int    `json:"participant_count"`
+	CapacityMode             string `json:"capacity_mode"`
 	RegistrationEnabled      bool   `json:"registration_enabled"`
 }
 

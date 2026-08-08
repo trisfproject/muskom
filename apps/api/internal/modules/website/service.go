@@ -285,9 +285,17 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 		regType = activePhase.RegistrationType
 	}
 
+	partCount, _ := s.repo.GetParticipantCount(ctx)
+	partLimit, capMode, _ := s.repo.GetRegistrationLimit(ctx)
+
 	candStyle, partStyle := "outline", "outline"
 	candOpen := regEnabled && heroPrimaryEnabled && (regType == "CANDIDATE" || regType == "BOTH")
 	partOpen := regEnabled && heroSecondaryEnabled && (regType == "PARTICIPANT" || regType == "BOTH")
+
+	// Capacity Check overrides partOpen
+	if partLimit > 0 && partCount >= partLimit && strings.ToUpper(capMode) == "CLOSE" {
+		partOpen = false
+	}
 
 	switch regType {
 	case "CANDIDATE":
@@ -321,9 +329,6 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 	candCMS, candList, candSection := s.mapper.MapCandidates(candSettings, candidates)
 	footerDTO := s.mapper.MapFooter(footer)
 
-	partCount, _ := s.repo.GetParticipantCount(ctx)
-	partLimit, _ := s.repo.GetRegistrationLimit(ctx)
-
 	resp := &PublicHomeResponse{
 		Hero:          heroDTO,
 		CurrentPhase:  currentPhase,
@@ -347,6 +352,7 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 			ShowAnnouncements:        true,
 			ParticipantLimit:         partLimit,
 			ParticipantCount:         partCount,
+			CapacityMode:             capMode,
 			RegistrationEnabled:      regEnabled,
 		},
 	}
