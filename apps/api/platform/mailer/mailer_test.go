@@ -40,7 +40,7 @@ func TestMailer_AttachmentFormatting(t *testing.T) {
 		Inline:      true,
 	}
 
-	err := m.SendRawWithAttachments("user@example.com", "Test Subject", "<p>Hello <img src=\"cid:qrcode\"/></p>", []Attachment{att})
+	err := m.SendRawWithAttachments("user@example.com", "Test Subject", "<p>Hello <img src=\"cid:inlineimg\"/></p>", []Attachment{att})
 	assert.NoError(t, err) // Disabled mail returns nil
 }
 

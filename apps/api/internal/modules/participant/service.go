@@ -191,10 +191,9 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 				"full_name":              p.FullName,
 				"registration_number":    p.RegistrationNumber,
 				"event_name":             "MUSKOM 2026",
-				"qr_code":                "cid:qrcode",
-				"qr_code_url":            "cid:qrcode",
 				"participant_lookup_url": lookupURL,
 				"lookup_url":             lookupURL,
+				"participant_url":        lookupURL,
 				"event_date":             "Tanggal Acara",
 				"venue":                  "Lokasi Acara",
 			}

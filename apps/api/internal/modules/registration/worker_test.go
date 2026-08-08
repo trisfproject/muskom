@@ -20,20 +20,7 @@ type MockMailer struct {
 	mock.Mock
 }
 
-func (m *MockMailer) SendRegistrationConfirmation(to, participantName, regNumber, musyawarahName, company, regTime, status string) error {
-	args := m.Called(to, participantName, regNumber, musyawarahName, company, regTime, status)
-	return args.Error(0)
-}
 
-func (m *MockMailer) SendVerification(to, participantName, regNumber, musyawarahName string) error {
-	args := m.Called(to, participantName, regNumber, musyawarahName)
-	return args.Error(0)
-}
-
-func (m *MockMailer) SendRejection(to, participantName, musyawarahName, reason string) error {
-	args := m.Called(to, participantName, musyawarahName, reason)
-	return args.Error(0)
-}
 
 func (m *MockMailer) SendTestEmail(to string) error {
 	args := m.Called(to)

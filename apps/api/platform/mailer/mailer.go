@@ -9,8 +9,6 @@ import (
 	"html/template"
 	"math/rand"
 	"net/smtp"
-	"net/url"
-	"strings"
 	"time"
 
 	"github.com/trisfproject/muskom/apps/api/platform/config"
@@ -40,9 +38,6 @@ type Attachment struct {
 }
 
 type Mailer interface {
-	SendRegistrationConfirmation(to, participantName, regNumber, musyawarahName, company, regTime, status string) error
-	SendVerification(to, participantName, regNumber, musyawarahName string) error
-	SendRejection(to, participantName, musyawarahName, reason string) error
 	SendTestEmail(to string) error
 	TestConnection() error
 	SendRaw(to, subject, bodyHTML string) error
@@ -61,171 +56,6 @@ func NewSMTPMailer(cfg *config.Config, log *zap.Logger, bp BrandProvider) Mailer
 		log: log,
 		bp:  bp,
 	}
-}
-
-func (m *smtpMailer) SendRegistrationConfirmation(to, participantName, regNumber, musyawarahName, company, regTime, status string) error {
-	if !m.cfg.MailEnabled {
-		m.log.Info("Mail is disabled, skipping sending registration confirmation", zap.String("to", to))
-		return nil
-	}
-
-	subject := "Pendaftaran Peserta {{.portal_title}} Berhasil"
-
-	htmlTemplate := `
-	<html>
-		<body>
-			<p>Halo <strong>{{.participant_name}}</strong>,</p>
-			<p>Terima kasih telah mendaftar pada acara <strong>{{.portal_title}}</strong>.</p>
-			<p>Status Anda saat ini: <strong>Menunggu Verifikasi</strong>.</p>
-			<p>Silakan cek status pendaftaran Anda secara berkala melalui tautan berikut:</p>
-			<p><a href="{{.lookup_url}}">{{.lookup_url}}</a></p>
-			<p>Salam hangat,<br/>Panitia {{.portal_title}}</p>
-		</body>
-	</html>
-	`
-
-	data := m.getBrandMap()
-	data["participant_name"] = participantName
-	baseURL := strings.TrimRight(m.cfg.AppBaseURL, "/")
-	if to != "" {
-		data["lookup_url"] = fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(to))
-	} else {
-		data["lookup_url"] = fmt.Sprintf("%s/peserta", baseURL)
-	}
-	data["participant_lookup_url"] = data["lookup_url"]
-
-	parsedSubject, err := m.parseAndExecute(subject, data)
-	if err != nil {
-		parsedSubject = "Pendaftaran Peserta Berhasil"
-	}
-
-	parsedBody, err := m.parseAndExecute(htmlTemplate, data)
-	if err != nil {
-		m.log.Error("Failed to parse email template", zap.Error(err))
-		return fmt.Errorf("failed to parse template: %w", err)
-	}
-
-	// Create email body
-	var body bytes.Buffer
-	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
-	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", m.cfg.SmtpFromName, m.cfg.SmtpFrom))
-	body.WriteString(fmt.Sprintf("Subject: %s\r\n", parsedSubject))
-	body.WriteString("MIME-version: 1.0;\r\n")
-	body.WriteString("Content-Type: text/html; charset=\"UTF-8\";\r\n\r\n")
-	body.WriteString(parsedBody)
-
-	if err := m.sendSMTP(to, body.Bytes()); err != nil {
-		return err
-	}
-
-	m.log.Info("Participant registration email sent successfully", zap.String("to", to))
-	return nil
-}
-
-func (m *smtpMailer) SendVerification(to, participantName, regNumber, musyawarahName string) error {
-	if !m.cfg.MailEnabled {
-		m.log.Info("Mail is disabled, skipping sending verification email", zap.String("to", to))
-		return nil
-	}
-
-	subject := "Peserta Berhasil Diverifikasi"
-
-	htmlTemplate := `
-	<html>
-		<body>
-			<p>Selamat!</p>
-			<p>Pendaftaran Anda telah diverifikasi.</p>
-			<p>Nomor Registrasi:</p>
-			<p><strong>{{.reg_number}}</strong></p>
-			<p>Silakan membuka kartu peserta melalui:</p>
-			<p><a href="{{.lookup_url}}">{{.lookup_url}}</a></p>
-			<p>Salam hangat,<br/>Panitia {{.portal_title}}</p>
-		</body>
-	</html>
-	`
-	
-	data := m.getBrandMap()
-	data["participant_name"] = participantName
-	data["reg_number"] = regNumber
-	baseURL := strings.TrimRight(m.cfg.AppBaseURL, "/")
-	lookupQuery := regNumber
-	if lookupQuery == "" {
-		lookupQuery = to
-	}
-	if lookupQuery != "" {
-		data["lookup_url"] = fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(lookupQuery))
-	} else {
-		data["lookup_url"] = fmt.Sprintf("%s/peserta", baseURL)
-	}
-	data["participant_lookup_url"] = data["lookup_url"]
-
-	parsedSubject, err := m.parseAndExecute(subject, data)
-	if err != nil {
-		parsedSubject = "Peserta Berhasil Diverifikasi"
-	}
-
-	parsedBody, err := m.parseAndExecute(htmlTemplate, data)
-	if err != nil {
-		m.log.Error("Failed to parse verification email template", zap.Error(err))
-		return fmt.Errorf("failed to parse template: %w", err)
-	}
-
-	var body bytes.Buffer
-	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
-	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", m.cfg.SmtpFromName, m.cfg.SmtpFrom))
-	body.WriteString(fmt.Sprintf("Subject: %s\r\n", parsedSubject))
-	body.WriteString("MIME-version: 1.0;\r\n")
-	body.WriteString("Content-Type: text/html; charset=\"UTF-8\";\r\n\r\n")
-	body.WriteString(parsedBody)
-
-	return m.sendSMTP(to, body.Bytes())
-}
-
-func (m *smtpMailer) SendRejection(to, participantName, musyawarahName, reason string) error {
-	if !m.cfg.MailEnabled {
-		m.log.Info("Mail is disabled, skipping sending rejection email", zap.String("to", to))
-		return nil
-	}
-
-	subject := "Status Pendaftaran Anda"
-
-	htmlTemplate := `
-	<html>
-		<body>
-			<p>Halo <strong>{{.participant_name}}</strong>,</p>
-			<p>Mohon maaf, pendaftaran Anda untuk acara <strong>{{.portal_title}}</strong> <strong>Ditolak</strong> oleh panitia.</p>
-			{{if .reason}}
-			<p><strong>Alasan:</strong> {{.reason}}</p>
-			{{end}}
-			<p>Jika ada pertanyaan, silakan hubungi panitia melalui kontak yang tersedia di website.</p>
-			<p>Salam hangat,<br/>Panitia {{.portal_title}}</p>
-		</body>
-	</html>
-	`
-	data := m.getBrandMap()
-	data["participant_name"] = participantName
-	data["reason"] = reason
-
-	parsedSubject, err := m.parseAndExecute(subject, data)
-	if err != nil {
-		parsedSubject = "Status Pendaftaran Anda"
-	}
-
-	parsedBody, err := m.parseAndExecute(htmlTemplate, data)
-	if err != nil {
-		m.log.Error("Failed to parse rejection email template", zap.Error(err))
-		return fmt.Errorf("failed to parse template: %w", err)
-	}
-
-	var body bytes.Buffer
-	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
-	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", m.cfg.SmtpFromName, m.cfg.SmtpFrom))
-	body.WriteString(fmt.Sprintf("Subject: %s\r\n", parsedSubject))
-	body.WriteString("MIME-version: 1.0;\r\n")
-	body.WriteString("Content-Type: text/html; charset=\"UTF-8\";\r\n\r\n")
-	body.WriteString(parsedBody)
-
-	return m.sendSMTP(to, body.Bytes())
 }
 
 func (m *smtpMailer) SendTestEmail(to string) error {

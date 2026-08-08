@@ -181,8 +181,7 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 				"event_name":             "MUSKOM 2026",
 				"participant_lookup_url": lookupURL,
 				"lookup_url":             lookupURL,
-				"qr_code_url":            "cid:qrcode",
-				"qr_code":                "cid:qrcode",
+				"participant_url":        lookupURL,
 				"event_date":             "Tanggal Acara", // Placeholder
 				"venue":                  "Lokasi Acara",   // Placeholder
 			}
