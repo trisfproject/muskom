@@ -233,7 +233,17 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 	`)
 
 	// Attendance Stats
-	s.db.GetContext(ctx, &data.Attendance.Present, `SELECT count(*) FROM attendance WHERE check_in_time IS NOT NULL`)
+	var totalApproved int
+	_ = s.db.GetContext(ctx, &totalApproved, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(TRIM(status)) IN ('APPROVED', 'VERIFIED')`)
+	_ = s.db.GetContext(ctx, &data.Attendance.Present, `SELECT COUNT(*) FROM attendance WHERE undone_at IS NULL`)
+	if totalApproved > 0 {
+		absent := totalApproved - data.Attendance.Present
+		if absent < 0 {
+			absent = 0
+		}
+		data.Attendance.Absent = absent
+		data.Attendance.Percentage = (float64(data.Attendance.Present) / float64(totalApproved)) * 100.0
+	}
 	
 	// Eligible Voters
 	s.db.GetContext(ctx, &data.Voting.RemainingVoters, `SELECT count(*) FROM voting_eligibility WHERE can_vote = true`)

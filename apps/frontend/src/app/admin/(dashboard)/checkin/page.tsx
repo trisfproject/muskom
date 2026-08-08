@@ -101,22 +101,21 @@ function CheckInContent() {
     }
 
     // Build camera constraint:
-    // If a specific deviceId is selected, use that; otherwise use facingMode environment.
-    const cameraIdOrConstraint: string | MediaTrackConstraints = selectedCameraId
-      ? selectedCameraId
-      : ({ facingMode: { ideal: "environment" } } as MediaTrackConstraints);
+    // If a specific deviceId is selected, use that string directly; otherwise use { facingMode: "environment" }.
+    const cameraIdOrConstraint = selectedCameraId ? selectedCameraId : { facingMode: "environment" };
 
     const config = {
       fps: 15,
-      qrbox: { width: 280, height: 280 },
-      aspectRatio: 1.0,
+      qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+        const edge = Math.floor(minEdge * 0.75);
+        const boxSize = Math.max(200, Math.min(edge, 300));
+        return { width: boxSize, height: boxSize };
+      },
       disableFlip: false,
-      videoConstraints: selectedCameraId
-        ? { deviceId: { exact: selectedCameraId } }
-        : { facingMode: { ideal: "environment" } },
     };
 
-    console.log("[QR] Starting scanner. cameraId:", selectedCameraId || "(facingMode: environment)");
+    console.log("[QR] Starting scanner with constraint:", cameraIdOrConstraint);
 
     try {
       await qrInstance.start(
@@ -129,15 +128,27 @@ function CheckInContent() {
           stopScanner();
           handleCheckIn(regNum);
         },
-        (scanError) => {
-          // Routine scan frame failures — suppress logs unless debugging
-          // console.debug("[QR] Frame scan error:", scanError);
+        () => {
+          // Routine scan frame failure — ignore
         }
       );
 
       setIsScannerReady(true);
       setScannerActive(true);
       console.log("[QR] Scanner started successfully");
+
+      // Re-enumerate cameras now that permission is granted to get accurate labels
+      Html5Qrcode.getCameras()
+        .then((devices) => {
+          if (devices && devices.length > 0) {
+            const cams: CameraDevice[] = devices.map((d) => ({
+              id: d.id,
+              label: d.label || `Camera ${d.id}`,
+            }));
+            setCameras(cams);
+          }
+        })
+        .catch(() => {});
     } catch (err: any) {
       console.error("[QR] getUserMedia / start error:", err);
       let msg = "Gagal mengakses kamera.";
@@ -147,9 +158,8 @@ function CheckInContent() {
         msg = "Kamera tidak ditemukan pada perangkat ini.";
       } else if (err?.name === "NotReadableError") {
         msg = "Kamera sedang digunakan oleh aplikasi lain.";
-      } else if (err?.name === "OverconstrainedError") {
-        msg = "Konfigurasi kamera tidak didukung. Mencoba ulang dengan kamera default...";
-        // Retry with basic video: true
+      } else if (err?.name === "OverconstrainedError" || err?.name === "ConstraintNotSatisfiedError") {
+        console.warn("[QR] OverconstrainedError, retrying with fallback constraint...");
         retryWithBasicConstraint(qrInstance);
         return;
       }
@@ -158,12 +168,12 @@ function CheckInContent() {
     }
   }, [selectedCameraId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fallback: retry with basic video constraint
+  // Fallback: retry with basic constraint
   const retryWithBasicConstraint = async (qrInstance: Html5Qrcode) => {
     try {
       await qrInstance.start(
         { facingMode: "environment" },
-        { fps: 15, qrbox: { width: 280, height: 280 } },
+        { fps: 15 },
         (decodedText) => {
           const parts = decodedText.split("/checkin/");
           const regNum = parts.length > 1 ? parts[1].trim() : decodedText.trim();

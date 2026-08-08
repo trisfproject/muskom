@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/trisfproject/muskom/apps/api/internal/modules/announcement"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/attendance"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/bootstrap"
@@ -175,9 +176,8 @@ func main() {
 
 	verification.SetupAdminRoutes(adminGroup.Group("/verifications", checker.RequirePermission("participant.approve")), db, log, val, nil /*notifSvc*/, cfg)
 	
-	// OUT OF SCOPE FOR RC1
-	// attendance.SetupAdminRoutes(adminGroup.Group("/attendance", checker.RequirePermission("attendance.manage")), db, log, val)
-	// attendance.SetupRootAdminRoutes(adminGroup.Group("/", checker.RequirePermission("attendance.manage")), db, log, val)
+	attendance.SetupAdminRoutes(adminGroup.Group("/attendance", checker.RequirePermission("attendance.manage")), db, log, val)
+	attendance.SetupRootAdminRoutes(adminGroup.Group("/", checker.RequirePermission("attendance.manage")), db, log, val)
 	notification.SetupAdminRoutesWithService(adminGroup.Group("/notifications", checker.RequirePermission("notification.send")), notifSvc, hub)
 	
 	audit.SetupAdminRoutes(adminGroup.Group("/audit", checker.RequirePermission("audit.view")), db, log)
