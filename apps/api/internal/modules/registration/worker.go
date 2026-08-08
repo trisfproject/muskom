@@ -33,6 +33,24 @@ func NewEmailWorker(db *sqlx.DB, log *zap.Logger, mailerSvc mailer.Mailer, cfg *
 }
 
 func (w *EmailWorker) Start() {
+	// Verify email_logs table exists before starting worker
+	var exists bool
+	query := `SELECT EXISTS (
+		SELECT FROM information_schema.tables 
+		WHERE table_schema = 'public'
+		AND table_name = 'email_logs'
+	)`
+	
+	err := w.db.QueryRowContext(context.Background(), query).Scan(&exists)
+	if err != nil {
+		w.log.Error("Registration Email Worker disabled: error checking email_logs table", zap.Error(err))
+		return
+	}
+	if !exists {
+		w.log.Error("Registration Email Worker disabled: email_logs table does not exist")
+		return
+	}
+
 	w.log.Info("Starting Registration Email Worker")
 	go w.runLoop()
 }
