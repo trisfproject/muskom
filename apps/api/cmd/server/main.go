@@ -12,26 +12,22 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/trisfproject/muskom/apps/api/internal/modules/announcement"
-	"github.com/trisfproject/muskom/apps/api/internal/modules/attendance"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/auth"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/bootstrap"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/candidate"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/dashboard"
 
-	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/participant"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/rbac"
-	"github.com/trisfproject/muskom/apps/api/internal/modules/reporting"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/registration"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/result"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/system/configuration"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/user"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/verification"
-	"github.com/trisfproject/muskom/apps/api/internal/modules/voting"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
-	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/middleware"
@@ -100,19 +96,18 @@ func main() {
 
 	// 6. Common Utilities
 	val := validator.New()
-	bus := eventbus.NewSyncBus(log)
 	mailerSvc := mailer.NewSMTPMailer(cfg, log)
 	hub := realtime.GetHub(log)
 	
-	// Create Notification Service
-	notifRepo := notification.NewRepository(db)
-	notifRegistry := notification.NewProviderRegistry(mailerSvc, hub, notifRepo)
-	notifSvc := notification.NewService(notifRepo, notifRegistry, log)
+	// Create Notification Service - OUT OF SCOPE FOR RC1
+	// notifRepo := notification.NewRepository(db)
+	// notifRegistry := notification.NewProviderRegistry(mailerSvc, hub, notifRepo)
+	// notifSvc := notification.NewService(notifRepo, notifRegistry, log)
 	
 	// Seed default notification templates
-	if err := notifSvc.SeedDefaultTemplates(context.Background()); err != nil {
-		log.Error("Failed to seed default templates", zap.Error(err))
-	}
+	// if err := notifSvc.SeedDefaultTemplates(context.Background()); err != nil {
+	// 	log.Error("Failed to seed default templates", zap.Error(err))
+	// }
 
 	// Create Announcement Service
 	annRepo := announcement.NewRepository(db, log)
@@ -151,11 +146,12 @@ func main() {
 	configuration.SetupPublicRoutes(v1.Group("/system/config"), db, redisClient, val, log, cfg, mailerSvc)
 	result.SetupPublicRoutes(v1.Group("/public"), db, log)
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
-	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, redisClient, cfg, log, val, mailerSvc, notifSvc)
+	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, redisClient, cfg, log, val, mailerSvc, nil /*notifSvc*/)
+	registration.SetupRoutes(v1.Group("/public/register"), db, log, val, strg, int64(bodyLimit), mailerSvc, cfg)
 
-	// Protected Participant Routes
-	participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
-	voting.SetupRoutes(participantGroup, db, log, bus, notifSvc, cfg)
+	// Protected Participant Routes - OUT OF SCOPE FOR RC1
+	// participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
+	// voting.SetupRoutes(participantGroup, db, log, bus, notifSvc, cfg)
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
@@ -163,17 +159,24 @@ func main() {
 	dashboard.SetupAdminRoutes(adminGroup.Group("/dashboard", checker.RequirePermission("audit.view")), db, redisClient, strg, mailerSvc, log)
 	website.SetupAdminRoutes(adminGroup.Group("/website", checker.RequirePermission("website.write")), db, redisClient, strg, val, log, cfg)
 
-	verification.SetupAdminRoutes(adminGroup.Group("/verifications", checker.RequirePermission("participant.approve")), db, log, val, notifSvc, cfg)
-	attendance.SetupAdminRoutes(adminGroup.Group("/attendance", checker.RequirePermission("attendance.manage")), db, log, val)
-	attendance.SetupRootAdminRoutes(adminGroup.Group("/", checker.RequirePermission("attendance.manage")), db, log, val)
-	notification.SetupAdminRoutesWithService(adminGroup.Group("/notifications", checker.RequirePermission("notification.send")), notifSvc, hub)
+	verification.SetupAdminRoutes(adminGroup.Group("/verifications", checker.RequirePermission("participant.approve")), db, log, val, nil /*notifSvc*/, cfg)
+	
+	// OUT OF SCOPE FOR RC1
+	// attendance.SetupAdminRoutes(adminGroup.Group("/attendance", checker.RequirePermission("attendance.manage")), db, log, val)
+	// attendance.SetupRootAdminRoutes(adminGroup.Group("/", checker.RequirePermission("attendance.manage")), db, log, val)
+	// notification.SetupAdminRoutesWithService(adminGroup.Group("/notifications", checker.RequirePermission("notification.send")), notifSvc, hub)
+	
 	audit.SetupAdminRoutes(adminGroup.Group("/audit", checker.RequirePermission("audit.view")), db, log)
-	reporting.SetupAdminRoutes(adminGroup.Group("/reporting", checker.RequirePermission("report.export")), db, log)
-	voting.SetupAdminRoutes(adminGroup.Group("/votes", checker.RequirePermission("voting.manage")), db, log, bus, notifSvc, cfg)
-	result.SetupAdminRoutes(adminGroup.Group("/result", checker.RequirePermission("voting.view")), db, log)
+	
+	// OUT OF SCOPE FOR RC1
+	// reporting.SetupAdminRoutes(adminGroup.Group("/reporting", checker.RequirePermission("report.export")), db, log)
+	// voting.SetupAdminRoutes(adminGroup.Group("/votes", checker.RequirePermission("voting.manage")), db, log, bus, notifSvc, cfg)
+	// result.SetupAdminRoutes(adminGroup.Group("/result", checker.RequirePermission("voting.view")), db, log)
+	
 	user.SetupRoutes(adminGroup.Group("/users"), db, log, val, checker)
-	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, log, val, strg, cfg, notifSvc)
-	participant.SetupAdminRoutes(adminGroup.Group("/participants", checker.RequirePermission("participant.approve")), db, log, val, mailerSvc, notifSvc)
+	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, log, val, strg, cfg, nil /*notifSvc*/)
+	participant.SetupAdminRoutes(adminGroup.Group("/participants", checker.RequirePermission("participant.approve")), db, log, val, mailerSvc, nil /*notifSvc*/)
+	registration.SetupAdminRoutes(adminGroup.Group("/registrations", checker.RequirePermission("participant.approve")), db, log, val, strg, int64(bodyLimit), mailerSvc, cfg)
 
 	announcement.RegisterRoutes(v1, annHandler, auth.JWTMiddleware(cfg, log), checker.RequirePermission)
 

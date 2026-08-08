@@ -78,6 +78,29 @@ func (h *Handler) GetConfirmation(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Registration confirmation retrieved", res, nil)
 }
 
+func (h *Handler) LookupParticipant(c fiber.Ctx) error {
+	type LookupRequest struct {
+		Query string `json:"query" validate:"required"`
+	}
+	var req LookupRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+	if req.Query == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "Query is required", nil)
+	}
+
+	res, err := h.service.LookupParticipant(c.Context(), req.Query)
+	if err != nil {
+		if errors.Is(err, ErrRegistrationNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, "Participant not found or not verified", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Participant found", res, nil)
+}
+
 func (h *Handler) UploadAttachment(c fiber.Ctx) error {
 	code := c.Params("registration_code")
 	if code == "" {

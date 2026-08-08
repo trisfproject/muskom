@@ -7,14 +7,18 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"go.uber.org/zap"
 
+	"github.com/trisfproject/muskom/apps/api/platform/config"
+	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
@@ -44,6 +48,7 @@ func (e *ValidationError) Error() string {
 
 type Service interface {
 	RegisterParticipant(ctx context.Context, req *PublicRegistrationRequest) (*PublicRegistrationResponse, error)
+	LookupParticipant(ctx context.Context, query string) (*AdminRegistrationResponse, error)
 	CheckRegistrationStatus(ctx context.Context, registrationCode string) (*RegistrationStatusResponse, error)
 	GetRegistrationConfirmation(ctx context.Context, registrationCode string) (*RegistrationConfirmationResponse, error)
 
@@ -63,10 +68,12 @@ type service struct {
 	validator *validator.Validator
 	strg      storage.Storage
 	maxSize   int64
+	mailerSvc mailer.Mailer
+	cfg       *config.Config
 }
 
-func NewService(repo Repository, log *zap.Logger, val *validator.Validator, strg storage.Storage, maxSize int64) Service {
-	return &service{repo: repo, log: log, validator: val, strg: strg, maxSize: maxSize}
+func NewService(repo Repository, log *zap.Logger, val *validator.Validator, strg storage.Storage, maxSize int64, mailerSvc mailer.Mailer, cfg *config.Config) Service {
+	return &service{repo: repo, log: log, validator: val, strg: strg, maxSize: maxSize, mailerSvc: mailerSvc, cfg: cfg}
 }
 
 func (s *service) RegisterParticipant(ctx context.Context, req *PublicRegistrationRequest) (*PublicRegistrationResponse, error) {
@@ -189,12 +196,41 @@ func (s *service) RegisterParticipant(ctx context.Context, req *PublicRegistrati
 		return nil, err
 	}
 
+	// 7. Send Email #1
+	go func() {
+		emailData := map[string]interface{}{
+			"participant_name":  req.FullName,
+			"submission_id":     reg.ID,
+			"registration_time": time.Now().Format("2006-01-02 15:04:05"),
+			"status":            "Pending Verification",
+		}
+		
+		htmlContent := "<h2>Registration Received</h2>" +
+			"<p>Hello " + req.FullName + ",</p>" +
+			"<p>Your registration for MUSKOM 2026 has been received.</p>" +
+			"<ul>" +
+			"<li><strong>Submission ID:</strong> " + reg.ID + "</li>" +
+			"<li><strong>Time:</strong> " + emailData["registration_time"].(string) + "</li>" +
+			"<li><strong>Status:</strong> " + emailData["status"].(string) + "</li>" +
+			"</ul>" +
+			"<p>Please wait for administrator approval.</p>"
+			
+		err := s.mailerSvc.SendRaw(req.Email, "Registration Received - MUSKOM 2026", htmlContent)
+		if err != nil {
+			s.log.Error("Failed to send pending verification email", zap.Error(err), zap.String("email", req.Email))
+		}
+	}()
+
 	return &PublicRegistrationResponse{
 		RegistrationCode:   reg.ID,
 		RegistrationNumber: reg.RegistrationNumber,
 		QrToken:            reg.QrToken,
 		Status:             reg.Status,
 	}, nil
+}
+
+func (s *service) LookupParticipant(ctx context.Context, query string) (*AdminRegistrationResponse, error) {
+	return s.repo.LookupParticipant(ctx, query)
 }
 
 func (s *service) CheckRegistrationStatus(ctx context.Context, registrationCode string) (*RegistrationStatusResponse, error) {
@@ -440,6 +476,61 @@ func (s *service) AdminUpdateRegistrationStatus(ctx context.Context, id string, 
 	}
 	defer tx.Rollback()
 
+	if req.Status == "APPROVED" {
+		// 1. Generate Registration Number
+		max, err := s.repo.GetMaxRegistrationNumberTx(ctx, tx)
+		if err != nil {
+			return err
+		}
+		newRegNum := fmt.Sprintf("MUSKOM-2026-%06d", max+1)
+
+		// 2. Update Status and Number
+		err = s.repo.UpdateRegistrationStatusAndNumberTx(ctx, tx, id, req.Status, newRegNum, adminUserID)
+		if err != nil {
+			return err
+		}
+
+		// 3. Log audit
+		meta := map[string]string{
+			"old_status":          reg.Status,
+			"new_status":          req.Status,
+			"registration_number": newRegNum,
+		}
+		metaBytes, _ := json.Marshal(meta)
+		err = s.repo.LogAudit(ctx, tx, "registration", "UPDATE_STATUS", "registrations", id, string(metaBytes))
+		if err != nil {
+			return err
+		}
+
+		// Commit before sending email
+		if err := tx.Commit(); err != nil {
+			return err
+		}
+
+		// 4. Send Email #2 (Approval Email)
+		go func() {
+			qrUrl := fmt.Sprintf("%s/api/v1/public/qr/%s.png", s.cfg.AppBaseURL, newRegNum)
+			lookupUrl := fmt.Sprintf("%s/peserta", s.cfg.AppBaseURL)
+			
+			htmlContent := "<h2>Registration Approved</h2>" +
+				"<p>Hello " + reg.ParticipantName + ",</p>" +
+				"<p>Your registration for MUSKOM 2026 has been approved.</p>" +
+				"<ul>" +
+				"<li><strong>Registration Number:</strong> " + newRegNum + "</li>" +
+				"<li><strong>QR Code:</strong> <img src='" + qrUrl + "' alt='QR Code' /></li>" +
+				"<li><strong>Participant Lookup:</strong> <a href='" + lookupUrl + "'>" + lookupUrl + "</a></li>" +
+				"</ul>" +
+				"<p>See you at the event!</p>"
+				
+			err := s.mailerSvc.SendRaw(reg.Email, "Registration Approved - MUSKOM 2026", htmlContent)
+			if err != nil {
+				s.log.Error("Failed to send approval email", zap.Error(err), zap.String("email", reg.Email))
+			}
+		}()
+		return nil
+	}
+
+	// For non-approved statuses (e.g. REJECTED)
 	err = s.repo.UpdateRegistrationStatus(ctx, tx, id, req.Status, adminUserID)
 	if err != nil {
 		return err

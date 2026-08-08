@@ -7,9 +7,9 @@ import { VerifiedParticipantCard } from "./VerifiedParticipantCard"
 import api from "@/lib/api"
 
 type LookupResult = {
-  full_name: string
+  participant_name: string
   registration_number: string
-  company_name: string
+  company: string
   job_title: string
   status: string
 }
@@ -29,7 +29,7 @@ export function ParticipantLookupContent() {
     setResult(null)
 
     try {
-      const res = await api.post("/public/participants/lookup", { query })
+      const res = await api.post("/public/register/lookup", { query })
       setResult(res.data.data)
     } catch (err: any) {
       if (err.response?.status === 404) {

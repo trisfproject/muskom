@@ -431,11 +431,11 @@ export default function AdminParticipantsPage() {
                         {p.registration_number}
                       </td>
                       <td className="px-5 py-4">
-                        <div className="font-bold pg-text text-sm">{p.full_name}</div>
+                        <div className="font-bold pg-text text-sm">{p.participant_name}</div>
                         <div className="text-xs pg-muted mt-0.5">{p.email}</div>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="font-semibold text-sm pg-text">{p.company_name || "-"}</div>
+                        <div className="font-semibold text-sm pg-text">{p.company || "-"}</div>
                         <div className="text-xs pg-muted mt-0.5 flex items-center gap-1">
                           <MapPin className="w-3 h-3 text-slate-400" /> {p.industrial_area || "-"}
                         </div>
@@ -529,7 +529,7 @@ export default function AdminParticipantsPage() {
                 <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
                   Detail Peserta
                 </span>
-                <h2 className="text-xl font-bold pg-text mt-0.5">{detailItem.full_name}</h2>
+                <h2 className="text-xl font-bold pg-text mt-0.5">{detailItem.participant_name}</h2>
                 <p className="font-mono text-xs pg-muted mt-1">REG: {detailItem.registration_number}</p>
               </div>
               <button
@@ -557,7 +557,7 @@ export default function AdminParticipantsPage() {
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                 <span className="text-xs pg-muted block font-medium">Perusahaan / Instansi</span>
                 <span className="font-semibold pg-text flex items-center gap-1.5 mt-1">
-                  <Building2 className="w-3.5 h-3.5 text-purple-500" /> {detailItem.company_name || "-"}
+                  <Building2 className="w-3.5 h-3.5 text-purple-500" /> {detailItem.company || "-"}
                 </span>
               </div>
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
@@ -586,13 +586,13 @@ export default function AdminParticipantsPage() {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setStatusTarget({ id: detailItem.id, status: "Verified" })}
+                  onClick={() => setStatusTarget({ id: detailItem.id, status: "APPROVED" })}
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer"
                 >
                   Verifikasi
                 </button>
                 <button
-                  onClick={() => setStatusTarget({ id: detailItem.id, status: "Rejected" })}
+                  onClick={() => setStatusTarget({ id: detailItem.id, status: "REJECTED" })}
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer"
                 >
                   Tolak

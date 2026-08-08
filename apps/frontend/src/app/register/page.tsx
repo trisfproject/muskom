@@ -180,14 +180,13 @@ export default function RegisterPage() {
     try {
       const res = await participantRegistrationService.register({
         full_name: data.full_name,
-        nickname: data.nickname,
         email: data.email,
         phone: data.phone,
-        company_name: data.company_name,
-        industrial_area: data.industrial_area,
+        company: data.company_name,
+        region: data.industrial_area,
         job_title: data.job_title,
-        department: data.department,
-        musyawarah_id: musyawarahId,
+        community: data.department,
+        participant_category: "DELEGATE",
       });
 
       if (res?.registration_number) {

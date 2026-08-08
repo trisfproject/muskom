@@ -61,6 +61,7 @@ type AdminUpdateRegistrationStatusRequest struct {
 type AdminRegistrationResponse struct {
 	ID                  string `json:"id"`
 	EventID             string `json:"event_id"`
+	RegistrationNumber  string `json:"registration_number"`
 	EventName           string `json:"event_name"`
 	ParticipantName     string `json:"participant_name"`
 	Email               string `json:"email"`

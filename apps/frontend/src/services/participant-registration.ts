@@ -1,16 +1,15 @@
 import publicApi from '@/lib/public-api';
 
 export interface PublicParticipantRegistrationPayload {
-  musyawarah_id: string;
   full_name: string;
-  nickname?: string;
-
   email: string;
-  phone: string;
-  company_name: string;
-  industrial_area: string;
-  job_title: string;
-  department?: string;
+  phone?: string;
+  company?: string;
+  job_title?: string;
+  participant_category: string;
+  region?: string;
+  community?: string;
+  special_notes?: string;
 }
 
 export interface PublicParticipantRegistrationResponse {
@@ -22,7 +21,7 @@ export interface PublicParticipantRegistrationResponse {
 
 export const participantRegistrationService = {
   async register(payload: PublicParticipantRegistrationPayload): Promise<PublicParticipantRegistrationResponse> {
-    const { data } = await publicApi.post('/public/participants/register', payload);
+    const { data } = await publicApi.post('/public/register', payload);
     return data.data;
   }
 };

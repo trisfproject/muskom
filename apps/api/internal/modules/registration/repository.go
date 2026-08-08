@@ -32,11 +32,14 @@ type Repository interface {
 
 	// Confirmation
 	GetRegistrationConfirmation(ctx context.Context, registrationID string) (*RegistrationConfirmationData, error)
+	LookupParticipant(ctx context.Context, query string) (*AdminRegistrationResponse, error)
 
 	// Admin operations
 	ListRegistrations(ctx context.Context, filter AdminListRegistrationsRequest) ([]AdminRegistrationResponse, int, error)
 	GetRegistrationAdminByID(ctx context.Context, id string) (*AdminRegistrationResponse, error)
 	UpdateRegistrationStatus(ctx context.Context, tx *sqlx.Tx, id string, status string, adminID string) error
+	GetMaxRegistrationNumberTx(ctx context.Context, tx *sqlx.Tx) (int, error)
+	UpdateRegistrationStatusAndNumberTx(ctx context.Context, tx *sqlx.Tx, id string, status string, regNum string, adminID string) error
 }
 
 type RegistrationConfirmationData struct {
@@ -207,6 +210,62 @@ func (r *repository) GetRegistrationConfirmation(ctx context.Context, registrati
 	var data RegistrationConfirmationData
 	err := r.db.GetContext(ctx, &data, query, registrationID)
 	return &data, err
+}
+
+func (r *repository) LookupParticipant(ctx context.Context, query string) (*AdminRegistrationResponse, error) {
+	sqlQuery := `
+		SELECT 
+			r.id,
+			r.event_id,
+			e.title AS event_name,
+			p.full_name AS participant_name,
+			p.email,
+			p.phone,
+			p.company,
+			p.job_title,
+			r.participant_category,
+			r.source,
+			r.status,
+			r.created_at::text,
+			r.updated_at::text,
+			r.registration_number
+		FROM registrations r
+		JOIN events e ON r.event_id = e.id
+		JOIN persons p ON r.person_id = p.id
+		WHERE (p.full_name ILIKE $1 OR r.registration_number = $2) AND r.status = 'APPROVED'
+		LIMIT 1
+	`
+	var resp AdminRegistrationResponse
+	var company, jobTitle, regNum sql.NullString
+	err := r.db.QueryRowContext(ctx, sqlQuery, "%"+query+"%", query).Scan(
+		&resp.ID,
+		&resp.EventID,
+		&resp.EventName,
+		&resp.ParticipantName,
+		&resp.Email,
+		&resp.Phone,
+		&company,
+		&jobTitle,
+		&resp.ParticipantCategory,
+		&resp.Source,
+		&resp.Status,
+		&resp.CreatedAt,
+		&resp.UpdatedAt,
+		&regNum,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrRegistrationNotFound
+		}
+		return nil, err
+	}
+	if company.Valid {
+		resp.Company = company.String
+	}
+	if jobTitle.Valid {
+		resp.JobTitle = jobTitle.String
+	}
+	return &resp, nil
 }
 
 func (r *repository) ListRegistrations(ctx context.Context, filter AdminListRegistrationsRequest) ([]AdminRegistrationResponse, int, error) {
@@ -409,6 +468,37 @@ func (r *repository) UpdateRegistrationStatus(ctx context.Context, tx *sqlx.Tx, 
 		_, err = tx.ExecContext(ctx, query, status, id)
 	} else {
 		_, err = tx.ExecContext(ctx, query, status, adminID, id)
+	}
+	return err
+}
+
+func (r *repository) GetMaxRegistrationNumberTx(ctx context.Context, tx *sqlx.Tx) (int, error) {
+	query := `
+		SELECT COUNT(1) 
+		FROM registrations 
+		WHERE registration_number IS NOT NULL AND registration_number != ''
+	`
+	var max int
+	err := tx.QueryRowContext(ctx, query).Scan(&max)
+	return max, err
+}
+
+func (r *repository) UpdateRegistrationStatusAndNumberTx(ctx context.Context, tx *sqlx.Tx, id string, status string, regNum string, adminID string) error {
+	query := `
+		UPDATE registrations
+		SET status = $1, registration_number = $2, approved_by = $3, approved_at = NOW(), updated_at = NOW()
+		WHERE id = $4
+	`
+	var err error
+	if adminID == "system" {
+		query = `
+			UPDATE registrations
+			SET status = $1, registration_number = $2, updated_at = NOW()
+			WHERE id = $3
+		`
+		_, err = tx.ExecContext(ctx, query, status, regNum, id)
+	} else {
+		_, err = tx.ExecContext(ctx, query, status, regNum, adminID, id)
 	}
 	return err
 }

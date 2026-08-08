@@ -2,17 +2,14 @@ import api from '@/lib/api';
 
 export interface AdminParticipantResponse {
   id: string;
-  musyawarah_id: string;
+  event_id: string;
   registration_number: string;
-  full_name: string;
-  nickname?: string;
-
+  participant_name: string;
   email: string;
   phone: string;
-  company_name: string;
-  industrial_area: string;
+  company: string;
   job_title: string;
-  department?: string;
+  participant_category: string;
   status: string;
   created_at: string;
   updated_at: string;
@@ -73,17 +70,17 @@ export const adminParticipantService = {
     status?: string;
     search?: string;
   }): Promise<AdminParticipantResponse[]> {
-    const response = await api.get('/admin/participants', { params });
+    const response = await api.get('/admin/registrations', { params });
     return response.data.data || response.data;
   },
 
   async getParticipantDetail(id: string): Promise<AdminParticipantResponse> {
-    const response = await api.get(`/admin/participants/${id}`);
+    const response = await api.get(`/admin/registrations/${id}`);
     return response.data.data || response.data;
   },
 
   async updateStatus(id: string, payload: { status: string, reason?: string }): Promise<void> {
-    await api.patch(`/admin/participants/${id}/status`, payload);
+    await api.patch(`/admin/registrations/${id}/status`, payload);
   },
 
   async createParticipant(payload: any): Promise<AdminParticipantResponse> {

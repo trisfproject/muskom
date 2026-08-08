@@ -2,9 +2,9 @@ import QRCode from "react-qr-code"
 
 interface VerifiedParticipantCardProps {
   participant: {
-    full_name: string
+    participant_name: string
     registration_number: string
-    company_name: string
+    company: string
     job_title: string
     status: string
   }
@@ -42,7 +42,7 @@ export function VerifiedParticipantCard({ participant }: VerifiedParticipantCard
               Nama Peserta
             </p>
             <p className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
-              {participant.full_name}
+              {participant.participant_name}
             </p>
           </div>
 
@@ -51,7 +51,7 @@ export function VerifiedParticipantCard({ participant }: VerifiedParticipantCard
               Perusahaan
             </p>
             <p className="text-base font-medium text-slate-700 dark:text-slate-300">
-              {participant.company_name}
+              {participant.company}
             </p>
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {participant.job_title}
