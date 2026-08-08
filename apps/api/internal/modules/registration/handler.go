@@ -1,6 +1,8 @@
 package registration
 
 import (
+	"bytes"
+	"encoding/csv"
 	"errors"
 	"strings"
 
@@ -202,17 +204,52 @@ func (h *Handler) AdminExportCSV(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
 	}
 
-	c.Set("Content-Type", "text/csv")
-	c.Set("Content-Disposition", "attachment; filename=participants_export.csv")
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
 
-	csvData := "Registration Number,Full Name,Nickname,Email,WhatsApp,Company,Job Title,Area,Department,Notes,Category,Status,Registered At\n"
+	// Write CSV headers
+	writer.Write([]string{
+		"Registration Number",
+		"Full Name",
+		"Nickname",
+		"Email",
+		"WhatsApp",
+		"Company",
+		"Job Title",
+		"Area",
+		"Department",
+		"Notes",
+		"Category",
+		"Status",
+		"Registered At",
+	})
+
 	for _, p := range res.Data {
-		csvData += p.RegistrationNumber + "," + p.ParticipantName + "," + p.Nickname + "," + p.Email + "," + p.Phone + "," +
-			p.Company + "," + p.JobTitle + "," + p.Region + "," + p.Community + "," + p.SpecialNotes + "," +
-			p.ParticipantCategory + "," + p.Status + "," + p.CreatedAt + "\n"
+		writer.Write([]string{
+			p.RegistrationNumber,
+			p.ParticipantName,
+			p.Nickname,
+			p.Email,
+			p.Phone,
+			p.Company,
+			p.JobTitle,
+			p.Region,
+			p.Community,
+			p.SpecialNotes,
+			p.ParticipantCategory,
+			p.Status,
+			p.CreatedAt,
+		})
 	}
 
-	return c.SendString(csvData)
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to generate CSV", nil)
+	}
+
+	c.Set("Content-Type", "text/csv; charset=utf-8")
+	c.Set("Content-Disposition", "attachment; filename=\"data-peserta.csv\"")
+	return c.Send(buf.Bytes())
 }
 
 func (h *Handler) AdminGet(c fiber.Ctx) error {

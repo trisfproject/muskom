@@ -190,12 +190,33 @@ export const candidateAdminService = {
   },
 
   /** Export all candidates to CSV and trigger browser download */
-  exportCSV(filters?: { status?: string; search?: string }) {
-    const params = new URLSearchParams();
-    if (filters?.status) params.set('status', filters.status);
-    if (filters?.search) params.set('search', filters.search);
-    const query = params.toString() ? `?${params.toString()}` : '';
-    const baseUrl = (api.defaults.baseURL || '').replace(/\/$/, '');
-    window.open(`${baseUrl}/admin/candidates/export/csv${query}`, '_blank');
+  async exportCSV(filters?: { status?: string; search?: string }): Promise<void> {
+    const params: Record<string, any> = {};
+    if (filters?.status) params.status = filters.status;
+    if (filters?.search) params.search = filters.search;
+
+    const response = await api.get('/admin/candidates/export/csv', {
+      params,
+      responseType: 'blob',
+    });
+
+    let filename = 'data-kandidat.csv';
+    const disposition = response.headers['content-disposition'];
+    if (disposition) {
+      const match = disposition.match(/filename=["']?([^"';]+)["']?/i);
+      if (match && match[1]) {
+        filename = match[1].trim();
+      }
+    }
+
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
 };

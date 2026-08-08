@@ -52,6 +52,11 @@ type AdminListRegistrationsRequest struct {
 	Email            string `query:"email"`
 	Phone            string `query:"phone"`
 	RegistrationDate string `query:"registration_date"`
+	Search           string `query:"search"`
+	Area             string `query:"area"`
+	Region           string `query:"region"`
+	Department       string `query:"department"`
+	Community        string `query:"community"`
 }
 
 type AdminUpdateRegistrationStatusRequest struct {

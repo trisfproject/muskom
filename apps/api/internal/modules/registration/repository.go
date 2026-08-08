@@ -330,6 +330,29 @@ func (r *repository) ListRegistrations(ctx context.Context, filter AdminListRegi
 		args = append(args, filter.RegistrationDate)
 		argIdx++
 	}
+	if filter.Search != "" {
+		baseQuery += ` AND (p.full_name ILIKE $` + itoa(argIdx) + ` OR p.email ILIKE $` + itoa(argIdx) + ` OR COALESCE(r.registration_number, '') ILIKE $` + itoa(argIdx) + ` OR COALESCE(p.company, '') ILIKE $` + itoa(argIdx) + ` OR COALESCE(p.phone, '') ILIKE $` + itoa(argIdx) + `)`
+		args = append(args, "%"+filter.Search+"%")
+		argIdx++
+	}
+	area := filter.Area
+	if area == "" {
+		area = filter.Region
+	}
+	if area != "" {
+		baseQuery += ` AND COALESCE(r.region, '') ILIKE $` + itoa(argIdx)
+		args = append(args, "%"+area+"%")
+		argIdx++
+	}
+	dept := filter.Department
+	if dept == "" {
+		dept = filter.Community
+	}
+	if dept != "" {
+		baseQuery += ` AND COALESCE(r.community, '') ILIKE $` + itoa(argIdx)
+		args = append(args, "%"+dept+"%")
+		argIdx++
+	}
 
 	countQuery := `SELECT COUNT(1) ` + baseQuery
 	var total int

@@ -162,13 +162,50 @@ export const adminParticipantService = {
   },
 
   /** Export all participants to CSV and trigger browser download */
-  exportCSV(filters?: { status?: string; participant_name?: string; email?: string }) {
-    const params = new URLSearchParams();
-    if (filters?.status) params.set('status', filters.status);
-    if (filters?.participant_name) params.set('participant_name', filters.participant_name);
-    if (filters?.email) params.set('email', filters.email);
-    const query = params.toString() ? `?${params.toString()}` : '';
-    const baseUrl = (api.defaults.baseURL || '').replace(/\/$/, '');
-    window.open(`${baseUrl}/admin/registrations/export/csv${query}`, '_blank');
+  async exportCSV(filters?: {
+    status?: string;
+    search?: string;
+    participant_name?: string;
+    email?: string;
+    phone?: string;
+    area?: string;
+    department?: string;
+    region?: string;
+    community?: string;
+  }): Promise<void> {
+    const params: Record<string, any> = {};
+    if (filters?.status) params.status = filters.status;
+    if (filters?.search) params.search = filters.search;
+    if (filters?.participant_name) params.participant_name = filters.participant_name;
+    if (filters?.email) params.email = filters.email;
+    if (filters?.phone) params.phone = filters.phone;
+    if (filters?.area) params.area = filters.area;
+    if (filters?.department) params.department = filters.department;
+    if (filters?.region) params.region = filters.region;
+    if (filters?.community) params.community = filters.community;
+
+    const response = await api.get('/admin/registrations/export/csv', {
+      params,
+      responseType: 'blob',
+    });
+
+    let filename = 'data-peserta.csv';
+    const disposition = response.headers['content-disposition'];
+    if (disposition) {
+      const match = disposition.match(/filename=["']?([^"';]+)["']?/i);
+      if (match && match[1]) {
+        filename = match[1].trim();
+      }
+    }
+
+    const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   },
 };

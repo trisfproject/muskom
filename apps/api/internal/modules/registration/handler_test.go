@@ -257,3 +257,50 @@ func TestHandler_AdminUpdateStatus(t *testing.T) {
 		assert.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 	})
 }
+
+func TestHandler_AdminExportCSV(t *testing.T) {
+	app := fiber.New()
+	mockSvc := new(MockService)
+	h := NewHandler(mockSvc)
+
+	app.Get("/admin/registrations/export/csv", h.AdminExportCSV)
+
+	t.Run("Success", func(t *testing.T) {
+		res := &AdminListRegistrationsResponse{
+			Data: []AdminRegistrationResponse{
+				{
+					RegistrationNumber:  "REG-001",
+					ParticipantName:     "John Doe",
+					Nickname:            "John",
+					Email:               "john@example.com",
+					Phone:               "08123456789",
+					Company:             "Acme Corp",
+					JobTitle:            "Engineer",
+					Region:              "Jakarta",
+					Community:           "IT",
+					SpecialNotes:        "None",
+					ParticipantCategory: "DELEGATE",
+					Status:              "APPROVED",
+					CreatedAt:           "2026-01-01 10:00:00",
+				},
+			},
+			Total: 1,
+		}
+		mockSvc.On("AdminListRegistrations", mock.Anything, mock.Anything).Return(res, nil).Once()
+
+		req := httptest.NewRequest(fiber.MethodGet, "/admin/registrations/export/csv?status=APPROVED&search=John", nil)
+		resp, _ := app.Test(req)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+		assert.Contains(t, resp.Header.Get("Content-Type"), "text/csv")
+		assert.Contains(t, resp.Header.Get("Content-Disposition"), "data-peserta.csv")
+	})
+
+	t.Run("ServiceError", func(t *testing.T) {
+		mockSvc.On("AdminListRegistrations", mock.Anything, mock.Anything).Return((*AdminListRegistrationsResponse)(nil), errors.New("err")).Once()
+
+		req := httptest.NewRequest(fiber.MethodGet, "/admin/registrations/export/csv", nil)
+		resp, _ := app.Test(req)
+		assert.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
+	})
+}
+

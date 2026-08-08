@@ -108,6 +108,22 @@ export default function AdminCandidatesPage() {
   // Delete Confirm Modal
   const [deleteTarget, setDeleteTarget] = useState<{ id?: string; bulk?: boolean; count?: number } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportCSV = async () => {
+    setExporting(true);
+    try {
+      await candidateAdminService.exportCSV({
+        status: statusFilter || undefined,
+        search: search || undefined,
+      });
+      toast.success("Data kandidat berhasil diekspor.");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal mengekspor data kandidat.");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -240,11 +256,12 @@ export default function AdminCandidatesPage() {
             Tambah Kandidat
           </button>
           <button
-            onClick={() => candidateAdminService.exportCSV({ status: statusFilter || undefined })}
-            className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-lg border border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm cursor-pointer"
+            onClick={handleExportCSV}
+            disabled={exporting}
+            className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-lg border border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
           >
-            <Download className="w-3.5 h-3.5" />
-            Export CSV
+            <Download className={`w-3.5 h-3.5 ${exporting ? "animate-spin" : ""}`} />
+            {exporting ? "Mengekspor..." : "Export CSV"}
           </button>
           <button
             onClick={fetchData}

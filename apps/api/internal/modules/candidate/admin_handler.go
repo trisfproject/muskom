@@ -1,6 +1,8 @@
 package candidate
 
 import (
+	"bytes"
+	"encoding/csv"
 	"fmt"
 
 	"github.com/gofiber/fiber/v3"
@@ -73,20 +75,51 @@ func (h *AdminHandler) ExportCSV(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusInternalServerError, "failed to list candidates", nil)
 	}
 
-	c.Set("Content-Type", "text/csv")
-	c.Set("Content-Disposition", "attachment; filename=candidates_export.csv")
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
 
-	csvData := "Candidate Number,Full Name,Nickname,Email,WhatsApp,Company,Job Title,Vision,Mission,Status,Registered At\n"
+	writer.Write([]string{
+		"Candidate Number",
+		"Full Name",
+		"Nickname",
+		"Email",
+		"WhatsApp",
+		"Company",
+		"Job Title",
+		"Vision",
+		"Mission",
+		"Status",
+		"Registered At",
+	})
+
 	for _, cand := range candidates {
 		candNum := ""
 		if cand.CandidateNumber != nil {
 			candNum = fmt.Sprintf("%d", *cand.CandidateNumber)
 		}
-		csvData += candNum + "," + cand.FullName + "," + derefStr(cand.Nickname) + "," + cand.Email + "," + cand.Phone + "," +
-			derefStr(cand.CompanyName) + "," + derefStr(cand.JobTitle) + "," + derefStr(cand.Vision) + "," + derefStr(cand.Mission) + "," + cand.Status + "," + cand.CreatedAt.String() + "\n"
+		writer.Write([]string{
+			candNum,
+			cand.FullName,
+			derefStr(cand.Nickname),
+			cand.Email,
+			cand.Phone,
+			derefStr(cand.CompanyName),
+			derefStr(cand.JobTitle),
+			derefStr(cand.Vision),
+			derefStr(cand.Mission),
+			cand.Status,
+			cand.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
 	}
 
-	return c.SendString(csvData)
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to generate CSV", nil)
+	}
+
+	c.Set("Content-Type", "text/csv; charset=utf-8")
+	c.Set("Content-Disposition", "attachment; filename=\"data-kandidat.csv\"")
+	return c.Send(buf.Bytes())
 }
 
 func (h *AdminHandler) GetCandidateDetail(c fiber.Ctx) error {
