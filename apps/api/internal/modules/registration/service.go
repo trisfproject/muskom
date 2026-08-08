@@ -170,7 +170,6 @@ func (s *service) RegisterParticipant(ctx context.Context, req *PublicRegistrati
 
 	source := "PUBLIC_WEB"
 	reg := &Registration{
-		EventID:             evt.EventID,
 		PersonID:            person.ID,
 		ParticipantCategory: &req.ParticipantCategory,
 		Source:              &source,
@@ -473,7 +472,7 @@ func (s *service) AdminUpdateRegistrationStatus(ctx context.Context, id string, 
 		if err != nil {
 			return err
 		}
-		newRegNum := fmt.Sprintf("MUSKOM-2026-%06d", max+1)
+		newRegNum := fmt.Sprintf("REG-%06d", max+1)
 
 		// 2. Update Status and Number
 		err = s.repo.UpdateRegistrationStatusAndNumberTx(ctx, tx, id, req.Status, newRegNum, adminUserID)

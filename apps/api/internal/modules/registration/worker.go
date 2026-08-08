@@ -113,13 +113,14 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 
 	var subject string
 	var htmlContent string
+	portalTitle, _ := w.repo.GetPortalTitle(ctx)
 
 	switch logItem.EmailType {
 	case "REGISTRATION_RECEIVED":
-		subject = "Registration Received - {{.portal_title}}"
+		subject = "Registration Received - " + portalTitle
 		htmlContent = "<h2>Registration Received</h2>" +
 			"<p>Hello,</p>" +
-			"<p>Your registration for {{.portal_title}} has been received.</p>" +
+			"<p>Your registration for " + portalTitle + " has been received.</p>" +
 			"<ul>" +
 			"<li><strong>Submission ID:</strong> " + reg.ID + "</li>" +
 			"<li><strong>Time:</strong> " + reg.CreatedAt.Format("2006-01-02 15:04:05") + "</li>" +
@@ -134,10 +135,10 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 		qrUrl := fmt.Sprintf("%s/api/v1/public/qr/%s.png", w.cfg.AppBaseURL, *reg.RegistrationNumber)
 		lookupUrl := fmt.Sprintf("%s/peserta", w.cfg.AppBaseURL)
 		
-		subject = "Registration Approved - {{.portal_title}}"
+		subject = "Registration Approved - " + portalTitle
 		htmlContent = "<h2>Registration Approved</h2>" +
 			"<p>Hello,</p>" +
-			"<p>Your registration for {{.portal_title}} has been approved.</p>" +
+			"<p>Your registration for " + portalTitle + " has been approved.</p>" +
 			"<ul>" +
 			"<li><strong>Registration Number:</strong> " + *reg.RegistrationNumber + "</li>" +
 			"<li><strong>QR Code:</strong> <img src='" + qrUrl + "' alt='QR Code' /></li>" +
@@ -146,14 +147,14 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 			"<p>See you at the event!</p>"
 
 	case "REGISTRATION_REJECTED":
-		subject = "Registration Update - {{.portal_title}}"
+		subject = "Registration Update - " + portalTitle
 		reason := "No reason provided."
 		if reg.RejectionReason != nil {
 			reason = *reg.RejectionReason
 		}
 		htmlContent = "<h2>Registration Update</h2>" +
 			"<p>Hello,</p>" +
-			"<p>We regret to inform you that your registration for {{.portal_title}} was not approved.</p>" +
+			"<p>We regret to inform you that your registration for " + portalTitle + " was not approved.</p>" +
 			"<p><strong>Reason:</strong> " + reason + "</p>" +
 			"<p>If you have any questions, please contact our secretariat.</p>"
 	default:

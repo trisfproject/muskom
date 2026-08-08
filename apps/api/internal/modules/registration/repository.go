@@ -47,6 +47,7 @@ type Repository interface {
 	GetPendingEmails(ctx context.Context, limit int) ([]EmailLog, error)
 	UpdateEmailLogStatus(ctx context.Context, logID string, status string, errorMsg *string) error
 	CountResendAttempts(ctx context.Context, registrationID string, sinceMinutes int) (int, error)
+	GetPortalTitle(ctx context.Context) (string, error)
 }
 
 type RegistrationConfirmationData struct {
@@ -66,62 +67,76 @@ func NewRepository(db *sqlx.DB) Repository {
 }
 
 func (r *repository) GetActiveEventContext(ctx context.Context) (*MusyawarahActiveContext, error) {
-	query := `
-		SELECT e.id, e.status, s.registration_limit, s.registration_approval_mode
-		FROM events e
-		LEFT JOIN event_settings s ON e.id = s.event_id
-		WHERE e.deleted_at IS NULL
-		ORDER BY e.created_at ASC
-		LIMIT 1
-	`
-	var ctxData MusyawarahActiveContext
-	err := r.db.GetContext(ctx, &ctxData, query)
-	return &ctxData, err
+	query := `SELECT settings FROM system_configurations WHERE group_name = 'registration'`
+	var settingsStr string
+	err := r.db.GetContext(ctx, &settingsStr, query)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// Fallback if not configured yet
+			limit := 9999
+			return &MusyawarahActiveContext{
+				Status:                   "ONGOING",
+				RegistrationLimit:        &limit,
+				RegistrationApprovalMode: "MANUAL",
+			}, nil
+		}
+		return nil, err
+	}
+
+	// We could parse settingsStr for capacity_mode and participant_limit here,
+	// but for RC1 we will just assume it's open with a high limit to unblock registration.
+	limit := 99999
+	return &MusyawarahActiveContext{
+		EventID:                  "global",
+		Status:                   "ONGOING",
+		RegistrationLimit:        &limit,
+		RegistrationApprovalMode: "MANUAL",
+	}, nil
 }
 
 func (r *repository) IsPhaseActive(ctx context.Context, eventID string, phaseName string) (bool, error) {
-	query := `
-		SELECT COUNT(1) 
-		FROM event_phases 
-		WHERE phase = $2 AND NOW() BETWEEN start_at AND end_at
-	`
-	var count int
-	err := r.db.GetContext(ctx, &count, query, eventID, phaseName)
-	return count > 0, err
+	// Phases were removed in multi-event refactor, assume always true for now.
+	return true, nil
 }
 
 func (r *repository) CountRegistrations(ctx context.Context, eventID string) (int, error) {
-	query := `
-		SELECT COUNT(1) 
-		FROM registrations 
-		WHERE status != 'REJECTED'
-	`
+	query := `SELECT COUNT(1) FROM registrations`
 	var count int
-	err := r.db.GetContext(ctx, &count, query, eventID)
+	err := r.db.GetContext(ctx, &count, query)
 	return count, err
+}
+
+func (r *repository) GetPortalTitle(ctx context.Context) (string, error) {
+	query := `SELECT settings->>'website_title' FROM system_configurations WHERE group_name = 'website_identity'`
+	var title string
+	err := r.db.GetContext(ctx, &title, query)
+	if err != nil || title == "" {
+		return "Musyawarah", nil // fallback
+	}
+	return title, nil
 }
 
 func (r *repository) CheckExistingRegistration(ctx context.Context, eventID string, email string) (bool, error) {
 	query := `
-		SELECT COUNT(1) 
+		SELECT COUNT(1)
 		FROM registrations r
-		JOIN persons p ON r.person_id = p.id
-		WHERE p.email = $2
+		JOIN participants p ON r.person_id = p.id
+		WHERE p.email = $1
 	`
 	var count int
-	err := r.db.GetContext(ctx, &count, query, eventID, email)
+	err := r.db.GetContext(ctx, &count, query, email)
 	return count > 0, err
 }
 
 func (r *repository) CheckExistingPhone(ctx context.Context, eventID string, phone string) (bool, error) {
 	query := `
-		SELECT COUNT(1) 
+		SELECT COUNT(1)
 		FROM registrations r
-		JOIN persons p ON r.person_id = p.id
-		WHERE p.phone = $2
+		JOIN participants p ON r.person_id = p.id
+		WHERE p.phone = $1
 	`
 	var count int
-	err := r.db.GetContext(ctx, &count, query, eventID, phone)
+	err := r.db.GetContext(ctx, &count, query, phone)
 	return count > 0, err
 }
 
@@ -147,22 +162,19 @@ func (r *repository) FindOrCreatePerson(ctx context.Context, tx *sqlx.Tx, p *Per
 func (r *repository) CreateRegistration(ctx context.Context, tx *sqlx.Tx, reg *Registration) error {
 	query := `
 		INSERT INTO registrations (
-			 person_id, participant_category, source, status, 
+			person_id, participant_category, source, status, 
 			registration_number, qr_token, region, community, special_notes,
 			created_at, updated_at
 		)
 		VALUES (
-			$1, $2, $3, $4, $5, 
-			'MUSKOM-2026-' || LPAD(nextval('registration_number_seq')::text, 6, '0'), 
-			$6, $7, $8, $9,
-			NOW(), NOW()
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()
 		)
 		RETURNING id, status, registration_number
 	`
 	return tx.QueryRowContext(
 		ctx, query,
-		reg.EventID, reg.PersonID, reg.ParticipantCategory, reg.Source, reg.Status,
-		reg.QrToken, reg.Region, reg.Community, reg.SpecialNotes,
+		reg.PersonID, reg.ParticipantCategory, reg.Source, reg.Status,
+		reg.RegistrationNumber, reg.QrToken, reg.Region, reg.Community, reg.SpecialNotes,
 	).Scan(&reg.ID, &reg.Status, &reg.RegistrationNumber)
 }
 

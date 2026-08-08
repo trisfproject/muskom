@@ -163,7 +163,7 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 			if err != nil {
 				return err
 			}
-			newRegNum := fmt.Sprintf("MUSKOM-2026-%06d", max+1)
+			newRegNum := fmt.Sprintf("REG-%06d", max+1)
 
 			err = s.repo.UpdateStatusAndNumberTx(ctx, tx, id, req.Status, newRegNum)
 			if err != nil {

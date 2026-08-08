@@ -76,3 +76,24 @@ func (m *MockService) AdminUpdateRegistrationStatus(ctx context.Context, id stri
 	args := m.Called(ctx, id, req, adminUserID)
 	return args.Error(0)
 }
+
+func (m *MockService) GetEmailHistory(ctx context.Context, registrationID string) ([]EmailLogResponse, error) {
+	args := m.Called(ctx, registrationID)
+	if args.Get(0) != nil {
+		return args.Get(0).([]EmailLogResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockService) ResendEmail(ctx context.Context, registrationID string, req *ResendEmailRequest, adminUserID string) error {
+	args := m.Called(ctx, registrationID, req, adminUserID)
+	return args.Error(0)
+}
+
+func (m *MockService) LookupParticipant(ctx context.Context, registrationNumber string) (*AdminRegistrationResponse, error) {
+	args := m.Called(ctx, registrationNumber)
+	if args.Get(0) != nil {
+		return args.Get(0).(*AdminRegistrationResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}

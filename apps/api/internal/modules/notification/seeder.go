@@ -47,7 +47,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
         <p>Terima kasih atas partisipasi Anda.</p>
     </div>
     <div class="footer">
-        <p>Email ini dihasilkan otomatis oleh sistem MUSKOM. Jangan membalas email ini.</p>
+        <p>Email ini dihasilkan otomatis oleh sistem {{.portal_title}}. Jangan membalas email ini.</p>
     </div>
 </body>
 </html>`,
@@ -106,7 +106,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
         </div>
     </div>
     <div class="footer">
-        <p>Email ini dihasilkan otomatis oleh sistem MUSKOM. Jangan membalas email ini.</p>
+        <p>Email ini dihasilkan otomatis oleh sistem {{.portal_title}}. Jangan membalas email ini.</p>
     </div>
 </body>
 </html>`,
@@ -147,7 +147,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
         <p>Terima kasih atas partisipasi Anda.</p>
     </div>
     <div class="footer">
-        <p>Email ini dihasilkan otomatis oleh sistem MUSKOM. Jangan membalas email ini.</p>
+        <p>Email ini dihasilkan otomatis oleh sistem {{.portal_title}}. Jangan membalas email ini.</p>
     </div>
 </body>
 </html>`,
@@ -187,7 +187,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
         <p>Panitia akan melakukan proses verifikasi dokumen administrasi. Kami akan menghubungi Anda jika ada dokumen yang perlu dilengkapi.</p>
     </div>
     <div class="footer">
-        <p>Email ini dihasilkan otomatis oleh sistem MUSKOM.</p>
+        <p>Email ini dihasilkan otomatis oleh sistem {{.portal_title}}.</p>
     </div>
 </body>
 </html>`,
@@ -224,7 +224,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
         <p>Nomor Kandidat Anda adalah: <strong>{{.candidate_number}}</strong></p>
     </div>
     <div class="footer">
-        <p>Email ini dihasilkan otomatis oleh sistem MUSKOM.</p>
+        <p>Email ini dihasilkan otomatis oleh sistem {{.portal_title}}.</p>
     </div>
 </body>
 </html>`,
@@ -260,7 +260,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
         <p>Mohon maaf, pendaftaran Anda sebagai Kandidat Ketua tidak dapat kami setujui.</p>
     </div>
     <div class="footer">
-        <p>Email ini dihasilkan otomatis oleh sistem MUSKOM.</p>
+        <p>Email ini dihasilkan otomatis oleh sistem {{.portal_title}}.</p>
     </div>
 </body>
 </html>`,
@@ -301,7 +301,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
         </div>
     </div>
     <div class="footer">
-        <p>Email ini dihasilkan otomatis oleh sistem MUSKOM.</p>
+        <p>Email ini dihasilkan otomatis oleh sistem {{.portal_title}}.</p>
     </div>
 </body>
 </html>`,
@@ -343,7 +343,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
         <p style="margin-top: 20px; font-size: 14px; color: #64748b;">Jika Anda tidak merasa melakukan permintaan ini, abaikan email ini.</p>
     </div>
     <div class="footer">
-        <p>Email ini dihasilkan otomatis oleh sistem MUSKOM.</p>
+        <p>Email ini dihasilkan otomatis oleh sistem {{.portal_title}}.</p>
     </div>
 </body>
 </html>`,
@@ -351,7 +351,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
 		{
 			Name:    "test_email",
 			Channel: ChannelEmail,
-			Subject: ptr("Test Email - MUSKOM"),
+			Subject: ptr("Test Email - {{.portal_title}}"),
 			Body: `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -376,11 +376,12 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
     </div>
     <div class="content">
         <p>Halo,</p>
-        <p>Jika Anda menerima email ini, berarti konfigurasi SMTP sistem MUSKOM Anda telah berhasil.</p>
+        <p>Jika Anda menerima email ini, berarti konfigurasi SMTP sistem {{.portal_title}} Anda telah berhasil.</p>
         <p>Waktu Pengujian: <strong>{{.timestamp}}</strong></p>
+        <p>Terima kasih.</p>
     </div>
     <div class="footer">
-        <p>Email ini dihasilkan otomatis oleh sistem MUSKOM.</p>
+        <p>Email ini dihasilkan otomatis oleh sistem {{.portal_title}}.</p>
     </div>
 </body>
 </html>`,
@@ -422,7 +423,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
         </div>
     </div>
     <div class="footer">
-        <p>Email ini dihasilkan otomatis oleh sistem MUSKOM.</p>
+        <p>Email ini dihasilkan otomatis oleh sistem {{.portal_title}}.</p>
     </div>
 </body>
 </html>`,

@@ -20,7 +20,6 @@ func TestRepository_CountRegistrations(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		mock.ExpectQuery("^SELECT COUNT\\(1\\) FROM registrations").
-			WithArgs("evt1").
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(5))
 
 		count, err := repo.CountRegistrations(ctx, "evt1")
@@ -30,18 +29,11 @@ func TestRepository_CountRegistrations(t *testing.T) {
 }
 
 func TestRepository_IsPhaseActive(t *testing.T) {
-	db, mock, err := sqlmock.New()
-	assert.NoError(t, err)
-	defer db.Close()
-
-	sqlxDB := sqlx.NewDb(db, "postgres")
+	sqlxDB := sqlx.NewDb(nil, "postgres")
 	repo := NewRepository(sqlxDB)
 	ctx := context.Background()
 
 	t.Run("Active", func(t *testing.T) {
-		mock.ExpectQuery("^SELECT COUNT\\(1\\) FROM event_phases").
-			WithArgs("evt1", "REGISTRATION").
-			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 		active, err := repo.IsPhaseActive(ctx, "evt1", "REGISTRATION")
 		assert.NoError(t, err)
@@ -59,13 +51,13 @@ func TestRepository_GetActiveEventContext(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Success", func(t *testing.T) {
-		rows := sqlmock.NewRows([]string{"id", "status", "registration_limit", "registration_approval_mode"}).
-			AddRow("evt1", "ONGOING", 100, "MANUAL")
-		mock.ExpectQuery("^SELECT e.id, e.status").WillReturnRows(rows)
+		rows := sqlmock.NewRows([]string{"settings"}).
+			AddRow(`{"capacity_mode": "OPEN", "participant_limit": 99999}`)
+		mock.ExpectQuery("^SELECT settings FROM system_configurations").WillReturnRows(rows)
 
 		res, err := repo.GetActiveEventContext(ctx)
 		assert.NoError(t, err)
-		assert.Equal(t, "evt1", res.EventID)
+		assert.Equal(t, "global", res.EventID)
 	})
 }
 
@@ -79,8 +71,8 @@ func TestRepository_CheckExistingRegistration(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Exists", func(t *testing.T) {
-		mock.ExpectQuery("^SELECT COUNT\\(1\\) FROM registrations").
-			WithArgs("evt1", "test@test.com").
+		mock.ExpectQuery("^SELECT COUNT\\(1\\)").
+			WithArgs("test@test.com").
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 		exists, err := repo.CheckExistingRegistration(ctx, "evt1", "test@test.com")
@@ -119,8 +111,8 @@ func TestRepository_CheckExistingPhone(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Exists", func(t *testing.T) {
-		mock.ExpectQuery("^SELECT COUNT\\(1\\) FROM registrations").
-			WithArgs("evt1", "123456").
+		mock.ExpectQuery("^SELECT COUNT\\(1\\)").
+			WithArgs("123456").
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 		exists, err := repo.CheckExistingPhone(ctx, "evt1", "123456")
@@ -337,7 +329,6 @@ func TestRepository_CreateRegistration(t *testing.T) {
 		source := "PUBLIC_WEB"
 		cat := "DELEGATE"
 		reg := &Registration{
-			EventID:             "evt1",
 			PersonID:            "pers1",
 			ParticipantCategory: &cat,
 			Source:              &source,
@@ -349,14 +340,14 @@ func TestRepository_CreateRegistration(t *testing.T) {
 		}
 
 		mock.ExpectQuery("^INSERT INTO registrations").
-			WithArgs(reg.EventID, reg.PersonID, reg.ParticipantCategory, reg.Source, reg.Status, reg.QrToken, reg.Region, reg.Community, reg.SpecialNotes).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "status", "registration_number"}).AddRow("reg1", "PENDING", "MUSKOM-2026-000001"))
+			WithArgs(reg.PersonID, reg.ParticipantCategory, reg.Source, reg.Status, reg.RegistrationNumber, reg.QrToken, reg.Region, reg.Community, reg.SpecialNotes).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "status", "registration_number"}).AddRow("reg1", "PENDING", "REG-000001"))
 
 		err = repo.CreateRegistration(ctx, tx, reg)
 		assert.NoError(t, err)
 		assert.Equal(t, "reg1", reg.ID)
 		assert.NotNil(t, reg.RegistrationNumber)
-		assert.Equal(t, "MUSKOM-2026-000001", *reg.RegistrationNumber)
+		assert.Equal(t, "REG-000001", *reg.RegistrationNumber)
 	})
 }
 

@@ -26,7 +26,7 @@ func TestService_RegisterParticipant(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockStorage := new(MockStorage)
 
-	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024)
+	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024, nil, nil)
 
 	t.Run("Event Not Found", func(t *testing.T) {
 		req := &PublicRegistrationRequest{
@@ -132,7 +132,7 @@ func TestService_CheckRegistrationStatus(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockStorage := new(MockStorage)
 
-	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024)
+	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024, nil, nil)
 
 	t.Run("Success", func(t *testing.T) {
 		mockRepo.On("GetRegistrationStatus", mock.Anything, "reg1").Return("APPROVED", nil).Once()
@@ -163,7 +163,7 @@ func TestService_GetRegistrationConfirmation(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockStorage := new(MockStorage)
 
-	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024)
+	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024, nil, nil)
 
 	t.Run("Success", func(t *testing.T) {
 		data := &RegistrationConfirmationData{
@@ -188,7 +188,7 @@ func TestService_AdminListRegistrations(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockStorage := new(MockStorage)
 
-	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024)
+	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024, nil, nil)
 
 	t.Run("Success", func(t *testing.T) {
 		req := &AdminListRegistrationsRequest{
@@ -223,7 +223,7 @@ func TestService_AdminGetRegistration(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockStorage := new(MockStorage)
 
-	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024)
+	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024, nil, nil)
 
 	t.Run("Success", func(t *testing.T) {
 		reg := &AdminRegistrationResponse{ID: "reg1"}
@@ -258,7 +258,7 @@ func TestService_GetAttachments(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockStorage := new(MockStorage)
 
-	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024)
+	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024, nil, nil)
 
 	t.Run("Success", func(t *testing.T) {
 		reg := &Registration{ID: "reg1"}
@@ -299,7 +299,7 @@ func TestService_UploadAttachment(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockStorage := new(MockStorage)
 
-	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024)
+	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024, nil, nil)
 
 	t.Run("NotFound", func(t *testing.T) {
 		mockRepo.On("GetRegistrationByID", mock.Anything, "reg1").Return((*Registration)(nil), sql.ErrNoRows).Once()
@@ -336,7 +336,7 @@ func TestService_DeleteAttachment(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockStorage := new(MockStorage)
 
-	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024)
+	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024, nil, nil)
 
 	t.Run("Success", func(t *testing.T) {
 		reg := &Registration{ID: "reg1"}
@@ -371,7 +371,7 @@ func TestService_AdminUpdateRegistrationStatus(t *testing.T) {
 	mockRepo := new(MockRepository)
 	mockStorage := new(MockStorage)
 
-	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024)
+	svc := NewService(mockRepo, log, val, mockStorage, 1024*1024, nil, nil)
 
 	t.Run("TxError", func(t *testing.T) {
 		req := &AdminUpdateRegistrationStatusRequest{

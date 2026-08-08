@@ -122,3 +122,57 @@ func (m *MockRepository) UpdateRegistrationStatus(ctx context.Context, tx *sqlx.
 	args := m.Called(ctx, tx, id, status, adminID)
 	return args.Error(0)
 }
+
+func (m *MockRepository) CountResendAttempts(ctx context.Context, registrationID string, sinceMinutes int) (int, error) {
+	args := m.Called(ctx, registrationID, sinceMinutes)
+	return args.Int(0), args.Error(1)
+}
+
+func (m *MockRepository) GetPortalTitle(ctx context.Context) (string, error) {
+	args := m.Called(ctx)
+	return args.String(0), args.Error(1)
+}
+
+func (m *MockRepository) CreateEmailLog(ctx context.Context, tx *sqlx.Tx, log *EmailLog) error {
+	args := m.Called(ctx, tx, log)
+	return args.Error(0)
+}
+
+func (m *MockRepository) GetEmailLogsByRegistration(ctx context.Context, registrationID string) ([]EmailLog, error) {
+	args := m.Called(ctx, registrationID)
+	if args.Get(0) != nil {
+		return args.Get(0).([]EmailLog), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockRepository) GetMaxRegistrationNumberTx(ctx context.Context, tx *sqlx.Tx) (int, error) {
+	args := m.Called(ctx, tx)
+	return args.Int(0), args.Error(1)
+}
+
+func (m *MockRepository) UpdateRegistrationStatusAndNumberTx(ctx context.Context, tx *sqlx.Tx, id string, status string, regNum string, adminID string) error {
+	args := m.Called(ctx, tx, id, status, regNum, adminID)
+	return args.Error(0)
+}
+
+func (m *MockRepository) GetPendingEmails(ctx context.Context, limit int) ([]EmailLog, error) {
+	args := m.Called(ctx, limit)
+	if args.Get(0) != nil {
+		return args.Get(0).([]EmailLog), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockRepository) UpdateEmailLogStatus(ctx context.Context, logID string, status string, errorMsg *string) error {
+	args := m.Called(ctx, logID, status, errorMsg)
+	return args.Error(0)
+}
+
+func (m *MockRepository) LookupParticipant(ctx context.Context, query string) (*AdminRegistrationResponse, error) {
+	args := m.Called(ctx, query)
+	if args.Get(0) != nil {
+		return args.Get(0).(*AdminRegistrationResponse), args.Error(1)
+	}
+	return nil, args.Error(1)
+}

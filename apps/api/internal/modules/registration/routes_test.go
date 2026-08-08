@@ -17,7 +17,7 @@ func TestSetupRoutes(t *testing.T) {
 	strg := new(MockStorage)
 
 	// nil db is fine just to test route registration, it shouldn't access DB during route setup
-	SetupRoutes(app, nil, log, val, strg, 1024)
+	SetupRoutes(app, nil, log, val, strg, 10<<20, nil, nil)
 
 	assert.NotNil(t, app)
 }
@@ -28,7 +28,7 @@ func TestSetupAdminRoutes(t *testing.T) {
 	val := validator.New()
 	strg := new(MockStorage)
 
-	SetupAdminRoutes(app, nil, log, val, strg, 1024)
+	SetupAdminRoutes(app, nil, log, val, strg, 10<<20, nil, nil)
 
 	assert.NotNil(t, app)
 }

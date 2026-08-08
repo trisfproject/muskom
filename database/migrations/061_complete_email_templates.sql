@@ -137,7 +137,7 @@ INSERT INTO notification_templates (name, channel, subject, body) VALUES
 </body>
 </html>'),
 
-('password_reset', 'EMAIL', 'Reset Password - MUSKOM',
+('password_reset', 'EMAIL', 'Reset Password - {{.portal_title}}',
 '<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -156,18 +156,18 @@ INSERT INTO notification_templates (name, channel, subject, body) VALUES
     <div class="header"><h2>Permintaan Reset Password</h2></div>
     <div class="content">
         <p>Halo <strong>{{.name}}</strong>,</p>
-        <p>Kami menerima permintaan untuk mereset password akun Anda di MUSKOM.</p>
+        <p>Kami menerima permintaan untuk mereset password akun Anda di {{.portal_title}}.</p>
         <p>Jika Anda merasa tidak melakukan permintaan ini, Anda dapat mengabaikan email ini. Password Anda tidak akan berubah.</p>
         <center>
             <a href="{{.reset_link}}" class="btn">Reset Password</a>
         </center>
         <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Link reset password ini hanya berlaku selama {{.expiry_minutes}} menit.</p>
     </div>
-    <div class="footer"><p>&copy; 2026 MUSKOM. All rights reserved.</p></div>
+    <div class="footer"><p>&copy; 2026 {{.portal_title}}. All rights reserved.</p></div>
 </body>
 </html>'),
 
-('test_email', 'EMAIL', 'Test Email Delivery - MUSKOM',
+('test_email', 'EMAIL', 'Test Email Delivery - {{.portal_title}}',
 '<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -186,9 +186,9 @@ INSERT INTO notification_templates (name, channel, subject, body) VALUES
     <div class="content">
         <p>Halo Administrator,</p>
         <p>Jika Anda menerima email ini, berarti <strong>konfigurasi SMTP Anda telah berfungsi dengan baik</strong>.</p>
-        <p>Sistem notifikasi MUSKOM siap digunakan untuk mengirimkan email transaksional kepada para peserta dan kandidat.</p>
+        <p>Sistem notifikasi {{.portal_title}} siap digunakan untuk mengirimkan email transaksional kepada para peserta dan kandidat.</p>
         <p style="margin-top: 30px; font-size: 12px; color: #64748b;">Waktu Test: {{.timestamp}}</p>
     </div>
-    <div class="footer"><p>&copy; 2026 MUSKOM. All rights reserved.</p></div>
+    <div class="footer"><p>&copy; 2026 {{.portal_title}}. All rights reserved.</p></div>
 </body>
 </html>');

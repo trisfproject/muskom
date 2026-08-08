@@ -15,7 +15,6 @@ type Person struct {
 
 type Registration struct {
 	ID                  string     `db:"id"`
-	EventID             string     `db:"event_id"`
 	PersonID            string     `db:"person_id"`
 	ParticipantCategory *string    `db:"participant_category"`
 	Source              *string    `db:"source"`
