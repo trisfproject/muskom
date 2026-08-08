@@ -17,6 +17,46 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  migrator:
+    image: postgres:15-alpine
+    container_name: muskom-migrator
+    restart: "no"
+    env_file: .env
+    volumes:
+      - ../database/migrations:/migrations
+    command: >
+      sh -c "
+        if [ -z \"$$DATABASE_URL\" ]; then
+          echo 'ERROR: DATABASE_URL is not set';
+          exit 1;
+        fi
+
+        echo '=== Database Connection Info (safe) ==='
+        psql \"$$DATABASE_URL\" -c 'SELECT current_database() AS db_name, current_user AS db_user, inet_server_addr() AS db_host;'
+        echo '========================================'
+
+        psql \"$$DATABASE_URL\" -c 'CREATE TABLE IF NOT EXISTS schema_migrations (version VARCHAR PRIMARY KEY);' &&
+        for f in $$(ls /migrations/*.sql | sort); do
+          version=$$(basename $$f | cut -d'_' -f1);
+          exists=$$(psql \"$$DATABASE_URL\" -tAc \"SELECT 1 FROM schema_migrations WHERE version='$$version'\");
+          if [ \"$$exists\" != \"1\" ]; then
+            echo \"Executing $$f...\";
+            psql \"$$DATABASE_URL\" -f $$f &&
+            psql \"$$DATABASE_URL\" -c \"INSERT INTO schema_migrations (version) VALUES ('$$version');\";
+          else
+            echo \"Skipping $$f, already applied.\";
+          fi
+        done
+
+        echo '=== Post-migration Verification ==='
+        psql \"$$DATABASE_URL\" -c 'SELECT current_database();'
+        psql \"$$DATABASE_URL\" -c 'SELECT current_user;'
+        psql \"$$DATABASE_URL\" -c \"SELECT to_regclass('public.email_logs');\"
+        echo '==================================='
+      "
+    depends_on:
+      db:
+        condition: service_healthy
 
   redis:
     image: redis:7-alpine

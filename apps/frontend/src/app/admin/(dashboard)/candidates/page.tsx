@@ -21,6 +21,7 @@ import {
   Eye,
   ArrowUpDown,
   ImageIcon,
+  Download,
 } from "lucide-react";
 import Image from "next/image";
 import {
@@ -237,6 +238,13 @@ export default function AdminCandidatesPage() {
           >
             <Plus className="w-4 h-4" />
             Tambah Kandidat
+          </button>
+          <button
+            onClick={() => candidateAdminService.exportCSV({ status: statusFilter || undefined })}
+            className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-lg border border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export CSV
           </button>
           <button
             onClick={fetchData}

@@ -4,13 +4,19 @@ export interface AdminParticipantResponse {
   id: string;
   event_id: string;
   registration_number: string;
+  event_name: string;
   participant_name: string;
+  nickname: string;
   email: string;
   phone: string;
   company: string;
   job_title: string;
+  region: string;
+  community: string;
   participant_category: string;
+  source: string;
   status: string;
+  special_notes: string;
   created_at: string;
   updated_at: string;
 }
@@ -114,7 +120,19 @@ export const adminParticipantService = {
   },
 
   async updateParticipant(id: string, payload: Partial<AdminParticipantResponse>): Promise<AdminParticipantResponse> {
-    const response = await api.put(`/admin/participants/${id}`, payload);
+    const apiPayload = {
+      full_name: payload.participant_name,
+      nickname: payload.nickname,
+      email: payload.email,
+      phone: payload.phone,
+      company_name: payload.company,
+      industrial_area: payload.region,
+      job_title: payload.job_title,
+      department: payload.community,
+      special_notes: payload.special_notes,
+      registration_number: payload.registration_number,
+    };
+    const response = await api.put(`/admin/participants/${id}`, apiPayload);
     return response.data.data || response.data;
   },
 
@@ -142,5 +160,16 @@ export const adminParticipantService = {
   async getStats(): Promise<ParticipantStats> {
     const response = await api.get('/admin/participants/stats');
     return response.data.data;
+  },
+
+  /** Export all participants to CSV and trigger browser download */
+  exportCSV(filters?: { status?: string; participant_name?: string; email?: string }) {
+    const params = new URLSearchParams();
+    if (filters?.status) params.set('status', filters.status);
+    if (filters?.participant_name) params.set('participant_name', filters.participant_name);
+    if (filters?.email) params.set('email', filters.email);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const baseUrl = (api.defaults.baseURL || '').replace(/\/$/, '');
+    window.open(`${baseUrl}/admin/registrations/export/csv${query}`, '_blank');
   },
 };

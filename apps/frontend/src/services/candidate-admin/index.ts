@@ -188,4 +188,14 @@ export const candidateAdminService = {
     );
     return data.data;
   },
+
+  /** Export all candidates to CSV and trigger browser download */
+  exportCSV(filters?: { status?: string; search?: string }) {
+    const params = new URLSearchParams();
+    if (filters?.status) params.set('status', filters.status);
+    if (filters?.search) params.set('search', filters.search);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const baseUrl = (api.defaults.baseURL || '').replace(/\/$/, '');
+    window.open(`${baseUrl}/admin/candidates/export/csv${query}`, '_blank');
+  },
 };

@@ -52,13 +52,14 @@ const participantSelect = `
 		r.id, 
 		COALESCE(r.registration_number, '') AS registration_number, 
 		p.full_name, 
-		NULL AS nickname, 
+		p.nickname, 
 		p.email, 
 		COALESCE(p.phone, '') AS phone, 
 		COALESCE(p.company, '') AS company_name, 
 		COALESCE(r.region, '') AS industrial_area, 
 		COALESCE(p.job_title, '') AS job_title, 
 		COALESCE(r.community, '') AS department, 
+		r.special_notes, 
 		r.status, 
 		r.created_at, 
 		r.updated_at
@@ -148,10 +149,10 @@ func (r *repository) Update(ctx context.Context, p *Participant) error {
 	// Update Person
 	personQuery := `
 		UPDATE persons SET 
-			full_name = $1, email = $2, phone = $3, company = $4, job_title = $5, updated_at = NOW()
-		WHERE id = (SELECT person_id FROM registrations WHERE id = $6)
+			full_name = $1, email = $2, phone = $3, company = $4, job_title = $5, nickname = $6, updated_at = NOW()
+		WHERE id = (SELECT person_id FROM registrations WHERE id = $7)
 	`
-	_, err = tx.ExecContext(ctx, personQuery, p.FullName, p.Email, p.Phone, p.CompanyName, p.JobTitle, p.ID)
+	_, err = tx.ExecContext(ctx, personQuery, p.FullName, p.Email, p.Phone, p.CompanyName, p.JobTitle, p.Nickname, p.ID)
 	if err != nil {
 		return err
 	}
@@ -159,11 +160,11 @@ func (r *repository) Update(ctx context.Context, p *Participant) error {
 	// Update Registration
 	regQuery := `
 		UPDATE registrations SET
-			region = $1, community = $2, updated_at = NOW(), registration_number = COALESCE(NULLIF($3, ''), registration_number)
-		WHERE id = $4
+			region = $1, community = $2, special_notes = $3, updated_at = NOW(), registration_number = COALESCE(NULLIF($4, ''), registration_number)
+		WHERE id = $5
 		RETURNING updated_at
 	`
-	err = tx.QueryRowContext(ctx, regQuery, p.IndustrialArea, p.Department, p.RegistrationNumber, p.ID).Scan(&p.UpdatedAt)
+	err = tx.QueryRowContext(ctx, regQuery, p.IndustrialArea, p.Department, p.SpecialNotes, p.RegistrationNumber, p.ID).Scan(&p.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrNotFound

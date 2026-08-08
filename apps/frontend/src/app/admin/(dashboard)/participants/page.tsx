@@ -27,6 +27,7 @@ import {
   Filter,
   MoreVertical,
   Edit,
+  Download,
 } from "lucide-react";
 import {
   adminParticipantService,
@@ -235,10 +236,15 @@ export default function AdminParticipantsPage() {
     setEditItem(p);
     setEditForm({
       participant_name: p.participant_name,
+      nickname: p.nickname,
       email: p.email,
       phone: p.phone,
       company: p.company,
       job_title: p.job_title,
+      region: p.region,
+      community: p.community,
+      special_notes: p.special_notes,
+      registration_number: p.registration_number,
     });
   };
 
@@ -334,6 +340,13 @@ export default function AdminParticipantsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => adminParticipantService.exportCSV({ status: statusFilter || undefined })}
+            className="flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-lg border border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export CSV
+          </button>
           <button
             onClick={fetchData}
             disabled={loading}
@@ -816,6 +829,16 @@ export default function AdminParticipantsPage() {
                 />
               </div>
 
+              <div>
+                <label className="text-xs font-semibold pg-text block mb-1">Nama Panggilan</label>
+                <input
+                  type="text"
+                  value={editForm.nickname || ""}
+                  onChange={(e) => setEditForm({ ...editForm, nickname: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold pg-text block mb-1">Email</label>
@@ -856,11 +879,44 @@ export default function AdminParticipantsPage() {
                   <label className="text-xs font-semibold pg-text block mb-1">Jabatan</label>
                   <input
                     type="text"
+                    required
                     value={editForm.job_title || ""}
                     onChange={(e) => setEditForm({ ...editForm, job_title: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Area</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.region || ""}
+                    onChange={(e) => setEditForm({ ...editForm, region: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold pg-text block mb-1">Departemen</label>
+                  <input
+                    type="text"
+                    value={editForm.community || ""}
+                    onChange={(e) => setEditForm({ ...editForm, community: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold pg-text block mb-1">Catatan Tambahan</label>
+                <textarea
+                  rows={2}
+                  value={editForm.special_notes || ""}
+                  onChange={(e) => setEditForm({ ...editForm, special_notes: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600 resize-none"
+                ></textarea>
               </div>
 
               <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">

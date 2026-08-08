@@ -25,6 +25,7 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 	// Admin candidate endpoints
 	router.Post("/", h.CreateCandidate)
 	router.Get("/", h.ListCandidates)
+	router.Get("/export/csv", h.ExportCSV)
 	router.Post("/bulk-delete", h.BulkDeleteCandidates)
 	router.Put("/reorder", h.ReorderCandidates)
 	router.Get("/:id", h.GetCandidateDetail)

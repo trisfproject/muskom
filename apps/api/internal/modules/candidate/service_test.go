@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
@@ -20,12 +21,20 @@ type mockAuditService struct {
 	LogActivityAsyncFunc func(ctx context.Context, entry audit.AuditEntry)
 	SearchFunc           func(ctx context.Context, filter audit.AuditFilter, operatorID string) ([]audit.AuditEntry, int, error)
 	GetByIDFunc          func(ctx context.Context, id string, operatorID string) (*audit.AuditEntry, error)
+	LogActivityTxFunc    func(ctx context.Context, tx *sqlx.Tx, entry audit.AuditEntry) error
 }
 
 func (m *mockAuditService) LogActivityAsync(ctx context.Context, entry audit.AuditEntry) {
 	if m.LogActivityAsyncFunc != nil {
 		m.LogActivityAsyncFunc(ctx, entry)
 	}
+}
+
+func (m *mockAuditService) LogActivityTx(ctx context.Context, tx *sqlx.Tx, entry audit.AuditEntry) error {
+	if m.LogActivityTxFunc != nil {
+		return m.LogActivityTxFunc(ctx, tx, entry)
+	}
+	return nil
 }
 
 func (m *mockAuditService) Search(ctx context.Context, filter audit.AuditFilter, operatorID string) ([]audit.AuditEntry, int, error) {

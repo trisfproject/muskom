@@ -64,13 +64,17 @@ type AdminRegistrationResponse struct {
 	RegistrationNumber  string `json:"registration_number"`
 	EventName           string `json:"event_name"`
 	ParticipantName     string `json:"participant_name"`
+	Nickname            string `json:"nickname"`
 	Email               string `json:"email"`
 	Phone               string `json:"phone"`
 	Company             string `json:"company"`
 	JobTitle            string `json:"job_title"`
+	Region              string `json:"region"`
+	Community           string `json:"community"`
 	ParticipantCategory string `json:"participant_category"`
 	Source              string `json:"source"`
 	Status              string `json:"status"`
+	SpecialNotes        string `json:"special_notes"`
 	CreatedAt           string `json:"created_at"`
 	UpdatedAt           string `json:"updated_at"`
 }

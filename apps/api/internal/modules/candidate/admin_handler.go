@@ -1,6 +1,8 @@
 package candidate
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
@@ -52,6 +54,39 @@ func (h *AdminHandler) ListCandidates(c fiber.Ctx) error {
 	}
 
 	return response.SendSuccess(c, fiber.StatusOK, "Candidates retrieved", candidates, nil)
+}
+
+func derefStr(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+func (h *AdminHandler) ExportCSV(c fiber.Ctx) error {
+	status := c.Query("status")
+	search := c.Query("search")
+
+	candidates, err := h.service.AdminListCandidates(c.Context(), status, search)
+	if err != nil {
+		h.log.Error("failed to list candidates for export", zap.Error(err))
+		return response.SendError(c, fiber.StatusInternalServerError, "failed to list candidates", nil)
+	}
+
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", "attachment; filename=candidates_export.csv")
+
+	csvData := "Candidate Number,Full Name,Nickname,Email,WhatsApp,Company,Job Title,Vision,Mission,Status,Registered At\n"
+	for _, cand := range candidates {
+		candNum := ""
+		if cand.CandidateNumber != nil {
+			candNum = fmt.Sprintf("%d", *cand.CandidateNumber)
+		}
+		csvData += candNum + "," + cand.FullName + "," + derefStr(cand.Nickname) + "," + cand.Email + "," + cand.Phone + "," +
+			derefStr(cand.CompanyName) + "," + derefStr(cand.JobTitle) + "," + derefStr(cand.Vision) + "," + derefStr(cand.Mission) + "," + cand.Status + "," + cand.CreatedAt.String() + "\n"
+	}
+
+	return c.SendString(csvData)
 }
 
 func (h *AdminHandler) GetCandidateDetail(c fiber.Ctx) error {

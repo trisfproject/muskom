@@ -51,7 +51,6 @@ type ParticipantStats struct {
 	RemainingCapacity *int   `json:"remaining_capacity"`
 }
 
-// Participant represents the participants table in the database
 type Participant struct {
 	ID string `db:"id" json:"id"`
 
@@ -65,6 +64,7 @@ type Participant struct {
 	IndustrialArea string     `db:"industrial_area" json:"industrial_area"`
 	JobTitle       string     `db:"job_title" json:"job_title"`
 	Department     *string    `db:"department" json:"department"`
+	SpecialNotes   *string    `db:"special_notes" json:"special_notes"`
 	Status         string     `db:"status" json:"status"`
 	CreatedAt      time.Time  `db:"created_at" json:"created_at"`
 	UpdatedAt      time.Time  `db:"updated_at" json:"updated_at"`
@@ -98,6 +98,7 @@ type UpdateParticipantRequest struct {
 	IndustrialArea string  `json:"industrial_area" validate:"required"`
 	JobTitle       string  `json:"job_title" validate:"required"`
 	Department     *string `json:"department" validate:"omitempty"`
+	SpecialNotes   *string `json:"special_notes" validate:"omitempty"`
 }
 
 // UpdateStatusRequest represents the payload for updating a participant's status

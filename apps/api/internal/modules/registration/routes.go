@@ -31,6 +31,7 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 	handler := NewHandler(svc)
 
 	router.Get("/", handler.AdminList)
+	router.Get("/export/csv", handler.AdminExportCSV)
 	router.Get("/:id", handler.AdminGet)
 	router.Patch("/:id/status", handler.AdminUpdateStatus)
 	router.Get("/:id/emails", handler.AdminGetEmailHistory)

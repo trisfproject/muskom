@@ -20,7 +20,26 @@ func (r *repository) Insert(ctx context.Context, entry AuditEntry) error {
 		INSERT INTO audit_logs (module, entity, entity_id, action, user_id, actor_role, reason, ip_address, user_agent, metadata, previous_value, new_value, correlation_id)
 		VALUES (:module, :entity, :entity_id, :action, :user_id, :actor_role, :reason, :ip_address, :user_agent, :metadata, :previous_value, :new_value, :correlation_id)
 	`
-	_, err := r.db.NamedExecContext(ctx, query, entry)
+	var entityID *string
+	if entry.EntityID != "" && entry.EntityID != "bulk" {
+		entityID = &entry.EntityID
+	}
+	
+	_, err := r.db.NamedExecContext(ctx, query, map[string]interface{}{
+		"module":         entry.Module,
+		"entity":         entry.Entity,
+		"entity_id":      entityID,
+		"action":         entry.Action,
+		"user_id":        entry.ActorID,
+		"actor_role":     entry.ActorRole,
+		"reason":         entry.Reason,
+		"ip_address":     entry.IPAddress,
+		"user_agent":     entry.UserAgent,
+		"metadata":       entry.Metadata,
+		"previous_value": entry.PreviousValue,
+		"new_value":      entry.NewValue,
+		"correlation_id": entry.CorrelationID,
+	})
 	return err
 }
 
@@ -29,7 +48,26 @@ func (r *repository) InsertTx(ctx context.Context, tx *sqlx.Tx, entry AuditEntry
 		INSERT INTO audit_logs (module, entity, entity_id, action, user_id, actor_role, reason, ip_address, user_agent, metadata, previous_value, new_value, correlation_id)
 		VALUES (:module, :entity, :entity_id, :action, :user_id, :actor_role, :reason, :ip_address, :user_agent, :metadata, :previous_value, :new_value, :correlation_id)
 	`
-	_, err := tx.NamedExecContext(ctx, query, entry)
+	var entityID *string
+	if entry.EntityID != "" && entry.EntityID != "bulk" {
+		entityID = &entry.EntityID
+	}
+	
+	_, err := tx.NamedExecContext(ctx, query, map[string]interface{}{
+		"module":         entry.Module,
+		"entity":         entry.Entity,
+		"entity_id":      entityID,
+		"action":         entry.Action,
+		"user_id":        entry.ActorID,
+		"actor_role":     entry.ActorRole,
+		"reason":         entry.Reason,
+		"ip_address":     entry.IPAddress,
+		"user_agent":     entry.UserAgent,
+		"metadata":       entry.Metadata,
+		"previous_value": entry.PreviousValue,
+		"new_value":      entry.NewValue,
+		"correlation_id": entry.CorrelationID,
+	})
 	return err
 }
 

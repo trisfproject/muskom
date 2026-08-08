@@ -187,6 +187,34 @@ func (h *Handler) AdminList(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Registrations retrieved successfully", res, nil)
 }
 
+func (h *Handler) AdminExportCSV(c fiber.Ctx) error {
+	var req AdminListRegistrationsRequest
+	if err := c.Bind().Query(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid query parameters", nil)
+	}
+	
+	// Force a large limit for export
+	req.Page = 1
+	req.Limit = 10000
+
+	res, err := h.service.AdminListRegistrations(c.Context(), &req)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", "attachment; filename=participants_export.csv")
+
+	csvData := "Registration Number,Full Name,Nickname,Email,WhatsApp,Company,Job Title,Area,Department,Notes,Category,Status,Registered At\n"
+	for _, p := range res.Data {
+		csvData += p.RegistrationNumber + "," + p.ParticipantName + "," + p.Nickname + "," + p.Email + "," + p.Phone + "," +
+			p.Company + "," + p.JobTitle + "," + p.Region + "," + p.Community + "," + p.SpecialNotes + "," +
+			p.ParticipantCategory + "," + p.Status + "," + p.CreatedAt + "\n"
+	}
+
+	return c.SendString(csvData)
+}
+
 func (h *Handler) AdminGet(c fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" {

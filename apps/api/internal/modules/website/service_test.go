@@ -172,8 +172,8 @@ func TestGetPublicHome(t *testing.T) {
 			RegistrationEnabled: true,
 		},
 		hero: &WebsiteHeroSettings{
+			ID: "h1",
 			HeroBadge:           "",
-			HeroTitle:           "",
 			PrimaryCTALabel:     "",
 			PrimaryCTAURL:       "",
 			PrimaryCTAEnabled:   true,
@@ -225,7 +225,7 @@ func TestGetPublicHome(t *testing.T) {
 	// General & Hero
 	assert.Equal(t, "MUSKOM", res.General.SiteName)
 	assert.Equal(t, "", res.General.Tagline)
-	assert.Equal(t, "", res.Hero.HeroTitle)
+	assert.Equal(t, "MUSKOM", res.Hero.HeroTitle)
 
 	// Timeline Engine check
 	assert.True(t, res.CurrentPhase.IsActive)

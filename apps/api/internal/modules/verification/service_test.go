@@ -9,6 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
 	"go.uber.org/zap/zaptest"
 )
@@ -22,7 +23,7 @@ func setupTestService(t *testing.T) (*sqlmock.Sqlmock, *MockRepository, Service,
 	val := validator.New()
 	mockRepo := new(MockRepository)
 
-	svc := NewService(mockRepo, log, val, nil)
+	svc := NewService(mockRepo, log, val, nil, &config.Config{})
 	return &mockDB, mockRepo, svc, sqlxDB
 }
 
