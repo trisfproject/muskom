@@ -2,6 +2,7 @@ package registration
 
 import (
 	"context"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/mock"
@@ -164,8 +165,18 @@ func (m *MockRepository) GetPendingEmails(ctx context.Context, limit int) ([]Ema
 	return nil, args.Error(1)
 }
 
-func (m *MockRepository) UpdateEmailLogStatus(ctx context.Context, logID string, status string, errorMsg *string) error {
-	args := m.Called(ctx, logID, status, errorMsg)
+func (m *MockRepository) UpdateEmailLogSuccess(ctx context.Context, logID string) error {
+	args := m.Called(ctx, logID)
+	return args.Error(0)
+}
+
+func (m *MockRepository) UpdateEmailLogFailure(ctx context.Context, logID string, errorMsg string, nextRetryAt *time.Time) error {
+	args := m.Called(ctx, logID, errorMsg, nextRetryAt)
+	return args.Error(0)
+}
+
+func (m *MockRepository) RetryEmailLog(ctx context.Context, logID string) error {
+	args := m.Called(ctx, logID)
 	return args.Error(0)
 }
 

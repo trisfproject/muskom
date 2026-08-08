@@ -285,3 +285,19 @@ func (h *Handler) AdminResendEmail(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusOK, "Email queued for resending", nil, nil)
 }
+
+func (h *Handler) AdminRetryEmail(c fiber.Ctx) error {
+	logID := c.Params("log_id")
+	if logID == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "Log ID is required")
+	}
+
+	err := h.service.AdminRetryEmail(c.Context(), logID)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Email log successfully reset for retry",
+	})
+}

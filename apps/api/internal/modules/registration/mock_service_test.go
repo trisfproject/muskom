@@ -97,3 +97,8 @@ func (m *MockService) LookupParticipant(ctx context.Context, registrationNumber 
 	}
 	return nil, args.Error(1)
 }
+
+func (m *MockService) AdminRetryEmail(ctx context.Context, logID string) error {
+	args := m.Called(ctx, logID)
+	return args.Error(0)
+}

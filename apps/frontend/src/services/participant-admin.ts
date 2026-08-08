@@ -34,7 +34,7 @@ export interface EmailLogResponse {
   sent_at?: string;
   last_retry_at?: string;
   retry_count: number;
-  error_message?: string;
+  last_error?: string;
 }
 
 // ─── Dashboard / Stats types ──────────────────────────────────────────────────
@@ -102,6 +102,10 @@ export const adminParticipantService = {
 
   async resendEmail(id: string, emailType: string): Promise<void> {
     await api.post(`/admin/registrations/${id}/emails/resend`, { email_type: emailType });
+  },
+
+  async retryEmailLog(logId: string): Promise<void> {
+    await api.post(`/admin/emails/${logId}/retry`);
   },
 
   async createParticipant(payload: any): Promise<AdminParticipantResponse> {

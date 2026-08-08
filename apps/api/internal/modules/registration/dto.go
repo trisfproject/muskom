@@ -91,7 +91,7 @@ type EmailLogResponse struct {
 	SentAt         *string `json:"sent_at,omitempty"`
 	LastRetryAt    *string `json:"last_retry_at,omitempty"`
 	RetryCount     int     `json:"retry_count"`
-	ErrorMessage   *string `json:"error_message,omitempty"`
+	LastError      *string `json:"last_error,omitempty"`
 }
 
 type ResendEmailRequest struct {

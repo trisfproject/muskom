@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"strconv"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
@@ -45,7 +46,9 @@ type Repository interface {
 	CreateEmailLog(ctx context.Context, tx *sqlx.Tx, log *EmailLog) error
 	GetEmailLogsByRegistration(ctx context.Context, registrationID string) ([]EmailLog, error)
 	GetPendingEmails(ctx context.Context, limit int) ([]EmailLog, error)
-	UpdateEmailLogStatus(ctx context.Context, logID string, status string, errorMsg *string) error
+	UpdateEmailLogSuccess(ctx context.Context, logID string) error
+	UpdateEmailLogFailure(ctx context.Context, logID string, errorMsg string, nextRetryAt *time.Time) error
+	RetryEmailLog(ctx context.Context, logID string) error
 	CountResendAttempts(ctx context.Context, registrationID string, sinceMinutes int) (int, error)
 	GetPortalTitle(ctx context.Context) (string, error)
 }
@@ -572,7 +575,8 @@ func (r *repository) GetEmailLogsByRegistration(ctx context.Context, registratio
 func (r *repository) GetPendingEmails(ctx context.Context, limit int) ([]EmailLog, error) {
 	query := `
 		SELECT * FROM email_logs
-		WHERE status = 'PENDING' OR (status = 'FAILED' AND retry_count < 5)
+		WHERE status = 'PENDING' 
+		AND (next_retry_at IS NULL OR next_retry_at <= NOW())
 		ORDER BY created_at ASC
 		LIMIT $1
 	`
@@ -584,16 +588,39 @@ func (r *repository) GetPendingEmails(ctx context.Context, limit int) ([]EmailLo
 	return logs, err
 }
 
-func (r *repository) UpdateEmailLogStatus(ctx context.Context, logID string, status string, errorMsg *string) error {
+func (r *repository) UpdateEmailLogSuccess(ctx context.Context, logID string) error {
 	query := `
 		UPDATE email_logs
-		SET status = $1::VARCHAR, error_message = $2, retry_count = CASE WHEN $1::VARCHAR = 'FAILED' THEN retry_count + 1 ELSE retry_count END,
-			sent_at = CASE WHEN $1::VARCHAR = 'SENT' THEN NOW() ELSE sent_at END,
+		SET status = 'SENT', sent_at = NOW(), updated_at = NOW()
+		WHERE id = $1
+	`
+	_, err := r.db.ExecContext(ctx, query, logID)
+	return err
+}
+
+func (r *repository) UpdateEmailLogFailure(ctx context.Context, logID string, errorMsg string, nextRetryAt *time.Time) error {
+	query := `
+		UPDATE email_logs
+		SET 
+			retry_count = retry_count + 1,
+			last_error = $1,
 			last_retry_at = NOW(),
+			next_retry_at = $2,
+			status = CASE WHEN retry_count + 1 >= max_retry THEN 'FAILED' ELSE 'PENDING' END,
 			updated_at = NOW()
 		WHERE id = $3
 	`
-	_, err := r.db.ExecContext(ctx, query, status, errorMsg, logID)
+	_, err := r.db.ExecContext(ctx, query, errorMsg, nextRetryAt, logID)
+	return err
+}
+
+func (r *repository) RetryEmailLog(ctx context.Context, logID string) error {
+	query := `
+		UPDATE email_logs
+		SET status = 'PENDING', retry_count = 0, last_error = NULL, next_retry_at = NULL, updated_at = NOW()
+		WHERE id = $1
+	`
+	_, err := r.db.ExecContext(ctx, query, logID)
 	return err
 }
 

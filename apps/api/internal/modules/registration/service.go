@@ -64,6 +64,7 @@ type Service interface {
 	// Email Logs
 	GetEmailHistory(ctx context.Context, registrationID string) ([]EmailLogResponse, error)
 	ResendEmail(ctx context.Context, registrationID string, req *ResendEmailRequest, adminID string) error
+	AdminRetryEmail(ctx context.Context, logID string) error
 }
 
 type service struct {
@@ -555,10 +556,14 @@ func (s *service) GetEmailHistory(ctx context.Context, registrationID string) ([
 			SentAt:         sentAt,
 			LastRetryAt:    lastRetryAt,
 			RetryCount:     l.RetryCount,
-			ErrorMessage:   l.ErrorMessage,
+			LastError:      l.LastError,
 		})
 	}
 	return res, nil
+}
+
+func (s *service) AdminRetryEmail(ctx context.Context, logID string) error {
+	return s.repo.RetryEmailLog(ctx, logID)
 }
 
 func (s *service) ResendEmail(ctx context.Context, registrationID string, req *ResendEmailRequest, adminID string) error {

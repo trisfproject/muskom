@@ -713,11 +713,33 @@ export default function AdminParticipantsPage() {
                         <div>Upaya Gagal: {log.retry_count}</div>
                         <div>Last Retry: {log.last_retry_at ? new Date(log.last_retry_at).toLocaleString('id-ID') : '-'}</div>
                       </div>
-                      {log.error_message && (
+                      {log.last_error && (
                         <div className="mt-2 text-[10px] text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 p-1.5 rounded">
-                          Error: {log.error_message}
+                          Error: {log.last_error}
                         </div>
                       )}
+                      <div className="mt-2 flex justify-end">
+                        <button
+                          type="button"
+                          disabled={resendingEmail}
+                          onClick={async () => {
+                            setResendingEmail(true);
+                            try {
+                              await adminParticipantService.retryEmailLog(log.id);
+                              toast.success("Email log berhasil di-reset untuk dikirim ulang.");
+                              const emails = await adminParticipantService.getEmailHistory(detailItem!.id);
+                              setEmailLogs(emails || []);
+                            } catch (err: any) {
+                              toast.error(err?.response?.data?.message || "Gagal melakukan retry email log.");
+                            } finally {
+                              setResendingEmail(false);
+                            }
+                          }}
+                          className="px-2 py-1 text-[10px] font-semibold rounded bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50 flex items-center gap-1"
+                        >
+                          <Send className="w-3 h-3" /> Kirim Ulang (Retry)
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

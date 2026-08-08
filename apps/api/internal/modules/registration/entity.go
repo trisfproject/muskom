@@ -47,7 +47,9 @@ type EmailLog struct {
 	SentAt         *time.Time `db:"sent_at"`
 	LastRetryAt    *time.Time `db:"last_retry_at"`
 	RetryCount     int        `db:"retry_count"`
-	ErrorMessage   *string    `db:"error_message"`
+	MaxRetry       int        `db:"max_retry"`
+	LastError      *string    `db:"last_error"`
+	NextRetryAt    *time.Time `db:"next_retry_at"`
 	CreatedBy      *string    `db:"created_by"`
 	CreatedAt      time.Time  `db:"created_at"`
 	UpdatedAt      time.Time  `db:"updated_at"`

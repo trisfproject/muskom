@@ -86,20 +86,34 @@ func (w *EmailWorker) processQueue() {
 	}
 
 	for _, logItem := range logs {
-		// Only retry failed emails if 1 minute has passed since last retry/sent_at
-		if logItem.Status == "FAILED" && logItem.LastRetryAt != nil {
-			if time.Since(*logItem.LastRetryAt) < 1*time.Minute {
-				continue
-			}
-		}
-
 		err := w.sendEmail(ctx, logItem)
 		if err != nil {
 			w.log.Error("Failed to send queued email", zap.Error(err), zap.String("id", logItem.ID))
-			errMsg := err.Error()
-			_ = w.repo.UpdateEmailLogStatus(ctx, logItem.ID, "FAILED", &errMsg)
+			
+			// Calculate next retry based on new retry count (which will be logItem.RetryCount + 1)
+			newRetryCount := logItem.RetryCount + 1
+			var nextRetryAt time.Time
+			
+			switch newRetryCount {
+			case 1:
+				nextRetryAt = time.Now().Add(1 * time.Minute)
+			case 2:
+				nextRetryAt = time.Now().Add(5 * time.Minute)
+			case 3:
+				nextRetryAt = time.Now().Add(15 * time.Minute)
+			case 4:
+				nextRetryAt = time.Now().Add(1 * time.Hour)
+			default:
+				nextRetryAt = time.Now().Add(6 * time.Hour)
+			}
+			
+			_ = w.repo.UpdateEmailLogFailure(ctx, logItem.ID, err.Error(), &nextRetryAt)
+			
+			if newRetryCount >= logItem.MaxRetry {
+				w.log.Error("Email permanently failed after max retries.", zap.String("id", logItem.ID))
+			}
 		} else {
-			_ = w.repo.UpdateEmailLogStatus(ctx, logItem.ID, "SENT", nil)
+			_ = w.repo.UpdateEmailLogSuccess(ctx, logItem.ID)
 		}
 	}
 }
