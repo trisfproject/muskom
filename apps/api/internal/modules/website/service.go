@@ -176,8 +176,14 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 	}
 
 	// 2. Fetch all raw entities from DB
-	general, _ := s.repo.GetGeneral(ctx)
-	hero, _ := s.repo.GetHero(ctx)
+	general, err1 := s.repo.GetGeneral(ctx)
+	if err1 != nil && s.logger != nil {
+		s.logger.Error("GetGeneral failed", zap.Error(err1))
+	}
+	hero, err2 := s.repo.GetHero(ctx)
+	if err2 != nil && s.logger != nil {
+		s.logger.Error("GetHero failed", zap.Error(err2))
+	}
 	phases, _ := s.repo.GetTimelinePhases(ctx, true)
 	announcements, _ := s.repo.GetAnnouncements(ctx, true)
 	candSettings, _ := s.repo.GetCandidateSettings(ctx)
@@ -307,9 +313,9 @@ func (s *service) GetPublicHome(ctx context.Context) (*PublicHomeResponse, error
 		},
 	}
 
-	// 5. Map DTOs
+	// Build composite DTO
 	genDTO, metaDTO, flagsDTO, navDTO := s.mapper.MapGeneral(general)
-	heroDTO := s.mapper.MapHero(hero)
+	heroDTO := s.mapper.MapHero(hero, general)
 	timelineDTO := s.mapper.MapTimelinePhases(phases, activePhaseID)
 	announcementsDTO := s.mapper.MapAnnouncements(announcements)
 	candCMS, candList, candSection := s.mapper.MapCandidates(candSettings, candidates)
@@ -503,8 +509,6 @@ func (s *service) GetAdminHero(ctx context.Context) (*WebsiteHeroSettings, error
 func (s *service) UpdateAdminHero(ctx context.Context, req *UpdateHeroRequest) (*WebsiteHeroSettings, error) {
 	entity := &WebsiteHeroSettings{
 		HeroBadge:           req.HeroBadge,
-		HeroTitle:           req.HeroTitle,
-		HeroDescription:     req.HeroDescription,
 		PrimaryCTALabel:     req.PrimaryCTALabel,
 		PrimaryCTAURL:       req.PrimaryCTAURL,
 		PrimaryCTAEnabled:   req.PrimaryCTAEnabled,

@@ -136,11 +136,10 @@ func (r *repository) UpdateGeneral(ctx context.Context, s *WebsiteGeneralSetting
 
 func (r *repository) GetHero(ctx context.Context) (*WebsiteHeroSettings, error) {
 	query := `
-		SELECT 
-			id, hero_badge, hero_title, hero_description,
-			primary_cta_label, primary_cta_url, primary_cta_enabled,
-			secondary_cta_label, secondary_cta_url, secondary_cta_enabled,
-			background_mode, hero_status, is_published, created_at, updated_at
+		SELECT id, hero_badge,
+		       primary_cta_label, primary_cta_url, primary_cta_enabled,
+		       secondary_cta_label, secondary_cta_url, secondary_cta_enabled,
+		       background_mode, hero_status, is_published, created_at, updated_at
 		FROM website_hero_settings
 		ORDER BY created_at ASC
 		LIMIT 1
@@ -160,19 +159,19 @@ func (r *repository) UpdateHero(ctx context.Context, h *WebsiteHeroSettings) (*W
 	query := `
 		UPDATE website_hero_settings
 		SET 
-			hero_badge = $1, hero_title = $2, hero_description = $3,
-			primary_cta_label = $4, primary_cta_url = $5, primary_cta_enabled = $6,
-			secondary_cta_label = $7, secondary_cta_url = $8, secondary_cta_enabled = $9,
-			background_mode = $10, hero_status = $11, is_published = $12, updated_at = NOW()
+			hero_badge = $1,
+			primary_cta_label = $2, primary_cta_url = $3, primary_cta_enabled = $4,
+			secondary_cta_label = $5, secondary_cta_url = $6, secondary_cta_enabled = $7,
+			background_mode = $8, hero_status = $9, is_published = $10, updated_at = NOW()
 		WHERE id = (SELECT id FROM website_hero_settings ORDER BY created_at ASC LIMIT 1)
-		RETURNING id, hero_badge, hero_title, hero_description,
+		RETURNING id, hero_badge,
 		          primary_cta_label, primary_cta_url, primary_cta_enabled,
 		          secondary_cta_label, secondary_cta_url, secondary_cta_enabled,
 		          background_mode, hero_status, is_published, created_at, updated_at
 	`
 	var updated WebsiteHeroSettings
 	err := r.db.GetContext(ctx, &updated, query,
-		h.HeroBadge, h.HeroTitle, h.HeroDescription,
+		h.HeroBadge,
 		h.PrimaryCTALabel, h.PrimaryCTAURL, h.PrimaryCTAEnabled,
 		h.SecondaryCTALabel, h.SecondaryCTAURL, h.SecondaryCTAEnabled,
 		h.BackgroundMode, h.HeroStatus, h.IsPublished,

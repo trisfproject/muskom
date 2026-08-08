@@ -8,8 +8,6 @@ import { toast } from "sonner";
 export default function AdminWebsiteHeroPage() {
   const [formData, setFormData] = useState<HeroSettings>({
     hero_badge: "",
-    hero_title: "",
-    hero_description: "",
     primary_cta_label: "",
     primary_cta_url: "",
     primary_cta_enabled: true,
@@ -80,6 +78,16 @@ export default function AdminWebsiteHeroPage() {
         <div className="pg-surface border pg-border rounded-2xl p-6">
           <h2 className="text-base font-semibold pg-text mb-4">Konten Utama Hero</h2>
           <div className="space-y-4">
+            <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+              <div>
+                <h3 className="text-sm font-medium text-blue-400">Judul Utama & Deskripsi Sinkron Otomatis</h3>
+                <p className="text-xs text-blue-300/80 mt-1">
+                  Untuk menjaga konsistensi Single Source of Truth, Judul Utama (Hero Title) dan Deskripsi diambil secara otomatis dari <strong>Website Identity & General Settings</strong>. Silakan perbarui Nama Portal dan Tagline di halaman General jika ingin mengubah teks utama.
+                </p>
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1.5">Hero Badge (Pill Atas)</label>
               <input
@@ -89,25 +97,6 @@ export default function AdminWebsiteHeroPage() {
                 className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)]"
                 placeholder="Together We Shape the Future"
                 required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">Judul Utama (Hero Title / H1)</label>
-              <input
-                type="text"
-                value={formData.hero_title}
-                onChange={(e) => setFormData({ ...formData, hero_title: e.target.value })}
-                className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] font-bold"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">Deskripsi Ringkas</label>
-              <textarea
-                rows={3}
-                value={formData.hero_description}
-                onChange={(e) => setFormData({ ...formData, hero_description: e.target.value })}
-                className="w-full bg-[var(--color-bg)] border pg-border rounded-xl px-3.5 py-2.5 text-sm pg-text focus:outline-none focus:border-[var(--color-primary)] resize-none"
               />
             </div>
           </div>

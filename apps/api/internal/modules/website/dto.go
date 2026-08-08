@@ -195,8 +195,6 @@ type UpdateGeneralRequest struct {
 
 type UpdateHeroRequest struct {
 	HeroBadge           string `json:"hero_badge" validate:"required,max=255"`
-	HeroTitle           string `json:"hero_title" validate:"required,max=255"`
-	HeroDescription     string `json:"hero_description" validate:"required"`
 	PrimaryCTALabel     string `json:"primary_cta_label" validate:"required,max=100"`
 	PrimaryCTAURL       string `json:"primary_cta_url" validate:"required,max=255"`
 	PrimaryCTAEnabled   bool   `json:"primary_cta_enabled"`

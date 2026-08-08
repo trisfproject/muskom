@@ -63,15 +63,18 @@ func (m *Mapper) MapGeneral(g *WebsiteGeneralSettings) (WebsiteGeneralDTO, Publi
 }
 
 // MapHero maps WebsiteHeroSettings entity to WebsiteHeroDTO.
-func (m *Mapper) MapHero(h *WebsiteHeroSettings) WebsiteHeroDTO {
+func (m *Mapper) MapHero(h *WebsiteHeroSettings, g *WebsiteGeneralSettings) WebsiteHeroDTO {
 	if h == nil {
-		return WebsiteHeroDTO{}
+		h = &WebsiteHeroSettings{}
+	}
+	if g == nil {
+		g = &WebsiteGeneralSettings{}
 	}
 
 	return WebsiteHeroDTO{
 		HeroBadge:           h.HeroBadge,
-		HeroTitle:           h.HeroTitle,
-		HeroDescription:     h.HeroDescription,
+		HeroTitle:           g.SiteName,
+		HeroDescription:     g.Tagline,
 		PrimaryCTALabel:     h.PrimaryCTALabel,
 		PrimaryCTAURL:       h.PrimaryCTAURL,
 		PrimaryCTAEnabled:   h.PrimaryCTAEnabled,

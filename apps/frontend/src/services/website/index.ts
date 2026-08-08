@@ -20,8 +20,6 @@ export interface GeneralSettings {
 export interface HeroSettings {
   id?: string;
   hero_badge: string;
-  hero_title: string;
-  hero_description: string;
   primary_cta_label: string;
   primary_cta_url: string;
   primary_cta_enabled: boolean;

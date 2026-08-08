@@ -26,8 +26,6 @@ CREATE TABLE IF NOT EXISTS website_general_settings (
 CREATE TABLE IF NOT EXISTS website_hero_settings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     hero_badge VARCHAR(255) NOT NULL DEFAULT '',
-    hero_title VARCHAR(255) NOT NULL DEFAULT '',
-    hero_description TEXT NOT NULL DEFAULT 'Platform pemilihan resmi KOMITKABE 2026. Membangun proses kepemimpinan yang transparan, terpercaya, dan akuntabel.',
     primary_cta_label VARCHAR(100) NOT NULL DEFAULT '',
     primary_cta_url VARCHAR(255) NOT NULL DEFAULT '',
     primary_cta_enabled BOOLEAN NOT NULL DEFAULT true,
@@ -130,14 +128,12 @@ INSERT INTO website_general_settings (
 ) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO website_hero_settings (
-    id, hero_badge, hero_title, hero_description,
+    id, hero_badge,
     primary_cta_label, primary_cta_url, primary_cta_enabled,
     secondary_cta_label, secondary_cta_url, secondary_cta_enabled,
     background_mode, hero_status, is_published
 ) VALUES (
     '00000000-0000-0000-0000-000000000001',
-    '',
-    '',
     '',
     '',
     '',

@@ -26,8 +26,6 @@ type WebsiteGeneralSettings struct {
 type WebsiteHeroSettings struct {
 	ID                  string    `db:"id" json:"id"`
 	HeroBadge           string    `db:"hero_badge" json:"hero_badge"`
-	HeroTitle           string    `db:"hero_title" json:"hero_title"`
-	HeroDescription     string    `db:"hero_description" json:"hero_description"`
 	PrimaryCTALabel     string    `db:"primary_cta_label" json:"primary_cta_label"`
 	PrimaryCTAURL       string    `db:"primary_cta_url" json:"primary_cta_url"`
 	PrimaryCTAEnabled   bool      `db:"primary_cta_enabled" json:"primary_cta_enabled"`
