@@ -636,7 +636,7 @@ export default function AdminParticipantsPage() {
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                 <span className="text-xs pg-muted block font-medium">Kawasan Industri</span>
                 <span className="font-semibold pg-text flex items-center gap-1.5 mt-1">
-                  <MapPin className="w-3.5 h-3.5 text-red-500" /> {"-"}
+                  <MapPin className="w-3.5 h-3.5 text-red-500" /> {detailItem.region || "-"}
                 </span>
               </div>
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
@@ -647,7 +647,7 @@ export default function AdminParticipantsPage() {
               </div>
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                 <span className="text-xs pg-muted block font-medium">Departemen</span>
-                <span className="font-semibold pg-text mt-1 block">{"-"}</span>
+                <span className="font-semibold pg-text mt-1 block">{detailItem.community || "-"}</span>
               </div>
             </div>
 
