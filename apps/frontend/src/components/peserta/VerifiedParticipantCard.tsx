@@ -20,8 +20,8 @@ export function VerifiedParticipantCard({ participant }: VerifiedParticipantCard
     <div className="bg-white dark:bg-slate-800 rounded-3xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 max-w-sm mx-auto">
       {/* Card Header */}
       <div className="bg-primary px-6 py-4 text-center">
-        <h3 className="text-white font-bold tracking-wide">KARTU PESERTA</h3>
-        <p className="text-primary-100 text-xs mt-1 uppercase tracking-wider font-semibold">MUSKOM</p>
+        <h3 className="text-white font-bold tracking-wider text-base sm:text-lg">KARTU PESERTA</h3>
+        <p className="text-blue-100 text-xs sm:text-sm mt-1 uppercase tracking-wider font-semibold">MUSYAWARAH KOMITKABE</p>
       </div>
       
       {/* Card Body */}

@@ -252,7 +252,7 @@ func (r *repository) LookupParticipant(ctx context.Context, query string) (*Admi
 			r.registration_number
 		FROM registrations r
 		JOIN persons p ON r.person_id = p.id
-		WHERE (p.full_name ILIKE $1 OR r.registration_number = $2) AND r.status = 'APPROVED'
+		WHERE (p.full_name ILIKE $1 OR r.registration_number = $2 OR p.email = $2) AND r.status = 'APPROVED'
 		LIMIT 1
 	`
 	var resp AdminRegistrationResponse
@@ -284,6 +284,9 @@ func (r *repository) LookupParticipant(ctx context.Context, query string) (*Admi
 	}
 	if jobTitle.Valid {
 		resp.JobTitle = jobTitle.String
+	}
+	if regNum.Valid {
+		resp.RegistrationNumber = regNum.String
 	}
 	return &resp, nil
 }

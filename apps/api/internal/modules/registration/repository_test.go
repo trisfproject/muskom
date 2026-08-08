@@ -378,3 +378,38 @@ func TestRepository_FindOrCreatePerson(t *testing.T) {
 		assert.Equal(t, "pers1", person.ID)
 	})
 }
+
+func TestRepository_LookupParticipant(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	assert.NoError(t, err)
+	defer db.Close()
+
+	sqlxDB := sqlx.NewDb(db, "postgres")
+	repo := NewRepository(sqlxDB)
+	ctx := context.Background()
+
+	t.Run("Success", func(t *testing.T) {
+		rows := sqlmock.NewRows([]string{
+			"id", "event_id", "event_name", "participant_name", "email", "phone",
+			"company", "job_title", "participant_category", "source", "status",
+			"created_at", "updated_at", "registration_number",
+		}).AddRow(
+			"reg-1", "global", "Musyawarah", "Ahmad Fauzi", "fauzi@example.com", "08123456789",
+			"PT Maju Jaya", "Software Engineer", "DELEGATE", "PUBLIC_WEB", "APPROVED",
+			"2026-08-08 10:00:00", "2026-08-08 10:00:00", "MUSKOM-2026-0001",
+		)
+
+		mock.ExpectQuery("^SELECT (.+) FROM registrations r").
+			WithArgs("%MUSKOM-2026-0001%", "MUSKOM-2026-0001").
+			WillReturnRows(rows)
+
+		resp, err := repo.LookupParticipant(ctx, "MUSKOM-2026-0001")
+		assert.NoError(t, err)
+		assert.NotNil(t, resp)
+		assert.Equal(t, "MUSKOM-2026-0001", resp.RegistrationNumber)
+		assert.Equal(t, "Ahmad Fauzi", resp.ParticipantName)
+		assert.Equal(t, "PT Maju Jaya", resp.Company)
+		assert.Equal(t, "Software Engineer", resp.JobTitle)
+		assert.Equal(t, "APPROVED", resp.Status)
+	})
+}
