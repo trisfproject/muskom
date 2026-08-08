@@ -14,6 +14,7 @@ import {
   Eye,
 } from "lucide-react";
 import Link from "next/link";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 export default function AdminInformationPages() {
   const [pages, setPages] = useState<InformationPage[]>([]);
@@ -115,23 +116,20 @@ export default function AdminInformationPages() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold pg-text tracking-tight">Website — Pusat Informasi</h1>
-          <p className="text-sm pg-muted mt-1">
-            Kelola halaman panduan, tata tertib, dan informasi dinamis lainnya.
-          </p>
-        </div>
-        <button
-          onClick={openCreateModal}
-          className="inline-flex items-center justify-center min-h-[44px] gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover pg-text font-semibold text-sm transition-colors shadow-lg shadow-[var(--color-primary)]/30 shrink-0 w-full sm:w-auto"
-        >
-          <Plus className="w-4 h-4" />
-          Buat Halaman
-        </button>
-      </div>
+    <div className="space-y-6 max-w-5xl">
+      <PageHeader
+        title="Website — Pusat Informasi"
+        description="Kelola halaman panduan, tata tertib, dan informasi dinamis lainnya."
+        actions={
+          <button
+            onClick={openCreateModal}
+            className="inline-flex items-center justify-center min-h-[44px] gap-2 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-semibold text-xs transition-colors shadow-sm shrink-0 w-full sm:w-auto cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Buat Halaman
+          </button>
+        }
+      />
 
       {message && (
         <div

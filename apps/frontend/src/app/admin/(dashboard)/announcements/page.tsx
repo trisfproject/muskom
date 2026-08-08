@@ -12,6 +12,7 @@ import {
   Megaphone, 
   Send
 } from 'lucide-react';
+import { PageHeader } from '@/components/admin/PageHeader';
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -44,24 +45,20 @@ export default function AnnouncementsPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 w-full max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Pengumuman (Announcements)</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Kelola pengumuman resmi dan siarkan kepada peserta, kandidat, atau panitia.
-          </p>
-        </div>
-        <div className="w-full sm:w-auto">
+    <div className="space-y-6">
+      <PageHeader
+        title="Pengumuman (Announcements)"
+        description="Kelola pengumuman resmi dan siarkan kepada peserta, kandidat, atau panitia."
+        actions={
           <Link
             href="/admin/announcements/create"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 min-h-[44px] text-center text-xs font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors w-full sm:w-auto"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2.5 min-h-[44px] text-center text-xs font-semibold text-white shadow-sm transition-colors w-full sm:w-auto"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
             Tambah Pengumuman
           </Link>
-        </div>
-      </div>
+        }
+      />
       
       <div className="mt-8 flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

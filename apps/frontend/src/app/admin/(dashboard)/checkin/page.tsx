@@ -7,6 +7,7 @@ import { useCheckIn } from "@/services/attendance/mutations";
 import { CheckCircle2, AlertCircle, Scan, Search, RefreshCw, XCircle, Camera, CameraOff } from "lucide-react";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -245,14 +246,10 @@ function CheckInContent() {
 
   return (
     <div className="max-w-2xl mx-auto p-2 sm:p-4 md:p-8">
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold pg-text tracking-tight">QR Check-in</h1>
-          <p className="text-sm pg-muted mt-1">
-            Scan QR Code peserta atau masukkan nomor registrasi secara manual.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="QR Check-in"
+        description="Scan QR Code peserta atau masukkan nomor registrasi secara manual."
+      />
 
       <div className="grid grid-cols-1 gap-6">
         {/* ── Processing ── */}

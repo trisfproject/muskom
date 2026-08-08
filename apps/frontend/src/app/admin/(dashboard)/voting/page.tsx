@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Vote, Play, Pause, Square, RefreshCw, BarChart2, Shield, Award, Users, Percent, Download } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface VotingSession {
   id: string;
@@ -98,24 +99,19 @@ export default function AdminVotingPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Vote className="w-7 h-7 text-primary" /> E-Voting Control Panel & Tally Engine
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Kontrol Sesi Pemilihan dan Perhitungan Suara Rahasia Real-Time
-          </p>
-        </div>
-        <button
-          onClick={fetchVotingData}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-sm font-medium w-full sm:w-fit cursor-pointer"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Refresh Tally
-        </button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="E-Voting Control Panel & Tally Engine"
+        description="Kontrol Sesi Pemilihan dan Perhitungan Suara Rahasia Real-Time"
+        actions={
+          <button
+            onClick={fetchVotingData}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-sm font-medium w-full sm:w-fit cursor-pointer"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Refresh Tally
+          </button>
+        }
+      />
 
       {/* Control Card & Turnout Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

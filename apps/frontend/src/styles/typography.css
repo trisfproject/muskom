@@ -53,6 +53,33 @@
     font-weight: 600;
   }
 
+  .text-page-title {
+    font-family: var(--font-sans);
+    font-size: 1.5rem; /* 24px mobile */
+    line-height: 2rem; /* 32px mobile */
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+  @media (min-width: 640px) {
+    .text-page-title {
+      font-size: 1.625rem; /* 26px tablet */
+      line-height: 2.125rem; /* 34px tablet */
+    }
+  }
+  @media (min-width: 1024px) {
+    .text-page-title {
+      font-size: 1.75rem; /* 28px desktop */
+      line-height: 2.25rem; /* 36px desktop */
+    }
+  }
+
+  .text-page-subtitle {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem; /* 15px */
+    line-height: 1.5rem; /* 24px */
+    font-weight: 400;
+  }
+
   .text-gradient {
     background: linear-gradient(135deg, var(--color-text-primary) 0%, #93c5fd 50%, #3b82f6 100%);
     -webkit-background-clip: text;

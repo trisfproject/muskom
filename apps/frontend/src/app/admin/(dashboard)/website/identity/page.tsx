@@ -19,6 +19,7 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 export default function AdminWebsiteGeneralPage() {
   const { refreshConfig } = useSystemConfig();
@@ -162,12 +163,10 @@ export default function AdminWebsiteGeneralPage() {
       />
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold pg-text tracking-tight">Website — Pengaturan Umum</h1>
-        <p className="text-sm pg-muted mt-1">
-          Pusat kendali identitas portal publik, tema visual, status registrasi, SEO, dan kontak sekretariat.
-        </p>
-      </div>
+      <PageHeader
+        title="Website — Pengaturan Umum"
+        description="Pusat kendali identitas portal publik, tema visual, status registrasi, SEO, dan kontak sekretariat."
+      />
 
       {message && (
         <div

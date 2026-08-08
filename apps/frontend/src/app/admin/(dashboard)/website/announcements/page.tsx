@@ -14,6 +14,7 @@ import {
   X,
   Sparkles,
 } from "lucide-react";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 export default function AdminWebsiteAnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -127,23 +128,20 @@ export default function AdminWebsiteAnnouncementsPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold pg-text tracking-tight">Website — Pusat Informasi & Pengumuman</h1>
-          <p className="text-sm pg-muted mt-1">
-            Publikasikan rilis resmi, panduan, dan pembaruan berkas untuk publik.
-          </p>
-        </div>
-        <button
-          onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover pg-text font-semibold text-sm transition-colors shadow-lg shadow-[var(--color-primary)]/30 shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          Buat Pengumuman
-        </button>
-      </div>
+    <div className="space-y-6 max-w-5xl">
+      <PageHeader
+        title="Website — Pusat Informasi & Pengumuman"
+        description="Publikasikan rilis resmi, panduan, dan pembaruan berkas untuk publik."
+        actions={
+          <button
+            onClick={openCreateModal}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] rounded-lg bg-primary hover:bg-primary-hover text-white font-semibold text-xs transition-colors shadow-sm shrink-0 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Buat Pengumuman
+          </button>
+        }
+      />
 
       {message && (
         <div

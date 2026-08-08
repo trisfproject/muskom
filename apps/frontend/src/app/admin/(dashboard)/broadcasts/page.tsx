@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { BroadcastJob } from '@/types/announcement';
 import { announcementService } from '@/services/announcement';
 import { format } from 'date-fns';
+import { PageHeader } from '@/components/admin/PageHeader';
 
 export default function BroadcastsPage() {
   const [jobs, setJobs] = useState<BroadcastJob[]>([]);
@@ -26,15 +27,11 @@ export default function BroadcastsPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 w-full max-w-7xl mx-auto">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Broadcast Jobs</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Monitor status dan riwayat pengiriman siaran pesan massal kepada peserta / panitia.
-          </p>
-        </div>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Broadcast Jobs"
+        description="Monitor status dan riwayat pengiriman siaran pesan massal kepada peserta / panitia."
+      />
       
       <div className="mt-6 flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">

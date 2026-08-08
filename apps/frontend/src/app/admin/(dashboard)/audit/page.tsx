@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { auditService, AuditLog } from "@/services/admin/audit";
-import { SectionHeader } from "@/components/ui/section-header";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { format } from "date-fns";
 import { 
   Download, 
@@ -113,27 +113,28 @@ export default function AuditPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader 
+      <PageHeader 
         title="Audit Log & Activity Timeline" 
         description="Pantau dan audit seluruh aktivitas operasional serta perubahan data dalam sistem MUSKOM."
-      >
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <button
-            onClick={() => fetchLogs(false)}
-            disabled={loading}
-            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 py-2.5 min-h-[44px] text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm cursor-pointer"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Segarkan
-          </button>
-          <button 
-            onClick={handleExport}
-            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] text-xs font-bold bg-primary hover:bg-primary-active text-white rounded-lg transition-colors shadow-sm cursor-pointer"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Ekspor CSV
-          </button>
-        </div>
-      </SectionHeader>
+        actions={
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => fetchLogs(false)}
+              disabled={loading}
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 py-2.5 min-h-[44px] text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Segarkan
+            </button>
+            <button 
+              onClick={handleExport}
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] text-xs font-bold bg-primary hover:bg-primary-active text-white rounded-lg transition-colors shadow-sm cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Ekspor CSV
+            </button>
+          </div>
+        }
+      />
 
       {/* Control Bar */}
       <div className="pg-surface border pg-border rounded-xl p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">

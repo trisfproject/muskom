@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { websiteService, FooterSettings } from "@/services/website";
 import { Save, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 export default function AdminWebsiteFooterPage() {
   const [formData, setFormData] = useState<FooterSettings>({
@@ -57,14 +58,11 @@ export default function AdminWebsiteFooterPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold pg-text tracking-tight">Website — Footer Portal</h1>
-        <p className="text-sm pg-muted mt-1">
-          Konfigurasi teks penutup, badge portal resmi, hak cipta, dan tagline komunitas.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-4xl">
+      <PageHeader
+        title="Website — Footer Portal"
+        description="Konfigurasi teks penutup, badge portal resmi, hak cipta, dan tagline komunitas."
+      />
 
       {message && (
         <div

@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
-import { SectionHeader } from "@/components/ui/section-header";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface VerificationItem {
   id: string;
@@ -222,19 +222,20 @@ export default function AdminVerificationsPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader
+      <PageHeader
         title="Antrean Verifikasi"
         description="Review berkas dan validasi kepesertaan musyawarah serta kandidat ketua umum."
-      >
-        <button
-          onClick={fetchVerifications}
-          disabled={loading}
-          className="flex items-center gap-2 text-xs font-semibold px-3.5 py-2 rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          Segarkan
-        </button>
-      </SectionHeader>
+        actions={
+          <button
+            onClick={fetchVerifications}
+            disabled={loading}
+            className="flex items-center gap-2 text-xs font-semibold px-3.5 py-2 rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            Segarkan
+          </button>
+        }
+      />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -5,6 +5,9 @@ import { useParams } from 'next/navigation';
 import AnnouncementForm from '@/components/admin/announcements/AnnouncementForm';
 import { Announcement } from '@/types/announcement';
 import { announcementService } from '@/services/announcement';
+import { PageHeader } from '@/components/admin/PageHeader';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 export default function EditAnnouncementPage() {
   const { id } = useParams();
@@ -37,11 +40,21 @@ export default function EditAnnouncementPage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Edit Announcement</h1>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        breadcrumb={
+          <Link
+            href="/admin/announcements"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white font-semibold transition-colors min-h-[36px]"
+          >
+            <ArrowLeft className="w-4 h-4" /> Kembali ke Pengumuman
+          </Link>
+        }
+        title="Edit Pengumuman"
+        description={`Mengubah isi pengumuman "${announcement.title}".`}
+      />
       <AnnouncementForm initialData={announcement} isEdit={true} />
     </div>
   );
 }
+

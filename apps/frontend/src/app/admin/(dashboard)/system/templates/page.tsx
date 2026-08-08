@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Mail, Edit, RefreshCw, Eye } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
-import { SectionHeader } from "@/components/ui/section-header";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface Template {
   id: string;
@@ -54,20 +54,21 @@ export default function EmailTemplatesPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl">
-      <SectionHeader
+    <div className="space-y-6">
+      <PageHeader
         title="Template Email"
         description="Kelola template pesan untuk notifikasi email sistem. Anda dapat menyesuaikan subjek dan isi email."
-      >
-        <button
-          type="button"
-          onClick={fetchTemplates}
-          className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Refresh Data
-        </button>
-      </SectionHeader>
+        actions={
+          <button
+            type="button"
+            onClick={fetchTemplates}
+            className="flex items-center gap-2 px-3.5 py-2.5 min-h-[44px] text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm cursor-pointer"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh Data
+          </button>
+        }
+      />
 
       <div className="pg-surface border pg-border rounded-xl shadow-sm overflow-hidden">
         {isLoading ? (

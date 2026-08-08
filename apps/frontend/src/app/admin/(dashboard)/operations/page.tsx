@@ -59,10 +59,10 @@ export default function OperationalDashboardPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 dark:bg-slate-950 p-6 rounded-2xl border border-slate-800 shadow-sm text-white">
         <div>
-          <h1 className="text-2xl font-black tracking-tight uppercase flex items-center gap-3">
-            <Activity className="w-7 h-7 text-emerald-400" /> Operational Control Center
+          <h1 className="text-2xl sm:text-[26px] sm:leading-[34px] lg:text-[28px] lg:leading-[36px] font-bold tracking-tight text-white flex items-center gap-3">
+            <Activity className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400 shrink-0" /> Operational Control Center
           </h1>
-          <p className="text-sm text-slate-300 mt-1 flex items-center gap-2">
+          <p className="text-sm sm:text-[15px] leading-relaxed sm:leading-6 text-slate-300 mt-1 sm:mt-1.5 font-normal flex items-center gap-2">
             Panel monitoring operasional real-time dan antrean tindakan panitia
           </p>
         </div>

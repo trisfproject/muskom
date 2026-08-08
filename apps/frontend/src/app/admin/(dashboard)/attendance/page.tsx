@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
-import { SectionHeader } from "@/components/ui/section-header";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface AttendanceItem {
   participant_id: string;
@@ -196,17 +196,18 @@ export default function AdminAttendancePage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader
+      <PageHeader
         title="Presensi & Live Quorum"
         description="Scanner QR Code, monitoring kuorum langsung, dan pencatatan kehadiran musyawarah."
-      >
-        <button
-          onClick={fetchAttendanceData}
-          className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh Data
-        </button>
-      </SectionHeader>
+        actions={
+          <button
+            onClick={fetchAttendanceData}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh Data
+          </button>
+        }
+      />
 
       {/* Live Quorum Gauge & Scanner Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

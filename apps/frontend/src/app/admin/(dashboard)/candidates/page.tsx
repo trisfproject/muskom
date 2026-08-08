@@ -29,6 +29,7 @@ import {
   CandidateAdminResponse,
 } from "@/services/candidate-admin";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 const StatusBadge = ({ status }: { status: string }) => {
   switch (status) {
@@ -239,40 +240,37 @@ export default function AdminCandidatesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold pg-text tracking-tight">Data Induk Kandidat</h1>
-          <p className="pg-muted text-sm mt-1">
-            Kelola data bakal calon dan kandidat ketua umum KOMITKABE.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            Tambah Kandidat
-          </button>
-          <button
-            onClick={handleExportCSV}
-            disabled={exporting}
-            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-lg border border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
-          >
-            <Download className={`w-3.5 h-3.5 ${exporting ? "animate-spin" : ""}`} />
-            {exporting ? "Mengekspor..." : "Export CSV"}
-          </button>
-          <button
-            onClick={fetchData}
-            disabled={loading}
-            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            Segarkan
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Data Induk Kandidat"
+        description="Kelola data bakal calon dan kandidat ketua umum KOMITKABE."
+        actions={
+          <>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Tambah Kandidat
+            </button>
+            <button
+              onClick={handleExportCSV}
+              disabled={exporting}
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-lg border border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+            >
+              <Download className={`w-3.5 h-3.5 ${exporting ? "animate-spin" : ""}`} />
+              {exporting ? "Mengekspor..." : "Export CSV"}
+            </button>
+            <button
+              onClick={fetchData}
+              disabled={loading}
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 text-xs font-semibold px-4 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              Segarkan
+            </button>
+          </>
+        }
+      />
 
       {/* Main Card */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">

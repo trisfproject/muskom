@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
-import { SectionHeader } from "@/components/ui/section-header";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 interface SMTPConfig {
   enabled: boolean;
@@ -147,21 +147,22 @@ export default function SMTPConfigurationPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl">
-      <SectionHeader
+    <div className="space-y-6">
+      <PageHeader
         title="Konfigurasi Server SMTP"
         description="Kelola pengaturan server pengiriman email notifikasi, verifikasi, dan bukti pendaftaran musyawarah."
-      >
-        <button
-          type="button"
-          onClick={handleTestConnection}
-          disabled={isTestingConn}
-          className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50"
-        >
-          <Zap className={`w-3.5 h-3.5 text-amber-500 ${isTestingConn ? "animate-spin" : ""}`} />
-          {isTestingConn ? "Menguji Koneksi..." : "Uji Koneksi Server"}
-        </button>
-      </SectionHeader>
+        actions={
+          <button
+            type="button"
+            onClick={handleTestConnection}
+            disabled={isTestingConn}
+            className="flex items-center gap-2 px-3.5 py-2.5 min-h-[44px] text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50 cursor-pointer"
+          >
+            <Zap className={`w-3.5 h-3.5 text-amber-500 ${isTestingConn ? "animate-spin" : ""}`} />
+            {isTestingConn ? "Menguji Koneksi..." : "Uji Koneksi Server"}
+          </button>
+        }
+      />
 
       {!config.enabled && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex items-start gap-3">

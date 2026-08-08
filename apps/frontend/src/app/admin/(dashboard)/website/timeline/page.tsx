@@ -14,6 +14,7 @@ import {
   AlertCircle,
   X,
 } from "lucide-react";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 export default function AdminWebsiteTimelinePage() {
   const [phases, setPhases] = useState<TimelinePhase[]>([]);
@@ -154,23 +155,20 @@ export default function AdminWebsiteTimelinePage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold pg-text tracking-tight">Musyawarah — Timeline & Agenda</h1>
-          <p className="text-sm pg-muted mt-1">
-            Kelola tahapan agenda musyawarah, tanggal pelaksanaan, dan kontrol fase aktif otomatis.
-          </p>
-        </div>
-        <button
-          onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm transition-all duration-200 shadow-xl shadow-[var(--color-primary)]/40 hover:-translate-y-[2px] shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          Tambah Tahapan
-        </button>
-      </div>
+    <div className="space-y-6 max-w-5xl">
+      <PageHeader
+        title="Musyawarah — Timeline & Agenda"
+        description="Kelola tahapan agenda musyawarah, tanggal pelaksanaan, dan kontrol fase aktif otomatis."
+        actions={
+          <button
+            onClick={openCreateModal}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] rounded-lg bg-primary hover:bg-primary-hover text-white font-semibold text-xs transition-all duration-200 shadow-sm shrink-0 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            Tambah Tahapan
+          </button>
+        }
+      />
 
       {message && (
         <div

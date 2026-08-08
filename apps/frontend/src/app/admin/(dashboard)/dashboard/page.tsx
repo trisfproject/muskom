@@ -21,7 +21,7 @@ import {
   QrCode,
   Percent
 } from "lucide-react";
-import { SectionHeader } from "@/components/ui/section-header";
+import { PageHeader } from "@/components/admin/PageHeader";
 import Link from "next/link";
 import { StatusChip } from "@/components/ui/status-chip";
 import { format } from "date-fns";
@@ -73,12 +73,11 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader 
+      <PageHeader 
         title="Dashboard Operasional" 
         description="Monitoring kuorum, kepesertaan, dan seluruh aktivitas musyawarah secara langsung."
-      >
-        <StatusChip status={status.phase} />
-      </SectionHeader>
+        actions={<StatusChip status={status.phase} />}
+      />
 
       {/* Main Highlights Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

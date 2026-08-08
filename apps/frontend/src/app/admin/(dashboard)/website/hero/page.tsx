@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { websiteService, HeroSettings } from "@/services/website";
 import { Save, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 export default function AdminWebsiteHeroPage() {
   const [formData, setFormData] = useState<HeroSettings>({
@@ -62,14 +63,11 @@ export default function AdminWebsiteHeroPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold pg-text tracking-tight">Website — Hero Section</h1>
-        <p className="text-sm pg-muted mt-1">
-          Atur teks pembuka, badge identitas, tombol call-to-action (CTA), dan visual latar belakang.
-        </p>
-      </div>
+    <div className="space-y-6 max-w-4xl">
+      <PageHeader
+        title="Website — Hero Section"
+        description="Atur teks pembuka, badge identitas, tombol call-to-action (CTA), dan visual latar belakang."
+      />
 
 
 

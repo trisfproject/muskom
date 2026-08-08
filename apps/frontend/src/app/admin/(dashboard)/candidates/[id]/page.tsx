@@ -35,6 +35,7 @@ import {
 } from "@/services/candidate-admin";
 import api from "@/lib/api";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/admin/PageHeader";
 
 export default function CandidateDetailPage() {
   const { id } = useParams() as { id: string };
@@ -253,28 +254,41 @@ export default function CandidateDetailPage() {
 
   return (
     <div className="space-y-6 pb-20">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <button
-          onClick={() => router.push("/admin/candidates")}
-          className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white font-semibold transition-colors cursor-pointer min-h-[44px]"
-        >
-          <ArrowLeft className="w-4 h-4" /> Kembali ke Data Induk Kandidat
-        </button>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+      <PageHeader
+        breadcrumb={
           <button
-            onClick={openEditModal}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+            onClick={() => router.push("/admin/candidates")}
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white font-semibold transition-colors cursor-pointer min-h-[36px]"
           >
-            <Edit3 className="w-3.5 h-3.5" /> Edit Data
+            <ArrowLeft className="w-4 h-4" /> Kembali ke Data Induk Kandidat
           </button>
-          <button
-            onClick={fetchData}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
-          >
-            <RefreshCw className="w-3.5 h-3.5" /> Segarkan
-          </button>
-        </div>
-      </div>
+        }
+        title={candidate.full_name || "Detail Data Kandidat"}
+        description="Informasi profil lengkap, berkas, dan status verifikasi calon ketua umum."
+        badge={
+          candidate.candidate_number ? (
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              No. Urut #{candidate.candidate_number}
+            </span>
+          ) : undefined
+        }
+        actions={
+          <>
+            <button
+              onClick={openEditModal}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+            >
+              <Edit3 className="w-3.5 h-3.5" /> Edit Data
+            </button>
+            <button
+              onClick={fetchData}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pg-text hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Segarkan
+            </button>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* LEFT: Candidate Info & Vision/Mission */}
@@ -321,7 +335,7 @@ export default function CandidateDetailPage() {
 
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold pg-text">{candidate.full_name}</h1>
+                  <h2 className="text-xl sm:text-2xl font-bold pg-text">{candidate.full_name}</h2>
                   {candidate.candidate_number && (
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                       No. Urut #{candidate.candidate_number}

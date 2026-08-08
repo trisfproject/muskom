@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Bell, Check, Trash2, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import { PageHeader } from '@/components/admin/PageHeader';
 
 export default function NotificationCenterPage() {
   const { 
@@ -29,15 +30,11 @@ export default function NotificationCenterPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold pg-text">Notification Center</h1>
-          <p className="text-sm pg-muted mt-1">
-            Manage your alerts, tasks, and system notifications.
-          </p>
-        </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          {unreadCount > 0 && (
+      <PageHeader
+        title="Notification Center"
+        description="Kelola pemberitahuan sistem, tugas, dan pembaruan operasional."
+        actions={
+          unreadCount > 0 ? (
             <button
               onClick={markAllAsRead}
               className="px-4 py-2.5 min-h-[44px] bg-[var(--color-primary)] text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 shadow-sm shadow-blue-500/20 w-full sm:w-auto cursor-pointer"
@@ -45,9 +42,9 @@ export default function NotificationCenterPage() {
               <Check className="w-4 h-4" />
               Tandai Semua Dibaca
             </button>
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
       <div className="pg-surface border border-[var(--color-border)] rounded-xl shadow-sm">
         <div className="border-b border-[var(--color-border)] p-4 sm:p-6">

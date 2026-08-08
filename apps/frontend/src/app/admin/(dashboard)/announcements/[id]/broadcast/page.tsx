@@ -5,6 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { Announcement } from '@/types/announcement';
 import { announcementService } from '@/services/announcement';
 import { toast } from 'sonner';
+import { PageHeader } from '@/components/admin/PageHeader';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 export default function BroadcastAnnouncementPage() {
   const { id } = useParams();
@@ -74,13 +77,19 @@ export default function BroadcastAnnouncementPage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-3xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900">Broadcast Announcement</h1>
-        <p className="mt-2 text-sm text-gray-700">
-          Sending: <span className="font-semibold text-gray-900">{announcement.title}</span>
-        </p>
-      </div>
+    <div className="max-w-3xl mx-auto space-y-6">
+      <PageHeader
+        breadcrumb={
+          <Link
+            href="/admin/announcements"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white font-semibold transition-colors min-h-[36px]"
+          >
+            <ArrowLeft className="w-4 h-4" /> Kembali ke Pengumuman
+          </Link>
+        }
+        title="Broadcast Pengumuman"
+        description={`Siarkan pengumuman "${announcement.title}" melalui berbagai channel notifikasi.`}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <div>

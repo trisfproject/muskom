@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { userService, UserResponse } from "@/services/admin/user";
-import { SectionHeader } from "@/components/ui/section-header";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { DataTable, ColumnDef } from "@/components/ui/data-table";
 import { StatusChip } from "@/components/ui/status-chip";
 import { QuickActionMenu } from "@/components/ui/quick-action-menu";
@@ -90,7 +90,7 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <SectionHeader 
+      <PageHeader 
         title="Pengguna & Hak Akses" 
         description="Kelola akun administrator, peran (roles), dan status aktif."
       />

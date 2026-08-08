@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { userService, UserResponse } from "@/services/admin/user";
-import { SectionHeader } from "@/components/ui/section-header";
+import { PageHeader } from "@/components/admin/PageHeader";
 import { User, Mail, Shield, KeyRound, Lock, CheckCircle2, AlertCircle } from "lucide-react";
 import Cookies from "js-cookie";
 
@@ -110,8 +110,8 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl">
-      <SectionHeader 
+    <div className="space-y-6">
+      <PageHeader 
         title="Profil Administrator" 
         description="Kelola informasi akun pribadi dan keamanan autentikasi Anda."
       />
