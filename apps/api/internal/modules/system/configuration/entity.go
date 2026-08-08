@@ -86,4 +86,12 @@ type FullSystemConfig struct {
 	Contact         ContactConfig         `json:"contact"`
 	SEO             SEOConfig             `json:"seo"`
 	FeatureFlags    FeatureFlagsConfig    `json:"feature_flags"`
+	Event           EventConfig           `json:"event"`
+}
+
+type EventConfig struct {
+	EventName     string `json:"event_name" validate:"required"`
+	EventDate     string `json:"event_date" validate:"required"`
+	EventTime     string `json:"event_time" validate:"required"`
+	EventLocation string `json:"event_location" validate:"required"`
 }

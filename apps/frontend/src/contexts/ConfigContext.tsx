@@ -50,6 +50,12 @@ const fallbackConfig: FullSystemConfig = {
     enable_registration: true,
     enable_dark_theme: true,
   },
+  event: {
+    event_name: "Musyawarah KOMITKABE 2026",
+    event_date: "29 Agustus 2026",
+    event_time: "08:00 - Selesai WIB",
+    event_location: "Gedung Serbaguna KOMITKABE",
+  },
   contact: {
     email: "admin@muskom.local",
     whatsapp: "",

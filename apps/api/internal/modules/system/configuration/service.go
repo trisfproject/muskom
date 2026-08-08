@@ -71,6 +71,8 @@ func (s *service) GetSystemConfig(ctx context.Context) (*FullSystemConfig, error
 			_ = json.Unmarshal(c.Settings, &fullConfig.SEO)
 		case "feature_flags":
 			_ = json.Unmarshal(c.Settings, &fullConfig.FeatureFlags)
+		case "event":
+			_ = json.Unmarshal(c.Settings, &fullConfig.Event)
 		}
 	}
 

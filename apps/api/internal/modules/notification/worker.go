@@ -90,6 +90,16 @@ func (w *Worker) processJob(ctx context.Context, job NotificationJob) {
 			payload["organization_name"] = comm
 			payload["community_name"] = comm
 		}
+		// Event details
+		if eventDate, ok := identity["event_date"].(string); ok && eventDate != "" {
+			payload["event_date"] = eventDate
+		}
+		if eventTime, ok := identity["event_time"].(string); ok && eventTime != "" {
+			payload["event_time"] = eventTime
+		}
+		if eventLoc, ok := identity["event_location"].(string); ok && eventLoc != "" {
+			payload["event_location"] = eventLoc
+		}
 	}
 
 	renderedSubj, body, err := RenderTemplate(tpl.Subject, tpl.Body, payload)

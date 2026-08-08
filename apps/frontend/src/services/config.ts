@@ -51,6 +51,13 @@ export interface ContactConfig {
 }
 
 
+export interface EventConfig {
+  event_name: string;
+  event_date: string;
+  event_time: string;
+  event_location: string;
+}
+
 export interface FullSystemConfig {
   website_identity: WebsiteIdentityConfig;
   publication: PublicationConfig;
@@ -58,6 +65,7 @@ export interface FullSystemConfig {
   contact: ContactConfig;
   seo: SEOConfig;
   feature_flags: FeatureFlagsConfig;
+  event: EventConfig;
 }
 
 interface ConfigResponse {
