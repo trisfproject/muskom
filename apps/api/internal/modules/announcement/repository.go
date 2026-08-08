@@ -167,17 +167,14 @@ func (r *repository) ListBroadcastJobs(ctx context.Context, limit int, offset in
 }
 
 func (r *repository) GetPendingBroadcastJobs(ctx context.Context) ([]BroadcastJob, error) {
-	// Only fetch Queued jobs where the associated announcement is Published and (if scheduled) past its publish_date.
 	query := `
-		SELECT b.* 
-		FROM broadcast_jobs b
-		JOIN announcements a ON b.announcement_id = a.id
-		WHERE b.status = 'Queued' 
-		  AND a.status = 'Published'
-		  AND (a.publish_date IS NULL OR a.publish_date <= $1)
+		SELECT * 
+		FROM broadcast_jobs 
+		WHERE status = 'Queued'
+		ORDER BY created_at ASC
 	`
 	var jobs []BroadcastJob
-	err := r.db.SelectContext(ctx, &jobs, query, time.Now())
+	err := r.db.SelectContext(ctx, &jobs, query)
 	if err != nil {
 		return nil, err
 	}

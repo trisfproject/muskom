@@ -31,8 +31,8 @@ func NewWorker(repo Repository, mailer mailer.Mailer, hub *realtime.Hub, log *za
 func (w *Worker) Start(ctx context.Context) {
 	// Verify broadcast_jobs table exists
 	_, err := w.repo.GetPendingBroadcastJobs(ctx)
-	if err != nil && strings.Contains(err.Error(), "relation \"broadcast_jobs\" does not exist") {
-		w.log.Error("Announcement Broadcast Worker disabled: broadcast_jobs table does not exist")
+	if err != nil && (strings.Contains(err.Error(), "does not exist") || strings.Contains(err.Error(), "42P01")) {
+		w.log.Info("Announcement Broadcast Worker disabled: broadcast_jobs table does not exist")
 		return
 	}
 
@@ -54,6 +54,9 @@ func (w *Worker) Start(ctx context.Context) {
 func (w *Worker) processPendingJobs(ctx context.Context) {
 	jobs, err := w.repo.GetPendingBroadcastJobs(ctx)
 	if err != nil {
+		if strings.Contains(err.Error(), "does not exist") || strings.Contains(err.Error(), "42P01") {
+			return
+		}
 		w.log.Error("Failed to fetch pending broadcast jobs", zap.Error(err))
 		return
 	}
