@@ -115,16 +115,23 @@ func (s *service) Update(ctx context.Context, id string, req UpdateParticipantRe
 
 	oldVal := *p
 
-	p.RegistrationNumber = req.RegistrationNumber
-	p.FullName = req.FullName
-	p.Nickname = req.Nickname
-
-	p.Email = req.Email
-	p.Phone = req.Phone
+	if req.FullName != "" {
+		p.FullName = req.FullName
+	}
+	if req.Nickname != nil {
+		p.Nickname = req.Nickname
+	}
+	if req.Email != "" {
+		p.Email = req.Email
+	}
+	if req.Phone != "" {
+		p.Phone = req.Phone
+	}
 	p.CompanyName = req.CompanyName
 	p.IndustrialArea = req.IndustrialArea
 	p.JobTitle = req.JobTitle
 	p.Department = req.Department
+	p.SpecialNotes = req.SpecialNotes
 
 	err = s.repo.Update(ctx, p)
 	if err != nil {

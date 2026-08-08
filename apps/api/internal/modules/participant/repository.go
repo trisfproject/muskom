@@ -149,7 +149,13 @@ func (r *repository) Update(ctx context.Context, p *Participant) error {
 	// Update Person
 	personQuery := `
 		UPDATE persons SET 
-			full_name = $1, email = $2, phone = $3, company = $4, job_title = $5, nickname = $6, updated_at = NOW()
+			full_name = COALESCE(NULLIF($1, ''), full_name), 
+			email = COALESCE(NULLIF($2, ''), email), 
+			phone = $3, 
+			company = $4, 
+			job_title = $5, 
+			nickname = $6, 
+			updated_at = NOW()
 		WHERE id = (SELECT person_id FROM registrations WHERE id = $7)
 	`
 	_, err = tx.ExecContext(ctx, personQuery, p.FullName, p.Email, p.Phone, p.CompanyName, p.JobTitle, p.Nickname, p.ID)
@@ -160,17 +166,14 @@ func (r *repository) Update(ctx context.Context, p *Participant) error {
 	// Update Registration
 	regQuery := `
 		UPDATE registrations SET
-			region = $1, community = $2, special_notes = $3, updated_at = NOW(), registration_number = COALESCE(NULLIF($4, ''), registration_number)
-		WHERE id = $5
+			region = $1, community = $2, special_notes = $3, updated_at = NOW()
+		WHERE id = $4
 		RETURNING updated_at
 	`
-	err = tx.QueryRowContext(ctx, regQuery, p.IndustrialArea, p.Department, p.SpecialNotes, p.RegistrationNumber, p.ID).Scan(&p.UpdatedAt)
+	err = tx.QueryRowContext(ctx, regQuery, p.IndustrialArea, p.Department, p.SpecialNotes, p.ID).Scan(&p.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrNotFound
-		}
-		if strings.Contains(err.Error(), "registrations_registration_number_key") {
-			return ErrDuplicateReg
 		}
 		return err
 	}

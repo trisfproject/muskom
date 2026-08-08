@@ -130,7 +130,6 @@ export const adminParticipantService = {
       job_title: payload.job_title,
       department: payload.community,
       special_notes: payload.special_notes,
-      registration_number: payload.registration_number,
     };
     const response = await api.put(`/admin/participants/${id}`, apiPayload);
     return response.data.data || response.data;

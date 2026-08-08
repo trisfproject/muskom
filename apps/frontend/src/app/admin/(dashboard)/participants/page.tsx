@@ -807,9 +807,10 @@ export default function AdminParticipantsPage() {
             <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <div>
                 <h2 className="text-lg font-bold pg-text">Edit Data Peserta</h2>
-                <p className="text-xs pg-muted">{editItem.registration_number}</p>
+                <p className="text-xs pg-muted">{editItem.participant_name} &bull; {editItem.registration_number}</p>
               </div>
               <button
+                type="button"
                 onClick={() => setEditItem(null)}
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
               >
@@ -818,27 +819,6 @@ export default function AdminParticipantsPage() {
             </div>
 
             <form onSubmit={handleSaveEdit} className="space-y-4 text-sm">
-              <div>
-                <label className="text-xs font-semibold pg-text block mb-1">Nama Lengkap</label>
-                <input
-                  type="text"
-                  required
-                  value={editForm.participant_name || ""}
-                  onChange={(e) => setEditForm({ ...editForm, participant_name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold pg-text block mb-1">Nama Panggilan</label>
-                <input
-                  type="text"
-                  value={editForm.nickname || ""}
-                  onChange={(e) => setEditForm({ ...editForm, nickname: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
-                />
-              </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold pg-text block mb-1">Email</label>
@@ -854,7 +834,6 @@ export default function AdminParticipantsPage() {
                   <label className="text-xs font-semibold pg-text block mb-1">Telepon</label>
                   <input
                     type="text"
-                    required
                     value={editForm.phone || ""}
                     onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
@@ -872,14 +851,10 @@ export default function AdminParticipantsPage() {
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold pg-text block mb-1">Jabatan</label>
                   <input
                     type="text"
-                    required
                     value={editForm.job_title || ""}
                     onChange={(e) => setEditForm({ ...editForm, job_title: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
@@ -892,7 +867,6 @@ export default function AdminParticipantsPage() {
                   <label className="text-xs font-semibold pg-text block mb-1">Area</label>
                   <input
                     type="text"
-                    required
                     value={editForm.region || ""}
                     onChange={(e) => setEditForm({ ...editForm, region: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
@@ -912,9 +886,10 @@ export default function AdminParticipantsPage() {
               <div>
                 <label className="text-xs font-semibold pg-text block mb-1">Catatan Tambahan</label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={editForm.special_notes || ""}
                   onChange={(e) => setEditForm({ ...editForm, special_notes: e.target.value })}
+                  placeholder="Catatan tambahan (opsional)"
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600 resize-none"
                 ></textarea>
               </div>

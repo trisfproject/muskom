@@ -88,15 +88,15 @@ type CreateParticipantRequest struct {
 
 // UpdateParticipantRequest represents the payload for updating an existing participant
 type UpdateParticipantRequest struct {
-	RegistrationNumber string  `json:"registration_number"`
-	FullName           string  `json:"full_name" validate:"required"`
+	RegistrationNumber string  `json:"registration_number" validate:"omitempty"`
+	FullName           string  `json:"full_name" validate:"omitempty"`
 	Nickname           *string `json:"nickname" validate:"omitempty"`
 
-	Email          string  `json:"email" validate:"required,email"`
-	Phone          string  `json:"phone" validate:"required"`
-	CompanyName    string  `json:"company_name" validate:"required"`
-	IndustrialArea string  `json:"industrial_area" validate:"required"`
-	JobTitle       string  `json:"job_title" validate:"required"`
+	Email          string  `json:"email" validate:"omitempty,email"`
+	Phone          string  `json:"phone" validate:"omitempty"`
+	CompanyName    string  `json:"company_name" validate:"omitempty"`
+	IndustrialArea string  `json:"industrial_area" validate:"omitempty"`
+	JobTitle       string  `json:"job_title" validate:"omitempty"`
 	Department     *string `json:"department" validate:"omitempty"`
 	SpecialNotes   *string `json:"special_notes" validate:"omitempty"`
 }
