@@ -82,7 +82,8 @@ export const adminParticipantService = {
     search?: string;
   }): Promise<AdminParticipantResponse[]> {
     const response = await api.get('/admin/registrations', { params });
-    return response.data.data || response.data;
+    const payload = response.data.data || response.data;
+    return payload.data || payload;
   },
 
   async getParticipantDetail(id: string): Promise<AdminParticipantResponse> {

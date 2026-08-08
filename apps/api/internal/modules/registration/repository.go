@@ -359,6 +359,7 @@ func (r *repository) ListRegistrations(ctx context.Context, filter AdminListRegi
 		SELECT 
 			r.id,
 			'global' AS event_id,
+			COALESCE(r.registration_number, '') AS registration_number,
 			'Musyawarah' AS event_name,
 			p.full_name AS participant_name,
 			p.email,
@@ -387,6 +388,7 @@ func (r *repository) ListRegistrations(ctx context.Context, filter AdminListRegi
 		err := rows.Scan(
 			&resp.ID,
 			&resp.EventID,
+			&resp.RegistrationNumber,
 			&resp.EventName,
 			&resp.ParticipantName,
 			&resp.Email,
@@ -423,6 +425,7 @@ func (r *repository) GetRegistrationAdminByID(ctx context.Context, id string) (*
 		SELECT 
 			r.id,
 			'global' AS event_id,
+			COALESCE(r.registration_number, '') AS registration_number,
 			'Musyawarah' AS event_name,
 			p.full_name AS participant_name,
 			p.email,
@@ -443,6 +446,7 @@ func (r *repository) GetRegistrationAdminByID(ctx context.Context, id string) (*
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&resp.ID,
 		&resp.EventID,
+		&resp.RegistrationNumber,
 		&resp.EventName,
 		&resp.ParticipantName,
 		&resp.Email,

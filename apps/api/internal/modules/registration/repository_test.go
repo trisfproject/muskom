@@ -242,11 +242,11 @@ func TestRepository_GetRegistrationAdminByID(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		rows := sqlmock.NewRows([]string{
-			"id", "event_id", "event_name", "participant_name", "email",
+			"id", "event_id", "registration_number", "event_name", "participant_name", "email",
 			"phone", "company", "job_title", "participant_category", "source",
 			"status", "created_at", "updated_at",
 		}).
-			AddRow("reg1", "evt1", "Event 1", "John Doe", "john@test.com", "123", "Acme", "Dev", "DELEGATE", "WEB", "PENDING", "2023-01-01", "2023-01-01")
+			AddRow("reg1", "evt1", "REG-001", "Event 1", "John Doe", "john@test.com", "123", "Acme", "Dev", "DELEGATE", "WEB", "PENDING", "2023-01-01", "2023-01-01")
 		mock.ExpectQuery("^SELECT r.id, 'global' AS event_id").WillReturnRows(rows)
 
 		res, err := repo.GetRegistrationAdminByID(ctx, "reg1")
@@ -269,11 +269,11 @@ func TestRepository_ListRegistrations(t *testing.T) {
 		mock.ExpectQuery("^SELECT COUNT\\(1\\) FROM registrations r").WillReturnRows(countRow)
 
 		rows := sqlmock.NewRows([]string{
-			"id", "event_id", "event_name", "participant_name", "email",
+			"id", "event_id", "registration_number", "event_name", "participant_name", "email",
 			"phone", "company", "job_title", "participant_category", "source",
 			"status", "created_at", "updated_at",
 		}).
-			AddRow("reg1", "evt1", "Event 1", "John Doe", "john@test.com", "123", "Acme", "Dev", "DELEGATE", "WEB", "PENDING", "2023-01-01", "2023-01-01")
+			AddRow("reg1", "evt1", "REG-001", "Event 1", "John Doe", "john@test.com", "123", "Acme", "Dev", "DELEGATE", "WEB", "PENDING", "2023-01-01", "2023-01-01")
 		mock.ExpectQuery("^SELECT r.id, 'global' AS event_id").WillReturnRows(rows)
 
 		req := AdminListRegistrationsRequest{
