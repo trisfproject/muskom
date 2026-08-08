@@ -587,10 +587,10 @@ func (r *repository) GetPendingEmails(ctx context.Context, limit int) ([]EmailLo
 func (r *repository) UpdateEmailLogStatus(ctx context.Context, logID string, status string, errorMsg *string) error {
 	query := `
 		UPDATE email_logs
-		SET status = $1, error_message = $2, retry_count = CASE WHEN $1 = 'FAILED' THEN retry_count + 1 ELSE retry_count END,
-		    sent_at = CASE WHEN $1 = 'SENT' THEN NOW() ELSE sent_at END,
-		    last_retry_at = NOW(),
-		    updated_at = NOW()
+		SET status = $1::VARCHAR, error_message = $2, retry_count = CASE WHEN $1::VARCHAR = 'FAILED' THEN retry_count + 1 ELSE retry_count END,
+			sent_at = CASE WHEN $1::VARCHAR = 'SENT' THEN NOW() ELSE sent_at END,
+			last_retry_at = NOW(),
+			updated_at = NOW()
 		WHERE id = $3
 	`
 	_, err := r.db.ExecContext(ctx, query, status, errorMsg, logID)
