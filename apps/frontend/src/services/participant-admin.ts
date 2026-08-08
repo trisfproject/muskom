@@ -26,6 +26,17 @@ export interface ParticipantAuditEntry {
   created_at: string;
 }
 
+export interface EmailLogResponse {
+  id: string;
+  email_type: string;
+  recipient_email: string;
+  status: string;
+  sent_at?: string;
+  last_retry_at?: string;
+  retry_count: number;
+  error_message?: string;
+}
+
 // ─── Dashboard / Stats types ──────────────────────────────────────────────────
 
 export interface LabelCount {
@@ -81,6 +92,15 @@ export const adminParticipantService = {
 
   async updateStatus(id: string, payload: { status: string, reason?: string }): Promise<void> {
     await api.patch(`/admin/registrations/${id}/status`, payload);
+  },
+
+  async getEmailHistory(id: string): Promise<EmailLogResponse[]> {
+    const response = await api.get(`/admin/registrations/${id}/emails`);
+    return response.data.data || response.data;
+  },
+
+  async resendEmail(id: string, emailType: string): Promise<void> {
+    await api.post(`/admin/registrations/${id}/emails/resend`, { email_type: emailType });
   },
 
   async createParticipant(payload: any): Promise<AdminParticipantResponse> {

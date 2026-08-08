@@ -2,6 +2,7 @@ package registration
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -235,4 +236,52 @@ func (h *Handler) AdminUpdateStatus(c fiber.Ctx) error {
 	}
 
 	return response.SendSuccess(c, fiber.StatusOK, "Registration status updated successfully", nil, nil)
+}
+
+func (h *Handler) AdminGetEmailHistory(c fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "Registration ID is required", nil)
+	}
+
+	res, err := h.service.GetEmailHistory(c.Context(), id)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Email history retrieved successfully", res, nil)
+}
+
+func (h *Handler) AdminResendEmail(c fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "Registration ID is required", nil)
+	}
+
+	var req ResendEmailRequest
+	if err := c.Bind().Body(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+
+	adminUserID := c.Locals("user_id")
+	if adminUserID == nil {
+		adminUserID = "system"
+	}
+
+	err := h.service.ResendEmail(c.Context(), id, &req, adminUserID.(string))
+	if err != nil {
+		var valErr *ValidationError
+		if errors.As(err, &valErr) {
+			return response.SendError(c, fiber.StatusUnprocessableEntity, "Validation failed", valErr.Details)
+		}
+		if errors.Is(err, ErrRegistrationNotFound) {
+			return response.SendError(c, fiber.StatusNotFound, err.Error(), nil)
+		}
+		if strings.Contains(err.Error(), "rate limit exceeded") {
+			return response.SendError(c, fiber.StatusTooManyRequests, err.Error(), nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Internal server error", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Email queued for resending", nil, nil)
 }

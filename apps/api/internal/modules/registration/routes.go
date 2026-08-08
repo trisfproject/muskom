@@ -33,4 +33,6 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *va
 	router.Get("/", handler.AdminList)
 	router.Get("/:id", handler.AdminGet)
 	router.Patch("/:id/status", handler.AdminUpdateStatus)
+	router.Get("/:id/emails", handler.AdminGetEmailHistory)
+	router.Post("/:id/emails/resend", handler.AdminResendEmail)
 }

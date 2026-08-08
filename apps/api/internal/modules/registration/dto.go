@@ -82,3 +82,18 @@ type AdminListRegistrationsResponse struct {
 	Limit      int                         `json:"limit"`
 	TotalPages int                         `json:"total_pages"`
 }
+
+type EmailLogResponse struct {
+	ID             string  `json:"id"`
+	EmailType      string  `json:"email_type"`
+	RecipientEmail string  `json:"recipient_email"`
+	Status         string  `json:"status"`
+	SentAt         *string `json:"sent_at,omitempty"`
+	LastRetryAt    *string `json:"last_retry_at,omitempty"`
+	RetryCount     int     `json:"retry_count"`
+	ErrorMessage   *string `json:"error_message,omitempty"`
+}
+
+type ResendEmailRequest struct {
+	EmailType string `json:"email_type" validate:"required,oneof=REGISTRATION_RECEIVED REGISTRATION_APPROVED REGISTRATION_REJECTED"`
+}

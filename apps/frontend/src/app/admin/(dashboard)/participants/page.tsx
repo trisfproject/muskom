@@ -23,11 +23,16 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
+  Send,
+  Filter,
+  MoreVertical,
+  Edit,
 } from "lucide-react";
 import {
   adminParticipantService,
   AdminParticipantResponse,
   ParticipantAuditEntry,
+  EmailLogResponse,
 } from "@/services/participant-admin";
 import { toast } from "sonner";
 
@@ -86,7 +91,9 @@ export default function AdminParticipantsPage() {
   // Modals & Drawers
   const [detailItem, setDetailItem] = useState<AdminParticipantResponse | null>(null);
   const [auditLogs, setAuditLogs] = useState<ParticipantAuditEntry[]>([]);
+  const [emailLogs, setEmailLogs] = useState<EmailLogResponse[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
 
   // Edit Modal
   const [editItem, setEditItem] = useState<AdminParticipantResponse | null>(null);
@@ -128,10 +135,9 @@ export default function AdminParticipantsPage() {
       result = result.filter(
         (r) =>
           r.registration_number.toLowerCase().includes(q) ||
-          r.full_name.toLowerCase().includes(q) ||
+          r.participant_name.toLowerCase().includes(q) ||
           r.email.toLowerCase().includes(q) ||
-          (r.company_name && r.company_name.toLowerCase().includes(q)) ||
-          (r.industrial_area && r.industrial_area.toLowerCase().includes(q))
+          (r.company && r.company.toLowerCase().includes(q))
       );
     }
     return result;
@@ -174,12 +180,33 @@ export default function AdminParticipantsPage() {
     setDetailItem(p);
     setLoadingLogs(true);
     try {
-      const logs = await adminParticipantService.getAuditLogs(p.id);
+      const [logs, emails] = await Promise.all([
+        adminParticipantService.getAuditLogs(p.id).catch(() => []),
+        adminParticipantService.getEmailHistory(p.id).catch(() => [])
+      ]);
       setAuditLogs(logs || []);
+      setEmailLogs(emails || []);
     } catch {
       setAuditLogs([]);
+      setEmailLogs([]);
     } finally {
       setLoadingLogs(false);
+    }
+  };
+
+  const handleResendEmail = async (emailType: string) => {
+    if (!detailItem) return;
+    setResendingEmail(true);
+    try {
+      await adminParticipantService.resendEmail(detailItem.id, emailType);
+      toast.success("Email berhasil dimasukkan ke antrean pengiriman ulang.");
+      // Refresh email logs
+      const emails = await adminParticipantService.getEmailHistory(detailItem.id);
+      setEmailLogs(emails || []);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Gagal mengirim ulang email.");
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -187,14 +214,11 @@ export default function AdminParticipantsPage() {
   const openEdit = (p: AdminParticipantResponse) => {
     setEditItem(p);
     setEditForm({
-      full_name: p.full_name,
-      nickname: p.nickname || "",
+      participant_name: p.participant_name,
       email: p.email,
       phone: p.phone,
-      company_name: p.company_name,
-      industrial_area: p.industrial_area,
+      company: p.company,
       job_title: p.job_title,
-      department: p.department || "",
       status: p.status,
     });
   };
@@ -437,7 +461,7 @@ export default function AdminParticipantsPage() {
                       <td className="px-5 py-4">
                         <div className="font-semibold text-sm pg-text">{p.company || "-"}</div>
                         <div className="text-xs pg-muted mt-0.5 flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-slate-400" /> {p.industrial_area || "-"}
+                          <MapPin className="w-3 h-3 text-slate-400" /> {"-"}
                         </div>
                       </td>
                       <td className="px-5 py-4">
@@ -563,7 +587,7 @@ export default function AdminParticipantsPage() {
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                 <span className="text-xs pg-muted block font-medium">Kawasan Industri</span>
                 <span className="font-semibold pg-text flex items-center gap-1.5 mt-1">
-                  <MapPin className="w-3.5 h-3.5 text-red-500" /> {detailItem.industrial_area || "-"}
+                  <MapPin className="w-3.5 h-3.5 text-red-500" /> {"-"}
                 </span>
               </div>
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
@@ -574,7 +598,7 @@ export default function AdminParticipantsPage() {
               </div>
               <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                 <span className="text-xs pg-muted block font-medium">Departemen</span>
-                <span className="font-semibold pg-text mt-1 block">{detailItem.department || "-"}</span>
+                <span className="font-semibold pg-text mt-1 block">{"-"}</span>
               </div>
             </div>
 
@@ -584,7 +608,35 @@ export default function AdminParticipantsPage() {
                 <span className="text-xs pg-muted block font-medium mb-1">Status Pendaftaran:</span>
                 <StatusBadge status={detailItem.status} />
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap justify-end">
+                {detailItem.status === "PENDING" && (
+                  <button
+                    onClick={() => handleResendEmail("REGISTRATION_RECEIVED")}
+                    disabled={resendingEmail}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Kirim Ulang Email Pendaftaran
+                  </button>
+                )}
+                {detailItem.status === "APPROVED" && (
+                  <button
+                    onClick={() => handleResendEmail("REGISTRATION_APPROVED")}
+                    disabled={resendingEmail}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Kirim Ulang Email Approval
+                  </button>
+                )}
+                {detailItem.status === "REJECTED" && (
+                  <button
+                    onClick={() => handleResendEmail("REGISTRATION_REJECTED")}
+                    disabled={resendingEmail}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Kirim Ulang Email Penolakan
+                  </button>
+                )}
+
                 <button
                   onClick={() => setStatusTarget({ id: detailItem.id, status: "APPROVED" })}
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer"
@@ -604,6 +656,53 @@ export default function AdminParticipantsPage() {
                   Edit Data
                 </button>
               </div>
+            </div>
+
+            {/* Email History */}
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+              <h3 className="text-sm font-bold pg-text mb-3 flex items-center gap-2">
+                <Mail className="w-4 h-4 text-slate-400" /> Riwayat Pengiriman Email
+              </h3>
+              {loadingLogs ? (
+                <p className="text-xs pg-muted">Memuat data email...</p>
+              ) : emailLogs.length === 0 ? (
+                <p className="text-xs pg-muted">Belum ada riwayat email.</p>
+              ) : (
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                  {emailLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className="text-xs p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30"
+                    >
+                      <div className="flex items-start justify-between mb-1.5">
+                        <span className="font-semibold pg-text">{log.email_type}</span>
+                        <span
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                            log.status === "SENT"
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                              : log.status === "FAILED"
+                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                          }`}
+                        >
+                          {log.status}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-[11px] pg-muted">
+                        <div>Penerima: {log.recipient_email}</div>
+                        <div>Terkirim: {log.sent_at ? new Date(log.sent_at).toLocaleString('id-ID') : '-'}</div>
+                        <div>Upaya Gagal: {log.retry_count}</div>
+                        <div>Last Retry: {log.last_retry_at ? new Date(log.last_retry_at).toLocaleString('id-ID') : '-'}</div>
+                      </div>
+                      {log.error_message && (
+                        <div className="mt-2 text-[10px] text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 p-1.5 rounded">
+                          Error: {log.error_message}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Audit Logs */}
@@ -670,8 +769,8 @@ export default function AdminParticipantsPage() {
                 <input
                   type="text"
                   required
-                  value={editForm.full_name || ""}
-                  onChange={(e) => setEditForm({ ...editForm, full_name: e.target.value })}
+                  value={editForm.participant_name || ""}
+                  onChange={(e) => setEditForm({ ...editForm, participant_name: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
                 />
               </div>
@@ -704,17 +803,8 @@ export default function AdminParticipantsPage() {
                   <label className="text-xs font-semibold pg-text block mb-1">Perusahaan</label>
                   <input
                     type="text"
-                    value={editForm.company_name || ""}
-                    onChange={(e) => setEditForm({ ...editForm, company_name: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold pg-text block mb-1">Kawasan Industri</label>
-                  <input
-                    type="text"
-                    value={editForm.industrial_area || ""}
-                    onChange={(e) => setEditForm({ ...editForm, industrial_area: e.target.value })}
+                    value={editForm.company || ""}
+                    onChange={(e) => setEditForm({ ...editForm, company: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
                   />
                 </div>

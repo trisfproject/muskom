@@ -60,6 +60,10 @@ type Service interface {
 	AdminListRegistrations(ctx context.Context, req *AdminListRegistrationsRequest) (*AdminListRegistrationsResponse, error)
 	AdminGetRegistration(ctx context.Context, id string) (*AdminRegistrationResponse, error)
 	AdminUpdateRegistrationStatus(ctx context.Context, id string, req *AdminUpdateRegistrationStatusRequest, adminUserID string) error
+
+	// Email Logs
+	GetEmailHistory(ctx context.Context, registrationID string) ([]EmailLogResponse, error)
+	ResendEmail(ctx context.Context, registrationID string, req *ResendEmailRequest, adminID string) error
 }
 
 type service struct {
@@ -197,29 +201,16 @@ func (s *service) RegisterParticipant(ctx context.Context, req *PublicRegistrati
 	}
 
 	// 7. Send Email #1
-	go func() {
-		emailData := map[string]interface{}{
-			"participant_name":  req.FullName,
-			"submission_id":     reg.ID,
-			"registration_time": time.Now().Format("2006-01-02 15:04:05"),
-			"status":            "Pending Verification",
-		}
-		
-		htmlContent := "<h2>Registration Received</h2>" +
-			"<p>Hello " + req.FullName + ",</p>" +
-			"<p>Your registration for MUSKOM 2026 has been received.</p>" +
-			"<ul>" +
-			"<li><strong>Submission ID:</strong> " + reg.ID + "</li>" +
-			"<li><strong>Time:</strong> " + emailData["registration_time"].(string) + "</li>" +
-			"<li><strong>Status:</strong> " + emailData["status"].(string) + "</li>" +
-			"</ul>" +
-			"<p>Please wait for administrator approval.</p>"
-			
-		err := s.mailerSvc.SendRaw(req.Email, "Registration Received - MUSKOM 2026", htmlContent)
-		if err != nil {
-			s.log.Error("Failed to send pending verification email", zap.Error(err), zap.String("email", req.Email))
-		}
-	}()
+	// 7. Queue Email #1
+	emailLog := &EmailLog{
+		RegistrationID: reg.ID,
+		EmailType:      "REGISTRATION_RECEIVED",
+		RecipientEmail: req.Email,
+		Status:         "PENDING",
+	}
+	if err := s.repo.CreateEmailLog(ctx, nil, emailLog); err != nil {
+		s.log.Error("Failed to queue pending verification email", zap.Error(err), zap.String("email", req.Email))
+	}
 
 	return &PublicRegistrationResponse{
 		RegistrationCode:   reg.ID,
@@ -507,26 +498,16 @@ func (s *service) AdminUpdateRegistrationStatus(ctx context.Context, id string, 
 			return err
 		}
 
-		// 4. Send Email #2 (Approval Email)
-		go func() {
-			qrUrl := fmt.Sprintf("%s/api/v1/public/qr/%s.png", s.cfg.AppBaseURL, newRegNum)
-			lookupUrl := fmt.Sprintf("%s/peserta", s.cfg.AppBaseURL)
-			
-			htmlContent := "<h2>Registration Approved</h2>" +
-				"<p>Hello " + reg.ParticipantName + ",</p>" +
-				"<p>Your registration for MUSKOM 2026 has been approved.</p>" +
-				"<ul>" +
-				"<li><strong>Registration Number:</strong> " + newRegNum + "</li>" +
-				"<li><strong>QR Code:</strong> <img src='" + qrUrl + "' alt='QR Code' /></li>" +
-				"<li><strong>Participant Lookup:</strong> <a href='" + lookupUrl + "'>" + lookupUrl + "</a></li>" +
-				"</ul>" +
-				"<p>See you at the event!</p>"
-				
-			err := s.mailerSvc.SendRaw(reg.Email, "Registration Approved - MUSKOM 2026", htmlContent)
-			if err != nil {
-				s.log.Error("Failed to send approval email", zap.Error(err), zap.String("email", reg.Email))
-			}
-		}()
+		// 4. Queue Email #2 (Approval Email)
+		emailLog := &EmailLog{
+			RegistrationID: reg.ID,
+			EmailType:      "REGISTRATION_APPROVED",
+			RecipientEmail: reg.Email,
+			Status:         "PENDING",
+		}
+		if err := s.repo.CreateEmailLog(ctx, nil, emailLog); err != nil {
+			s.log.Error("Failed to queue approval email", zap.Error(err), zap.String("email", reg.Email))
+		}
 		return nil
 	}
 
@@ -549,3 +530,89 @@ func (s *service) AdminUpdateRegistrationStatus(ctx context.Context, id string, 
 
 	return tx.Commit()
 }
+
+func (s *service) GetEmailHistory(ctx context.Context, registrationID string) ([]EmailLogResponse, error) {
+	logs, err := s.repo.GetEmailLogsByRegistration(ctx, registrationID)
+	if err != nil {
+		return nil, err
+	}
+	var res []EmailLogResponse
+	for _, l := range logs {
+		var sentAt *string
+		if l.SentAt != nil {
+			t := l.SentAt.Format(time.RFC3339)
+			sentAt = &t
+		}
+		var lastRetryAt *string
+		if l.LastRetryAt != nil {
+			t := l.LastRetryAt.Format(time.RFC3339)
+			lastRetryAt = &t
+		}
+		res = append(res, EmailLogResponse{
+			ID:             l.ID,
+			EmailType:      l.EmailType,
+			RecipientEmail: l.RecipientEmail,
+			Status:         l.Status,
+			SentAt:         sentAt,
+			LastRetryAt:    lastRetryAt,
+			RetryCount:     l.RetryCount,
+			ErrorMessage:   l.ErrorMessage,
+		})
+	}
+	return res, nil
+}
+
+func (s *service) ResendEmail(ctx context.Context, registrationID string, req *ResendEmailRequest, adminID string) error {
+	if errs := s.validator.ValidateStruct(req); len(errs) > 0 {
+		return &ValidationError{Details: errs}
+	}
+
+	reg, err := s.repo.GetRegistrationAdminByID(ctx, registrationID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrRegistrationNotFound
+		}
+		return err
+	}
+
+	// 1. Rate Limiting: 1 per minute
+	countMin, err := s.repo.CountResendAttempts(ctx, registrationID, 1)
+	if err != nil {
+		return err
+	}
+	if countMin >= 1 {
+		return errors.New("rate limit exceeded: only 1 resend per minute is allowed")
+	}
+
+	// 2. Rate Limiting: 5 per day
+	countDay, err := s.repo.CountResendAttempts(ctx, registrationID, 24*60)
+	if err != nil {
+		return err
+	}
+	if countDay >= 5 {
+		return errors.New("rate limit exceeded: maximum 5 resends per day allowed")
+	}
+
+	// 3. Queue Email
+	emailLog := &EmailLog{
+		RegistrationID: reg.ID,
+		EmailType:      req.EmailType,
+		RecipientEmail: reg.Email,
+		Status:         "PENDING",
+		CreatedBy:      &adminID,
+	}
+	if err := s.repo.CreateEmailLog(ctx, nil, emailLog); err != nil {
+		return err
+	}
+
+	// 4. Audit Log
+	meta := map[string]string{
+		"email_type":      req.EmailType,
+		"recipient_email": reg.Email,
+	}
+	metaBytes, _ := json.Marshal(meta)
+	_ = s.repo.LogAudit(ctx, nil, "registration", "RESEND_EMAIL", "registrations", registrationID, string(metaBytes))
+
+	return nil
+}
+

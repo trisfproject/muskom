@@ -40,6 +40,13 @@ type Repository interface {
 	UpdateRegistrationStatus(ctx context.Context, tx *sqlx.Tx, id string, status string, adminID string) error
 	GetMaxRegistrationNumberTx(ctx context.Context, tx *sqlx.Tx) (int, error)
 	UpdateRegistrationStatusAndNumberTx(ctx context.Context, tx *sqlx.Tx, id string, status string, regNum string, adminID string) error
+
+	// Email Logs
+	CreateEmailLog(ctx context.Context, tx *sqlx.Tx, log *EmailLog) error
+	GetEmailLogsByRegistration(ctx context.Context, registrationID string) ([]EmailLog, error)
+	GetPendingEmails(ctx context.Context, limit int) ([]EmailLog, error)
+	UpdateEmailLogStatus(ctx context.Context, logID string, status string, errorMsg *string) error
+	CountResendAttempts(ctx context.Context, registrationID string, sinceMinutes int) (int, error)
 }
 
 type RegistrationConfirmationData struct {
@@ -505,4 +512,85 @@ func (r *repository) UpdateRegistrationStatusAndNumberTx(ctx context.Context, tx
 
 func itoa(i int) string {
 	return strconv.Itoa(i)
+}
+
+func (r *repository) CreateEmailLog(ctx context.Context, tx *sqlx.Tx, log *EmailLog) error {
+	query := `
+		INSERT INTO email_logs (registration_id, email_type, recipient_email, status, created_by, created_at, updated_at)
+		VALUES (:registration_id, :email_type, :recipient_email, :status, :created_by, NOW(), NOW())
+		RETURNING id, created_at, updated_at
+	`
+	if tx != nil {
+		rows, err := tx.NamedQuery(query, log)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		if rows.Next() {
+			return rows.StructScan(log)
+		}
+		return errors.New("failed to insert email log")
+	}
+	
+	rows, err := r.db.NamedQueryContext(ctx, query, log)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	if rows.Next() {
+		return rows.StructScan(log)
+	}
+	return errors.New("failed to insert email log")
+}
+
+func (r *repository) GetEmailLogsByRegistration(ctx context.Context, registrationID string) ([]EmailLog, error) {
+	query := `
+		SELECT * FROM email_logs
+		WHERE registration_id = $1
+		ORDER BY created_at DESC
+	`
+	var logs []EmailLog
+	err := r.db.SelectContext(ctx, &logs, query, registrationID)
+	if err == sql.ErrNoRows {
+		return []EmailLog{}, nil
+	}
+	return logs, err
+}
+
+func (r *repository) GetPendingEmails(ctx context.Context, limit int) ([]EmailLog, error) {
+	query := `
+		SELECT * FROM email_logs
+		WHERE status = 'PENDING' OR (status = 'FAILED' AND retry_count < 5)
+		ORDER BY created_at ASC
+		LIMIT $1
+	`
+	var logs []EmailLog
+	err := r.db.SelectContext(ctx, &logs, query, limit)
+	if err == sql.ErrNoRows {
+		return []EmailLog{}, nil
+	}
+	return logs, err
+}
+
+func (r *repository) UpdateEmailLogStatus(ctx context.Context, logID string, status string, errorMsg *string) error {
+	query := `
+		UPDATE email_logs
+		SET status = $1, error_message = $2, retry_count = CASE WHEN $1 = 'FAILED' THEN retry_count + 1 ELSE retry_count END,
+		    sent_at = CASE WHEN $1 = 'SENT' THEN NOW() ELSE sent_at END,
+		    last_retry_at = NOW(),
+		    updated_at = NOW()
+		WHERE id = $3
+	`
+	_, err := r.db.ExecContext(ctx, query, status, errorMsg, logID)
+	return err
+}
+
+func (r *repository) CountResendAttempts(ctx context.Context, registrationID string, sinceMinutes int) (int, error) {
+	query := `
+		SELECT COUNT(1) FROM email_logs
+		WHERE registration_id = $1 AND created_by IS NOT NULL AND created_at > NOW() - INTERVAL '1 minute' * $2
+	`
+	var count int
+	err := r.db.GetContext(ctx, &count, query, registrationID, sinceMinutes)
+	return count, err
 }

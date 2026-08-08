@@ -38,3 +38,18 @@ type MusyawarahActiveContext struct {
 	RegistrationLimit        *int   `db:"registration_limit"`
 	RegistrationApprovalMode string `db:"registration_approval_mode"`
 }
+
+type EmailLog struct {
+	ID             string     `db:"id"`
+	RegistrationID string     `db:"registration_id"`
+	EmailType      string     `db:"email_type"`
+	RecipientEmail string     `db:"recipient_email"`
+	Status         string     `db:"status"`
+	SentAt         *time.Time `db:"sent_at"`
+	LastRetryAt    *time.Time `db:"last_retry_at"`
+	RetryCount     int        `db:"retry_count"`
+	ErrorMessage   *string    `db:"error_message"`
+	CreatedBy      *string    `db:"created_by"`
+	CreatedAt      time.Time  `db:"created_at"`
+	UpdatedAt      time.Time  `db:"updated_at"`
+}

@@ -116,6 +116,11 @@ func main() {
 	annWorker := announcement.NewWorker(annRepo, mailerSvc, hub, log)
 	go annWorker.Start(context.Background())
 
+	// Create Registration Email Worker
+	regEmailWorker := registration.NewEmailWorker(db, log, mailerSvc, cfg)
+	regEmailWorker.Start()
+	// NOTE: In a real app we'd gracefully stop regEmailWorker.Stop() on shutdown, but this is fine for RC1.
+
 	// 6.5. RBAC Initialization
 	checker, authSvc := rbac.InitRBAC(db, log)
 
