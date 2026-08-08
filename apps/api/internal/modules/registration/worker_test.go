@@ -202,6 +202,11 @@ func TestEmailWorker_SendEmail_RegistrationReceived(t *testing.T) {
 
 	subjTpl := "Registration Received - {{portal_title}}"
 	bodyTpl := "<p>Hello {{.full_name}}, welcome to {{.portal_title}}</p>"
+	mockNotifRepo.On("GetWebsiteIdentity", mock.Anything).Return(map[string]interface{}{
+		"website_title": "Musyawarah Nasional",
+		"community_name": "MUSKOM",
+	}, nil)
+
 	mockNotifRepo.On("GetTemplateByName", ctx, "participant_registration_submitted", notification.ChannelEmail).Return(&notification.NotificationTemplate{
 		Name:    "participant_registration_submitted",
 		Channel: notification.ChannelEmail,
@@ -255,6 +260,11 @@ func TestEmailWorker_SendEmail_RegistrationApproved(t *testing.T) {
 	subjTpl := "Registration Approved - {{.portal_title}}"
 	// qr_code is now empty (no inline QR in RC1); lookup URL is absolute
 	bodyTpl := "<p>Hi {{.full_name}}, your number is {{.registration_number}}, qr is {{.qr_code}}, lookup at {{.lookup_url}}</p>"
+	mockNotifRepo.On("GetWebsiteIdentity", mock.Anything).Return(map[string]interface{}{
+		"website_title": "Kongres Tahunan",
+		"community_name": "MUSKOM",
+	}, nil)
+
 	mockNotifRepo.On("GetTemplateByName", ctx, "participant_registration_approved", notification.ChannelEmail).Return(&notification.NotificationTemplate{
 		Name:    "participant_registration_approved",
 		Channel: notification.ChannelEmail,
@@ -311,6 +321,10 @@ func TestEmailWorker_SendEmail_RegistrationApproved_MissingRegNumber(t *testing.
 	mockRepo.On("GetPortalTitle", ctx).Return("Kongres", nil)
 	mockRepo.On("GetPublicBaseURL", ctx).Return("", nil)
 
+	mockNotifRepo.On("GetWebsiteIdentity", mock.Anything).Return(map[string]interface{}{
+		"website_title": "Kongres",
+		"community_name": "MUSKOM",
+	}, nil)
 	mockNotifRepo.On("GetTemplateByName", ctx, "participant_registration_approved", notification.ChannelEmail).Return(&notification.NotificationTemplate{
 		Name:    "participant_registration_approved",
 		Channel: notification.ChannelEmail,
@@ -357,6 +371,10 @@ func TestEmailWorker_SendEmail_RegistrationRejected(t *testing.T) {
 
 	subjTpl := "Registration Status - {{.portal_title}}"
 	bodyTpl := "<p>Hi {{.full_name}}, status rejected. Reason: {{.rejection_reason}}</p>"
+	mockNotifRepo.On("GetWebsiteIdentity", mock.Anything).Return(map[string]interface{}{
+		"website_title": "Musyawarah",
+		"community_name": "MUSKOM",
+	}, nil)
 	mockNotifRepo.On("GetTemplateByName", ctx, "participant_registration_rejected", notification.ChannelEmail).Return(&notification.NotificationTemplate{
 		Name:    "participant_registration_rejected",
 		Channel: notification.ChannelEmail,
@@ -461,6 +479,10 @@ func TestEmailWorker_ProcessQueue_MaxRetryReached_StopsAndSetsFailed(t *testing.
 
 	subj := "Pendaftaran Berhasil"
 	body := "<p>Halo {{.full_name}}</p>"
+	mockNotifRepo.On("GetWebsiteIdentity", mock.Anything).Return(map[string]interface{}{
+		"website_title": "Musyawarah Nasional",
+		"community_name": "MUSKOM",
+	}, nil)
 	mockNotifRepo.On("GetTemplateByName", mock.Anything, "participant_registration_submitted", notification.ChannelEmail).Return(&notification.NotificationTemplate{
 		Name:    "participant_registration_submitted",
 		Channel: notification.ChannelEmail,

@@ -243,7 +243,7 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 		"reg_number":              regNum,
 		"participant_lookup_url":  lookupURL,
 		"lookup_url":              lookupURL,
-		// QR code fields: empty — template should use CTA link, not inline QR image
+		"participant_url":         lookupURL, // Alias as per user request
 		"qr_code":                 "",
 		"qr_code_url":             "",
 		"rejection_reason":        rejectionReason,
@@ -253,10 +253,36 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 		"job_title":               regAdmin.JobTitle,
 		"phone":                   regAdmin.Phone,
 		"email":                   regAdmin.Email,
-		// event_date and venue: not available in current schema (events table removed).
-		// Template must conditional-render these; pass empty to suppress display.
 		"event_date":              "",
+		"event_time":              "",
+		"event_location":          "",
 		"venue":                   "",
+	}
+
+	if identity, err := w.notifRepo.GetWebsiteIdentity(ctx); err == nil && identity != nil {
+		if title, ok := identity["website_title"].(string); ok && title != "" {
+			payload["website_title"] = title
+			payload["portal_title"] = title
+			payload["event_name"] = title
+		}
+		if comm, ok := identity["community_name"].(string); ok && comm != "" {
+			payload["organization_name"] = comm
+			payload["community_name"] = comm
+		}
+		if eventName, ok := identity["event_name"].(string); ok && eventName != "" {
+			payload["event_name"] = eventName
+			payload["website_title"] = eventName
+		}
+		if eventDate, ok := identity["event_date"].(string); ok && eventDate != "" {
+			payload["event_date"] = eventDate
+		}
+		if eventTime, ok := identity["event_time"].(string); ok && eventTime != "" {
+			payload["event_time"] = eventTime
+		}
+		if eventLoc, ok := identity["event_location"].(string); ok && eventLoc != "" {
+			payload["event_location"] = eventLoc
+			payload["venue"] = eventLoc
+		}
 	}
 
 	// 8. Render template using shared renderer

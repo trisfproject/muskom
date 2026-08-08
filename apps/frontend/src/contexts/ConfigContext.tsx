@@ -13,11 +13,12 @@ interface ConfigContextType {
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 
 // Initial fallback config to prevent hydration mismatch and provide immediate render
-const fallbackConfig: FullSystemConfig = {
+export const fallbackConfig: FullSystemConfig = {
   website_identity: {
     community_name: "MUSKOM",
     website_title: "MUSKOM — Portal Musyawarah",
     website_description: "Portal resmi pengelolaan musyawarah.",
+    website_base_url: "https://muskom.komitkabe.com",
     logo_url: "/logo.png",
     favicon_url: "/favicon.ico",
   },

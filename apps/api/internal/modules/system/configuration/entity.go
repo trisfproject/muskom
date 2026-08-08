@@ -22,6 +22,7 @@ type WebsiteIdentityConfig struct {
 	CommunityName      string `json:"community_name" validate:"required,max=255"`
 	WebsiteTitle       string `json:"website_title" validate:"required,max=255"`
 	WebsiteDescription string `json:"website_description" validate:"required"`
+	WebsiteBaseURL     string `json:"website_base_url" validate:"required,url"`
 	LogoURL            string `json:"logo_url" validate:"omitempty"`
 	FaviconURL         string `json:"favicon_url" validate:"omitempty"`
 }

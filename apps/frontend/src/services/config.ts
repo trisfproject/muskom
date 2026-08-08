@@ -4,6 +4,7 @@ export interface WebsiteIdentityConfig {
   community_name: string;
   website_title: string;
   website_description: string;
+  website_base_url: string;
   logo_url: string;
   favicon_url: string;
 }
