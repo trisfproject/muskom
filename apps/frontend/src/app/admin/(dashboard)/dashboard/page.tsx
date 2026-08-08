@@ -181,18 +181,19 @@ export default function AdminDashboardPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold pg-text">Kapasitas Kuota Peserta Terverifikasi</h3>
+                <h3 className="text-base font-bold pg-text">Kapasitas Peserta Utama</h3>
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                  summary.capacity_status === 'Full' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' :
-                  summary.capacity_status === 'Critical' ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20' :
-                  summary.capacity_status === 'Warning' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
+                  summary.capacity_status === 'FULL' ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20' :
+                  summary.capacity_status === 'CRITICAL' ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20' :
+                  summary.capacity_status === 'WARNING' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
+                  summary.capacity_status === 'WAITING_LIST_OPEN' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
                   'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                 }`}>
-                  Status: {summary.capacity_status || (summary.participant_limit && summary.participant_limit > 0 ? (summary.approved_participants >= summary.participant_limit ? 'Full' : 'Normal') : 'Normal')}
+                  Status: {summary.capacity_status === 'WAITING_LIST_OPEN' ? 'Waiting List Terbuka' : summary.capacity_status || (summary.participant_limit && summary.participant_limit > 0 ? (summary.approved_participants >= summary.participant_limit ? 'Full' : 'Normal') : 'Normal')}
                 </span>
               </div>
               <p className="text-xs pg-muted">
-                Hanya peserta berstatus <strong>VERIFIED</strong> yang mengonsumsi kuota peserta acara.
+                Seluruh peserta di luar status <strong>Ditolak</strong> &amp; <strong>Daftar Tunggu</strong> akan mengonsumsi kuota peserta utama.
               </p>
             </div>
           </div>
@@ -210,7 +211,7 @@ export default function AdminDashboardPage() {
         <div className="space-y-3 pt-1">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs font-semibold gap-2">
             <div className="flex items-center gap-2">
-              <span className="pg-muted">Peserta Terverifikasi:</span>
+              <span className="pg-muted">Peserta Utama:</span>
               <span className="text-sm font-bold pg-text">
                 {summary.approved_participants} / {summary.participant_limit && summary.participant_limit > 0 ? summary.participant_limit : "∞ (Tak Terbatas)"}
               </span>
@@ -248,6 +249,33 @@ export default function AdminDashboardPage() {
               }}
             />
           </div>
+
+          {(summary.capacity_mode === 'WAITING_LIST' || (summary.waiting_list != null && summary.waiting_list > 0)) && (
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/50 mt-3">
+              <div className="flex items-center justify-between text-xs font-semibold">
+                <div className="flex items-center gap-2">
+                  <span className="pg-muted">Daftar Tunggu:</span>
+                  <span className="text-sm font-bold pg-text">
+                    {summary.waiting_list || 0} / {summary.waiting_list_capacity && summary.waiting_list_capacity > 0 ? summary.waiting_list_capacity : "∞"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="pg-muted">Sisa: </span>
+                  <span className={`font-bold ${summary.waiting_list_remaining === 0 ? 'text-rose-500' : 'text-amber-500'}`}>
+                    {summary.waiting_list_remaining != null ? `${summary.waiting_list_remaining} kursi` : "Tak Terbatas"}
+                  </span>
+                </div>
+              </div>
+              {summary.waiting_list_capacity != null && summary.waiting_list_capacity > 0 && (
+                <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mt-1.5">
+                  <div
+                    className="h-full bg-amber-500 rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${Math.min(((summary.waiting_list || 0) / summary.waiting_list_capacity) * 100, 100)}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

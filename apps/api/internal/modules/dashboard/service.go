@@ -94,14 +94,20 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 	// 3. Fetch Summary Metrics
 	// Sequential quick COUNT queries against canonical tables.
 
-	s.db.GetContext(ctx, &data.Summary.TotalParticipants, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL`)
-	s.db.GetContext(ctx, &data.Summary.ApprovedParticipants, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(status) IN ('VERIFIED', 'APPROVED')`)
+	s.db.GetContext(ctx, &data.Summary.TotalParticipants, `SELECT COUNT(*) FROM registrations WHERE deleted_at IS NULL`)
+	
+	// ApprovedParticipants now represents the Main Pool count
+	s.db.GetContext(ctx, &data.Summary.ApprovedParticipants, `SELECT COUNT(*) FROM registrations WHERE deleted_at IS NULL AND UPPER(TRIM(status)) NOT IN ('REJECTED', 'WAITING LIST', 'WAITINGLIST', 'WAITING_LIST')`)
+	
+	// Count waiting list
+	s.db.GetContext(ctx, &data.Summary.WaitingList, `SELECT COUNT(*) FROM registrations WHERE deleted_at IS NULL AND UPPER(TRIM(status)) IN ('WAITING LIST', 'WAITINGLIST', 'WAITING_LIST')`)
+
 	s.db.GetContext(ctx, &data.Summary.TotalCandidates, `SELECT COUNT(*) FROM candidates WHERE deleted_at IS NULL AND publication_status = 'Published'`)
 	s.db.GetContext(ctx, &data.Summary.CheckedIn, `SELECT COUNT(*) FROM attendance WHERE undone_at IS NULL`)
 	s.db.GetContext(ctx, &data.Summary.VotesCast, `SELECT COUNT(*) FROM votes`)
 	s.db.GetContext(ctx, &data.Summary.PendingNotifications, `SELECT COUNT(*) FROM notification_jobs WHERE status IN ('PENDING', 'QUEUED', 'PROCESSING')`)
 
-	limitVal, _, modeVal := s.getRegistrationCapacitySettings(ctx)
+	limitVal, wlCap, modeVal := s.getRegistrationCapacitySettings(ctx)
 	data.Summary.CapacityMode = modeVal
 	if limitVal > 0 {
 		data.Summary.ParticipantLimit = &limitVal
@@ -114,7 +120,16 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 		data.Summary.CapacityPercentage = pct
 
 		if pct >= 100.0 {
-			data.Summary.CapacityStatus = "FULL"
+			if modeVal == "WAITING_LIST" && wlCap > 0 {
+				wlRem := wlCap - data.Summary.WaitingList
+				if wlRem > 0 {
+					data.Summary.CapacityStatus = "WAITING_LIST_OPEN"
+				} else {
+					data.Summary.CapacityStatus = "FULL"
+				}
+			} else {
+				data.Summary.CapacityStatus = "FULL"
+			}
 		} else if pct >= 90.0 {
 			data.Summary.CapacityStatus = "CRITICAL"
 		} else if pct >= 70.0 {
@@ -124,6 +139,15 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 		}
 	} else {
 		data.Summary.CapacityStatus = "UNLIMITED"
+	}
+
+	if wlCap > 0 {
+		data.Summary.WaitingListCapacity = &wlCap
+		wlRem := wlCap - data.Summary.WaitingList
+		if wlRem < 0 {
+			wlRem = 0
+		}
+		data.Summary.WaitingListRemaining = &wlRem
 	}
 
 	// 4. Fetch Recent Activity (Audit logs)
@@ -181,19 +205,22 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 		Status string `db:"status"`
 		Count  int    `db:"count"`
 	}
-	s.db.SelectContext(ctx, &partStats, `SELECT status, count(*) as count FROM participants WHERE deleted_at IS NULL GROUP BY status`)
+	s.db.SelectContext(ctx, &partStats, `SELECT status, count(*) as count FROM registrations WHERE deleted_at IS NULL GROUP BY status`)
 	for _, p := range partStats {
 		data.Participants.Total += p.Count
 		normalized := strings.ToUpper(strings.TrimSpace(p.Status))
 		switch {
-		case normalized == "VERIFIED" || normalized == "APPROVED":
-			data.Participants.Verified += p.Count
-		case normalized == "PENDING" || normalized == "UNVERIFIED":
-			data.Participants.Pending += p.Count
 		case normalized == "REJECTED":
 			data.Participants.Rejected += p.Count
 		case normalized == "WAITING LIST" || normalized == "WAITINGLIST" || normalized == "WAITING_LIST":
 			data.Participants.WaitingList += p.Count
+		default:
+			// Treat all non-rejected, non-waiting list as Main Pool (Verified capacity)
+			data.Participants.Verified += p.Count
+			// Also keep track of actual pending for the operations grid breakdown
+			if normalized == "PENDING" || normalized == "UNVERIFIED" {
+				data.Participants.Pending += p.Count
+			}
 		}
 	}
 
@@ -261,7 +288,7 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 	// Fetch Recent Registrations
 	s.db.SelectContext(ctx, &data.RecentRegistrations, `
 		SELECT id, registration_number, full_name, email, status, created_at 
-		FROM participants 
+		FROM registrations 
 		WHERE deleted_at IS NULL 
 		ORDER BY created_at DESC LIMIT 5
 	`)
