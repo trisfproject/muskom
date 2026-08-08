@@ -63,6 +63,7 @@ export function AdminSidebar({
       title: "Monitoring",
       items: [
         { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+        { label: "Operational Dashboard", href: "/admin/operations", icon: Activity },
       ],
     },
     {

@@ -158,17 +158,6 @@ export default function AdminDashboardPage() {
               </div>
             </div>
           </div>
-
-          {/* System Health Info */}
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border pg-border flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Server className="w-4 h-4 text-slate-400" />
-              <span className="text-xs font-semibold pg-text">Status Sistem</span>
-            </div>
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Normal
-            </span>
-          </div>
         </div>
       </div>
 

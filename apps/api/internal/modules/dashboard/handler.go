@@ -27,3 +27,13 @@ func (h *Handler) GetDashboardSummary(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Dashboard data retrieved", data, nil)
 }
 
+func (h *Handler) GetOperationsDashboard(c fiber.Ctx) error {
+	data, err := h.service.GetOperationsData(c.Context())
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return response.SendError(c, fiber.StatusNotFound, "No data found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to fetch operations data", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Operations data retrieved", data, nil)
+}

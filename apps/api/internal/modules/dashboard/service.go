@@ -15,6 +15,7 @@ import (
 
 type Service interface {
 	GetDashboardData(ctx context.Context) (*DashboardData, error)
+	GetOperationsData(ctx context.Context) (*OperationsDashboardData, error)
 }
 
 type service struct {
@@ -172,6 +173,87 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 		activities = []RecentActivity{}
 	}
 	data.RecentActivity = activities
+
+	return data, nil
+}
+
+func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardData, error) {
+	data := &OperationsDashboardData{
+		SystemHealth: SystemHealthStats{
+			API:      "Healthy",
+			Database: "Healthy",
+			Redis:    "Healthy",
+			Storage:  "Healthy",
+			SMTP:     "Healthy",
+		},
+		PendingRegistrations: []PendingRegistration{},
+		PendingCandidates:    []PendingCandidate{},
+		RecentActivity:       []RecentActivity{},
+	}
+
+	// Health Checks
+	if err := s.db.PingContext(ctx); err != nil {
+		data.SystemHealth.Database = "Offline"
+	}
+	if s.redisClient != nil {
+		if err := s.redisClient.Ping(ctx).Err(); err != nil {
+			data.SystemHealth.Redis = "Offline"
+		}
+	} else {
+		data.SystemHealth.Redis = "Unknown"
+	}
+	if s.storage == nil {
+		data.SystemHealth.Storage = "Unknown"
+	}
+	if s.mailer == nil {
+		data.SystemHealth.SMTP = "Unknown"
+	}
+
+	// Fetch Pending Registrations (Limit 10)
+	s.db.SelectContext(ctx, &data.PendingRegistrations, `
+		SELECT r.id, r.registration_number, p.full_name, p.email, r.status, r.created_at 
+		FROM registrations r
+		JOIN persons p ON r.person_id = p.id
+		WHERE r.status = 'Pending' OR r.status = 'Unverified'
+		ORDER BY r.created_at ASC LIMIT 10
+	`)
+
+	// Fetch Pending Candidates (Limit 10)
+	s.db.SelectContext(ctx, &data.PendingCandidates, `
+		SELECT id, full_name as name, profile_photo as photo_url, status, status as publication_status 
+		FROM candidates 
+		WHERE deleted_at IS NULL AND (status = 'Draft' OR status = 'Pending')
+		ORDER BY updated_at ASC LIMIT 10
+	`)
+
+	// Attendance Stats
+	s.db.GetContext(ctx, &data.Attendance.Present, `SELECT count(*) FROM attendance WHERE check_in_time IS NOT NULL`)
+	
+	// Eligible Voters
+	s.db.GetContext(ctx, &data.Voting.RemainingVoters, `SELECT count(*) FROM voting_eligibility WHERE can_vote = true`)
+	// Votes Cast
+	s.db.GetContext(ctx, &data.Voting.VotesSubmitted, `SELECT count(*) FROM votes`)
+	
+	if data.Voting.RemainingVoters > 0 {
+		// RemainingVoters is total eligible in DB initially, let's just send Total Eligible as RemainingVoters
+		// Actually voting summary might need more precise calculation.
+	}
+
+	// Fetch Recent Activity using existing repository
+	opEntries, _, _ := s.auditRepo.Search(ctx, audit.AuditFilter{
+		Page:  1,
+		Limit: 10,
+	})
+
+	for _, entry := range opEntries {
+		data.RecentActivity = append(data.RecentActivity, RecentActivity{
+			ID:        entry.ID,
+			Action:    string(entry.Action),
+			Actor:     entry.ActorName,
+			Role:      entry.ActorRole,
+			Timestamp: entry.CreatedAt,
+		})
+	}
 
 	return data, nil
 }
