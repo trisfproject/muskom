@@ -508,9 +508,9 @@ export default function AdminParticipantsPage() {
                         <div className="text-xs pg-muted mt-0.5">{p.email}</div>
                       </td>
                       <td className="px-5 py-4">
-                        <div className="font-semibold text-sm pg-text">{p.company_name || p.company || "-"}</div>
+                        <div className="font-semibold text-sm pg-text">{p.company || p.company_name || "-"}</div>
                         <div className="text-xs pg-muted mt-0.5 flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-slate-400" /> {p.industrial_area || "-"}
+                          <MapPin className="w-3 h-3 text-slate-400" /> {p.region || p.industrial_area || "-"}
                         </div>
                       </td>
                       <td className="px-5 py-4">
