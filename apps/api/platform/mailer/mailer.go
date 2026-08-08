@@ -9,6 +9,8 @@ import (
 	"html/template"
 	"math/rand"
 	"net/smtp"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/trisfproject/muskom/apps/api/platform/config"
@@ -84,7 +86,13 @@ func (m *smtpMailer) SendRegistrationConfirmation(to, participantName, regNumber
 
 	data := m.getBrandMap()
 	data["participant_name"] = participantName
-	data["lookup_url"] = fmt.Sprintf("%s/peserta", m.cfg.AppBaseURL)
+	baseURL := strings.TrimRight(m.cfg.AppBaseURL, "/")
+	if to != "" {
+		data["lookup_url"] = fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(to))
+	} else {
+		data["lookup_url"] = fmt.Sprintf("%s/peserta", baseURL)
+	}
+	data["participant_lookup_url"] = data["lookup_url"]
 
 	parsedSubject, err := m.parseAndExecute(subject, data)
 	if err != nil {
@@ -139,7 +147,17 @@ func (m *smtpMailer) SendVerification(to, participantName, regNumber, musyawarah
 	data := m.getBrandMap()
 	data["participant_name"] = participantName
 	data["reg_number"] = regNumber
-	data["lookup_url"] = fmt.Sprintf("%s/peserta", m.cfg.AppBaseURL)
+	baseURL := strings.TrimRight(m.cfg.AppBaseURL, "/")
+	lookupQuery := regNumber
+	if lookupQuery == "" {
+		lookupQuery = to
+	}
+	if lookupQuery != "" {
+		data["lookup_url"] = fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(lookupQuery))
+	} else {
+		data["lookup_url"] = fmt.Sprintf("%s/peserta", baseURL)
+	}
+	data["participant_lookup_url"] = data["lookup_url"]
 
 	parsedSubject, err := m.parseAndExecute(subject, data)
 	if err != nil {

@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
+	"net/url"
 	"strings"
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
@@ -176,12 +178,16 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 			finalP = p
 
 			// 5. Queue Approval Email in Tx
+			baseURL := strings.TrimRight(s.cfg.AppBaseURL, "/")
+			lookupURL := fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(p.RegistrationNumber))
 			payload := map[string]interface{}{
 				"full_name":              p.FullName,
 				"registration_number":    p.RegistrationNumber,
 				"event_name":             "MUSKOM 2026",
-				"qr_code":                fmt.Sprintf("%s/api/v1/public/qr/%s.png", s.cfg.AppBaseURL, p.RegistrationNumber),
-				"participant_lookup_url": fmt.Sprintf("%s/peserta", s.cfg.AppBaseURL),
+				"qr_code":                "cid:qrcode",
+				"qr_code_url":            "cid:qrcode",
+				"participant_lookup_url": lookupURL,
+				"lookup_url":             lookupURL,
 				"event_date":             "Tanggal Acara",
 				"venue":                  "Lokasi Acara",
 			}

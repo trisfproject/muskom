@@ -3,6 +3,8 @@ package registration
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -195,7 +197,15 @@ func (w *EmailWorker) sendEmail(ctx context.Context, logItem EmailLog) error {
 		})
 	}
 
-	lookupURL := fmt.Sprintf("%s/peserta", appBaseURL)
+	baseURL := strings.TrimRight(appBaseURL, "/")
+	lookupQuery := regNum
+	if lookupQuery == "" {
+		lookupQuery = regAdmin.Email
+	}
+	lookupURL := fmt.Sprintf("%s/peserta", baseURL)
+	if lookupQuery != "" {
+		lookupURL = fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(lookupQuery))
+	}
 
 	rejectionReason := regAdmin.SpecialNotes
 	if rejectionReason == "" {

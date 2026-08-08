@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/google/uuid"
@@ -172,15 +173,18 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 				rn = *regNumber
 			}
 			
-			appBaseUrl := s.cfg.AppBaseURL
+			baseURL := strings.TrimRight(s.cfg.AppBaseURL, "/")
+			lookupURL := fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(rn))
 			payload := map[string]interface{}{
-				"full_name":           detail.FullName,
-				"registration_number": rn,
-				"event_name":          "MUSKOM 2026",
-				"participant_lookup_url": fmt.Sprintf("%s/checkin/%s", appBaseUrl, rn),
-				"qr_code_url":         fmt.Sprintf("https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=%s", rn),
-				"event_date": "Tanggal Acara", // Placeholder
-				"venue": "Lokasi Acara",       // Placeholder
+				"full_name":              detail.FullName,
+				"registration_number":    rn,
+				"event_name":             "MUSKOM 2026",
+				"participant_lookup_url": lookupURL,
+				"lookup_url":             lookupURL,
+				"qr_code_url":            "cid:qrcode",
+				"qr_code":                "cid:qrcode",
+				"event_date":             "Tanggal Acara", // Placeholder
+				"venue":                  "Lokasi Acara",   // Placeholder
 			}
 			if s.notifSvc != nil {
 				_ = s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, "participant_registration_approved", detail.Email, payload)

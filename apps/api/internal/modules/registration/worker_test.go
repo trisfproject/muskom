@@ -252,7 +252,7 @@ func TestEmailWorker_SendEmail_RegistrationApproved(t *testing.T) {
 	mockMailer.On("SendRawWithAttachments",
 		"dewi@example.com",
 		"Registration Approved - Kongres Tahunan",
-		"<p>Hi Dewi Lestari, your number is REG-99999, qr is cid:qrcode, lookup at https://example.com/peserta</p>",
+		"<p>Hi Dewi Lestari, your number is REG-99999, qr is cid:qrcode, lookup at https://example.com/peserta?q=REG-99999</p>",
 		mock.MatchedBy(func(atts []mailer.Attachment) bool {
 			return len(atts) == 1 &&
 				atts[0].ContentID == "qrcode" &&

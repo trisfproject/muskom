@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
+import { useSearchParams } from "next/navigation"
 import { Search, Loader2 } from "lucide-react"
 import { ParticipantStatusCard } from "./ParticipantStatusCard"
 import { VerifiedParticipantCard } from "./VerifiedParticipantCard"
@@ -15,21 +16,21 @@ type LookupResult = {
 }
 
 export function ParticipantLookupContent() {
+  const searchParams = useSearchParams()
   const [query, setQuery] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<LookupResult | null>(null)
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!query.trim()) return
+  const performSearch = useCallback(async (searchQuery: string) => {
+    if (!searchQuery.trim()) return
 
     setLoading(true)
     setError(null)
     setResult(null)
 
     try {
-      const res = await api.post("/public/register/lookup", { query })
+      const res = await api.post("/public/register/lookup", { query: searchQuery.trim() })
       setResult(res.data.data)
     } catch (err: any) {
       if (err.response?.status === 404) {
@@ -40,6 +41,19 @@ export function ParticipantLookupContent() {
     } finally {
       setLoading(false)
     }
+  }, [])
+
+  useEffect(() => {
+    const q = searchParams.get("q") || searchParams.get("query") || searchParams.get("reg") || searchParams.get("registration_number")
+    if (q) {
+      setQuery(q)
+      performSearch(q)
+    }
+  }, [searchParams, performSearch])
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    performSearch(query)
   }
 
   const handleReset = () => {

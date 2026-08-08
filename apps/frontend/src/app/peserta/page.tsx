@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import { Suspense } from "react"
 import { Header } from "@/components/landing/Header"
 import { Footer } from "@/components/landing/Footer"
 import { ParticipantLookupContent } from "@/components/peserta/ParticipantLookupContent"
@@ -24,7 +25,13 @@ export default function PesertaPage() {
             </p>
           </div>
           
-          <ParticipantLookupContent />
+          <Suspense fallback={
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          }>
+            <ParticipantLookupContent />
+          </Suspense>
         </div>
       </main>
 
