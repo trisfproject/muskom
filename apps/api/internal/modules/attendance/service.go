@@ -3,6 +3,8 @@ package attendance
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/trisfproject/muskom/apps/api/platform/response"
 	"github.com/trisfproject/muskom/apps/api/platform/validator"
@@ -66,8 +68,10 @@ func (s *service) CheckIn(ctx context.Context, req *CheckInRequest, operatorID s
 		return nil, errors.New("participant not found")
 	}
 
-	if status != "APPROVED" && status != "Verified" {
-		return nil, errors.New("cannot check-in: participant status is invalid")
+	// Normalise for comparison — DB stores mixed-case variants ('Verified', 'APPROVED', etc.)
+	uStatus := strings.ToUpper(strings.TrimSpace(status))
+	if uStatus != "APPROVED" && uStatus != "VERIFIED" {
+		return nil, fmt.Errorf("cannot check-in: participant status is %s", status)
 	}
 
 	tx, err := s.repo.BeginTx(ctx)
@@ -82,7 +86,8 @@ func (s *service) CheckIn(ctx context.Context, req *CheckInRequest, operatorID s
 	}
 
 	if inserted {
-		if err := s.repo.LogAudit(ctx, tx, "attendance", "CHECK_IN_PARTICIPANT", "attendance", req.ParticipantID, "Participant checked in successfully via QR/Manual"); err != nil {
+		// Pass operatorID explicitly so LogAudit can record actor correctly
+		if err := s.repo.LogAudit(ctx, tx, "attendance", "CHECK_IN_PARTICIPANT", "attendance", req.ParticipantID, operatorID, "Participant checked in successfully via QR/Manual"); err != nil {
 			return nil, err
 		}
 	}
@@ -125,8 +130,9 @@ func (s *service) GetAttendanceByID(ctx context.Context, id string) (*Attendance
 }
 
 func (s *service) UndoCheckIn(ctx context.Context, checkInID string, operatorID string, req *UndoCheckInRequest) error {
-	if errs := s.validator.ValidateStruct(req); len(errs) > 0 {
-		return &ValidationError{Details: errs}
+	notes := req.Notes
+	if notes == "" {
+		notes = "Undone by operator"
 	}
 
 	tx, err := s.repo.BeginTx(ctx)
@@ -135,12 +141,12 @@ func (s *service) UndoCheckIn(ctx context.Context, checkInID string, operatorID 
 	}
 	defer tx.Rollback()
 
-	if err := s.repo.UndoCheckIn(ctx, tx, checkInID, operatorID, req.Notes); err != nil {
+	if err := s.repo.UndoCheckIn(ctx, tx, checkInID, operatorID, notes); err != nil {
 		return err
 	}
 
-	metadata := "Check-in undone with reason: " + req.Notes
-	if err := s.repo.LogAudit(ctx, tx, "attendance", "UNDO_CHECK_IN", "attendance", checkInID, metadata); err != nil {
+	metadata := "Check-in undone with reason: " + notes
+	if err := s.repo.LogAudit(ctx, tx, "attendance", "UNDO_CHECK_IN", "attendance", checkInID, operatorID, metadata); err != nil {
 		return err
 	}
 
@@ -165,7 +171,7 @@ func (s *service) BulkUndoCheckIn(ctx context.Context, ids []string, operatorID 
 
 	if affected > 0 {
 		metadata := "Bulk check-in undone with reason: " + reason
-		_ = s.repo.LogAudit(ctx, tx, "attendance", "BULK_UNDO_CHECK_IN", "attendance", operatorID, metadata)
+		_ = s.repo.LogAudit(ctx, tx, "attendance", "BULK_UNDO_CHECK_IN", "attendance", operatorID, operatorID, metadata)
 	}
 
 	if err := tx.Commit(); err != nil {

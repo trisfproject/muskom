@@ -51,5 +51,5 @@ type AttendanceItemResponse struct {
 }
 
 type UndoCheckInRequest struct {
-	Notes string `json:"notes" validate:"required"`
+	Notes string `json:"notes"`
 }

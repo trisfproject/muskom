@@ -109,7 +109,7 @@ func TestService_CheckIn(t *testing.T) {
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 
 		mockRepo.On("CreateAttendance", mock.Anything, tx, req.ParticipantID, "op1").Return(true, nil).Once()
-		mockRepo.On("LogAudit", mock.Anything, tx, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
+		mockRepo.On("LogAudit", mock.Anything, tx, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil).Once()
 		mockRepo.On("GetAttendanceDetail", mock.Anything, req.ParticipantID).Return(&AttendanceDetailResponse{FullName: "John", RegistrationNumber: "MK-001"}, nil).Once()
 
 		res, err := svc.CheckIn(ctx, req, "op1")
@@ -169,14 +169,15 @@ func TestService_UndoCheckIn(t *testing.T) {
 	defer sqlxDB.Close()
 	ctx := context.Background()
 
-	t.Run("ValidationFailed", func(t *testing.T) {
-		req := &UndoCheckInRequest{}
+	t.Run("BeginTxFailed", func(t *testing.T) {
+		req := &UndoCheckInRequest{Notes: "test"}
+		mockRepo.On("BeginTx", mock.Anything).Return((*sqlx.Tx)(nil), errors.New("tx err")).Once()
 		err := svc.UndoCheckIn(ctx, "att1", "op1", req)
 		assert.Error(t, err)
 	})
 
-	t.Run("BeginTxFailed", func(t *testing.T) {
-		req := &UndoCheckInRequest{Notes: "test"}
+	t.Run("BeginTxFailed_EmptyNotes", func(t *testing.T) {
+		req := &UndoCheckInRequest{} // notes optional
 		mockRepo.On("BeginTx", mock.Anything).Return((*sqlx.Tx)(nil), errors.New("tx err")).Once()
 		err := svc.UndoCheckIn(ctx, "att1", "op1", req)
 		assert.Error(t, err)

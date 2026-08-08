@@ -42,8 +42,8 @@ func (m *MockRepository) CreateAttendance(ctx context.Context, tx *sqlx.Tx, regi
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockRepository) LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error {
-	args := m.Called(ctx, tx, module, action, entity, entityID, metadata)
+func (m *MockRepository) LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID, operatorID string, metadata string) error {
+	args := m.Called(ctx, tx, module, action, entity, entityID, operatorID, metadata)
 	return args.Error(0)
 }
 

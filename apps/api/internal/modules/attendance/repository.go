@@ -15,7 +15,7 @@ type Repository interface {
 	UndoCheckIn(ctx context.Context, tx *sqlx.Tx, checkInID string, operatorID string, reason string) error
 	BulkUndo(ctx context.Context, tx *sqlx.Tx, ids []string, operatorID string, reason string) (int, error)
 	GetSummaryByEvent(ctx context.Context, eventID string) (*AttendanceSummary, error)
-	LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error
+	LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID, operatorID string, metadata string) error
 	ListAttendances(ctx context.Context, filter AttendanceListRequest) ([]AttendanceItemResponse, int, error)
 	GetAttendanceByID(ctx context.Context, attendanceID string) (*AttendanceDetailResponse, error)
 	GetParticipantIDByRegNumber(ctx context.Context, regNum string) (string, error)
@@ -157,7 +157,7 @@ func (r *repository) GetSummaryByEvent(ctx context.Context, eventID string) (*At
 			COUNT(p.id) - COUNT(a.id) as total_absent
 		FROM participants p
 		LEFT JOIN attendance a ON p.id = a.participant_id AND a.undone_at IS NULL
-		WHERE p.deleted_at IS NULL AND p.status IN ('Verified', 'APPROVED', 'Pending')
+		WHERE p.deleted_at IS NULL AND UPPER(TRIM(p.status)) IN ('VERIFIED', 'APPROVED')
 	`
 	var summary AttendanceSummary
 	if err := r.db.GetContext(ctx, &summary, query); err != nil {
@@ -166,22 +166,17 @@ func (r *repository) GetSummaryByEvent(ctx context.Context, eventID string) (*At
 	return &summary, nil
 }
 
-func (r *repository) LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error {
+func (r *repository) LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID, operatorID string, metadata string) error {
 	query := `
 		INSERT INTO audit_logs (module, action, entity, entity_id, user_id, metadata)
-		VALUES ($1, $2, $3, $4, $5, NULLIF($6, ''))
+		VALUES ($1, $2, $3, $4, NULLIF($5, ''), NULLIF($6, ''))
 	`
-	userID := ctx.Value("user_id")
-	if userID == nil {
-		userID = ""
-	}
-
 	executor := r.db.ExecContext
 	if tx != nil {
 		executor = tx.ExecContext
 	}
 
-	_, err := executor(ctx, query, module, action, entity, entityID, userID, metadata)
+	_, err := executor(ctx, query, module, action, entity, entityID, operatorID, metadata)
 	return err
 }
 

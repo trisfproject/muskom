@@ -143,14 +143,13 @@ func TestRepository_LogAudit(t *testing.T) {
 	defer db.Close()
 
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, "user_id", "u1")
 
 	t.Run("Success", func(t *testing.T) {
 		mock.ExpectExec("^INSERT INTO audit_logs").
-			WithArgs("mod", "act", "ent", "id1", "u1", "meta").
+			WithArgs("mod", "act", "ent", "id1", "op1", "meta").
 			WillReturnResult(sqlmock.NewResult(1, 1))
 
-		err := repo.LogAudit(ctx, nil, "mod", "act", "ent", "id1", "meta")
+		err := repo.LogAudit(ctx, nil, "mod", "act", "ent", "id1", "op1", "meta")
 		assert.NoError(t, err)
 	})
 }

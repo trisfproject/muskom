@@ -91,8 +91,7 @@ export default function AdminAttendancePage() {
     try {
       setSubmitting(true);
       const res = await api.post("/admin/attendance/check-in", {
-        participant_id: scanToken.trim(),
-        registration_id: scanToken.trim(),
+        registration_number: scanToken.trim(),
       });
 
       if (res.data?.success) {
