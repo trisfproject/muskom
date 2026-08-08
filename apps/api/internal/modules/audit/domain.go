@@ -26,6 +26,7 @@ type AuditEntry struct {
 	EntityID      *string     `json:"entity_id" db:"entity_id"`
 	Action        AuditAction `json:"action" db:"action"`
 	ActorID       *string     `json:"actor_id" db:"user_id"`
+	ActorName     *string     `json:"actor_name" db:"actor_name"`
 	ActorRole     *string     `json:"actor_role" db:"actor_role"`
 	Reason        *string     `json:"reason" db:"reason"`
 	IPAddress     *string     `json:"ip_address" db:"ip_address"`

@@ -60,6 +60,7 @@ func (h *Handler) Search(c fiber.Ctx) error {
 			EntityID:      item.EntityID,
 			Action:        string(item.Action),
 			ActorID:       item.ActorID,
+			ActorName:     item.ActorName,
 			ActorRole:     item.ActorRole,
 			Reason:        item.Reason,
 			IPAddress:     item.IPAddress,

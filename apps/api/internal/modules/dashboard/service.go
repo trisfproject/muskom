@@ -7,6 +7,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
@@ -24,6 +25,7 @@ type service struct {
 	storage     storage.Storage
 	mailer      mailer.Mailer
 	resolver    website.PhaseResolver
+	auditRepo   audit.AuditRepository
 	log         *zap.Logger
 }
 
@@ -34,6 +36,7 @@ func NewService(db *sqlx.DB, redisClient *redis.Client, strg storage.Storage, ma
 		storage:     strg,
 		mailer:      mailSvc,
 		resolver:    website.NewPhaseResolver(db),
+		auditRepo:   audit.NewRepository(db),
 		log:         log,
 	}
 }
@@ -150,17 +153,22 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 		data.Summary.WaitingListRemaining = &wlRem
 	}
 
-	// 4. Fetch Recent Activity (Audit logs)
-	query := `
-		SELECT al.id, al.action, p.full_name as actor, al.actor_role as role, al.created_at as timestamp 
-		FROM audit_logs al
-		LEFT JOIN users u ON al.user_id = u.id
-		LEFT JOIN persons p ON u.person_id = p.id
-		ORDER BY al.created_at DESC 
-		LIMIT 5
-	`
+	// 4. Fetch Recent Activity (Audit logs) using existing repository
+	entries, _, _ := s.auditRepo.Search(ctx, audit.AuditFilter{
+		Page:  1,
+		Limit: 5,
+	})
+
 	var activities []RecentActivity
-	_ = s.db.SelectContext(ctx, &activities, query)
+	for _, entry := range entries {
+		activities = append(activities, RecentActivity{
+			ID:        entry.ID,
+			Action:    string(entry.Action),
+			Actor:     entry.ActorName,
+			Role:      entry.ActorRole,
+			Timestamp: entry.CreatedAt,
+		})
+	}
 
 	if activities == nil {
 		activities = []RecentActivity{}
@@ -303,14 +311,23 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 		ORDER BY updated_at DESC LIMIT 5
 	`)
 
-	// Fetch Recent Activity
-	s.db.SelectContext(ctx, &data.RecentActivity, `
-		SELECT al.id, al.action, p.full_name as actor, al.actor_role as role, al.created_at as timestamp 
-		FROM audit_logs al
-		LEFT JOIN users u ON al.user_id = u.id
-		LEFT JOIN persons p ON u.person_id = p.id
-		ORDER BY al.created_at DESC LIMIT 5
-	`)
+	// Fetch Recent Activity using existing repository
+	opEntries, _, _ := s.auditRepo.Search(ctx, audit.AuditFilter{
+		Page:  1,
+		Limit: 5,
+	})
+
+	var opActivities []RecentActivity
+	for _, entry := range opEntries {
+		opActivities = append(opActivities, RecentActivity{
+			ID:        entry.ID,
+			Action:    string(entry.Action),
+			Actor:     entry.ActorName,
+			Role:      entry.ActorRole,
+			Timestamp: entry.CreatedAt,
+		})
+	}
+	data.RecentActivity = opActivities
 
 	if data.RecentRegistrations == nil {
 		data.RecentRegistrations = []RecentRegistration{}

@@ -21,6 +21,7 @@ type AuditDetailResponse struct {
 	EntityID      *string     `json:"entity_id"`
 	Action        string      `json:"action"`
 	ActorID       *string     `json:"actor_id,omitempty"`
+	ActorName     *string     `json:"actor_name,omitempty"`
 	ActorRole     *string     `json:"actor_role,omitempty"`
 	Reason        *string     `json:"reason,omitempty"`
 	IPAddress     *string     `json:"ip_address,omitempty"`
