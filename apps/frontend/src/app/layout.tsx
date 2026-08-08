@@ -46,6 +46,11 @@ export async function generateMetadata(): Promise<Metadata> {
             description: seo?.meta_description || identity?.website_description,
             images: seo?.opengraph_image ? [seo.opengraph_image] : [],
           },
+          icons: {
+            icon: identity?.favicon_url || "/favicon.ico",
+            shortcut: identity?.favicon_url || "/favicon.ico",
+            apple: identity?.favicon_url || "/favicon.ico",
+          },
         };
       }
     }
@@ -58,6 +63,11 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: defaultTitle, template: "%s | MUSKOM" },
     description: defaultDesc,
     keywords: ["musyawarah", "komunitas"],
+    icons: {
+      icon: "/favicon.ico",
+      shortcut: "/favicon.ico",
+      apple: "/favicon.ico",
+    },
   };
 }
 
