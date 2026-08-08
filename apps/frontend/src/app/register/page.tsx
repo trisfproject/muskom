@@ -189,10 +189,10 @@ export default function RegisterPage() {
         participant_category: "DELEGATE",
       });
 
-      if (res?.registration_number) {
+      if (res?.registration_code) {
         localStorage.removeItem("participant_registration_draft");
         setSuccessInfo({
-          regNumber: res.registration_number,
+          regNumber: res.registration_number || "Menunggu Verifikasi",
           qr: res.qr_token || "",
           fullName: data.full_name,
           email: data.email,
@@ -208,7 +208,7 @@ export default function RegisterPage() {
         });
         setStep(4);
       } else {
-        throw new Error("Gagal mendapatkan nomor registrasi");
+        throw new Error("Gagal mendapatkan kode registrasi");
       }
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } }; message?: string };
