@@ -117,7 +117,7 @@ export default function AdminDashboardPage() {
                 href="/admin/verifications" 
                 className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-500" /> Verifikasi ({summary.pending_notifications || 0})
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-500" /> Verifikasi ({summary.pending_participants ?? summary.pending_notifications ?? 0})
               </Link>
               <Link 
                 href="/admin/audit" 

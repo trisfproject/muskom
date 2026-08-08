@@ -132,7 +132,7 @@ func TestRepository_GetParticipantDetail(t *testing.T) {
 			"created_at", "updated_at", "person_id", "full_name", "email", "phone", "institution",
 		}).AddRow("reg1", "evt1", "cat1", "src1", "status1", nil, now, now, "p1", "John", "e@mail", "12", "inst")
 
-		mock.ExpectQuery("^SELECT (.+) FROM participants").WillReturnRows(rows)
+		mock.ExpectQuery("^SELECT (.+) FROM registrations").WillReturnRows(rows)
 
 		detail, err := repo.GetParticipantDetail(ctx, "reg1")
 		assert.NoError(t, err)
@@ -140,7 +140,7 @@ func TestRepository_GetParticipantDetail(t *testing.T) {
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		mock.ExpectQuery("^SELECT (.+) FROM participants").WillReturnError(sql.ErrNoRows)
+		mock.ExpectQuery("^SELECT (.+) FROM registrations").WillReturnError(sql.ErrNoRows)
 
 		detail, err := repo.GetParticipantDetail(ctx, "reg1")
 		assert.Error(t, err)
@@ -184,7 +184,7 @@ func TestRepository_UpdateParticipantStatus(t *testing.T) {
 		mock.ExpectBegin()
 		tx, _ := repo.BeginTx(ctx)
 
-		mock.ExpectExec("^UPDATE participants").WillReturnResult(sqlmock.NewResult(1, 1))
+		mock.ExpectExec("^UPDATE registrations").WillReturnResult(sqlmock.NewResult(1, 1))
 
 		err := repo.UpdateParticipantStatus(ctx, tx, "reg1", "APPROVED", "u1", nil, nil)
 		assert.NoError(t, err)
@@ -192,14 +192,14 @@ func TestRepository_UpdateParticipantStatus(t *testing.T) {
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
-		mock.ExpectExec("^UPDATE participants").WillReturnResult(sqlmock.NewResult(1, 0))
+		mock.ExpectExec("^UPDATE registrations").WillReturnResult(sqlmock.NewResult(1, 0))
 		err := repo.UpdateParticipantStatus(ctx, nil, "reg1", "APPROVED", "u1", nil, nil)
 		assert.Error(t, err)
 		assert.Equal(t, "participant not found", err.Error())
 	})
 
 	t.Run("Error", func(t *testing.T) {
-		mock.ExpectExec("^UPDATE participants").WillReturnError(sql.ErrConnDone)
+		mock.ExpectExec("^UPDATE registrations").WillReturnError(sql.ErrConnDone)
 		err := repo.UpdateParticipantStatus(ctx, nil, "reg1", "APPROVED", "u1", nil, nil)
 		assert.Error(t, err)
 	})

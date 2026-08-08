@@ -14,6 +14,8 @@ export interface EventStatus {
 export interface DashboardSummary {
   total_participants: number;
   approved_participants: number;
+  pending_participants?: number;
+  rejected_participants?: number;
   waiting_list?: number;
   total_candidates: number;
   checked_in: number;

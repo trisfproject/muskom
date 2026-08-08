@@ -17,7 +17,9 @@ type EventStatus struct {
 
 type DashboardSummary struct {
 	TotalParticipants    int      `json:"total_participants"`
-	ApprovedParticipants int      `json:"approved_participants"` // Will now hold the Main Pool count
+	ApprovedParticipants int      `json:"approved_participants"` // Verified/Approved count
+	PendingParticipants  int      `json:"pending_participants"`
+	RejectedParticipants int      `json:"rejected_participants"`
 	WaitingList          int      `json:"waiting_list"`
 	ParticipantLimit     *int     `json:"participant_limit"`
 	WaitingListCapacity  *int     `json:"waiting_list_capacity"`

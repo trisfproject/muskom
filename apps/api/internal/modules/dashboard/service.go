@@ -98,9 +98,15 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 
 	s.db.GetContext(ctx, &data.Summary.TotalParticipants, `SELECT COUNT(*) FROM registrations`)
 	
-	// ApprovedParticipants now represents the Main Pool count
-	s.db.GetContext(ctx, &data.Summary.ApprovedParticipants, `SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) NOT IN ('REJECTED', 'WAITING LIST', 'WAITINGLIST', 'WAITING_LIST')`)
+	// Verified/Approved count
+	s.db.GetContext(ctx, &data.Summary.ApprovedParticipants, `SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) IN ('VERIFIED', 'APPROVED')`)
 	
+	// Pending count
+	s.db.GetContext(ctx, &data.Summary.PendingParticipants, `SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) IN ('PENDING', 'UNVERIFIED')`)
+
+	// Rejected count
+	s.db.GetContext(ctx, &data.Summary.RejectedParticipants, `SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) = 'REJECTED'`)
+
 	// Count waiting list
 	s.db.GetContext(ctx, &data.Summary.WaitingList, `SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) IN ('WAITING LIST', 'WAITINGLIST', 'WAITING_LIST')`)
 
@@ -214,7 +220,7 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 		SELECT r.id, r.registration_number, p.full_name, p.email, r.status, r.created_at 
 		FROM registrations r
 		JOIN persons p ON r.person_id = p.id
-		WHERE r.status = 'Pending' OR r.status = 'Unverified'
+		WHERE UPPER(TRIM(r.status)) IN ('PENDING', 'UNVERIFIED')
 		ORDER BY r.created_at ASC LIMIT 10
 	`)
 
@@ -222,7 +228,7 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 	s.db.SelectContext(ctx, &data.PendingCandidates, `
 		SELECT id, full_name as name, profile_photo as photo_url, status, status as publication_status 
 		FROM candidates 
-		WHERE deleted_at IS NULL AND (status = 'Draft' OR status = 'Pending')
+		WHERE deleted_at IS NULL AND UPPER(TRIM(status)) IN ('DRAFT', 'PENDING', 'SUBMITTED')
 		ORDER BY updated_at ASC LIMIT 10
 	`)
 

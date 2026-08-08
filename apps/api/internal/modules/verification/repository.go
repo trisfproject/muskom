@@ -37,13 +37,13 @@ func (r *repository) GetVerifications(ctx context.Context, filter VerificationLi
 		WITH combined_queue AS (
 			-- Participant Applications
 			SELECT 
-				p.id::text as id,
+				r.id::text as id,
 				'participant' as queue_type,
 				p.full_name as applicant_name,
-				p.status as status,
-				p.created_at
-			FROM participants p
-			WHERE p.deleted_at IS NULL
+				r.status as status,
+				r.created_at
+			FROM registrations r
+			JOIN persons p ON r.person_id = p.id
 			
 			UNION ALL
 			
@@ -126,8 +126,8 @@ func (r *repository) GetVerifications(ctx context.Context, filter VerificationLi
 func (r *repository) GetVerificationSummary(ctx context.Context) (*VerificationSummaryResponse, error) {
 	query := `
 		SELECT 
-			(SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND status IN ('Pending', 'PENDING')) as pending_participants,
-			(SELECT COUNT(*) FROM candidates WHERE deleted_at IS NULL AND status IN ('Draft', 'DRAFT', 'Submitted', 'Pending')) as pending_candidates
+			(SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) IN ('PENDING', 'UNVERIFIED')) as pending_participants,
+			(SELECT COUNT(*) FROM candidates WHERE deleted_at IS NULL AND UPPER(TRIM(status)) IN ('DRAFT', 'SUBMITTED', 'PENDING')) as pending_candidates
 	`
 
 	var summary VerificationSummaryResponse
@@ -142,10 +142,11 @@ func (r *repository) GetVerificationSummary(ctx context.Context) (*VerificationS
 func (r *repository) GetParticipantDetail(ctx context.Context, registrationID string) (*ParticipantDetailResponse, error) {
 	query := `
 		SELECT 
-			p.id, '' as event_id, 'DELEGATE' as participant_category, 'ONLINE' as source, p.status, NULL as rejection_reason, p.created_at, p.updated_at,
-			p.id as person_id, p.full_name, p.email, p.phone, COALESCE(p.company_name, '') as institution
-		FROM participants p
-		WHERE p.id = $1 AND p.deleted_at IS NULL
+			r.id::text as id, COALESCE(r.event_id::text, '') as event_id, COALESCE(r.participant_category, 'DELEGATE') as participant_category, COALESCE(r.source, 'ONLINE') as source, r.status, r.rejection_reason, r.created_at, r.updated_at,
+			p.id::text as person_id, p.full_name, p.email, COALESCE(p.phone, '') as phone, COALESCE(p.company, '') as institution
+		FROM registrations r
+		JOIN persons p ON r.person_id = p.id
+		WHERE r.id = $1
 	`
 	var detail ParticipantDetailResponse
 	if err := r.db.GetContext(ctx, &detail, query, registrationID); err != nil {
@@ -202,7 +203,7 @@ func (r *repository) GetParticipantLimitAndLockTx(ctx context.Context, tx *sqlx.
 }
 
 func (r *repository) CountVerifiedInTx(ctx context.Context, tx *sqlx.Tx) (int, error) {
-	query := `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(status) IN ('VERIFIED', 'APPROVED')`
+	query := `SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) IN ('VERIFIED', 'APPROVED')`
 	var count int
 	var err error
 	if tx != nil {
@@ -215,9 +216,9 @@ func (r *repository) CountVerifiedInTx(ctx context.Context, tx *sqlx.Tx) (int, e
 
 func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string, regNumber *string) error {
 	query := `
-		UPDATE participants
+		UPDATE registrations
 		SET status = $1, updated_at = NOW()
-		WHERE id = $2 AND deleted_at IS NULL
+		WHERE id = $2
 	`
 	
 	executor := r.db.ExecContext
@@ -230,11 +231,18 @@ func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, r
 
 	if regNumber != nil {
 		query = `
-			UPDATE participants
+			UPDATE registrations
 			SET status = $1, registration_number = $2, updated_at = NOW()
-			WHERE id = $3 AND deleted_at IS NULL
+			WHERE id = $3
 		`
 		res, err = executor(ctx, query, status, *regNumber, registrationID)
+	} else if rejectionReason != nil {
+		query = `
+			UPDATE registrations
+			SET status = $1, rejection_reason = $2, updated_at = NOW()
+			WHERE id = $3
+		`
+		res, err = executor(ctx, query, status, *rejectionReason, registrationID)
 	} else {
 		res, err = executor(ctx, query, status, registrationID)
 	}

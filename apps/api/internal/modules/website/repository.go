@@ -572,7 +572,7 @@ func (r *repository) DeleteInformationPage(ctx context.Context, id string) error
 
 func (r *repository) GetParticipantCount(ctx context.Context) (int, error) {
 	var count int
-	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM participants WHERE deleted_at IS NULL AND UPPER(status) IN ('VERIFIED', 'APPROVED')`)
+	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM registrations WHERE UPPER(TRIM(status)) IN ('VERIFIED', 'APPROVED')`)
 	if err != nil {
 		return 0, err
 	}
