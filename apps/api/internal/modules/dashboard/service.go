@@ -305,7 +305,7 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 	s.db.SelectContext(ctx, &data.RecentActivity, `
 		SELECT id, action, actor_name as actor, actor_role as role, created_at as timestamp 
 		FROM audit_logs 
-		ORDER BY created_at DESC LIMIT 50
+		ORDER BY created_at DESC LIMIT 5
 	`)
 
 	if data.RecentRegistrations == nil {
