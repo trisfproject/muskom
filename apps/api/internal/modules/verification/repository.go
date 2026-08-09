@@ -278,7 +278,7 @@ func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, r
 func (r *repository) GetCandidateDetail(ctx context.Context, candidateID string) (*CandidateDetailResponse, error) {
 	query := `
 		SELECT 
-			c.id, c.id as registration_id, '' as event_id, 'CANDIDATE' as participant_category, 'SYSTEM' as source, c.status, 
+			c.id, c.id as registration_id, 'CANDIDATE' as participant_category, 'SYSTEM' as source, c.status, 
 			c.created_at, c.updated_at, c.id as person_id, c.full_name, c.email, c.phone, COALESCE(c.company_name, '') as institution,
 			COALESCE(c.vision, '') as vision, COALESCE(c.mission, '') as mission, '' as work_program, COALESCE(c.profile_photo, '') as photo_path, '' as document_path
 		FROM candidates c
