@@ -158,8 +158,8 @@ func TestService_VerifyParticipant(t *testing.T) {
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 
 		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "REJECTED", "u1", &reason, mock.Anything).Return(nil).Once()
-		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_PARTICIPANT", "registrations", "reg1", "reason").Return(nil).Once()
-
+		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_PARTICIPANT", "registrations", "reg1", `{"reason":"reason"}`).Return(nil).Once()
+		mockRepo.On("Commit").Return(nil).Once()
 		err := svc.VerifyParticipant(ctx, "reg1", req, "u1")
 		assert.NoError(t, err)
 	})
@@ -272,8 +272,8 @@ func TestService_VerifyCandidate(t *testing.T) {
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 
 		mockRepo.On("UpdateCandidateStatus", mock.Anything, tx, "ca1", "REJECTED", "u1").Return(nil).Once()
-		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_CANDIDATE", "candidate_applications", "ca1", "reason").Return(nil).Once()
-
+		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_CANDIDATE", "candidate_applications", "ca1", `{"notes":"reason"}`).Return(nil).Once()
+		mockRepo.On("Commit").Return(nil).Once()
 		err := svc.VerifyCandidate(ctx, "ca1", req, "u1")
 		assert.NoError(t, err)
 	})

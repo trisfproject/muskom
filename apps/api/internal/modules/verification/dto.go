@@ -31,7 +31,6 @@ type VerificationSummaryResponse struct {
 
 type ParticipantDetailResponse struct {
 	ID                  string    `json:"id" db:"id"`
-	EventID             string    `json:"event_id" db:"event_id"`
 	ParticipantCategory string    `json:"participant_category" db:"participant_category"`
 	Source              string    `json:"source" db:"source"`
 	Status              string    `json:"status" db:"status"`
@@ -43,6 +42,10 @@ type ParticipantDetailResponse struct {
 	Email               string    `json:"email" db:"email"`
 	Phone               string    `json:"phone" db:"phone"`
 	Institution         string    `json:"institution" db:"institution"`
+	RegistrationNumber  string    `json:"registration_number" db:"registration_number"`
+	Region              string    `json:"region" db:"region"`
+	Community           string    `json:"community" db:"community"`
+	JobTitle            string    `json:"job_title" db:"job_title"`
 }
 
 type VerifyParticipantRequest struct {
@@ -53,7 +56,6 @@ type VerifyParticipantRequest struct {
 type CandidateDetailResponse struct {
 	ID                  string    `json:"id" db:"id"`
 	RegistrationID      string    `json:"registration_id" db:"registration_id"`
-	EventID             string    `json:"event_id" db:"event_id"`
 	ParticipantCategory string    `json:"participant_category" db:"participant_category"`
 	Source              string    `json:"source" db:"source"`
 	Status              string    `json:"status" db:"status"`

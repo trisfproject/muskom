@@ -142,8 +142,20 @@ func (r *repository) GetVerificationSummary(ctx context.Context) (*VerificationS
 func (r *repository) GetParticipantDetail(ctx context.Context, registrationID string) (*ParticipantDetailResponse, error) {
 	query := `
 		SELECT 
-			r.id::text as id, COALESCE(r.event_id::text, '') as event_id, COALESCE(r.participant_category, 'DELEGATE') as participant_category, COALESCE(r.source, 'ONLINE') as source, r.status, r.rejection_reason, r.created_at, r.updated_at,
-			p.id::text as person_id, p.full_name, p.email, COALESCE(p.phone, '') as phone, COALESCE(p.company, '') as institution
+			r.id::text as id,
+			COALESCE(r.participant_category, 'DELEGATE') as participant_category,
+			COALESCE(r.source, 'ONLINE') as source,
+			r.status, r.rejection_reason,
+			r.created_at, r.updated_at,
+			p.id::text as person_id,
+			p.full_name,
+			p.email,
+			COALESCE(p.phone, '') as phone,
+			COALESCE(p.company, '') as institution,
+			COALESCE(r.registration_number, '') as registration_number,
+			COALESCE(r.region, '') as region,
+			COALESCE(r.community, '') as community,
+			COALESCE(p.job_title, '') as job_title
 		FROM registrations r
 		JOIN persons p ON r.person_id = p.id
 		WHERE r.id = $1
@@ -155,6 +167,7 @@ func (r *repository) GetParticipantDetail(ctx context.Context, registrationID st
 	return &detail, nil
 }
 
+
 func (r *repository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
 	return r.db.BeginTxx(ctx, nil)
 }
@@ -162,7 +175,7 @@ func (r *repository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
 func (r *repository) LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, entity, entityID string, metadata string) error {
 	query := `
 		INSERT INTO audit_logs (module, action, entity, entity_id, user_id, metadata)
-		VALUES ($1, $2, $3, $4, $5, NULLIF($6, ''))
+		VALUES ($1, $2, $3, $4, NULLIF($5, '')::uuid, NULLIF($6, '')::jsonb)
 	`
 	userID := ctx.Value("user_id")
 	if userID == nil {

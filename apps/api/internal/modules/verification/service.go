@@ -2,6 +2,7 @@ package verification
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -153,10 +154,12 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 
 	metadata := ""
 	if req.Status == "REJECTED" && req.RejectionReason != nil {
-		metadata = *req.RejectionReason
+		b, _ := json.Marshal(map[string]string{"reason": *req.RejectionReason})
+		metadata = string(b)
 	}
 
-	if err := s.repo.LogAudit(ctx, tx, "verification", "VERIFY_PARTICIPANT", "registrations", id, metadata); err != nil {
+	auditCtx := context.WithValue(ctx, "user_id", verifierID)
+	if err := s.repo.LogAudit(auditCtx, tx, "verification", "VERIFY_PARTICIPANT", "registrations", id, metadata); err != nil {
 		return err
 	}
 
@@ -252,10 +255,12 @@ func (s *service) VerifyCandidate(ctx context.Context, id string, req *VerifyCan
 
 	metadata := ""
 	if req.Notes != nil {
-		metadata = *req.Notes
+		b, _ := json.Marshal(map[string]string{"notes": *req.Notes})
+		metadata = string(b)
 	}
 
-	if err := s.repo.LogAudit(ctx, tx, "verification", "VERIFY_CANDIDATE", "candidate_applications", id, metadata); err != nil {
+	auditCtx := context.WithValue(ctx, "user_id", verifierID)
+	if err := s.repo.LogAudit(auditCtx, tx, "verification", "VERIFY_CANDIDATE", "candidate_applications", id, metadata); err != nil {
 		return err
 	}
 

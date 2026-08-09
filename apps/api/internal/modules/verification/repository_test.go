@@ -128,9 +128,10 @@ func TestRepository_GetParticipantDetail(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		now := time.Now()
 		rows := sqlmock.NewRows([]string{
-			"id", "event_id", "participant_category", "source", "status", "rejection_reason",
+			"id", "participant_category", "source", "status", "rejection_reason",
 			"created_at", "updated_at", "person_id", "full_name", "email", "phone", "institution",
-		}).AddRow("reg1", "evt1", "cat1", "src1", "status1", nil, now, now, "p1", "John", "e@mail", "12", "inst")
+			"registration_number", "region", "community", "job_title",
+		}).AddRow("reg1", "cat1", "src1", "status1", nil, now, now, "p1", "John", "e@mail", "12", "inst", "REG-001", "Area A", "Dept B", "Engineer")
 
 		mock.ExpectQuery("^SELECT (.+) FROM registrations").WillReturnRows(rows)
 
@@ -213,10 +214,10 @@ func TestRepository_GetCandidateDetail(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		now := time.Now()
 		rows := sqlmock.NewRows([]string{
-			"id", "registration_id", "event_id", "participant_category", "source", "status",
+			"id", "registration_id", "participant_category", "source", "status",
 			"created_at", "updated_at", "person_id", "full_name", "email", "phone", "institution",
 			"vision", "mission", "work_program", "photo_path", "document_path",
-		}).AddRow("ca1", "reg1", "evt1", "cat1", "src1", "status1", now, now, "p1", "John", "e@mail", "12", "inst", nil, nil, nil, nil, nil)
+		}).AddRow("ca1", "reg1", "cat1", "src1", "status1", now, now, "p1", "John", "e@mail", "12", "inst", nil, nil, nil, nil, nil)
 
 		mock.ExpectQuery("^SELECT (.+) FROM candidates").WillReturnRows(rows)
 
