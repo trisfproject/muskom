@@ -138,7 +138,7 @@ type PublicCandidateDTO struct {
 	ID             string  `json:"id"`
 	SequenceNumber *int    `json:"sequence_number"`
 	Name           *string `json:"name"`
-	Title          *string `json:"title"`
+	IndustrialArea *string `json:"industrial_area"`
 	Vision         *string `json:"vision"`
 	PhotoURL       *string `json:"photo_url"`
 	Biography      *string `json:"biography,omitempty"`

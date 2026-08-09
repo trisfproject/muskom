@@ -6,7 +6,7 @@ import { Footer } from "@/components/landing/Footer";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Briefcase, Building, ChevronLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building, ChevronLeft, MapPin } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 type Props = {
@@ -54,7 +54,7 @@ export default async function CandidateDetailPage({ params }: Props) {
   return (
     <ThemeWrapper>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-24 pb-16">
-        <div className="container-landing max-w-4xl mx-auto">
+        <div className="container-landing max-w-6xl mx-auto px-4 md:px-6">
           {/* Back Button */}
           <Link
             href="/#kandidat"
@@ -64,98 +64,130 @@ export default async function CandidateDetailPage({ params }: Props) {
             Kembali ke Bursa Calon
           </Link>
 
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-[20px] shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mb-6">
             {/* Header Section */}
-            <div className="relative p-6 md:p-10 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-10 md:gap-12 items-center md:items-center text-center md:text-left bg-gradient-to-br from-blue-50/50 to-white dark:from-slate-800/30 dark:to-slate-900">
-              <div className="absolute top-6 right-6 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary font-black text-xl shadow-sm">
-                {candidate.sequence_number ?? "?"}
-              </div>
-
-              <div className="shrink-0">
+            <div className="relative p-7 md:p-9 flex flex-col md:flex-row gap-10 md:gap-12 items-center text-center md:text-left bg-white dark:bg-slate-900">
+              <div className="shrink-0 w-[220px] md:w-[240px]">
                 {candidate.photo_url ? (
-                  <div className="w-[220px] h-[220px] rounded-xl overflow-hidden relative shadow-xl ring-4 ring-white dark:ring-slate-900">
+                  <div className="w-full relative shadow-sm ring-1 ring-slate-100 dark:ring-slate-800 rounded-2xl overflow-hidden" style={{ aspectRatio: "1 / 1" }}>
                     <Image
                       src={candidate.photo_url}
                       alt={candidate.name || "Candidate"}
                       fill
-                      className="object-cover"
+                      className="object-cover object-center"
                       priority
+                      sizes="(max-width: 640px) 220px, 240px"
                     />
                   </div>
                 ) : (
-                  <div className="w-[220px] h-[220px] rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center ring-4 ring-white dark:ring-slate-900 text-slate-400 shadow-xl">
-                    <span className="text-5xl font-bold">
+                  <div className="w-full relative bg-slate-100 dark:bg-slate-800 flex items-center justify-center ring-1 ring-slate-100 dark:ring-slate-800 rounded-2xl" style={{ aspectRatio: "1 / 1" }}>
+                    <span className="text-6xl font-bold text-slate-400">
                       {candidate.name?.charAt(0) || "?"}
                     </span>
                   </div>
                 )}
               </div>
-              
-              <div className="flex-1 flex flex-col justify-center">
-                <h1 className="text-3xl md:text-4xl font-black pg-text tracking-tight mb-3">
+
+              <div className="flex-1 flex flex-col justify-center mt-2 md:mt-0">
+                <div className="mb-4">
+                  <div className="text-5xl md:text-6xl font-black text-primary tracking-tighter leading-none">
+                    {candidate.sequence_number ? candidate.sequence_number.toString().padStart(2, "0") : "??"}
+                  </div>
+                </div>
+
+                <h1 className="text-4xl md:text-[44px] font-black text-slate-900 dark:text-white tracking-tight mb-5 md:mb-6 leading-tight">
                   {candidate.name}
                 </h1>
-                
-                <div className="flex flex-col gap-2 items-center md:items-start text-slate-600 dark:text-slate-400">
-                  {candidate.title && (
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 shrink-0 text-primary" />
-                      <span>{candidate.title}</span>
-                    </div>
-                  )}
+
+                <div className="flex flex-wrap items-center gap-2 text-[15px] md:text-base font-medium justify-center md:justify-start text-slate-600 dark:text-slate-400">
                   {candidate.organization && (
                     <div className="flex items-center gap-2">
-                      <Building className="w-4 h-4 shrink-0 text-primary" />
-                      <span>{candidate.organization}</span>
+                      <Building className="w-4 h-4 opacity-70" />
+                      <span className="text-slate-800 dark:text-slate-200">{candidate.organization}</span>
+                    </div>
+                  )}
+                  {candidate.organization && candidate.industrial_area && (
+                    <span className="text-slate-300 dark:text-slate-600 px-1 font-bold">·</span>
+                  )}
+                  {candidate.industrial_area && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 opacity-70" />
+                      <span className="text-slate-800 dark:text-slate-200">{candidate.industrial_area}</span>
                     </div>
                   )}
                 </div>
               </div>
             </div>
-
-            {/* Content Section */}
-            <div className="p-6 md:p-10 space-y-6 md:space-y-6">
-              {/* Biography */}
-              <section>
-                <h2 className="text-xl font-bold pg-text mb-4 inline-block border-b-2 border-primary pb-1">Biografi Singkat</h2>
-                <div className="prose dark:prose-invert prose-blue max-w-none text-slate-600 dark:text-slate-300">
-                  {candidate.biography ? (
-                    <ReactMarkdown>{candidate.biography}</ReactMarkdown>
-                  ) : (
-                    <p className="text-slate-400 italic">Belum tersedia.</p>
-                  )}
-                </div>
-              </section>
-
-              {/* Vision & Mission */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 md:p-8 border border-slate-100 dark:border-slate-800 space-y-6">
-                <section>
-                  <h2 className="text-xl font-bold pg-text mb-3 inline-block border-b-2 border-primary pb-1">Visi</h2>
-                  <div className="prose dark:prose-invert prose-blue max-w-none text-slate-600 dark:text-slate-300">
-                    {candidate.vision ? (
-                      <ReactMarkdown>{candidate.vision}</ReactMarkdown>
-                    ) : (
-                      <p className="text-slate-400 italic">Belum tersedia.</p>
-                    )}
-                  </div>
-                </section>
-
-                <hr className="border-slate-200 dark:border-slate-700" />
-
-                <section>
-                  <h2 className="text-xl font-bold pg-text mb-3 inline-block border-b-2 border-primary pb-1">Misi</h2>
-                  <div className="prose dark:prose-invert prose-blue max-w-none text-slate-600 dark:text-slate-300">
-                    {candidate.mission ? (
-                      <ReactMarkdown>{candidate.mission}</ReactMarkdown>
-                    ) : (
-                      <p className="text-slate-400 italic">Belum tersedia.</p>
-                    )}
-                  </div>
-                </section>
-              </div>
-            </div>
-            
           </div>
+
+          {/* Information Card */}
+          <div className="bg-white dark:bg-slate-900 rounded-[20px] shadow-sm border border-slate-200 dark:border-slate-800 px-6 py-6 md:px-10 md:py-8 w-full mb-16">
+            
+            {/* Biografi Singkat */}
+            <section>
+              <div className="flex items-center gap-3 mb-3 md:mb-4">
+                <div className="w-1 h-5 md:h-6 bg-primary rounded-full" />
+                <h2 className="text-[20px] md:text-[22px] font-bold text-slate-900 dark:text-white">Biografi Singkat</h2>
+              </div>
+              <div className="prose dark:prose-invert prose-base max-w-none prose-slate text-slate-700 dark:text-slate-300 [&_p]:leading-[1.7] [&_li]:leading-[1.7] [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                {candidate.biography ? (
+                  <ReactMarkdown>{candidate.biography}</ReactMarkdown>
+                ) : (
+                  <p className="text-slate-400 italic">Belum tersedia.</p>
+                )}
+              </div>
+            </section>
+
+            <hr className="my-7 border-t border-slate-200 dark:border-slate-800" />
+
+            {/* Visi */}
+            <section>
+              <div className="flex items-center gap-3 mb-3 md:mb-4">
+                <div className="w-1 h-5 md:h-6 bg-primary rounded-full" />
+                <h2 className="text-[20px] md:text-[22px] font-bold text-slate-900 dark:text-white">Visi</h2>
+              </div>
+              <div className="prose dark:prose-invert prose-base max-w-none prose-slate text-slate-700 dark:text-slate-300 [&_p]:leading-[1.7] [&_li]:leading-[1.7] [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                {candidate.vision ? (
+                  <ReactMarkdown>{candidate.vision}</ReactMarkdown>
+                ) : (
+                  <p className="text-slate-400 italic">Belum tersedia.</p>
+                )}
+              </div>
+            </section>
+
+            <hr className="my-7 border-t border-slate-200 dark:border-slate-800" />
+
+            {/* Misi */}
+            <section>
+              <div className="flex items-center gap-3 mb-3 md:mb-4">
+                <div className="w-1 h-5 md:h-6 bg-primary rounded-full" />
+                <h2 className="text-[20px] md:text-[22px] font-bold text-slate-900 dark:text-white">Misi</h2>
+              </div>
+              <div className="prose dark:prose-invert prose-base max-w-none prose-slate text-slate-700 dark:text-slate-300 [&_p]:leading-[1.7] [&_li]:leading-[1.7] [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                {candidate.mission ? (
+                  <ReactMarkdown>{candidate.mission}</ReactMarkdown>
+                ) : (
+                  <p className="text-slate-400 italic">Belum tersedia.</p>
+                )}
+              </div>
+            </section>
+
+          </div>
+        </div>
+
+        {/* Optional Bottom CTA */}
+        <div className="container-landing max-w-3xl mx-auto px-4 md:px-6 text-center mt-8">
+          <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Siap Memilih?</h3>
+          <p className="text-slate-600 dark:text-slate-400 mb-8">
+            Pastikan Anda telah mengenal kandidat dan memahami gagasan yang ditawarkan.
+          </p>
+          <Link
+            href="/#kandidat"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-semibold transition-colors"
+          >
+            Kembali ke Daftar Kandidat
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
       </div>
       <Footer data={homeData ?? null} />

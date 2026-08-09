@@ -174,7 +174,7 @@ func (m *Mapper) MapCandidate(c *CandidateEntity) PublicCandidateDTO {
 		ID:             c.ID,
 		SequenceNumber: c.SequenceNumber,
 		Name:           c.Name,
-		Title:          c.Title,
+		IndustrialArea: c.IndustrialArea,
 		Vision:         c.Vision,
 		Biography:      c.Biography,
 		Mission:        c.Mission,

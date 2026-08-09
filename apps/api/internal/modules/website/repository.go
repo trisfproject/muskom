@@ -13,7 +13,7 @@ type CandidateEntity struct {
 	ID             string  `db:"id"`
 	SequenceNumber *int    `db:"candidate_number"`
 	Name           *string `db:"name"`
-	Title          *string `db:"title"`
+	IndustrialArea *string `db:"industrial_area"`
 	Vision         *string `db:"vision"`
 	Biography      *string `db:"biography"`
 	Mission        *string `db:"mission"`
@@ -417,7 +417,7 @@ func (r *repository) GetCandidates(ctx context.Context) ([]CandidateEntity, erro
 			id,
 			candidate_number,
 			full_name as name,
-			COALESCE(job_title, '') as title,
+			COALESCE(industrial_area, '') as industrial_area,
 			CASE WHEN show_vision THEN COALESCE(vision, '') ELSE '' END as vision,
 			CASE WHEN show_biography THEN COALESCE(biography, '') ELSE '' END as biography,
 			CASE WHEN show_mission THEN COALESCE(mission, '') ELSE '' END as mission,
@@ -441,7 +441,7 @@ func (r *repository) GetCandidateByID(ctx context.Context, id string) (*Candidat
 			id,
 			candidate_number,
 			full_name as name,
-			COALESCE(job_title, '') as title,
+			COALESCE(industrial_area, '') as industrial_area,
 			CASE WHEN show_vision THEN COALESCE(vision, '') ELSE '' END as vision,
 			CASE WHEN show_biography THEN COALESCE(biography, '') ELSE '' END as biography,
 			CASE WHEN show_mission THEN COALESCE(mission, '') ELSE '' END as mission,

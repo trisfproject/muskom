@@ -87,9 +87,10 @@ export interface PublicCandidateDTO {
   id: string;
   sequence_number?: number;
   name?: string;
-  title?: string;
+  industrial_area?: string;
   vision?: string;
   biography?: string;
+  motivation?: string;
   mission?: string;
   organization?: string;
   photo_url?: string;
