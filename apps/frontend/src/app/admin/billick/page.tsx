@@ -14,6 +14,7 @@ import {
   QrCode,
   ArrowRight,
   ChevronRight,
+  Fingerprint,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -41,6 +42,24 @@ interface Candidate {
 
 interface Ballot {
   candidates: Candidate[];
+}
+
+// ─── Minimal avatar placeholder using initials ────────────────────────────────
+function CandidateAvatar({ name, number }: { name: string; number: number }) {
+  const initials = name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 select-none">
+      <div className="w-20 h-20 rounded-full bg-white/60 border border-slate-200 flex items-center justify-center mb-3 shadow-inner">
+        <span className="text-2xl font-black text-slate-500 tracking-tighter">{initials}</span>
+      </div>
+      <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Kandidat {number}</span>
+    </div>
+  );
 }
 
 export default function BilikSuaraPage() {
@@ -156,7 +175,9 @@ export default function BilikSuaraPage() {
       setEligibility(null);
       setSelectedCandidate(null);
       setVoteSuccess(false);
-      const res = await api.get(`/admin/votes/eligibility?registration_number=${encodeURIComponent(token.trim())}`);
+      const res = await api.get(
+        `/admin/votes/eligibility?registration_number=${encodeURIComponent(token.trim())}`
+      );
       if (res.data?.success) setEligibility(res.data.data);
     } catch (err: any) {
       setEligibility({
@@ -164,7 +185,9 @@ export default function BilikSuaraPage() {
         registration_number: token.trim(),
         full_name: "TIDAK DITEMUKAN",
         is_eligible: false,
-        reason: err.response?.data?.message || "Nomor tidak valid atau terjadi kesalahan sistem.",
+        reason:
+          err.response?.data?.message ||
+          "Nomor tidak valid atau terjadi kesalahan sistem.",
       });
     } finally {
       setLoading(false);
@@ -209,24 +232,43 @@ export default function BilikSuaraPage() {
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
-  // ─── Success Screen ──────────────────────────────────────────────────────────
+  // ─── Success ─────────────────────────────────────────────────────────────────
   if (voteSuccess) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-        <div className="w-full max-w-[360px] bg-white border border-slate-200 rounded-2xl shadow-sm p-8 text-center">
-          <div className="w-14 h-14 bg-emerald-50 border border-emerald-200 rounded-full flex items-center justify-center mx-auto mb-5">
-            <CheckCircle2 className="w-7 h-7 text-emerald-600" />
+      <div className="min-h-screen bg-slate-50 flex flex-col">
+        {/* Thin top bar for branding continuity */}
+        <div className="h-1 bg-primary w-full" />
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="w-full max-w-sm text-center">
+            {/* Icon */}
+            <div className="relative inline-flex mb-8">
+              <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+              </div>
+            </div>
+
+            {/* Text */}
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-3">
+              Suara Berhasil Dicatat
+            </h1>
+            <p className="text-sm text-slate-500 leading-relaxed mb-10">
+              Terima kasih. Suara Anda telah berhasil dicatat secara aman dan
+              rahasia.
+            </p>
+
+            {/* CTA */}
+            <button
+              onClick={resetKiosk}
+              className="w-full h-11 bg-primary hover:bg-primary-hover text-white rounded-xl font-semibold text-sm transition-colors"
+            >
+              Kembali ke Halaman Utama ({countdown}s)
+            </button>
+
+            {/* Tagline */}
+            <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-widest mt-8">
+              MUSKOM KOMITKABE 2026
+            </p>
           </div>
-          <h1 className="text-lg font-bold text-slate-900 mb-2">Suara Berhasil Dicatat</h1>
-          <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-            Terima kasih. Suara Anda telah berhasil dicatat secara aman.
-          </p>
-          <button
-            onClick={resetKiosk}
-            className="w-full py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg font-semibold text-sm transition-colors"
-          >
-            Kembali ke Halaman Utama ({countdown}s)
-          </button>
         </div>
       </div>
     );
@@ -238,39 +280,61 @@ export default function BilikSuaraPage() {
 
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-5 py-3.5 flex items-center justify-between gap-4">
+        <div className="max-w-screen-xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between gap-4">
+
           {/* Branding */}
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-2.5">
-              <span className="text-lg font-black text-primary tracking-tighter leading-none">MUSKOM</span>
-              <span className="hidden md:block text-slate-300 text-sm leading-none">|</span>
-              <span className="hidden md:block text-sm font-semibold text-slate-700 leading-none">Bilik Suara Digital</span>
-            </div>
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mt-1">
-              MUSKOM KOMITKABE 2026
+          <div className="flex items-center gap-3">
+            <span className="text-base font-black text-primary tracking-tighter leading-none">
+              MUSKOM
+            </span>
+            <span className="hidden sm:block text-slate-300">|</span>
+            <span className="hidden sm:block text-sm font-semibold text-slate-700">
+              Bilik Suara Digital
+            </span>
+            <span className="sm:hidden text-xs font-semibold text-slate-500">
+              Bilik Suara
             </span>
           </div>
 
-          {/* Right: security + session */}
-          <div className="flex items-center gap-4 shrink-0">
-            <div className="hidden sm:flex items-center gap-3 text-[11px] font-semibold text-slate-500 uppercase tracking-widest">
-              <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />Aman</span>
+          {/* Right */}
+          <div className="flex items-center gap-4">
+            {/* Security row — hidden on small screens */}
+            <div className="hidden md:flex items-center gap-3 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <span className="flex items-center gap-1 text-emerald-600">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Aman
+              </span>
               <span className="text-slate-300">·</span>
-              <span className="flex items-center gap-1"><Lock className="w-3.5 h-3.5 text-emerald-500" />Rahasia</span>
+              <span className="flex items-center gap-1 text-emerald-600">
+                <Lock className="w-3.5 h-3.5" />
+                Rahasia
+              </span>
               <span className="text-slate-300">·</span>
-              <span className="flex items-center gap-1"><Scale className="w-3.5 h-3.5 text-emerald-500" />Adil</span>
+              <span className="flex items-center gap-1 text-emerald-600">
+                <Scale className="w-3.5 h-3.5" />
+                Adil
+              </span>
             </div>
 
-            <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+            <div className="hidden md:block h-4 w-px bg-slate-200" />
 
-            <div className="flex flex-col items-end">
-              <div className="flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${ballot ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`} />
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${ballot ? "text-emerald-700" : "text-rose-700"}`}>
-                  {ballot ? "Sesi Terbuka" : "Sesi Ditutup"}
-                </span>
-              </div>
-              <span className="text-[10px] text-slate-400 font-mono mt-0.5">
+            {/* Session status */}
+            <div className="flex items-center gap-2">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                  ballot
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    : "bg-rose-50 text-rose-700 border-rose-200"
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    ballot ? "bg-emerald-500 animate-pulse" : "bg-rose-500"
+                  }`}
+                />
+                {ballot ? "Sesi Terbuka" : "Sesi Ditutup"}
+              </span>
+              <span className="hidden sm:block text-[10px] text-slate-400 font-mono">
                 {format(currentTime, "HH:mm:ss", { locale: idLocale })}
               </span>
             </div>
@@ -280,179 +344,263 @@ export default function BilikSuaraPage() {
 
       <main className="flex-1 w-full flex flex-col">
         {!eligibility ? (
-          // ─── Step 1: Identification ────────────────────────────────────────
-          <>
-            {/* Identification section — vertically centered within the remaining viewport */}
-            <section className="flex-1 flex items-center justify-center px-4 py-16">
-              <div className="w-full max-w-[400px]">
-                {/* Card */}
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8">
-                  {/* Card header */}
-                  <div className="text-center mb-8">
-                    <p className="text-xl font-black text-primary tracking-tighter mb-1">MUSKOM</p>
-                    <h2 className="text-base font-bold text-slate-900 mb-1.5">Identifikasi Pemilih</h2>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      Masukkan Nomor Registrasi Peserta untuk membuka bilik suara.
-                    </p>
+          // ─────────────────────────────────────────────────────────────────
+          // STEP 1 — IDENTIFICATION
+          // Two-zone hero layout on desktop; stacked on mobile
+          // ─────────────────────────────────────────────────────────────────
+          <div className="flex-1 flex flex-col">
+            {/* Hero Zone */}
+            <section className="flex-1 flex items-stretch">
+              <div className="max-w-screen-xl mx-auto w-full px-5 sm:px-8 py-12 md:py-0 flex flex-col md:flex-row items-center gap-10 md:gap-16">
+
+                {/* LEFT — Context & branding */}
+                <div className="w-full md:w-1/2 flex flex-col justify-center md:py-16">
+                  {/* Event badge */}
+                  <div className="inline-flex items-center self-start gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
+                    <Vote className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-[11px] font-bold text-primary uppercase tracking-widest">
+                      Pemilihan Ketua Umum
+                    </span>
                   </div>
 
-                  {/* Form */}
-                  {!scannerActive ? (
-                    <form onSubmit={handleManualCheck} className="space-y-3">
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        value={scanToken}
-                        onChange={(e) => setScanToken(e.target.value.toUpperCase())}
-                        placeholder="Nomor Registrasi"
-                        className="w-full h-10 px-3.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-center text-sm uppercase font-mono tracking-widest text-slate-900 font-semibold transition-all placeholder:text-slate-400 placeholder:normal-case placeholder:font-sans placeholder:tracking-normal"
-                        autoComplete="off"
-                        autoFocus
-                      />
+                  <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight mb-4">
+                    Bilik Suara
+                    <br />
+                    <span className="text-primary">Digital</span>
+                  </h1>
+                  <p className="text-slate-500 text-sm leading-relaxed max-w-md mb-8">
+                    Masukkan nomor registrasi peserta Anda untuk memulai proses
+                    pemilihan. Suara Anda bersifat rahasia dan langsung dicatat
+                    secara aman.
+                  </p>
 
-                      <button
-                        type="submit"
-                        disabled={loading || !scanToken.trim()}
-                        className="w-full h-10 flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-lg font-semibold text-sm transition-colors"
-                      >
-                        {loading ? (
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        ) : (
-                          <>Buka Surat Suara <ArrowRight className="w-4 h-4" /></>
-                        )}
-                      </button>
-
-                      <div className="flex items-center gap-3 py-1">
-                        <div className="flex-1 h-px bg-slate-200" />
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">atau</span>
-                        <div className="flex-1 h-px bg-slate-200" />
+                  {/* Trust signals */}
+                  <div className="space-y-3">
+                    {[
+                      { icon: ShieldCheck, label: "Aman & Rahasia", desc: "Identitas dan pilihan Anda tidak dapat dilacak." },
+                      { icon: UserCircle2, label: "Satu Orang Satu Suara", desc: "Sistem mencegah suara ganda secara otomatis." },
+                      { icon: Scale, label: "Langsung & Transparan", desc: "Hasil dihitung secara real-time dan terbuka." },
+                    ].map(({ icon: Icon, label, desc }) => (
+                      <div key={label} className="flex items-start gap-3">
+                        <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0 mt-0.5">
+                          <Icon className="w-3.5 h-3.5 text-emerald-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800">{label}</p>
+                          <p className="text-xs text-slate-500">{desc}</p>
+                        </div>
                       </div>
+                    ))}
+                  </div>
 
-                      <button
-                        type="button"
-                        onClick={startScanner}
-                        className="w-full h-10 flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 rounded-lg font-semibold text-sm transition-colors"
-                      >
-                        <QrCode className="w-4 h-4" />
-                        Scan QR Code
-                      </button>
-                    </form>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="relative bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
-                        {cameraError && (
-                          <div className="absolute inset-0 bg-white/95 z-20 flex flex-col items-center justify-center p-4 text-center">
-                            <AlertCircle className="w-6 h-6 text-rose-500 mb-2" />
-                            <p className="text-sm font-semibold text-slate-800 mb-1">Kamera Bermasalah</p>
-                            <p className="text-xs text-slate-500">{cameraError}</p>
-                          </div>
-                        )}
-                        <div
-                          id={scannerContainerId}
-                          className="rounded-xl overflow-hidden [&_video]:object-cover [&_video]:w-full [&_video]:h-[220px]"
-                        />
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mt-8">
+                    MUSKOM KOMITKABE 2026
+                  </p>
+                </div>
+
+                {/* RIGHT — Input form */}
+                <div className="w-full md:w-5/12 lg:w-2/5 flex flex-col justify-center md:py-16">
+                  <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    {/* Card header strip */}
+                    <div className="px-6 pt-6 pb-5 border-b border-slate-100">
+                      <div className="flex items-center gap-2.5 mb-1">
+                        <Fingerprint className="w-5 h-5 text-primary" />
+                        <h2 className="text-base font-bold text-slate-900">Identifikasi Pemilih</h2>
                       </div>
-                      <button
-                        type="button"
-                        onClick={stopScanner}
-                        className="w-full h-10 flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 rounded-lg font-semibold text-sm transition-colors"
-                      >
-                        Tutup Scanner
-                      </button>
+                      <p className="text-xs text-slate-500">
+                        Masukkan nomor registrasi peserta untuk membuka surat suara.
+                      </p>
                     </div>
+
+                    {/* Form body */}
+                    <div className="px-6 py-6">
+                      {!scannerActive ? (
+                        <form onSubmit={handleManualCheck} className="space-y-4">
+                          {/* Input group */}
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                              Nomor Registrasi
+                            </label>
+                            <input
+                              ref={inputRef}
+                              type="text"
+                              value={scanToken}
+                              onChange={(e) =>
+                                setScanToken(e.target.value.toUpperCase())
+                              }
+                              placeholder="Cth: MUSKOM-2026-0001"
+                              className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-mono text-slate-900 font-semibold uppercase tracking-widest transition-all placeholder:text-slate-400 placeholder:font-sans placeholder:normal-case placeholder:tracking-normal"
+                              autoComplete="off"
+                              autoFocus
+                            />
+                          </div>
+
+                          {/* Primary action */}
+                          <button
+                            type="submit"
+                            disabled={loading || !scanToken.trim()}
+                            className="w-full h-11 flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold text-sm transition-colors shadow-sm"
+                          >
+                            {loading ? (
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                              <>
+                                Buka Surat Suara
+                                <ArrowRight className="w-4 h-4" />
+                              </>
+                            )}
+                          </button>
+
+                          {/* Divider */}
+                          <div className="relative py-1">
+                            <div className="absolute inset-0 flex items-center">
+                              <div className="w-full border-t border-slate-200" />
+                            </div>
+                            <div className="relative flex justify-center">
+                              <span className="bg-white px-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                atau
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Secondary action */}
+                          <button
+                            type="button"
+                            onClick={startScanner}
+                            className="w-full h-11 flex items-center justify-center gap-2 border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 rounded-xl font-semibold text-sm transition-colors"
+                          >
+                            <QrCode className="w-4 h-4 text-slate-500" />
+                            Scan QR Code
+                          </button>
+                        </form>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="relative bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
+                            {cameraError && (
+                              <div className="absolute inset-0 bg-white/95 z-20 flex flex-col items-center justify-center p-4 text-center">
+                                <AlertCircle className="w-6 h-6 text-rose-500 mb-2" />
+                                <p className="text-sm font-semibold text-slate-800 mb-1">
+                                  Kamera Bermasalah
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                  {cameraError}
+                                </p>
+                              </div>
+                            )}
+                            <div
+                              id={scannerContainerId}
+                              className="[&_video]:object-cover [&_video]:w-full [&_video]:h-[220px]"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={stopScanner}
+                            className="w-full h-10 flex items-center justify-center gap-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl font-semibold text-sm transition-colors"
+                          >
+                            Tutup Scanner
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        ) : (
+          // ─────────────────────────────────────────────────────────────────
+          // STEP 2 — CANDIDATE SELECTION
+          // ─────────────────────────────────────────────────────────────────
+          <div className="max-w-screen-xl mx-auto w-full px-5 sm:px-8 py-8 flex flex-col gap-6">
+
+            {/* Voter identity bar */}
+            <div
+              className={`flex items-center justify-between gap-4 px-4 py-3 rounded-xl border text-sm ${
+                eligibility.is_eligible
+                  ? "bg-emerald-50 border-emerald-200"
+                  : "bg-rose-50 border-rose-200"
+              }`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                    eligibility.is_eligible
+                      ? "bg-emerald-100 text-emerald-600"
+                      : "bg-rose-100 text-rose-600"
+                  }`}
+                >
+                  {eligibility.is_eligible ? (
+                    <CheckCircle2 className="w-4 h-4" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4" />
                   )}
                 </div>
-              </div>
-            </section>
-
-            {/* Information section — structurally separated from the card above */}
-            <section className="border-t border-slate-200 bg-white">
-              <div className="max-w-4xl mx-auto px-6 py-10">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {[
-                    {
-                      icon: <ShieldCheck className="w-4 h-4" />,
-                      title: "Aman & Rahasia",
-                      desc: "Suara Anda dijaga kerahasiaannya dan tidak dapat dilacak oleh siapapun.",
-                    },
-                    {
-                      icon: <UserCircle2 className="w-4 h-4" />,
-                      title: "Satu Orang Satu Suara",
-                      desc: "Setiap peserta terdaftar hanya dapat memberikan satu suara yang sah.",
-                    },
-                    {
-                      icon: <Scale className="w-4 h-4" />,
-                      title: "Langsung & Transparan",
-                      desc: "Perolehan suara dihitung dan ditampilkan secara transparan di akhir sesi.",
-                    },
-                  ].map((item) => (
-                    <div key={item.title} className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 shrink-0 mt-0.5">
-                        {item.icon}
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-semibold text-slate-800 mb-0.5">{item.title}</h4>
-                        <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          </>
-        ) : (
-          // ─── Step 2: Candidate Selection ──────────────────────────────────
-          <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 py-6 flex flex-col gap-8">
-
-            {/* ── Voter identity bar ────────────────────────────────────────── */}
-            <div className="bg-white border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between gap-4 shadow-sm">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm ${
-                  eligibility.is_eligible ? "bg-emerald-50 text-emerald-600 border border-emerald-200" : "bg-rose-50 text-rose-600 border border-rose-200"
-                }`}>
-                  {eligibility.is_eligible ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                </div>
                 <div className="min-w-0">
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    <span className="text-sm font-bold text-slate-900 truncate">{eligibility.full_name}</span>
-                    <span className="font-mono text-[11px] text-slate-500 shrink-0">{eligibility.registration_number}</span>
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <span className="font-bold text-slate-900">
+                      {eligibility.full_name}
+                    </span>
+                    <span className="font-mono text-[11px] text-slate-500 shrink-0">
+                      {eligibility.registration_number}
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-widest ${
+                        eligibility.is_eligible
+                          ? "text-emerald-700"
+                          : "text-rose-700"
+                      }`}
+                    >
+                      ·{" "}
+                      {eligibility.is_eligible
+                        ? "Teridentifikasi Valid"
+                        : "Tidak Memenuhi Syarat"}
+                    </span>
                   </div>
-                  <p className={`text-[11px] font-bold uppercase tracking-widest mt-0.5 ${eligibility.is_eligible ? "text-emerald-600" : "text-rose-600"}`}>
-                    {eligibility.is_eligible ? "Teridentifikasi Valid" : "Tidak Memenuhi Syarat"}
-                  </p>
                   {!eligibility.is_eligible && (
-                    <p className="text-xs text-rose-600 mt-0.5">Alasan: {eligibility.reason}</p>
+                    <p className="text-xs text-rose-600 mt-0.5">
+                      Alasan: {eligibility.reason}
+                    </p>
                   )}
                 </div>
               </div>
               <button
                 onClick={resetKiosk}
-                className="shrink-0 text-[11px] font-semibold text-slate-500 hover:text-slate-700 uppercase tracking-widest transition-colors flex items-center gap-1"
+                className="shrink-0 flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors whitespace-nowrap"
               >
-                Ganti <ChevronRight className="w-3 h-3" />
+                Ganti <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* ── Ballot area ────────────────────────────────────────────────── */}
+            {/* Ballot area */}
             {eligibility.is_eligible && (
               <>
                 {/* Section heading */}
-                <div>
-                  <h2 className="text-lg font-bold text-slate-900">Pilih Ketua Umum</h2>
-                  <p className="text-sm text-slate-500 mt-1">Pilih satu calon Ketua Umum KOMITKABE 2026.</p>
+                <div className="pt-2">
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                    Pilih Ketua Umum
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Pilih satu calon Ketua Umum KOMITKABE 2026.
+                  </p>
                 </div>
 
+                {/* Voting closed state */}
                 {!ballot?.candidates ? (
-                  <div className="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-sm">
-                    <Info className="w-8 h-8 text-slate-400 mx-auto mb-3" />
-                    <h3 className="text-sm font-bold text-slate-700 mb-1">Sesi Belum Dibuka</h3>
-                    <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
-                      Panitia belum membuka sesi pemilihan. Silakan tunggu aba-aba panitia, lalu refresh halaman.
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center mb-5">
+                      <Info className="w-7 h-7 text-slate-400" />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-700 mb-2">
+                      Sesi Belum Dibuka
+                    </h3>
+                    <p className="text-sm text-slate-500 max-w-xs leading-relaxed">
+                      Panitia belum membuka sesi pemilihan. Silakan tunggu
+                      aba-aba panitia, lalu refresh halaman.
                     </p>
                   </div>
                 ) : (
-                  /* ── Candidate grid ──────────────────────────────────────── */
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  // Candidate grid
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-7">
                     {ballot.candidates.map((cand) => {
                       const isSelected = selectedCandidate?.id === cand.id;
                       return (
@@ -460,22 +608,25 @@ export default function BilikSuaraPage() {
                           key={cand.id}
                           onClick={() => setSelectedCandidate(cand)}
                           className={[
-                            "relative text-left bg-white rounded-xl transition-all duration-150 overflow-hidden outline-none",
-                            "flex flex-col shadow-sm",
+                            "group relative text-left rounded-2xl overflow-hidden outline-none",
+                            "transition-all duration-150 flex flex-col",
+                            "bg-white",
                             isSelected
-                              ? "border border-primary ring-2 ring-primary/20"
-                              : "border border-slate-200 hover:border-slate-300",
+                              ? "border-2 border-primary shadow-md ring-2 ring-primary/10"
+                              : "border border-slate-200 hover:border-slate-300 hover:shadow-sm shadow-xs",
                           ].join(" ")}
                         >
-                          {/* Selected badge */}
+                          {/* Selected indicator */}
                           {isSelected && (
-                            <div className="absolute top-3 right-3 z-10 bg-primary text-white rounded-full p-1 shadow-sm">
-                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            <div className="absolute top-3.5 right-3.5 z-10">
+                              <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center shadow-sm">
+                                <CheckCircle2 className="w-4 h-4 text-white" />
+                              </div>
                             </div>
                           )}
 
-                          {/* Photo */}
-                          <div className="relative h-44 w-full bg-slate-100 border-b border-slate-200 overflow-hidden shrink-0">
+                          {/* Photo area — fixed proportional height */}
+                          <div className="relative w-full bg-slate-100 overflow-hidden" style={{ aspectRatio: "16/9" }}>
                             {cand.photo_url ? (
                               <Image
                                 src={
@@ -488,24 +639,42 @@ export default function BilikSuaraPage() {
                                 className="object-cover object-top"
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                <UserCircle2 className="w-14 h-14" />
-                              </div>
+                              <CandidateAvatar name={cand.name} number={cand.number} />
                             )}
-                            {/* Candidate number — integrated bottom-left */}
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/40 to-transparent px-3 py-2">
-                              <span className="text-xs font-bold text-white/80 uppercase tracking-widest">
-                                Kandidat
+
+                            {/* Bottom gradient with number label */}
+                            <div
+                              className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity ${
+                                isSelected ? "opacity-100" : "opacity-60 group-hover:opacity-80"
+                              }`}
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 px-4 py-3 flex items-end justify-between">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-[11px] font-bold text-white uppercase tracking-widest">
+                                No. {cand.number}
                               </span>
-                              <span className="ml-1.5 text-white font-black text-sm">#{cand.number}</span>
+                              {isSelected && (
+                                <span className="text-[10px] font-bold text-white/80 uppercase tracking-wider">
+                                  Dipilih
+                                </span>
+                              )}
                             </div>
                           </div>
 
-                          {/* Content */}
-                          <div className="p-5 flex-1 flex flex-col gap-1.5">
-                            <h3 className="text-base font-bold text-slate-900 leading-snug">{cand.name}</h3>
-                            <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed">
-                              {cand.vision || "Belum ada visi & misi yang tersedia."}
+                          {/* Card content */}
+                          <div
+                            className={`px-5 py-4 flex-1 flex flex-col gap-1 transition-colors ${
+                              isSelected ? "bg-primary/5" : "bg-white"
+                            }`}
+                          >
+                            <h3
+                              className={`text-base font-bold leading-snug ${
+                                isSelected ? "text-primary" : "text-slate-900"
+                              }`}
+                            >
+                              {cand.name}
+                            </h3>
+                            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                              {cand.vision || "Visi & misi belum tersedia."}
                             </p>
                           </div>
                         </button>
@@ -514,23 +683,26 @@ export default function BilikSuaraPage() {
                   </div>
                 )}
 
-                {/* ── Selected candidate action bar ───────────────────────── */}
+                {/* Action bar — shown when a candidate is selected */}
                 {selectedCandidate && !voteSuccess && (
-                  <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-800 text-sm shrink-0">
-                        #{selectedCandidate.number}
+                  <div className="mt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-2xl px-5 py-4 shadow-sm">
+                    <div className="flex items-center gap-4 min-w-0">
+                      {/* Number badge */}
+                      <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-black text-base shrink-0">
+                        {selectedCandidate.number}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                           Kandidat Pilihan Anda
                         </p>
-                        <p className="text-sm font-bold text-slate-900 truncate">{selectedCandidate.name}</p>
+                        <p className="text-sm font-bold text-slate-900 truncate">
+                          {selectedCandidate.name}
+                        </p>
                       </div>
                     </div>
                     <button
                       onClick={() => setShowConfirmModal(true)}
-                      className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg font-semibold text-sm transition-colors"
+                      className="shrink-0 w-full sm:w-auto h-11 flex items-center justify-center gap-2 px-8 bg-primary hover:bg-primary-hover text-white rounded-xl font-semibold text-sm transition-colors shadow-sm"
                     >
                       Kirim Suara <ArrowRight className="w-4 h-4" />
                     </button>
@@ -542,53 +714,77 @@ export default function BilikSuaraPage() {
         )}
       </main>
 
-      {/* ── Confirmation Modal ───────────────────────────────────────────────── */}
+      {/* ── Confirmation Modal ────────────────────────────────────────────────── */}
       {showConfirmModal && selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-slate-900/50"
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             onClick={() => setShowConfirmModal(false)}
           />
-          <div className="relative bg-white border border-slate-200 rounded-2xl shadow-xl w-full max-w-[340px] p-6 text-center">
+
+          {/* Modal panel */}
+          <div className="relative bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
+            {/* Drag indicator on mobile */}
+            <div className="sm:hidden flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-slate-200" />
+            </div>
+
+            {/* Close */}
             <button
               onClick={() => setShowConfirmModal(false)}
-              className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors"
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors z-10"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Vote className="w-5 h-5 text-primary" />
-            </div>
+            <div className="px-6 pt-5 pb-6">
+              {/* Icon */}
+              <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-5">
+                <Vote className="w-6 h-6 text-primary" />
+              </div>
 
-            <p className="text-xs text-slate-500 font-semibold mb-2">Anda akan memberikan suara kepada:</p>
-            <p className="text-xl font-bold text-slate-900 mb-5 leading-snug">{selectedCandidate.name}</p>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5 text-left">
-              <p className="text-xs text-amber-800 leading-relaxed">
-                Suara yang telah dikirim <strong>tidak dapat diubah</strong>.
+              {/* Label */}
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                Anda akan memberikan suara kepada:
               </p>
-            </div>
 
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={handleCastVote}
-                disabled={submitting}
-                className="w-full h-10 flex items-center justify-center bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-lg font-semibold text-sm transition-colors"
-              >
-                {submitting ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  "Konfirmasi & Kirim"
-                )}
-              </button>
-              <button
-                onClick={() => setShowConfirmModal(false)}
-                disabled={submitting}
-                className="w-full h-10 text-slate-600 hover:bg-slate-50 rounded-lg font-semibold text-sm transition-colors"
-              >
-                Batal
-              </button>
+              {/* Candidate name — focal point */}
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-tight mb-5">
+                {selectedCandidate.name}
+              </h2>
+
+              {/* Warning */}
+              <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  Suara yang telah dikirim{" "}
+                  <strong className="font-semibold">tidak dapat diubah</strong>.
+                  Pastikan pilihan Anda sudah benar sebelum konfirmasi.
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col gap-2.5">
+                <button
+                  onClick={handleCastVote}
+                  disabled={submitting}
+                  className="w-full h-11 flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-xl font-semibold text-sm transition-colors"
+                >
+                  {submitting ? (
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    "Konfirmasi & Kirim"
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  disabled={submitting}
+                  className="w-full h-11 text-slate-600 hover:bg-slate-50 rounded-xl font-semibold text-sm transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
             </div>
           </div>
         </div>
