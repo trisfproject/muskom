@@ -24,9 +24,9 @@ type AttendanceEvent struct {
 
 // AttendanceSummary represents the real-time aggregate stats
 type AttendanceSummary struct {
-	TotalParticipants int `json:"total_participants"`
-	TotalPresent      int `json:"total_present"`
-	TotalAbsent       int `json:"total_absent"`
+	TotalParticipants int `json:"total_participants" db:"total_participants"`
+	TotalPresent      int `json:"total_present" db:"total_present"`
+	TotalAbsent       int `json:"total_absent" db:"total_absent"`
 }
 
 // AttendanceService defines the business operations for attendance
