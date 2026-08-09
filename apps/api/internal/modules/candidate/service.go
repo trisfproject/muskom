@@ -12,6 +12,7 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/redis/go-redis/v9"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
@@ -58,9 +59,10 @@ type service struct {
 	cfg           *config.Config
 	log           *zap.Logger
 	notifSvc      notification.Service
+	redisClient   *redis.Client
 }
 
-func NewService(repo Repository, auditService audit.AuditService, st storage.Storage, maxUploadSize int64, cfg *config.Config, log *zap.Logger, notifSvc notification.Service) Service {
+func NewService(repo Repository, auditService audit.AuditService, st storage.Storage, maxUploadSize int64, cfg *config.Config, log *zap.Logger, notifSvc notification.Service, redisClient *redis.Client) Service {
 	return &service{
 		repo:          repo,
 		auditService:  auditService,
@@ -69,6 +71,7 @@ func NewService(repo Repository, auditService audit.AuditService, st storage.Sto
 		cfg:           cfg,
 		log:           log,
 		notifSvc:      notifSvc,
+		redisClient:   redisClient,
 	}
 }
 
@@ -259,6 +262,8 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 		PreviousValue: oldVal,
 		NewValue:      c,
 	})
+	s.invalidateWebsiteCache(ctx)
+
 
 	res := s.mapToResponse(c)
 	return &res, nil
@@ -351,6 +356,8 @@ func (s *service) Patch(ctx context.Context, id string, req PatchCandidateReques
 		PreviousValue: oldVal,
 		NewValue:      c,
 	})
+	s.invalidateWebsiteCache(ctx)
+
 
 	res := s.mapToResponse(c)
 	return &res, nil
@@ -377,6 +384,8 @@ func (s *service) Delete(ctx context.Context, id string) error {
 		Action:        "DELETE",
 		PreviousValue: c,
 	})
+	s.invalidateWebsiteCache(ctx)
+
 
 	return nil
 }
@@ -749,6 +758,7 @@ func (s *service) AdminPublishCandidate(ctx context.Context, id string, adminUse
 		}
 	}()
 
+	s.invalidateWebsiteCache(ctx)
 	return nil
 }
 
@@ -796,6 +806,7 @@ func (s *service) AdminUnpublishCandidate(ctx context.Context, id string, adminU
 		}
 	}()
 
+	s.invalidateWebsiteCache(ctx)
 	return nil
 }
 
@@ -827,6 +838,7 @@ func (s *service) AdminUpdatePublicationSettings(ctx context.Context, id string,
 		ActorID:  &adminUserID,
 	})
 
+	s.invalidateWebsiteCache(ctx)
 	return nil
 }
 
@@ -844,6 +856,8 @@ func (s *service) AdminReorderCandidates(ctx context.Context, req AdminReorderCa
 		NewValue: req.Items,
 		ActorID:  &adminUserID,
 	})
+	s.invalidateWebsiteCache(ctx)
+
 
 	return nil
 }
@@ -944,6 +958,8 @@ func (s *service) AdminDeleteCandidate(ctx context.Context, id string, adminUser
 		PreviousValue: c,
 		ActorID:       &adminUserID,
 	})
+	s.invalidateWebsiteCache(ctx)
+
 
 	return nil
 }
@@ -967,5 +983,12 @@ func (s *service) AdminBulkDeleteCandidates(ctx context.Context, ids []string, a
 		ActorID:  &adminUserID,
 	})
 
+	s.invalidateWebsiteCache(ctx)
 	return nil
+}
+
+func (s *service) invalidateWebsiteCache(ctx context.Context) {
+	if s.redisClient != nil {
+		s.redisClient.Del(ctx, "muskom:website:public:home")
+	}
 }

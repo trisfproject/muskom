@@ -57,7 +57,7 @@ func TestIntegration_CandidateFlow(t *testing.T) {
 	cfg := &config.Config{JWTSecret: "secret"}
 	log := zap.NewNop()
 
-	svc := NewService(repo, auditSvc, st, 5*1024*1024, cfg, log, nil)
+	svc := NewService(repo, auditSvc, st, 5*1024*1024, cfg, log, nil, nil)
 
 	val := validator.New()
 	adminHandler := NewAdminHandler(svc, val, log)

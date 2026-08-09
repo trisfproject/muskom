@@ -2,6 +2,7 @@ package candidate
 
 import (
 	"github.com/gofiber/fiber/v3"
+	"github.com/redis/go-redis/v9"
 	"github.com/jmoiron/sqlx"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/audit"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
@@ -12,14 +13,14 @@ import (
 )
 
 // SetupAdminRoutes registers candidate verification routes for the admin portal.
-func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, st storage.Storage, cfg *config.Config, notifSvc notification.Service) {
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, redisClient *redis.Client, log *zap.Logger, val *validator.Validator, st storage.Storage, cfg *config.Config, notifSvc notification.Service) {
 	repo := NewRepository(db)
 	auditSvc := audit.NewService(audit.NewRepository(db), log)
 	maxUploadSize := int64(10 * 1024 * 1024)
 	if cfg != nil && cfg.MaxUploadSize > 0 {
 		maxUploadSize = cfg.MaxUploadSize
 	}
-	svc := NewService(repo, auditSvc, st, maxUploadSize, cfg, log, notifSvc)
+	svc := NewService(repo, auditSvc, st, maxUploadSize, cfg, log, notifSvc, redisClient)
 	h := NewAdminHandler(svc, val, log)
 
 	// Admin candidate endpoints

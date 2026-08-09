@@ -109,36 +109,55 @@ export function CandidatePreview({ data }: { data: HomeResponse | null }) {
         )}
 
         {filteredCandidates.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-7 max-w-4xl mx-auto">
             {filteredCandidates.map((c, i) => (
               <SlideUp key={c.id} delay={i * 0.1}>
-                <div className="group bg-white/60 dark:bg-slate-900/50 backdrop-blur-xl border border-white/40 dark:border-slate-700/30 p-6 md:p-8 rounded-3xl flex flex-col h-full hover:shadow-xl hover:shadow-blue-500/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
-                  <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-blue-600/20 text-primary font-black shadow-sm z-10">
-                    {c.sequence_number ?? "?"}
+                <div className="group bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 rounded-[24px] flex flex-col h-full hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 relative overflow-hidden">
+                  
+                  {/* Subtle Background Number */}
+                  <div className="absolute top-6 right-6 text-4xl md:text-5xl font-black text-primary/20 select-none pointer-events-none z-0">
+                    {c.sequence_number ? c.sequence_number.toString().padStart(2, "0") : "??"}
                   </div>
-                  <div className="mb-6 flex justify-center">
+
+                  {/* Photo */}
+                  <div className="mb-6 flex justify-center relative z-10">
                     {c.photo_url ? (
-                      <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden relative shadow-lg ring-4 ring-white dark:ring-slate-800">
+                      <div className="w-36 h-36 md:w-40 md:h-40 rounded-2xl overflow-hidden relative shadow-sm ring-1 ring-slate-100 dark:ring-slate-800">
                         <Image src={c.photo_url} alt={c.name || "Candidate"} fill className="object-cover" />
                       </div>
                     ) : (
-                      <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center ring-4 ring-white dark:ring-slate-800 text-slate-400 shadow-lg">
+                      <div className="w-36 h-36 md:w-40 md:h-40 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center ring-1 ring-slate-100 dark:ring-slate-800 text-slate-400 shadow-sm">
                         <span className="text-3xl font-bold">{c.name?.charAt(0) || "?"}</span>
                       </div>
                     )}
                   </div>
-                  <div className="text-center mb-4">
-                    <h3 className="text-xl md:text-2xl font-bold pg-text group-hover:text-primary transition-colors">{c.name}</h3>
-                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">{c.organization || "No Organization"}</p>
+
+                  {/* Name and Metadata */}
+                  <div className="text-center mb-5 relative z-10">
+                    <h3 className="text-[22px] md:text-[24px] font-bold text-slate-900 dark:text-white mb-2 leading-tight group-hover:text-primary transition-colors">
+                      {c.name}
+                    </h3>
+                    {c.organization && (
+                      <div className="text-[13px] md:text-[14px] font-medium text-slate-500 dark:text-slate-400">
+                        {c.organization}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1 text-center">
-                    <p className="text-sm pg-muted leading-relaxed line-clamp-3">{c.biography || c.vision || ""}</p>
+
+                  {/* Biography Preview */}
+                  <div className="flex-1 text-center relative z-10 mb-6">
+                    <p className="text-[15px] pg-muted leading-[1.6] line-clamp-2">
+                      {c.biography || c.vision || ""}
+                    </p>
                   </div>
-                  <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50 text-center">
-                    <Link href={`/kandidat/${c.id}`} className="text-sm font-semibold text-primary hover:text-blue-700 transition-colors inline-flex items-center gap-1">
+
+                  {/* CTA */}
+                  <div className="mt-auto pt-5 border-t border-slate-100 dark:border-slate-800 text-center relative z-10">
+                    <Link href={`/kandidat/${c.id}`} className="flex items-center justify-center w-full py-2.5 text-[15px] font-semibold text-primary hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl transition-colors gap-1.5">
                       Lihat Profil Lengkap <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
+
                 </div>
               </SlideUp>
             ))}
