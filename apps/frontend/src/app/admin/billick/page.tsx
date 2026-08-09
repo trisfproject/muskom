@@ -600,7 +600,7 @@ export default function BilikSuaraPage() {
                   </div>
                 ) : (
                   // Candidate grid
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-7">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                     {ballot.candidates.map((cand) => {
                       const isSelected = selectedCandidate?.id === cand.id;
                       return (
@@ -608,71 +608,97 @@ export default function BilikSuaraPage() {
                           key={cand.id}
                           onClick={() => setSelectedCandidate(cand)}
                           className={[
-                            "group relative text-left rounded-2xl overflow-hidden outline-none",
-                            "transition-all duration-150 flex flex-col",
+                            "group relative text-left rounded-2xl overflow-hidden outline-none w-full",
+                            "transition-all duration-200 flex flex-col sm:flex-row items-stretch",
                             "bg-white",
                             isSelected
                               ? "border-2 border-primary shadow-md ring-2 ring-primary/10"
-                              : "border border-slate-200 hover:border-slate-300 hover:shadow-sm shadow-xs",
+                              : "border-2 border-slate-200 hover:-translate-y-[2px] hover:border-slate-300 hover:shadow-md shadow-sm",
                           ].join(" ")}
                         >
                           {/* Selected indicator */}
                           {isSelected && (
-                            <div className="absolute top-3.5 right-3.5 z-10">
+                            <div className="absolute top-4 right-4 z-20">
                               <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center shadow-sm">
                                 <CheckCircle2 className="w-4 h-4 text-white" />
                               </div>
                             </div>
                           )}
 
-                          {/* Photo area — fixed proportional height */}
-                          <div className="relative w-full bg-slate-100 overflow-hidden" style={{ aspectRatio: "16/9" }}>
+                          {/* LEFT: Photo area (1:1) */}
+                          <div className="relative w-full sm:w-1/2 shrink-0 bg-slate-100" style={{ aspectRatio: "1 / 1" }}>
                             {cand.photo_url ? (
                               <Image
                                 src={cand.photo_url}
                                 alt={cand.name}
                                 fill
-                                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 600px"
-                                className="object-cover object-top"
+                                sizes="(max-width: 640px) 100vw, 320px"
+                                className="object-cover object-center"
                               />
                             ) : (
                               <CandidateAvatar name={cand.name} number={cand.number} />
                             )}
-
-                            {/* Bottom gradient with number label */}
-                            <div
-                              className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity ${
-                                isSelected ? "opacity-100" : "opacity-60 group-hover:opacity-80"
-                              }`}
-                            />
-                            <div className="absolute bottom-0 left-0 right-0 px-4 py-3 flex items-end justify-between">
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-[11px] font-bold text-white uppercase tracking-widest">
-                                No. {cand.number}
-                              </span>
-                              {isSelected && (
-                                <span className="text-[10px] font-bold text-white/80 uppercase tracking-wider">
-                                  Dipilih
-                                </span>
-                              )}
-                            </div>
                           </div>
 
-                          {/* Card content */}
+                          {/* RIGHT: Information Panel */}
                           <div
-                            className={`px-5 py-4 flex-1 flex flex-col gap-1 transition-colors ${
-                              isSelected ? "bg-primary/5" : "bg-white"
+                            className={`flex-1 flex flex-col p-6 sm:p-7 transition-colors ${
+                              isSelected
+                                ? "bg-primary/5"
+                                : cand.number === 1
+                                ? "bg-amber-50/40"
+                                : cand.number === 2
+                                ? "bg-blue-50/40"
+                                : cand.number === 3
+                                ? "bg-emerald-50/40"
+                                : "bg-slate-50/50"
                             }`}
                           >
-                            <h3
-                              className={`text-base font-bold leading-snug ${
-                                isSelected ? "text-primary" : "text-slate-900"
-                              }`}
-                            >
-                              {cand.name}
-                            </h3>
-                            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                              {cand.vision || "Visi & misi belum tersedia."}
-                            </p>
+                            <div className="flex-1 flex flex-col">
+                              {/* Number Label */}
+                              <div className="mb-5">
+                                <span className={`text-[11px] font-bold uppercase tracking-widest ${
+                                  isSelected ? "text-primary" : "text-slate-400"
+                                }`}>
+                                  NO.
+                                </span>
+                                <div className={`text-4xl sm:text-5xl font-black tracking-tighter leading-none mt-1 ${
+                                  isSelected 
+                                    ? "text-primary" 
+                                    : cand.number === 1
+                                    ? "text-amber-600/60"
+                                    : cand.number === 2
+                                    ? "text-blue-600/60"
+                                    : cand.number === 3
+                                    ? "text-emerald-600/60"
+                                    : "text-slate-300"
+                                }`}>
+                                  {cand.number.toString().padStart(2, "0")}
+                                </div>
+                              </div>
+
+                              {/* Candidate Name & Description */}
+                              <div className="mb-6">
+                                <h3 className={`text-xl sm:text-2xl font-bold leading-snug mb-3 ${
+                                  isSelected ? "text-primary-dark" : "text-slate-900"
+                                }`}>
+                                  {cand.name}
+                                </h3>
+                                <p className="text-sm text-slate-500 line-clamp-4 leading-relaxed">
+                                  {cand.vision || "Visi & misi belum tersedia."}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Selection Affordance */}
+                            <div className="mt-auto">
+                              <div className={`inline-flex items-center gap-2 text-sm font-bold transition-colors ${
+                                isSelected ? "text-primary" : "text-slate-400 group-hover:text-primary"
+                              }`}>
+                                {isSelected ? "Dipilih" : "Pilih Kandidat"}
+                                <ArrowRight className="w-4 h-4" />
+                              </div>
+                            </div>
                           </div>
                         </button>
                       );
