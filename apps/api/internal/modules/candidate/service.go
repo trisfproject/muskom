@@ -205,18 +205,36 @@ func (s *service) Update(ctx context.Context, id string, req UpdateCandidateRequ
 	oldVal := *c
 
 	c.FullName = req.FullName
-	c.Nickname = req.Nickname
 	c.Email = req.Email
 	c.Phone = req.Phone
-	c.CompanyName = req.CompanyName
-	c.IndustrialArea = req.IndustrialArea
-	c.JobTitle = req.JobTitle
-	c.Department = req.Department
 
-	c.Biography = req.Biography
-	c.Motivation = req.Motivation
-	c.Vision = req.Vision
-	c.Mission = req.Mission
+	if req.Nickname != nil {
+		c.Nickname = req.Nickname
+	}
+	if req.CompanyName != nil {
+		c.CompanyName = req.CompanyName
+	}
+	if req.IndustrialArea != nil {
+		c.IndustrialArea = req.IndustrialArea
+	}
+	if req.JobTitle != nil {
+		c.JobTitle = req.JobTitle
+	}
+	if req.Department != nil {
+		c.Department = req.Department
+	}
+	if req.Biography != nil {
+		c.Biography = req.Biography
+	}
+	if req.Motivation != nil {
+		c.Motivation = req.Motivation
+	}
+	if req.Vision != nil {
+		c.Vision = req.Vision
+	}
+	if req.Mission != nil {
+		c.Mission = req.Mission
+	}
 	if req.ProfilePhoto != nil {
 		c.ProfilePhoto = req.ProfilePhoto
 	}
