@@ -128,10 +128,6 @@ export default function AdminParticipantsPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id?: string; bulk?: boolean; count?: number } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Status Change Modal
-  const [statusTarget, setStatusTarget] = useState<{ id?: string; bulk?: boolean; status: string } | null>(null);
-  const [statusReason, setStatusReason] = useState("");
-  const [updatingStatus, setUpdatingStatus] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   const handleExportCSV = async () => {
@@ -303,39 +299,6 @@ export default function AdminParticipantsPage() {
     }
   };
 
-  // Single & Bulk Status Change
-  const handleExecuteStatusUpdate = async () => {
-    if (!statusTarget) return;
-    setUpdatingStatus(true);
-    try {
-      if (statusTarget.bulk) {
-        await adminParticipantService.bulkUpdateStatus(
-          selectedIds,
-          statusTarget.status,
-          statusReason || undefined
-        );
-        toast.success(`Status ${selectedIds.length} peserta berhasil diubah ke ${statusTarget.status}.`);
-        setSelectedIds([]);
-      } else if (statusTarget.id) {
-        await adminParticipantService.updateStatus(statusTarget.id, {
-          status: statusTarget.status,
-          reason: statusReason || undefined,
-        });
-        toast.success(`Status peserta berhasil diubah ke ${statusTarget.status}.`);
-        if (detailItem && detailItem.id === statusTarget.id) {
-          setDetailItem({ ...detailItem, status: statusTarget.status });
-        }
-      }
-      setStatusTarget(null);
-      setStatusReason("");
-      fetchData();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Gagal mengubah status peserta.");
-    } finally {
-      setUpdatingStatus(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -408,18 +371,7 @@ export default function AdminParticipantsPage() {
               {selectedIds.length} peserta terpilih
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setStatusTarget({ bulk: true, status: "Verified" })}
-                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer"
-              >
-                Verifikasi Terpilih
-              </button>
-              <button
-                onClick={() => setStatusTarget({ bulk: true, status: "Rejected" })}
-                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition-colors cursor-pointer"
-              >
-                Tolak Terpilih
-              </button>
+              {/* Verification actions have been moved to /admin/verifications */}
               <button
                 onClick={() => setDeleteTarget({ bulk: true, count: selectedIds.length })}
                 className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -639,60 +591,14 @@ export default function AdminParticipantsPage() {
               </div>
             </div>
 
-            {/* Status & Quick Status Action */}
-            <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <span className="text-xs pg-muted block font-medium mb-1">Status Pendaftaran:</span>
-                <StatusBadge status={detailItem.status} />
-              </div>
-              <div className="flex items-center gap-2 flex-wrap justify-end">
-                {detailItem.status === "PENDING" && (
-                  <button
-                    onClick={() => handleResendEmail("REGISTRATION_RECEIVED")}
-                    disabled={resendingEmail}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-                  >
-                    <Send className="w-3.5 h-3.5" /> Kirim Ulang Email Pendaftaran
-                  </button>
-                )}
-                {detailItem.status === "APPROVED" && (
-                  <button
-                    onClick={() => handleResendEmail("REGISTRATION_APPROVED")}
-                    disabled={resendingEmail}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-                  >
-                    <Send className="w-3.5 h-3.5" /> Kirim Ulang Email Approval
-                  </button>
-                )}
-                {detailItem.status === "REJECTED" && (
-                  <button
-                    onClick={() => handleResendEmail("REGISTRATION_REJECTED")}
-                    disabled={resendingEmail}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-                  >
-                    <Send className="w-3.5 h-3.5" /> Kirim Ulang Email Penolakan
-                  </button>
-                )}
-
-                <button
-                  onClick={() => setStatusTarget({ id: detailItem.id, status: "APPROVED" })}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer"
-                >
-                  Verifikasi
-                </button>
-                <button
-                  onClick={() => setStatusTarget({ id: detailItem.id, status: "REJECTED" })}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer"
-                >
-                  Tolak
-                </button>
-                <button
-                  onClick={() => openEdit(detailItem)}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 pg-text transition-colors cursor-pointer"
-                >
-                  Edit Data
-                </button>
-              </div>
+            {/* Actions */}
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={() => openEdit(detailItem)}
+                className="px-4 py-2 rounded-lg text-sm font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 pg-text transition-colors cursor-pointer flex items-center gap-2"
+              >
+                <Edit3 className="w-4 h-4" /> Edit Data
+              </button>
             </div>
 
             {/* Email History */}
@@ -962,73 +868,6 @@ export default function AdminParticipantsPage() {
         </div>
       )}
 
-      {/* ─── Status Change Confirmation Modal ─── */}
-      {statusTarget && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                  statusTarget.status === "Verified"
-                    ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400"
-                    : "bg-amber-100 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400"
-                }`}
-              >
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold pg-text">
-                  Ubah Status ke {statusTarget.status}
-                </h3>
-                <p className="text-xs pg-muted">
-                  {statusTarget.bulk
-                    ? `Perbarui status untuk ${selectedIds.length} peserta terpilih`
-                    : "Perbarui status peserta"}
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold pg-text block mb-1">
-                Catatan / Alasan (Opsional)
-              </label>
-              <textarea
-                value={statusReason}
-                onChange={(e) => setStatusReason(e.target.value)}
-                placeholder="Masukkan catatan verifikasi jika ada..."
-                rows={2}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-xs focus:outline-none focus:border-blue-600"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => {
-                  setStatusTarget(null);
-                  setStatusReason("");
-                }}
-                disabled={updatingStatus}
-                className="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 pg-text transition-colors cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={handleExecuteStatusUpdate}
-                disabled={updatingStatus}
-                className={`px-4 py-2 text-xs font-semibold rounded-lg text-white transition-colors cursor-pointer disabled:opacity-50 ${
-                  statusTarget.status === "Verified"
-                    ? "bg-emerald-600 hover:bg-emerald-700"
-                    : "bg-amber-600 hover:bg-amber-700"
-                }`}
-              >
-                {updatingStatus ? "Menyimpan..." : "Konfirmasi Ubah Status"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
