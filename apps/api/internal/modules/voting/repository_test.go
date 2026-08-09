@@ -107,3 +107,79 @@ func TestRepository_GetBallotCandidates(t *testing.T) {
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 }
+
+func TestRepository_GetParticipantByRegNumber(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("unexpected error opening stub db: %s", err)
+	}
+	defer db.Close()
+
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	repo := NewRepository(sqlxDB)
+	ctx := context.Background()
+
+	query := `SELECT p\.id as participant_id, p\.registration_number, p\.full_name FROM participants p WHERE p\.registration_number = \$1 AND p\.deleted_at IS NULL`
+
+	t.Run("Found participant - db columns map correctly to struct", func(t *testing.T) {
+		rows := sqlmock.NewRows([]string{"participant_id", "registration_number", "full_name"}).
+			AddRow("uuid-abc", "MK-5B43-C8DE57EF", "Tiga Dua Satu")
+		mock.ExpectQuery(query).WithArgs("MK-5B43-C8DE57EF").WillReturnRows(rows)
+
+		result, err := repo.GetParticipantByRegNumber(ctx, "MK-5B43-C8DE57EF")
+
+		assert.NoError(t, err)
+		assert.NotNil(t, result)
+		assert.Equal(t, "uuid-abc", result.ParticipantID)
+		assert.Equal(t, "MK-5B43-C8DE57EF", result.RegistrationNumber)
+		assert.Equal(t, "Tiga Dua Satu", result.FullName)
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("Participant not found returns nil without error", func(t *testing.T) {
+		rows := sqlmock.NewRows([]string{"participant_id", "registration_number", "full_name"})
+		mock.ExpectQuery(query).WithArgs("MUSKOM-2026-9999").WillReturnRows(rows)
+
+		result, err := repo.GetParticipantByRegNumber(ctx, "MUSKOM-2026-9999")
+
+		assert.NoError(t, err)
+		assert.Nil(t, result)
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+}
+
+func TestRepository_GetSessionStatus(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("unexpected error opening stub db: %s", err)
+	}
+	defer db.Close()
+
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	repo := NewRepository(sqlxDB)
+	ctx := context.Background()
+
+	query := `SELECT settings->>'status' FROM system_configurations WHERE group_name = 'voting_session'`
+
+	t.Run("Returns NOT_STARTED when no row exists", func(t *testing.T) {
+		mock.ExpectQuery(query).WillReturnRows(sqlmock.NewRows([]string{"?column?"}))
+
+		status, err := repo.GetSessionStatus(ctx)
+
+		assert.NoError(t, err)
+		assert.Equal(t, SessionNotStarted, status)
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+
+	t.Run("Returns persisted status from DB", func(t *testing.T) {
+		rows := sqlmock.NewRows([]string{"?column?"}).AddRow("RUNNING")
+		mock.ExpectQuery(query).WillReturnRows(rows)
+
+		status, err := repo.GetSessionStatus(ctx)
+
+		assert.NoError(t, err)
+		assert.Equal(t, SessionRunning, status)
+		assert.NoError(t, mock.ExpectationsWereMet())
+	})
+}
+

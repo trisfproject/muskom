@@ -27,6 +27,7 @@ type Service interface {
 	GetSummary(ctx context.Context, eventID string) (*VoteSummary, error)
 	GetSession(ctx context.Context, eventID string) (*VotingSession, error)
 	UpdateSessionStatus(ctx context.Context, eventID string, action string) (*VotingSession, error)
+	CheckParticipantEligibilityByRegNumber(ctx context.Context, eventID, regNum string) (*ParticipantEligibility, error)
 
 	BroadcastVotingInvitation(ctx context.Context, eventID string) error
 	SendVotingReminder(ctx context.Context, eventID string) error
@@ -47,8 +48,8 @@ func NewService(db *sqlx.DB, repo Repository, bus eventbus.EventDispatcher, log 
 }
 
 func (s *service) GetBallot(ctx context.Context, eventID string) (*Ballot, error) {
-	phase, err := s.resolver.GetCurrentPhase(ctx)
-	if err != nil || phase == nil || phase.Title != "VOTING" {
+	status, err := s.repo.GetSessionStatus(ctx)
+	if err != nil || status != SessionRunning {
 		return nil, ErrSessionClosed
 	}
 
@@ -61,8 +62,8 @@ func (s *service) GetBallot(ctx context.Context, eventID string) (*Ballot, error
 }
 
 func (s *service) CastVote(ctx context.Context, eventID, participantID, candidateID string) error {
-	phase, err := s.resolver.GetCurrentPhase(ctx)
-	if err != nil || phase == nil || phase.Title != "VOTING" {
+	status, err := s.repo.GetSessionStatus(ctx)
+	if err != nil || status != SessionRunning {
 		return ErrSessionNotRunning
 	}
 
@@ -143,14 +144,9 @@ func (s *service) GetSummary(ctx context.Context, eventID string) (*VoteSummary,
 }
 
 func (s *service) GetSession(ctx context.Context, eventID string) (*VotingSession, error) {
-	phase, err := s.resolver.GetCurrentPhase(ctx)
-	status := SessionNotStarted
-	if err == nil && phase != nil {
-		if phase.Title == "VOTING" {
-			status = SessionRunning
-		} else if phase.Status == "past" {
-			status = SessionClosed
-		}
+	status, err := s.repo.GetSessionStatus(ctx)
+	if err != nil {
+		status = SessionNotStarted
 	}
 
 	return &VotingSession{
@@ -173,11 +169,51 @@ func (s *service) UpdateSessionStatus(ctx context.Context, eventID string, actio
 		status = SessionRunning
 	}
 
+	if err := s.repo.UpdateSessionStatus(ctx, status); err != nil {
+		return nil, err
+	}
+
 	return &VotingSession{
 		ID:      "active-session",
 		EventID: eventID,
 		Status:  status,
 	}, nil
+}
+
+func (s *service) CheckParticipantEligibilityByRegNumber(ctx context.Context, eventID, regNum string) (*ParticipantEligibility, error) {
+	participant, err := s.repo.GetParticipantByRegNumber(ctx, regNum)
+	if err != nil {
+		return nil, err
+	}
+	if participant == nil {
+		return nil, errors.New("participant not found")
+	}
+
+	isEligible, err := s.repo.IsParticipantEligible(ctx, eventID, participant.ParticipantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isEligible {
+		participant.IsEligible = false
+		participant.Reason = "Peserta belum check-in atau status belum diverifikasi"
+		return participant, nil
+	}
+
+	hasVoted, err := s.repo.HasVoted(ctx, eventID, participant.ParticipantID)
+	if err != nil {
+		return nil, err
+	}
+
+	if hasVoted {
+		participant.IsEligible = false
+		participant.Reason = "Peserta sudah memberikan suara sebelumnya"
+		return participant, nil
+	}
+
+	participant.IsEligible = true
+	participant.Reason = "Peserta memenuhi syarat untuk memberikan suara"
+	return participant, nil
 }
 
 func (s *service) BroadcastVotingInvitation(ctx context.Context, eventID string) error {

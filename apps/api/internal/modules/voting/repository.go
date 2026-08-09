@@ -18,6 +18,10 @@ type Repository interface {
 	GetVerifiedVoterEmails(ctx context.Context, eventID string) ([]string, error)
 	GetUnvotedVerifiedVoterEmails(ctx context.Context, eventID string) ([]string, error)
 	IsParticipantEligible(ctx context.Context, eventID, participantID string) (bool, error)
+	GetParticipantByRegNumber(ctx context.Context, regNum string) (*ParticipantEligibility, error)
+
+	UpdateSessionStatus(ctx context.Context, status SessionStatus) error
+	GetSessionStatus(ctx context.Context) (SessionStatus, error)
 }
 
 type repository struct {
@@ -135,4 +139,48 @@ func (r *repository) IsParticipantEligible(ctx context.Context, eventID, partici
 	// Using $1 for participantID, we don't strictly filter eventID here unless there are multiple events in one DB (which we assume there aren't for participants directly or we can ignore it since they are unique).
 	err := r.db.GetContext(ctx, &count, query, participantID)
 	return count > 0, err
+}
+
+func (r *repository) GetParticipantByRegNumber(ctx context.Context, regNum string) (*ParticipantEligibility, error) {
+	query := `
+		SELECT 
+			p.id as participant_id,
+			p.registration_number,
+			p.full_name
+		FROM participants p
+		WHERE p.registration_number = $1
+		  AND p.deleted_at IS NULL
+	`
+	var res ParticipantEligibility
+	err := r.db.GetContext(ctx, &res, query, regNum)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Not found
+		}
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (r *repository) UpdateSessionStatus(ctx context.Context, status SessionStatus) error {
+	query := `
+		INSERT INTO system_configurations (group_name, settings)
+		VALUES ('voting_session', jsonb_build_object('status', $1::text))
+		ON CONFLICT (group_name) DO UPDATE SET settings = EXCLUDED.settings, updated_at = NOW()
+	`
+	_, err := r.db.ExecContext(ctx, query, status)
+	return err
+}
+
+func (r *repository) GetSessionStatus(ctx context.Context) (SessionStatus, error) {
+	var settings string
+	query := `SELECT settings->>'status' FROM system_configurations WHERE group_name = 'voting_session'`
+	err := r.db.GetContext(ctx, &settings, query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return SessionNotStarted, nil
+		}
+		return SessionNotStarted, err
+	}
+	return SessionStatus(settings), nil
 }

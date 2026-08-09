@@ -57,3 +57,11 @@ type VoteSummary struct {
 	ParticipationPct float64      `json:"participation_pct"`
 	Results          []VoteResult `json:"results"`
 }
+
+type ParticipantEligibility struct {
+	ParticipantID      string `json:"participant_id" db:"participant_id"`
+	RegistrationNumber string `json:"registration_number" db:"registration_number"`
+	FullName           string `json:"full_name" db:"full_name"`
+	IsEligible         bool   `json:"is_eligible"`
+	Reason             string `json:"reason"`
+}

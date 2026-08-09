@@ -59,6 +59,25 @@ func (m *MockRepository) IsParticipantEligible(ctx context.Context, eventID, par
 	return args.Bool(0), args.Error(1)
 }
 
+func (m *MockRepository) GetParticipantByRegNumber(ctx context.Context, regNum string) (*ParticipantEligibility, error) {
+	args := m.Called(ctx, regNum)
+	var res *ParticipantEligibility
+	if args.Get(0) != nil {
+		res = args.Get(0).(*ParticipantEligibility)
+	}
+	return res, args.Error(1)
+}
+
+func (m *MockRepository) UpdateSessionStatus(ctx context.Context, status SessionStatus) error {
+	args := m.Called(ctx, status)
+	return args.Error(0)
+}
+
+func (m *MockRepository) GetSessionStatus(ctx context.Context) (SessionStatus, error) {
+	args := m.Called(ctx)
+	return args.Get(0).(SessionStatus), args.Error(1)
+}
+
 // MockEventDispatcher is a mock implementation of eventbus.EventDispatcher
 type MockEventDispatcher struct {
 	mock.Mock
@@ -91,12 +110,10 @@ func TestService_CastVote_EligibilityAndDuplicate(t *testing.T) {
 	participantID := "part-1"
 	candidateID := "cand-1"
 
-	// Mock PhaseResolver query (called inside GetCurrentPhase)
-	phaseQuery1 := `SELECT \* FROM website_timeline_phases WHERE current_indicator = true AND is_published = true AND deleted_at IS NULL LIMIT 1`
-	
+	// Removed PhaseResolver query mock
 	t.Run("Eligible participant can vote", func(t *testing.T) {
-		// Mock Phase
-		dbMock.ExpectQuery(phaseQuery1).WillReturnRows(sqlmock.NewRows([]string{"id", "title"}).AddRow("ph-1", "VOTING"))
+		// Mock SessionStatus
+		repo.On("GetSessionStatus", ctx).Return(SessionRunning, nil).Once()
 		
 		// Mock Eligibility
 		repo.On("IsParticipantEligible", ctx, eventID, participantID).Return(true, nil).Once()
@@ -119,8 +136,8 @@ func TestService_CastVote_EligibilityAndDuplicate(t *testing.T) {
 	})
 
 	t.Run("Ineligible participant is rejected", func(t *testing.T) {
-		// Mock Phase
-		dbMock.ExpectQuery(phaseQuery1).WillReturnRows(sqlmock.NewRows([]string{"id", "title"}).AddRow("ph-1", "VOTING"))
+		// Mock SessionStatus
+		repo.On("GetSessionStatus", ctx).Return(SessionRunning, nil).Once()
 
 		
 		// Mock Eligibility
@@ -132,8 +149,8 @@ func TestService_CastVote_EligibilityAndDuplicate(t *testing.T) {
 	})
 
 	t.Run("Double vote is rejected", func(t *testing.T) {
-		// Mock Phase
-		dbMock.ExpectQuery(phaseQuery1).WillReturnRows(sqlmock.NewRows([]string{"id", "title"}).AddRow("ph-1", "VOTING"))
+		// Mock SessionStatus
+		repo.On("GetSessionStatus", ctx).Return(SessionRunning, nil).Once()
 		
 		// Mock Eligibility
 		repo.On("IsParticipantEligible", ctx, eventID, participantID).Return(true, nil).Once()

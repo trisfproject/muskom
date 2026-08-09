@@ -32,4 +32,9 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eve
 	
 	router.Post("/broadcast-invitation", handler.BroadcastInvitation)
 	router.Post("/broadcast-reminder", handler.BroadcastReminder)
+
+	// Admin Voting Room Routes (Billick)
+	router.Get("/eligibility", handler.CheckEligibility)
+	router.Get("/ballot", handler.GetBallot)
+	router.Post("/cast", handler.CastVote)
 }

@@ -104,6 +104,7 @@ export function AdminSidebar({
         { label: "QR Check-in", href: "/admin/checkin", icon: Activity },
         { label: "Verifikasi Berkas", href: "/admin/verifications", icon: ShieldCheck },
         { label: "Presensi Kehadiran", href: "/admin/attendance", icon: UserCheck },
+        { label: "Bilik Suara", href: "/admin/billick", icon: Activity },
         { label: "Monitor E-Voting", href: "/admin/voting", icon: Activity },
       ],
     },

@@ -18,6 +18,9 @@ func (h *Handler) GetBallot(c fiber.Ctx) error {
 
 	ballot, err := h.service.GetBallot(c.Context(), "")
 	if err != nil {
+		if err == ErrSessionClosed || err == ErrSessionNotRunning {
+			return response.SendError(c, fiber.StatusForbidden, err.Error(), nil)
+		}
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get ballot", nil)
 	}
 	return response.SendSuccess(c, fiber.StatusOK, "Ballot retrieved", ballot, nil)
@@ -87,4 +90,20 @@ func (h *Handler) BroadcastReminder(c fiber.Ctx) error {
 		return response.SendError(c, fiber.StatusInternalServerError, "Failed to broadcast voting reminders", nil)
 	}
 	return response.SendSuccess(c, fiber.StatusOK, "Voting reminders broadcasted", nil, nil)
+}
+
+func (h *Handler) CheckEligibility(c fiber.Ctx) error {
+	regNum := c.Query("registration_number")
+	if regNum == "" {
+		return response.SendError(c, fiber.StatusBadRequest, "registration_number is required", nil)
+	}
+
+	eligibility, err := h.service.CheckParticipantEligibilityByRegNumber(c.Context(), "", regNum)
+	if err != nil {
+		if err.Error() == "participant not found" {
+			return response.SendError(c, fiber.StatusNotFound, "Participant not found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to check eligibility", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Eligibility checked", eligibility, nil)
 }
