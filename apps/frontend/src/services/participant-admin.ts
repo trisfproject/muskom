@@ -85,7 +85,13 @@ export interface ParticipantStats {
   limit?: number;
 }
 
-// ─── Service ──────────────────────────────────────────────────────────────────
+export interface PaginatedParticipants {
+  data: AdminParticipantResponse[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}
 
 export const adminParticipantService = {
   async listParticipants(params?: {
@@ -93,10 +99,16 @@ export const adminParticipantService = {
     limit?: number;
     status?: string;
     search?: string;
-  }): Promise<AdminParticipantResponse[]> {
+  }): Promise<PaginatedParticipants> {
     const response = await api.get('/admin/registrations', { params });
     const payload = response.data.data || response.data;
-    return payload.data || payload;
+    return {
+      data: payload.data || payload || [],
+      total: payload.total || 0,
+      page: payload.page || 1,
+      limit: payload.limit || 10,
+      total_pages: payload.total_pages || 1,
+    };
   },
 
   async getParticipantDetail(id: string): Promise<AdminParticipantResponse> {

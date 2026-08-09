@@ -109,6 +109,8 @@ export default function AdminParticipantsPage() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Modals & Drawers
   const [detailItem, setDetailItem] = useState<AdminParticipantResponse | null>(null);
@@ -150,8 +152,15 @@ export default function AdminParticipantsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await adminParticipantService.listParticipants();
-      setData(res || []);
+      const res = await adminParticipantService.listParticipants({
+        page: currentPage,
+        limit: pageSize,
+        status: statusFilter || undefined,
+        search: search || undefined,
+      });
+      setData(res.data || []);
+      setTotalItems(res.total || 0);
+      setTotalPages(res.total_pages || 1);
     } catch (err) {
       toast.error("Gagal memuat daftar peserta.");
     } finally {
@@ -159,40 +168,21 @@ export default function AdminParticipantsPage() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const filtered = useMemo(() => {
-    let result = data;
-    if (statusFilter) {
-      result = result.filter((r) => r.status === statusFilter);
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (r) =>
-          r.registration_number.toLowerCase().includes(q) ||
-          r.participant_name.toLowerCase().includes(q) ||
-          r.email.toLowerCase().includes(q) ||
-          (r.company && r.company.toLowerCase().includes(q))
-      );
-    }
-    return result;
-  }, [data, statusFilter, search]);
-
-  // Pagination calculation
-  const totalPages = Math.ceil(filtered.length / pageSize) || 1;
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [filtered, currentPage, pageSize]);
-
   // Reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
     setSelectedIds([]);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, pageSize]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      fetchData();
+    }, 300);
+    return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize, search, statusFilter]);
+
+  const paginatedData = data;
 
   // Selection handlers
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -550,8 +540,8 @@ export default function AdminParticipantsPage() {
         {/* Footer & Pagination */}
         <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-800/20 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-xs pg-muted font-medium">
-            Menampilkan {filtered.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} -{" "}
-            {Math.min(currentPage * pageSize, filtered.length)} dari {filtered.length} peserta (Total: {data.length})
+            Menampilkan {totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0} -{" "}
+            {Math.min(currentPage * pageSize, totalItems)} dari {totalItems} peserta
           </div>
 
           <div className="flex items-center gap-3">
