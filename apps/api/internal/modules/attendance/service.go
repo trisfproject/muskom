@@ -2,6 +2,7 @@ package attendance
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -87,7 +88,8 @@ func (s *service) CheckIn(ctx context.Context, req *CheckInRequest, operatorID s
 
 	if inserted {
 		// Pass operatorID explicitly so LogAudit can record actor correctly
-		if err := s.repo.LogAudit(ctx, tx, "attendance", "CHECK_IN_PARTICIPANT", "attendance", req.ParticipantID, operatorID, "Participant checked in successfully via QR/Manual"); err != nil {
+		b, _ := json.Marshal(map[string]string{"message": "Participant checked in successfully via QR/Manual"})
+		if err := s.repo.LogAudit(ctx, tx, "attendance", "CHECK_IN_PARTICIPANT", "attendance", req.ParticipantID, operatorID, string(b)); err != nil {
 			return nil, err
 		}
 	}
@@ -145,8 +147,8 @@ func (s *service) UndoCheckIn(ctx context.Context, checkInID string, operatorID 
 		return err
 	}
 
-	metadata := "Check-in undone with reason: " + notes
-	if err := s.repo.LogAudit(ctx, tx, "attendance", "UNDO_CHECK_IN", "attendance", checkInID, operatorID, metadata); err != nil {
+	b, _ := json.Marshal(map[string]string{"message": "Check-in undone", "reason": notes})
+	if err := s.repo.LogAudit(ctx, tx, "attendance", "UNDO_CHECK_IN", "attendance", checkInID, operatorID, string(b)); err != nil {
 		return err
 	}
 
@@ -170,8 +172,8 @@ func (s *service) BulkUndoCheckIn(ctx context.Context, ids []string, operatorID 
 	}
 
 	if affected > 0 {
-		metadata := "Bulk check-in undone with reason: " + reason
-		_ = s.repo.LogAudit(ctx, tx, "attendance", "BULK_UNDO_CHECK_IN", "attendance", operatorID, operatorID, metadata)
+		b, _ := json.Marshal(map[string]string{"message": "Bulk check-in undone", "reason": reason})
+		_ = s.repo.LogAudit(ctx, tx, "attendance", "BULK_UNDO_CHECK_IN", "attendance", operatorID, operatorID, string(b))
 	}
 
 	if err := tx.Commit(); err != nil {

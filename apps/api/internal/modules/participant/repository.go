@@ -237,6 +237,29 @@ func (r *repository) UpdateStatusAndNumberTx(ctx context.Context, tx *sqlx.Tx, i
 	if rows == 0 {
 		return ErrNotFound
 	}
+
+	// Provision participant to satisfy fk_attendance_participants
+	upsertQuery := `
+		INSERT INTO participants (
+			id, registration_number, full_name, email, phone, status,
+			nickname, company_name, industrial_area, job_title, department
+		)
+		SELECT 
+			r.id, $2, p.full_name, p.email, COALESCE(p.phone, ''), $1,
+			p.nickname, p.company, r.region, p.job_title, r.community
+		FROM registrations r
+		JOIN persons p ON r.person_id = p.id
+		WHERE r.id = $3
+		ON CONFLICT (id) DO UPDATE SET 
+			registration_number = EXCLUDED.registration_number,
+			status = EXCLUDED.status,
+			updated_at = NOW();
+	`
+	_, err = tx.ExecContext(ctx, upsertQuery, status, regNum, id)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
