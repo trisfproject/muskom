@@ -334,7 +334,7 @@ export default function BilikSuaraPage() {
                 />
                 {ballot ? "Sesi Terbuka" : "Sesi Ditutup"}
               </span>
-              <span className="hidden sm:block text-[10px] text-slate-400 font-mono">
+              <span className="hidden sm:block text-[10px] text-slate-400 font-mono" suppressHydrationWarning>
                 {format(currentTime, "HH:mm:ss", { locale: idLocale })}
               </span>
             </div>
@@ -636,6 +636,7 @@ export default function BilikSuaraPage() {
                                 }
                                 alt={cand.name}
                                 fill
+                                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 600px"
                                 className="object-cover object-top"
                               />
                             ) : (
