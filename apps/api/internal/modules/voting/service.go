@@ -58,6 +58,12 @@ func (s *service) GetBallot(ctx context.Context, eventID string) (*Ballot, error
 		return nil, err
 	}
 
+	for i := range candidates {
+		if candidates[i].PhotoURL != "" {
+			candidates[i].PhotoURL = s.cfg.StorageBaseURL + "/" + candidates[i].PhotoURL
+		}
+	}
+
 	return &Ballot{Candidates: candidates}, nil
 }
 

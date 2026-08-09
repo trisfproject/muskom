@@ -11,10 +11,6 @@ const nextConfig: NextConfig = {
         source: "/uploads/:path*",
         destination: "http://api:8080/uploads/:path*",
       },
-      {
-        source: "/uploads//uploads/:path*",
-        destination: "http://api:8080/uploads/:path*",
-      },
     ];
   },
   images: {

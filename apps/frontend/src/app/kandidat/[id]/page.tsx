@@ -80,7 +80,6 @@ export default async function CandidateDetailPage({ params }: Props) {
                       fill
                       className="object-cover"
                       priority
-                      unoptimized={candidate.photo_url?.startsWith('/uploads/')}
                     />
                   </div>
                 ) : (

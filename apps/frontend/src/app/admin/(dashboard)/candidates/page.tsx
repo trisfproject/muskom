@@ -406,7 +406,7 @@ export default function AdminCandidatesPage() {
                                 alt={row.full_name}
                                 fill
                                 className="object-cover"
-                                unoptimized={row.profile_photo?.startsWith('/uploads/')}
+                                
                               />
                             ) : (
                               <User className="w-5 h-5 text-slate-400" />

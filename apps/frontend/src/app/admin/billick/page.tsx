@@ -629,11 +629,7 @@ export default function BilikSuaraPage() {
                           <div className="relative w-full bg-slate-100 overflow-hidden" style={{ aspectRatio: "16/9" }}>
                             {cand.photo_url ? (
                               <Image
-                                src={
-                                  cand.photo_url.startsWith("http")
-                                    ? cand.photo_url
-                                    : `/uploads/${cand.photo_url}`
-                                }
+                                src={cand.photo_url}
                                 alt={cand.name}
                                 fill
                                 sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 600px"
