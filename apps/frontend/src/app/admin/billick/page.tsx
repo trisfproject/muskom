@@ -240,21 +240,25 @@ export default function BilikSuaraPage() {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 select-none animate-in fade-in duration-500 relative overflow-hidden">
         <div className="absolute inset-0 bg-white" />
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-teal-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-        <div className="bg-white rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-slate-100 p-16 max-w-2xl w-full text-center space-y-8 relative z-10">
-          <div className="w-32 h-32 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-100 animate-bounce-short">
-            <CheckCircle2 className="w-16 h-16 text-emerald-600" />
+        <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-12 max-w-xl w-full text-center space-y-8 relative z-10">
+          <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto border border-emerald-100 shadow-inner">
+            <CheckCircle2 className="w-12 h-12 text-emerald-600" />
           </div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Suara Berhasil Dicatat</h1>
-          <p className="text-xl text-slate-600 font-medium">
-            Terima kasih. Suara Anda telah berhasil dicatat secara aman.
-          </p>
-          <div className="pt-8">
+          
+          <div className="space-y-3">
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Suara Berhasil Dicatat</h1>
+            <p className="text-lg text-slate-500 font-medium leading-relaxed">
+              Terima kasih. Suara Anda telah dicatat secara aman.
+            </p>
+          </div>
+
+          <div className="pt-6">
             <button 
               onClick={resetKiosk}
-              className="px-10 py-5 bg-primary hover:bg-primary-hover text-white rounded-2xl font-bold transition-all text-lg w-full shadow-lg shadow-primary/20"
+              className="px-8 py-4 bg-primary hover:bg-primary-hover text-white rounded-2xl font-bold transition-all text-lg w-full shadow-md shadow-primary/20 flex items-center justify-center gap-2"
             >
               Kembali ke Halaman Utama ({countdown}s)
             </button>
@@ -271,40 +275,40 @@ export default function BilikSuaraPage() {
     <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans select-none relative overflow-x-hidden">
       {/* Subtle background abstract shapes */}
       <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-slate-50 to-white pointer-events-none z-0" />
-      <div className="absolute -top-40 -right-40 w-[800px] h-[800px] bg-indigo-50/50 rounded-full blur-[120px] pointer-events-none z-0" />
-      <div className="absolute top-40 -left-40 w-[600px] h-[600px] bg-purple-50/50 rounded-full blur-[100px] pointer-events-none z-0" />
+      <div className="absolute -top-40 -right-40 w-[800px] h-[800px] bg-indigo-50/40 rounded-full blur-[120px] pointer-events-none z-0" />
+      <div className="absolute top-40 -left-40 w-[600px] h-[600px] bg-purple-50/40 rounded-full blur-[100px] pointer-events-none z-0" />
 
       {/* Header - Modern Application Style */}
-      <header className="px-8 py-6 flex flex-col md:flex-row items-center justify-between sticky top-0 z-30 shrink-0 bg-white/90 backdrop-blur-xl border-b border-slate-100">
+      <header className="px-8 py-5 flex flex-col md:flex-row items-center justify-between sticky top-0 z-30 shrink-0 bg-white/90 backdrop-blur-xl border-b border-slate-100">
         <div className="flex flex-col items-center md:items-start mb-4 md:mb-0">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-black text-primary tracking-tighter">MUSKOM</h1>
-            <div className="w-px h-6 bg-slate-300 hidden md:block"></div>
-            <h2 className="text-xl font-bold text-slate-800 tracking-tight hidden md:block">BILIK SUARA DIGITAL</h2>
+            <h1 className="text-2xl font-black text-primary tracking-tighter">MUSKOM</h1>
+            <div className="w-px h-5 bg-slate-300 hidden md:block"></div>
+            <h2 className="text-lg font-bold text-slate-800 tracking-tight hidden md:block">BILIK SUARA DIGITAL</h2>
           </div>
-          <p className="text-sm font-semibold text-slate-500 uppercase tracking-widest mt-1">MUSKOM KOMITKABE 2026</p>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">MUSKOM KOMITKABE 2026</p>
         </div>
         
         <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="flex items-center gap-4 text-sm font-bold text-slate-600">
-            <span className="flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-emerald-600" /> Aman</span>
-            <span className="text-slate-300">•</span>
-            <span className="flex items-center gap-1.5"><Lock className="w-4 h-4 text-emerald-600" /> Rahasia</span>
-            <span className="text-slate-300">•</span>
-            <span className="flex items-center gap-1.5"><Scale className="w-4 h-4 text-emerald-600" /> Adil</span>
+          <div className="flex items-center gap-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
+            <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Aman</span>
+            <span className="text-slate-200">•</span>
+            <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-emerald-600" /> Rahasia</span>
+            <span className="text-slate-200">•</span>
+            <span className="flex items-center gap-1.5"><Scale className="w-3.5 h-3.5 text-emerald-600" /> Adil</span>
           </div>
           
-          <div className="h-8 w-px bg-slate-200 hidden md:block" />
+          <div className="h-6 w-px bg-slate-200 hidden md:block" />
           
           <div className="flex items-center gap-4">
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-2">
                 <div className={`w-2 h-2 rounded-full ${ballot ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-                <span className={`text-sm font-bold uppercase tracking-widest ${ballot ? 'text-emerald-700' : 'text-rose-700'}`}>
+                <span className={`text-[11px] font-bold uppercase tracking-widest ${ballot ? 'text-emerald-700' : 'text-rose-700'}`}>
                   {ballot ? 'SESI TERBUKA' : 'SESI DITUTUP'}
                 </span>
               </div>
-              <p className="text-xs font-bold text-slate-400 font-mono">
+              <p className="text-[11px] font-bold text-slate-400 font-mono mt-0.5">
                 {format(currentTime, "HH:mm:ss", { locale: idLocale })}
               </p>
             </div>
@@ -317,54 +321,54 @@ export default function BilikSuaraPage() {
           /* -------------------------------------------------------------------
            * Step 1: Identification
            * ------------------------------------------------------------------- */
-          <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full py-12">
+          <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full py-16">
             
             {/* Identification Area */}
-            <div className="w-full max-w-lg bg-white rounded-[2rem] p-8 sm:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
-              <div className="text-center space-y-3 mb-10">
-                <h2 className="text-3xl font-black text-primary tracking-tighter">MUSKOM</h2>
-                <h3 className="text-2xl font-bold text-slate-900">Identifikasi Pemilih</h3>
-                <p className="text-slate-500 font-medium">Masukkan Nomor Registrasi Peserta untuk membuka bilik suara.</p>
+            <div className="w-full max-w-[28rem] bg-white rounded-[2rem] p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+              <div className="text-center space-y-2 mb-10">
+                <h2 className="text-3xl font-black text-primary tracking-tighter mb-2">MUSKOM</h2>
+                <h3 className="text-xl font-bold text-slate-900">Identifikasi Pemilih</h3>
+                <p className="text-sm text-slate-500 font-medium">Masukkan Nomor Registrasi Peserta untuk membuka bilik suara.</p>
               </div>
 
               {!scannerActive ? (
                 <form onSubmit={handleManualCheck} className="space-y-6">
-                  <div className="space-y-2">
+                  <div>
                     <input
                       ref={inputRef}
                       type="text"
                       value={scanToken}
                       onChange={(e) => setScanToken(e.target.value.toUpperCase())}
                       placeholder="Contoh: MUSKOM-2026-0001"
-                      className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-center text-lg uppercase font-mono tracking-widest text-slate-900 font-bold transition-all placeholder:text-slate-400 placeholder:font-sans placeholder:tracking-normal"
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-center text-lg uppercase font-mono tracking-widest text-slate-900 font-bold transition-all placeholder:text-slate-400 placeholder:font-sans placeholder:tracking-normal"
                       autoComplete="off"
                       autoFocus
                     />
                   </div>
                   
-                  <div className="space-y-3 pt-2">
+                  <div className="space-y-4 pt-2">
                     <button
                       type="submit"
                       disabled={loading || !scanToken.trim()}
-                      className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-xl font-bold text-lg transition-all shadow-md shadow-primary/20"
+                      className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-xl font-bold transition-all shadow-md shadow-primary/10"
                     >
                       {loading ? (
-                        <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                       ) : (
-                        <>Buka Surat Suara <ArrowRight className="w-5 h-5" /></>
+                        <>Buka Surat Suara <ArrowRight className="w-4 h-4" /></>
                       )}
                     </button>
                     
-                    <div className="flex items-center gap-4 py-3">
+                    <div className="flex items-center gap-4 py-2">
                       <div className="h-px bg-slate-100 flex-1" />
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">ATAU</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">ATAU</span>
                       <div className="h-px bg-slate-100 flex-1" />
                     </div>
                     
                     <button
                       type="button"
                       onClick={startScanner}
-                      className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold text-lg transition-all"
+                      className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold transition-all"
                     >
                       <QrCode className="w-5 h-5" /> Scan QR Code
                     </button>
@@ -375,18 +379,18 @@ export default function BilikSuaraPage() {
                   <div className="bg-slate-50 rounded-2xl p-2 border border-slate-200 relative overflow-hidden">
                     {cameraError && (
                       <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-6 text-center">
-                        <AlertCircle className="w-10 h-10 text-rose-500 mb-3" />
+                        <AlertCircle className="w-8 h-8 text-rose-500 mb-3" />
                         <p className="font-bold text-slate-900 mb-1">Kamera Bermasalah</p>
                         <p className="text-sm text-slate-500">{cameraError}</p>
                       </div>
                     )}
-                    <div id={scannerContainerId} className="rounded-xl overflow-hidden [&_video]:object-cover [&_video]:w-full [&_video]:h-[300px]" />
+                    <div id={scannerContainerId} className="rounded-xl overflow-hidden [&_video]:object-cover [&_video]:w-full [&_video]:h-[260px]" />
                   </div>
                   
                   <button
                     type="button"
                     onClick={stopScanner}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold transition-all"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 rounded-xl font-bold transition-all"
                   >
                     Tutup Scanner
                   </button>
@@ -395,34 +399,34 @@ export default function BilikSuaraPage() {
             </div>
 
             {/* Light Information Section */}
-            <div className="w-full mt-16 pt-10 border-t border-slate-100/60 flex flex-col md:flex-row justify-center items-start gap-8 md:gap-12 text-center md:text-left">
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-4 max-w-[280px]">
-                <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-600 shrink-0 border border-slate-100">
-                  <ShieldCheck className="w-6 h-6" />
+            <div className="w-full mt-16 flex flex-col md:flex-row justify-center items-start gap-8 md:gap-16 text-center md:text-left">
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-4 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 shrink-0 border border-slate-100">
+                  <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 text-lg mb-1">Aman & Rahasia</h4>
-                  <p className="text-sm text-slate-500 font-medium leading-relaxed">Suara Anda dijaga kerahasiaannya dengan aman.</p>
+                  <h4 className="font-bold text-slate-800 text-sm mb-1">Aman & Rahasia</h4>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">Suara Anda dijaga kerahasiaannya dengan aman.</p>
                 </div>
               </div>
               
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-4 max-w-[280px]">
-                <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-600 shrink-0 border border-slate-100">
-                  <UserCircle2 className="w-6 h-6" />
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-4 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 shrink-0 border border-slate-100">
+                  <UserCircle2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 text-lg mb-1">Satu Orang Satu Suara</h4>
-                  <p className="text-sm text-slate-500 font-medium leading-relaxed">Setiap peserta hanya dapat memberikan satu suara.</p>
+                  <h4 className="font-bold text-slate-800 text-sm mb-1">Satu Orang Satu Suara</h4>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">Setiap peserta hanya dapat memberikan satu suara.</p>
                 </div>
               </div>
 
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-4 max-w-[280px]">
-                <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-600 shrink-0 border border-slate-100">
-                  <Scale className="w-6 h-6" />
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-4 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 shrink-0 border border-slate-100">
+                  <Scale className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 text-lg mb-1">Langsung & Transparan</h4>
-                  <p className="text-sm text-slate-500 font-medium leading-relaxed">Perolehan suara dapat dipantau secara transparan.</p>
+                  <h4 className="font-bold text-slate-800 text-sm mb-1">Langsung & Transparan</h4>
+                  <p className="text-xs text-slate-500 font-medium leading-relaxed">Perolehan suara dapat dipantau secara transparan.</p>
                 </div>
               </div>
             </div>
@@ -432,28 +436,29 @@ export default function BilikSuaraPage() {
           /* -------------------------------------------------------------------
            * Step 2: Voting & Verification Result
            * ------------------------------------------------------------------- */
-          <div className="space-y-12 pb-40">
-            {/* Lighter, minimal Eligibility Banner */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-2 border-b border-slate-100">
+          <div className="space-y-16 pb-48">
+            {/* Minimal Eligibility Banner */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3 px-1 border-b border-slate-100">
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                   eligibility.is_eligible ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
                 }`}>
-                  {eligibility.is_eligible ? <UserCircle2 className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
+                  {eligibility.is_eligible ? <UserCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">{eligibility.full_name}</h2>
-                  <div className="flex items-center gap-3 mt-0.5">
-                    <span className="font-mono text-sm text-slate-500 font-semibold">
-                      {eligibility.registration_number}
+                  <div className="flex items-baseline gap-2">
+                    <h2 className="text-lg font-bold text-slate-900">{eligibility.full_name}</h2>
+                    <span className="font-mono text-xs text-slate-500 font-medium">
+                      ({eligibility.registration_number})
                     </span>
-                    <span className="text-slate-300">•</span>
-                    <span className={`text-sm font-bold uppercase tracking-widest ${eligibility.is_eligible ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  </div>
+                  <div className="mt-0.5">
+                    <span className={`text-[11px] font-bold uppercase tracking-widest ${eligibility.is_eligible ? 'text-emerald-600' : 'text-rose-600'}`}>
                       {eligibility.is_eligible ? 'Teridentifikasi Valid' : 'Tidak Memenuhi Syarat'}
                     </span>
                   </div>
                   {!eligibility.is_eligible && (
-                    <p className="text-rose-600 mt-2 font-medium text-sm">
+                    <p className="text-rose-600 mt-1.5 font-medium text-xs">
                       Alasan: {eligibility.reason}
                     </p>
                   )}
@@ -461,7 +466,7 @@ export default function BilikSuaraPage() {
               </div>
               <button 
                 onClick={resetKiosk}
-                className="px-5 py-2 hover:bg-slate-50 rounded-lg font-bold text-sm text-slate-500 transition-all shrink-0"
+                className="px-4 py-2 hover:bg-slate-50 rounded-lg font-bold text-xs text-slate-500 uppercase tracking-widest transition-all shrink-0"
               >
                 Ganti Peserta
               </button>
@@ -473,32 +478,32 @@ export default function BilikSuaraPage() {
                 {!ballot || !ballot.candidates ? (
                   <div className="p-16 text-center space-y-4">
                     <Info className="w-12 h-12 mx-auto text-slate-300" />
-                    <h3 className="text-2xl font-bold text-slate-700">Sesi Belum Dibuka</h3>
-                    <p className="text-slate-500 max-w-md mx-auto text-lg">Panitia belum membuka sesi pemilihan. Silakan tunggu aba-aba panitia, lalu refresh halaman ini.</p>
+                    <h3 className="text-xl font-bold text-slate-700">Sesi Belum Dibuka</h3>
+                    <p className="text-slate-500 max-w-md mx-auto">Panitia belum membuka sesi pemilihan. Silakan tunggu aba-aba panitia, lalu refresh halaman ini.</p>
                   </div>
                 ) : (
-                  <div className="space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-500 delay-150">
+                  <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-500 delay-150">
                     <div className="text-center md:text-left">
-                      <h3 className="text-4xl font-black text-slate-900 tracking-tight mb-2">Pilih Ketua Umum</h3>
-                      <p className="text-slate-500 font-medium text-lg">Pilih satu calon Ketua Umum KOMITKABE 2026.</p>
+                      <h3 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Pilih Ketua Umum</h3>
+                      <p className="text-slate-500 font-medium">Pilih satu calon Ketua Umum KOMITKABE 2026.</p>
                     </div>
                     
                     {/* Generous Spacing for Candidate Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-14">
                       {ballot.candidates.map((cand) => (
                         <button
                           key={cand.id}
                           onClick={() => setSelectedCandidate(cand)}
-                          className={`relative text-left bg-white rounded-[2rem] transition-all duration-200 overflow-hidden group ${
+                          className={`relative text-left bg-white rounded-3xl transition-all duration-200 overflow-hidden group outline-none ${
                             selectedCandidate?.id === cand.id 
-                              ? 'border-2 border-primary bg-primary/5 ring-4 ring-primary/10 scale-[1.01]' 
-                              : 'border border-slate-100 hover:border-slate-300 hover:shadow-lg'
+                              ? 'border-2 border-primary ring-4 ring-primary/10 shadow-lg' 
+                              : 'border border-slate-200 hover:border-slate-300 hover:shadow-md'
                           }`}
                         >
                           {/* Selected Overlay Indicator */}
                           {selectedCandidate?.id === cand.id && (
                             <div className="absolute top-4 right-4 bg-primary text-white rounded-full p-1.5 z-10 shadow-sm animate-in zoom-in">
-                              <CheckCircle2 className="w-6 h-6" />
+                              <CheckCircle2 className="w-5 h-5" />
                             </div>
                           )}
                           
@@ -508,21 +513,21 @@ export default function BilikSuaraPage() {
                                 src={cand.photo_url.startsWith('http') ? cand.photo_url : `/uploads/${cand.photo_url}`} 
                                 alt={cand.name}
                                 fill
-                                className={`object-cover object-top transition-transform duration-500 ${selectedCandidate?.id === cand.id ? 'scale-105' : 'group-hover:scale-105'}`}
+                                className="object-cover object-top"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                <UserCircle2 className="w-32 h-32" />
+                                <UserCircle2 className="w-24 h-24" />
                               </div>
                             )}
                             {/* Number Badge Minimal */}
-                            <div className="absolute bottom-6 left-6 w-14 h-14 bg-white/90 backdrop-blur-md rounded-2xl flex items-center justify-center font-black text-2xl text-slate-900 shadow-sm">
+                            <div className="absolute bottom-5 left-5 w-12 h-12 bg-white/95 backdrop-blur-md rounded-2xl flex items-center justify-center font-black text-xl text-slate-900 shadow-sm">
                               {cand.number}
                             </div>
                           </div>
                           
                           <div className="p-8">
-                            <h4 className="text-2xl font-black text-slate-900 leading-snug mb-3">{cand.name}</h4>
+                            <h4 className="text-xl font-black text-slate-900 leading-snug mb-3">{cand.name}</h4>
                             <p className="text-sm text-slate-500 line-clamp-3 leading-relaxed font-medium">{cand.vision || "Belum ada visi & misi."}</p>
                           </div>
                         </button>
@@ -537,23 +542,23 @@ export default function BilikSuaraPage() {
       </main>
 
       {/* ----------------------------------------------------------------------
-       * Sticky Bottom Vote Action (Cleaner & Modern)
+       * Sticky Bottom Vote Action
        * ----------------------------------------------------------------------- */}
       {eligibility?.is_eligible && selectedCandidate && !voteSuccess && (
-        <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-slate-100 py-4 px-6 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] animate-in slide-in-from-bottom-24 duration-300">
+        <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-xl border-t border-slate-200 py-6 px-6 z-40 shadow-[0_-4px_30px_rgba(0,0,0,0.04)] animate-in slide-in-from-bottom-24 duration-300">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4 text-center sm:text-left">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-xl font-black text-primary">
+            <div className="flex items-center gap-5 text-center sm:text-left">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-2xl font-black text-primary border border-primary/20">
                 {selectedCandidate.number}
               </div>
               <div>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5">Kandidat Pilihan Anda</p>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Kandidat Pilihan Anda</p>
                 <p className="text-xl font-black text-slate-900">{selectedCandidate.name}</p>
               </div>
             </div>
             <button
               onClick={() => setShowConfirmModal(true)}
-              className="w-full sm:w-auto px-10 py-4 bg-primary hover:bg-primary-hover text-white rounded-2xl font-bold text-lg transition-all shadow-md flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-10 py-4 bg-primary hover:bg-primary-hover text-white rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2"
             >
               Kirim Suara <ArrowRight className="w-5 h-5" />
             </button>
@@ -567,21 +572,24 @@ export default function BilikSuaraPage() {
       {showConfirmModal && selectedCandidate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowConfirmModal(false)} />
-          <div className="relative bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center animate-in zoom-in-95 duration-200">
+          <div className="relative bg-white rounded-[2rem] shadow-2xl max-w-[360px] w-full p-8 text-center animate-in zoom-in-95 duration-200">
 
             <button 
               onClick={() => setShowConfirmModal(false)}
-              className="absolute top-4 right-4 w-10 h-10 hover:bg-slate-100 rounded-full flex items-center justify-center text-slate-400 transition-colors"
+              className="absolute top-4 right-4 w-8 h-8 hover:bg-slate-100 rounded-full flex items-center justify-center text-slate-400 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
             
-            <h3 className="text-lg font-bold text-slate-500 mb-2 mt-4">Anda akan memberikan suara kepada:</h3>
-            <p className="text-3xl font-black text-slate-900 leading-tight mb-6">{selectedCandidate.name}</p>
+            <h3 className="text-sm font-bold text-slate-500 mb-2 mt-4">Anda akan memberikan suara kepada:</h3>
             
-            <div className="bg-slate-50 rounded-xl p-4 mb-8">
-              <p className="text-sm text-slate-600 font-medium">
-                Suara yang telah dikirim <strong className="text-slate-900">tidak dapat diubah</strong>.
+            <div className="my-6">
+              <p className="text-2xl font-black text-slate-900 leading-tight">{selectedCandidate.name}</p>
+            </div>
+            
+            <div className="bg-amber-50 border border-amber-200/60 p-4 rounded-xl mb-8">
+              <p className="text-xs text-amber-800 font-bold leading-relaxed">
+                Suara yang telah dikirim <br/><strong className="text-amber-900">tidak dapat diubah</strong>.
               </p>
             </div>
             
@@ -589,10 +597,10 @@ export default function BilikSuaraPage() {
               <button
                 onClick={handleCastVote}
                 disabled={submitting}
-                className="w-full px-6 py-4 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-xl font-bold text-lg transition-all shadow-sm flex items-center justify-center"
+                className="w-full px-6 py-4 bg-primary hover:bg-primary-hover disabled:opacity-50 text-white rounded-xl font-bold transition-all shadow-sm flex items-center justify-center"
               >
                 {submitting ? (
-                  <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                 ) : (
                   "Konfirmasi & Kirim"
                 )}
@@ -600,7 +608,7 @@ export default function BilikSuaraPage() {
               <button
                 onClick={() => setShowConfirmModal(false)}
                 disabled={submitting}
-                className="w-full px-6 py-4 hover:bg-slate-50 text-slate-600 rounded-xl font-bold transition-all"
+                className="w-full px-6 py-3.5 hover:bg-slate-50 text-slate-600 rounded-xl font-bold text-sm transition-all"
               >
                 Batal
               </button>
