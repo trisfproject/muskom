@@ -44,7 +44,7 @@ func (r *repository) GetElectionResults(ctx context.Context, eventID uuid.UUID) 
 			COUNT(v.id) as vote_count
 		FROM candidates c
 		LEFT JOIN votes v ON v.candidate_id = c.id
-		WHERE c.deleted_at IS NULL
+		WHERE c.deleted_at IS NULL AND c.status IN ('Verified', 'VERIFIED', 'Approved', 'APPROVED')
 		GROUP BY c.id, c.full_name
 		ORDER BY vote_count DESC
 	`
