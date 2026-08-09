@@ -14,10 +14,11 @@ import (
 )
 
 var (
-	ErrSessionClosed     = errors.New("voting session is closed")
-	ErrSessionNotRunning = errors.New("voting session is not running")
-	ErrAlreadyVoted      = errors.New("participant has already voted")
-	ErrNotCheckedIn      = errors.New("participant is not checked in")
+	ErrSessionClosed          = errors.New("voting session is closed")
+	ErrSessionNotRunning      = errors.New("voting session is not running")
+	ErrAlreadyVoted           = errors.New("participant has already voted")
+	ErrNotCheckedIn           = errors.New("participant is not checked in")
+	ErrParticipantNotEligible = errors.New("participant is not eligible to vote (not verified or not checked-in)")
 )
 
 type Service interface {
@@ -63,6 +64,14 @@ func (s *service) CastVote(ctx context.Context, eventID, participantID, candidat
 	phase, err := s.resolver.GetCurrentPhase(ctx)
 	if err != nil || phase == nil || phase.Title != "VOTING" {
 		return ErrSessionNotRunning
+	}
+
+	eligible, err := s.repo.IsParticipantEligible(ctx, eventID, participantID)
+	if err != nil {
+		return err
+	}
+	if !eligible {
+		return ErrParticipantNotEligible
 	}
 
 	hasVoted, err := s.repo.HasVoted(ctx, eventID, participantID)

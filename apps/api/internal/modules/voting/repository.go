@@ -17,6 +17,7 @@ type Repository interface {
 
 	GetVerifiedVoterEmails(ctx context.Context, eventID string) ([]string, error)
 	GetUnvotedVerifiedVoterEmails(ctx context.Context, eventID string) ([]string, error)
+	IsParticipantEligible(ctx context.Context, eventID, participantID string) (bool, error)
 }
 
 type repository struct {
@@ -29,13 +30,13 @@ func NewRepository(db *sqlx.DB) Repository {
 
 func (r *repository) HasVoted(ctx context.Context, eventID, participantID string) (bool, error) {
 	var count int
-	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM votes WHERE participant_id = $2`, eventID, participantID)
+	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM votes WHERE participant_id = $1`, participantID)
 	return count > 0, err
 }
 
 func (r *repository) CastVote(ctx context.Context, tx *sqlx.Tx, vote *Vote) error {
-	query := `INSERT INTO votes ( participant_id, candidate_id) VALUES ($1, $2, $3)`
-	_, err := tx.ExecContext(ctx, query, vote.EventID, vote.ParticipantID, vote.CandidateID)
+	query := `INSERT INTO votes (participant_id, candidate_id) VALUES ($1, $2)`
+	_, err := tx.ExecContext(ctx, query, vote.ParticipantID, vote.CandidateID)
 	return err
 }
 
@@ -43,7 +44,7 @@ func (r *repository) GetBallotCandidates(ctx context.Context, eventID string) ([
 	query := `
 		SELECT c.id, COALESCE(c.candidate_number, c.display_order, 0) as number, c.full_name as name, c.profile_photo as photo_path, c.vision, c.mission
 		FROM candidates c
-		WHERE c.deleted_at IS NULL AND c.status IN ('Verified', 'VERIFIED', 'Approved', 'Draft')
+		WHERE c.deleted_at IS NULL AND c.status IN ('Verified', 'VERIFIED', 'Approved', 'APPROVED')
 		ORDER BY number ASC
 	`
 	var rows []struct {
@@ -54,7 +55,7 @@ func (r *repository) GetBallotCandidates(ctx context.Context, eventID string) ([
 		Vision    sql.NullString `db:"vision"`
 		Mission   sql.NullString `db:"mission"`
 	}
-	err := r.db.SelectContext(ctx, &rows, query, eventID)
+	err := r.db.SelectContext(ctx, &rows, query)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +84,7 @@ func (r *repository) GetResults(ctx context.Context, eventID string) ([]VoteResu
 		ORDER BY total_votes DESC, c.full_name ASC
 	`
 	var results []VoteResult
-	err := r.db.SelectContext(ctx, &results, query, eventID)
+	err := r.db.SelectContext(ctx, &results, query)
 	return results, err
 }
 
@@ -94,7 +95,7 @@ func (r *repository) GetTotalCheckedIn(ctx context.Context, eventID string) (int
 		FROM attendance a
 		JOIN participants p ON a.participant_id = p.id
 		WHERE a.undone_at IS NULL AND p.deleted_at IS NULL
-	`, eventID)
+	`)
 	return count, err
 }
 
@@ -118,4 +119,20 @@ func (r *repository) GetUnvotedVerifiedVoterEmails(ctx context.Context, eventID 
 	`
 	err := r.db.SelectContext(ctx, &emails, query)
 	return emails, err
+}
+
+func (r *repository) IsParticipantEligible(ctx context.Context, eventID, participantID string) (bool, error) {
+	var count int
+	query := `
+		SELECT COUNT(p.id) 
+		FROM participants p
+		JOIN attendance a ON a.participant_id = p.id
+		WHERE p.id = $1 
+		  AND p.status IN ('Verified', 'VERIFIED', 'Approved', 'APPROVED') 
+		  AND p.deleted_at IS NULL
+		  AND a.undone_at IS NULL
+	`
+	// Using $1 for participantID, we don't strictly filter eventID here unless there are multiple events in one DB (which we assume there aren't for participants directly or we can ignore it since they are unique).
+	err := r.db.GetContext(ctx, &count, query, participantID)
+	return count > 0, err
 }

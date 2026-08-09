@@ -30,8 +30,8 @@ func (r *repository) GetElectionResults(ctx context.Context, eventID uuid.UUID) 
 	}
 
 	var totalVotes int
-	totalQuery := `SELECT COUNT(id) FROM votes WHERE event_id = $1`
-	err = r.db.GetContext(ctx, &totalVotes, totalQuery, eventID)
+	totalQuery := `SELECT COUNT(id) FROM votes`
+	err = r.db.GetContext(ctx, &totalVotes, totalQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (r *repository) GetElectionResults(ctx context.Context, eventID uuid.UUID) 
 			c.full_name as candidate_name,
 			COUNT(v.id) as vote_count
 		FROM candidates c
-		LEFT JOIN votes v ON v.candidate_id = c.id AND (v.event_id = $1 OR $1 = '00000000-0000-0000-0000-000000000000')
+		LEFT JOIN votes v ON v.candidate_id = c.id
 		WHERE c.deleted_at IS NULL
 		GROUP BY c.id, c.full_name
 		ORDER BY vote_count DESC
@@ -56,7 +56,7 @@ func (r *repository) GetElectionResults(ctx context.Context, eventID uuid.UUID) 
 	}
 
 	var rows []statRow
-	err = r.db.SelectContext(ctx, &rows, statsQuery, eventID)
+	err = r.db.SelectContext(ctx, &rows, statsQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (r *repository) GetElectionOverview(ctx context.Context, eventID uuid.UUID)
 	}
 
 	// Total Votes
-	err = r.db.GetContext(ctx, &overview.TotalVotes, `SELECT COUNT(id) FROM votes WHERE (event_id = $1 OR $1 = '00000000-0000-0000-0000-000000000000')`, eventID)
+	err = r.db.GetContext(ctx, &overview.TotalVotes, `SELECT COUNT(id) FROM votes`)
 	if err != nil {
 		return nil, err
 	}

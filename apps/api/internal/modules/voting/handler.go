@@ -26,14 +26,14 @@ func (h *Handler) GetBallot(c fiber.Ctx) error {
 func (h *Handler) CastVote(c fiber.Ctx) error {
 
 	var req struct {
-		RegistrationID string `json:"registration_id"`
-		CandidateID    string `json:"candidate_id"`
+		ParticipantID string `json:"participant_id"`
+		CandidateID   string `json:"candidate_id"`
 	}
 	if err := c.Bind().JSON(&req); err != nil {
 		return response.SendError(c, fiber.StatusBadRequest, "Invalid payload", nil)
 	}
 
-	err := h.service.CastVote(c.Context(), "", req.RegistrationID, req.CandidateID)
+	err := h.service.CastVote(c.Context(), "", req.ParticipantID, req.CandidateID)
 	if err != nil {
 		if err == ErrAlreadyVoted {
 			return response.SendError(c, fiber.StatusConflict, err.Error(), nil)

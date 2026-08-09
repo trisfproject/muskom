@@ -28,8 +28,7 @@ func TestRepository_GetElectionResults(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow("Test Event"))
 
 		// Mock total votes
-		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes WHERE event_id = \\$1$").
-			WithArgs(eventID).
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes$").
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(100))
 
 		// Mock stats per candidate
@@ -38,7 +37,6 @@ func TestRepository_GetElectionResults(t *testing.T) {
 			AddRow(c1, "Alice", 100)
 
 		mock.ExpectQuery("^SELECT c.id as candidate_id").
-			WithArgs(eventID).
 			WillReturnRows(rows)
 
 		res, err := repo.GetElectionResults(ctx, eventID)
@@ -66,8 +64,7 @@ func TestRepository_GetElectionResults(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow("Test Event"))
 
 		// Mock total votes
-		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes WHERE event_id = \\$1$").
-			WithArgs(eventID).
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes$").
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(150))
 
 		// Mock stats per candidate
@@ -78,7 +75,6 @@ func TestRepository_GetElectionResults(t *testing.T) {
 			AddRow(c2, "Bob", 50)
 
 		mock.ExpectQuery("^SELECT c.id as candidate_id").
-			WithArgs(eventID).
 			WillReturnRows(rows)
 
 		res, err := repo.GetElectionResults(ctx, eventID)
@@ -106,8 +102,7 @@ func TestRepository_GetElectionResults(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow("Test Event"))
 
 		// Mock total votes
-		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes WHERE event_id = \\$1$").
-			WithArgs(eventID).
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes$").
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(100))
 
 		// Mock stats per candidate
@@ -118,7 +113,6 @@ func TestRepository_GetElectionResults(t *testing.T) {
 			AddRow(c2, "Bob", 50)
 
 		mock.ExpectQuery("^SELECT c.id as candidate_id").
-			WithArgs(eventID).
 			WillReturnRows(rows)
 
 		res, err := repo.GetElectionResults(ctx, eventID)
@@ -145,8 +139,7 @@ func TestRepository_GetElectionResults(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow("Test Event"))
 
 		// Mock total votes - massive volume
-		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes WHERE event_id = \\$1$").
-			WithArgs(eventID).
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes$").
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(500000))
 
 		// Mock stats per candidate (the database handles the aggregation, so the app only gets summary rows)
@@ -164,7 +157,6 @@ func TestRepository_GetElectionResults(t *testing.T) {
 			AddRow(c5, "Candidate 5", 0) // Testing 0 votes edge case
 
 		mock.ExpectQuery("^SELECT c.id as candidate_id").
-			WithArgs(eventID).
 			WillReturnRows(rows)
 
 		res, err := repo.GetElectionResults(ctx, eventID)
@@ -191,7 +183,7 @@ func TestRepository_GetElectionOverview(t *testing.T) {
 
 		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM participants").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(100))
 		mock.ExpectQuery("^SELECT COUNT\\(a\\.id\\) FROM attendance").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(80))
-		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes").WithArgs(eventID).WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(60))
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(60))
 
 		res, err := repo.GetElectionOverview(ctx, eventID)
 		assert.NoError(t, err)

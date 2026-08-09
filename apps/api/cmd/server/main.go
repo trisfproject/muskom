@@ -27,9 +27,11 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/system/configuration"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/user"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/verification"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/voting"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/website"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/database"
+	"github.com/trisfproject/muskom/apps/api/platform/eventbus"
 	"github.com/trisfproject/muskom/apps/api/platform/logger"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/middleware"
@@ -109,6 +111,9 @@ func main() {
 	mailerSvc := mailer.NewSMTPMailer(cfg, log, configSvc)
 	hub := realtime.GetHub(log)
 	
+	// Initialize EventBus for Domain Events (e.g., Voting)
+	bus := eventbus.NewSyncBus(log)
+	
 	// Create Notification Service
 	notifRepo := notification.NewRepository(db)
 	notifRegistry := notification.NewProviderRegistry(mailerSvc, hub, notifRepo)
@@ -164,9 +169,9 @@ func main() {
 	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, redisClient, cfg, log, val, mailerSvc, nil /*notifSvc*/)
 	registration.SetupRoutes(v1.Group("/public/register"), db, log, val, strg, int64(bodyLimit), mailerSvc, cfg)
 
-	// Protected Participant Routes - OUT OF SCOPE FOR RC1
-	// participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
-	// voting.SetupRoutes(participantGroup, db, log, bus, notifSvc, cfg)
+	// Protected Participant Routes - Activated for RC1 Event
+	participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
+	voting.SetupRoutes(participantGroup, db, log, bus, notifSvc, cfg)
 
 	// Protected Admin Routes
 	adminGroup := v1.Group("/admin", auth.JWTMiddleware(cfg, log))
@@ -182,10 +187,10 @@ func main() {
 	
 	audit.SetupAdminRoutes(adminGroup.Group("/audit", checker.RequirePermission("audit.view")), db, log)
 	
-	// OUT OF SCOPE FOR RC1
+	// Admin Voting and Result Routes - Activated for RC1 Event
+	voting.SetupAdminRoutes(adminGroup.Group("/votes", checker.RequirePermission("voting.manage")), db, log, bus, notifSvc, cfg)
+	result.SetupAdminRoutes(adminGroup.Group("/result", checker.RequirePermission("voting.view")), db, log)
 	// reporting.SetupAdminRoutes(adminGroup.Group("/reporting", checker.RequirePermission("report.export")), db, log)
-	// voting.SetupAdminRoutes(adminGroup.Group("/votes", checker.RequirePermission("voting.manage")), db, log, bus, notifSvc, cfg)
-	// result.SetupAdminRoutes(adminGroup.Group("/result", checker.RequirePermission("voting.view")), db, log)
 	
 	user.SetupRoutes(adminGroup.Group("/users"), db, log, val, checker)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, log, val, strg, cfg, nil /*notifSvc*/)
