@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Vote, Play, Pause, Square, RefreshCw, BarChart2, Shield, Award, Users, Percent, Download } from "lucide-react";
+import { Vote, Play, Pause, Square, RefreshCw, BarChart2, Shield, Award, Users, Percent, Download, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { PageHeader } from "@/components/admin/PageHeader";
@@ -104,12 +104,22 @@ export default function AdminVotingPage() {
         title="E-Voting Control Panel & Tally Engine"
         description="Kontrol Sesi Pemilihan dan Perhitungan Suara Rahasia Real-Time"
         actions={
-          <button
-            onClick={fetchVotingData}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-sm font-medium w-full sm:w-fit cursor-pointer"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Refresh Tally
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <a
+              href="/admin/billick"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all text-sm font-semibold w-full sm:w-fit cursor-pointer shadow-sm"
+            >
+              <ExternalLink className="w-4 h-4" /> Buka Bilik Suara
+            </a>
+            <button
+              onClick={fetchVotingData}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-sm font-medium w-full sm:w-fit cursor-pointer"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Refresh Tally
+            </button>
+          </div>
         }
       />
 

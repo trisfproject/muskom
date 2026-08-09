@@ -104,7 +104,7 @@ export function AdminSidebar({
         { label: "QR Check-in", href: "/admin/checkin", icon: Activity },
         { label: "Verifikasi Berkas", href: "/admin/verifications", icon: ShieldCheck },
         { label: "Presensi Kehadiran", href: "/admin/attendance", icon: UserCheck },
-        { label: "Bilik Suara", href: "/admin/billick", icon: Activity },
+        { label: "Bilik Suara", href: "/admin/billick", icon: Activity, target: "_blank" },
         { label: "Monitor E-Voting", href: "/admin/voting", icon: Activity },
       ],
     },
@@ -193,8 +193,9 @@ export function AdminSidebar({
                     <Link
                       key={item.href}
                       href={item.href}
+                      target={(item as any).target || "_self"}
                       onClick={() => {
-                        if (onClose) onClose();
+                        if (onClose && (item as any).target !== "_blank") onClose();
                       }}
                       title={item.label}
                       className={`flex items-center ${
