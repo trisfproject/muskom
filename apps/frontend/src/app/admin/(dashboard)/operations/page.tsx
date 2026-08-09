@@ -37,9 +37,10 @@ export default function OperationalDashboardPage() {
     );
   }
 
-  const { pending_registrations, pending_candidates, attendance, voting, system_health, recent_activity } = data;
+  const { pending_registrations, pending_candidates, attendance, voting, system_health, recent_activity, candidate_registration_open } = data;
 
-  const totalPendingAction = (pending_registrations?.length || 0) + (pending_candidates?.length || 0);
+  const activePendingCandidatesCount = candidate_registration_open ? (pending_candidates?.length || 0) : 0;
+  const totalPendingAction = (pending_registrations?.length || 0) + activePendingCandidatesCount;
 
   const renderHealthStatus = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -92,7 +93,7 @@ export default function OperationalDashboardPage() {
         </div>
         
         {totalPendingAction === 0 ? (
-          <p className="text-emerald-700 dark:text-emerald-400 font-medium">✨ Tidak ada antrean registrasi atau kandidat saat ini. Semua tugas selesai.</p>
+          <p className="text-emerald-700 dark:text-emerald-400 font-medium">✨ Tidak ada antrean registrasi yang perlu ditinjau saat ini. Semua tugas selesai.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {pending_registrations && pending_registrations.length > 0 && (
@@ -107,7 +108,7 @@ export default function OperationalDashboardPage() {
               </div>
             )}
             
-            {pending_candidates && pending_candidates.length > 0 && (
+            {candidate_registration_open && pending_candidates && pending_candidates.length > 0 && (
               <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-amber-100 dark:border-amber-800/30 shadow-sm flex items-center justify-between">
                 <div>
                   <div className="text-sm font-bold text-amber-800 dark:text-amber-500">{pending_candidates.length} Kandidat Perlu Ditinjau</div>
@@ -170,44 +171,46 @@ export default function OperationalDashboardPage() {
           </div>
 
           {/* C. KANDIDAT QUEUE */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-bold pg-text flex items-center gap-2"><UserSearch className="w-4 h-4 text-indigo-500" /> Kandidat Menunggu Tindakan</h3>
-              <Link href="/admin/candidates" className="text-xs font-semibold text-primary hover:underline">Kelola Kandidat</Link>
+          {candidate_registration_open && (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-bold pg-text flex items-center gap-2"><UserSearch className="w-4 h-4 text-indigo-500" /> Kandidat Menunggu Tindakan</h3>
+                <Link href="/admin/candidates" className="text-xs font-semibold text-primary hover:underline">Kelola Kandidat</Link>
+              </div>
+              
+              {pending_candidates && pending_candidates.length > 0 ? (
+                <div className="divide-y pg-border border-t border-b">
+                  {pending_candidates.map((candidate: any) => (
+                    <div key={candidate.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 shrink-0 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center font-bold text-indigo-700 dark:text-indigo-500">
+                          <UserSearch className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-semibold text-sm pg-text truncate">{candidate.name}</div>
+                          <div className="text-xs text-slate-500 truncate">Kandidat Ketua Umum</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400">
+                          {candidate.status}
+                        </span>
+                        <Link href={`/admin/candidates`} className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 px-3.5 py-2 min-h-[40px] flex items-center rounded-lg transition-colors">
+                          {candidate.status === 'Draft' ? '[Publish]' : '[Review]'}
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                  <CheckSquare className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <p className="text-sm font-medium pg-text">Tidak ada kandidat tertunda.</p>
+                  <p className="text-xs pg-muted">Semua kandidat aktif telah dipublikasikan.</p>
+                </div>
+              )}
             </div>
-            
-            {pending_candidates && pending_candidates.length > 0 ? (
-              <div className="divide-y pg-border border-t border-b">
-                {pending_candidates.map((candidate: any) => (
-                  <div key={candidate.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 shrink-0 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center font-bold text-indigo-700 dark:text-indigo-500">
-                        <UserSearch className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-semibold text-sm pg-text truncate">{candidate.name}</div>
-                        <div className="text-xs text-slate-500 truncate">Kandidat Ketua Umum</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 self-end sm:self-auto shrink-0">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400">
-                        {candidate.status}
-                      </span>
-                      <Link href={`/admin/candidates`} className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 px-3.5 py-2 min-h-[40px] flex items-center rounded-lg transition-colors">
-                        {candidate.status === 'Draft' ? '[Publish]' : '[Review]'}
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-10 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
-                <CheckSquare className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm font-medium pg-text">Tidak ada kandidat tertunda.</p>
-                <p className="text-xs pg-muted">Semua kandidat aktif telah dipublikasikan.</p>
-              </div>
-            )}
-          </div>
+          )}
           
           {/* G. LIVE ACTIVITY (Real-time logs) */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">

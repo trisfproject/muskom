@@ -192,9 +192,10 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 			Storage:  "Healthy",
 			SMTP:     "Healthy",
 		},
-		PendingRegistrations: []PendingRegistration{},
-		PendingCandidates:    []PendingCandidate{},
-		RecentActivity:       []RecentActivity{},
+		PendingRegistrations:      []PendingRegistration{},
+		PendingCandidates:         []PendingCandidate{},
+		RecentActivity:            []RecentActivity{},
+		CandidateRegistrationOpen: false, // Hardcoded false as candidate registration is cancelled/frozen
 	}
 
 	// Health Checks

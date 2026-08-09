@@ -89,27 +89,28 @@ type SystemHealthStats struct {
 }
 
 type PendingRegistration struct {
-	ID                 string    `json:"id"`
-	RegistrationNumber *string   `json:"registration_number"`
-	FullName           string    `json:"full_name"`
-	Email              string    `json:"email"`
-	Status             string    `json:"status"`
-	CreatedAt          time.Time `json:"created_at"`
+	ID                 string    `json:"id" db:"id"`
+	RegistrationNumber *string   `json:"registration_number" db:"registration_number"`
+	FullName           string    `json:"full_name" db:"full_name"`
+	Email              string    `json:"email" db:"email"`
+	Status             string    `json:"status" db:"status"`
+	CreatedAt          time.Time `json:"created_at" db:"created_at"`
 }
 
 type PendingCandidate struct {
-	ID                string  `json:"id"`
-	Name              string  `json:"name"`
-	PhotoURL          *string `json:"photo_url"`
-	Status            string  `json:"status"`
-	PublicationStatus string  `json:"publication_status"`
+	ID                string  `json:"id" db:"id"`
+	Name              string  `json:"name" db:"name"`
+	PhotoURL          *string `json:"photo_url" db:"photo_url"`
+	Status            string  `json:"status" db:"status"`
+	PublicationStatus string  `json:"publication_status" db:"publication_status"`
 }
 
 type OperationsDashboardData struct {
-	PendingRegistrations []PendingRegistration `json:"pending_registrations"`
-	PendingCandidates    []PendingCandidate    `json:"pending_candidates"`
-	Attendance           AttendanceStats       `json:"attendance"`
-	Voting               VotingStats           `json:"voting"`
-	SystemHealth         SystemHealthStats     `json:"system_health"`
-	RecentActivity       []RecentActivity      `json:"recent_activity"`
+	PendingRegistrations      []PendingRegistration `json:"pending_registrations"`
+	PendingCandidates         []PendingCandidate    `json:"pending_candidates"`
+	Attendance                AttendanceStats       `json:"attendance"`
+	Voting                    VotingStats           `json:"voting"`
+	SystemHealth              SystemHealthStats     `json:"system_health"`
+	RecentActivity            []RecentActivity      `json:"recent_activity"`
+	CandidateRegistrationOpen bool                  `json:"candidate_registration_open"`
 }
