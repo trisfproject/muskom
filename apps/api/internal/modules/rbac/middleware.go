@@ -2,6 +2,7 @@ package rbac
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
@@ -28,13 +29,20 @@ func (c *checker) logUnauthorized(ctx context.Context, userID, roleCode, permiss
 		INSERT INTO audit_logs (
 			module, action, entity, entity_id, user_id, actor_role, reason, ip_address, user_agent, metadata
 		) VALUES (
-			'system', 'UNAUTHORIZED_ACCESS', 'permission', $1, $2, $3, 'Attempted to access protected resource', $4, $5, $6
+			'system', 'UNAUTHORIZED_ACCESS', 'permission', NULL, $1, $2, 'Attempted to access protected resource', $3, $4, $5
 		)
 	`
 	metadata := map[string]interface{}{
 		"requested_permission": permissionCode,
 	}
-	_, err := c.db.ExecContext(ctx, query, permissionCode, userID, roleCode, ip, userAgent, metadata)
+	metadataJSON, _ := json.Marshal(metadata)
+
+	var dbUserID *string
+	if userID != "" {
+		dbUserID = &userID
+	}
+
+	_, err := c.db.ExecContext(ctx, query, dbUserID, roleCode, ip, userAgent, metadataJSON)
 	if err != nil {
 		c.log.Error("Failed to write unauthorized audit log", zap.Error(err))
 	}
