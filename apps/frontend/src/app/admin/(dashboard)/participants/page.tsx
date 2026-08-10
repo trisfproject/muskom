@@ -730,6 +730,16 @@ export default function AdminParticipantsPage() {
             </div>
 
             <form onSubmit={handleSaveEdit} className="space-y-4 text-sm">
+              <div>
+                <label className="text-xs font-semibold pg-text block mb-1">Nama Lengkap</label>
+                <input
+                  type="text"
+                  required
+                  value={editForm.participant_name || ""}
+                  onChange={(e) => setEditForm({ ...editForm, participant_name: e.target.value })}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pg-text text-sm focus:outline-none focus:border-blue-600"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold pg-text block mb-1">Email</label>
