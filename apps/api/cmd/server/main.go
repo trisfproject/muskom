@@ -193,7 +193,7 @@ func main() {
 	// reporting.SetupAdminRoutes(adminGroup.Group("/reporting", checker.RequirePermission("report.export")), db, log)
 	
 	user.SetupRoutes(adminGroup.Group("/users"), db, log, val, checker)
-	candidate.SetupAdminRoutes(adminGroup.Group("/candidates", checker.RequirePermission("candidate.manage")), db, redisClient, log, val, strg, cfg, nil /*notifSvc*/)
+	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), checker.RequirePermission, db, redisClient, log, val, strg, cfg, nil /*notifSvc*/)
 	participant.SetupAdminRoutes(adminGroup.Group("/participants", checker.RequirePermission("participant.approve")), db, log, val, mailerSvc, nil /*notifSvc*/)
 	registration.SetupAdminRoutes(adminGroup.Group("/registrations", checker.RequirePermission("participant.approve")), db, log, val, strg, int64(bodyLimit), mailerSvc, cfg)
 
