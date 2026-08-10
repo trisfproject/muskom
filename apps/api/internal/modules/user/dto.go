@@ -10,6 +10,12 @@ type CreateUserRequest struct {
 	RoleID   string `json:"role_id" validate:"required,uuid"`
 }
 
+type RoleResponse struct {
+	ID   string `json:"id"`
+	Code string `json:"code"`
+	Name string `json:"name"`
+}
+
 type UpdateRoleRequest struct {
 	RoleID string `json:"role_id" validate:"required,uuid"`
 }

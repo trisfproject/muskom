@@ -195,3 +195,11 @@ func (h *Handler) ChangePassword(c fiber.Ctx) error {
 
 	return response.SendSuccess(c, fiber.StatusOK, "Password changed successfully", nil, nil)
 }
+
+func (h *Handler) GetRoles(c fiber.Ctx) error {
+	roles, err := h.service.GetRoles(c.Context())
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get roles", nil)
+	}
+	return response.SendSuccess(c, fiber.StatusOK, "Roles retrieved", roles, nil)
+}

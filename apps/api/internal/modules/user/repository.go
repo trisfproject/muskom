@@ -18,7 +18,9 @@ type Repository interface {
 	UpdateUserProfile(ctx context.Context, userID, fullName, email string) error
 	CheckUsernameExists(ctx context.Context, username string) (bool, error)
 	CheckEmailExists(ctx context.Context, email string) (bool, error)
+	CheckUserEmailExists(ctx context.Context, email string) (bool, error)
 	CheckEmailExistsExcludingUser(ctx context.Context, email, excludeUserID string) (bool, error)
+	GetAdminRoles(ctx context.Context) ([]RoleResponse, error)
 }
 
 type repository struct {
@@ -110,10 +112,11 @@ func (r *repository) CreateUserTransaction(ctx context.Context, user *User) erro
 	}
 	defer tx.Rollback()
 
-	// Insert Person
+	// Insert Person with UPSERT (DO UPDATE) to handle existing person emails (e.g. participants)
 	personQuery := `
 		INSERT INTO persons (id, full_name, email)
 		VALUES (gen_random_uuid(), $1, $2)
+		ON CONFLICT (email) DO UPDATE SET full_name = EXCLUDED.full_name
 		RETURNING id
 	`
 	err = tx.QueryRowContext(ctx, personQuery, user.FullName, user.Email).Scan(&user.PersonID)
@@ -204,6 +207,18 @@ func (r *repository) CheckEmailExists(ctx context.Context, email string) (bool, 
 	return count > 0, err
 }
 
+func (r *repository) CheckUserEmailExists(ctx context.Context, email string) (bool, error) {
+	var count int
+	query := `
+		SELECT count(*)
+		FROM persons p
+		JOIN users u ON u.person_id = p.id
+		WHERE p.email = $1 AND u.deleted_at IS NULL
+	`
+	err := r.db.GetContext(ctx, &count, query, email)
+	return count > 0, err
+}
+
 func (r *repository) CheckEmailExistsExcludingUser(ctx context.Context, email, excludeUserID string) (bool, error) {
 	var count int
 	query := `
@@ -214,4 +229,15 @@ func (r *repository) CheckEmailExistsExcludingUser(ctx context.Context, email, e
 	`
 	err := r.db.GetContext(ctx, &count, query, email, excludeUserID)
 	return count > 0, err
+}
+
+func (r *repository) GetAdminRoles(ctx context.Context) ([]RoleResponse, error) {
+	roles := []RoleResponse{}
+	query := `
+		SELECT id, code, name 
+		FROM roles 
+		WHERE code IN ('ADMIN', 'SUPER_ADMIN')
+	`
+	err := r.db.SelectContext(ctx, &roles, query)
+	return roles, err
 }

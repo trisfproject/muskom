@@ -22,7 +22,17 @@ export interface ListUsersResponse {
   total_pages: number;
 }
 
+export interface RoleResponse {
+  id: string;
+  code: string;
+  name: string;
+}
+
 export const userService = {
+  async listRoles(): Promise<RoleResponse[]> {
+    const response = await api.get('/admin/users/roles');
+    return response.data.data;
+  },
   async listUsers(params?: { search?: string; role_id?: string; status?: string; page?: number; limit?: number }): Promise<ListUsersResponse> {
     const response = await api.get('/admin/users', { params });
     return response.data.data;

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"strings"
 
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -24,6 +25,7 @@ type Service interface {
 	ResetPassword(ctx context.Context, id string, req *ResetPasswordRequest) error
 	UpdateProfile(ctx context.Context, id string, req *UpdateProfileRequest) (*UserResponse, error)
 	ChangePassword(ctx context.Context, id string, req *ChangePasswordRequest) error
+	GetRoles(ctx context.Context) ([]RoleResponse, error)
 }
 
 type service struct {
@@ -83,6 +85,8 @@ func (s *service) GetUser(ctx context.Context, id string) (*UserResponse, error)
 }
 
 func (s *service) CreateUser(ctx context.Context, req *CreateUserRequest) (*UserResponse, error) {
+	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
+
 	usernameExists, err := s.repo.CheckUsernameExists(ctx, req.Username)
 	if err != nil {
 		return nil, err
@@ -91,7 +95,7 @@ func (s *service) CreateUser(ctx context.Context, req *CreateUserRequest) (*User
 		return nil, ErrUsernameTaken
 	}
 
-	emailExists, err := s.repo.CheckEmailExists(ctx, req.Email)
+	emailExists, err := s.repo.CheckUserEmailExists(ctx, req.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -193,4 +197,8 @@ func (s *service) mapEntityToResponse(u *User) *UserResponse {
 		CreatedAt:   u.CreatedAt,
 		UpdatedAt:   u.UpdatedAt,
 	}
+}
+
+func (s *service) GetRoles(ctx context.Context) ([]RoleResponse, error) {
+	return s.repo.GetAdminRoles(ctx)
 }

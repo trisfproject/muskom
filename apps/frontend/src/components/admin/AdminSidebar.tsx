@@ -21,6 +21,7 @@ import {
 import Cookies from "js-cookie";
 
 import { useSystemConfig } from "@/contexts/ConfigContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AdminSidebarProps {
   isOpen?: boolean; // For mobile/tablet offcanvas drawer
@@ -36,6 +37,7 @@ export function AdminSidebar({
 }: AdminSidebarProps) {
   const pathname = usePathname();
   const { config } = useSystemConfig();
+  const { user } = useAuth();
 
   const [mounted, setMounted] = useState(false);
 
@@ -120,7 +122,9 @@ export function AdminSidebar({
     {
       title: "Sistem",
       items: [
-        { label: "Manajemen Pengguna", href: "/admin/users", icon: Users },
+        ...(user?.role === "SUPER_ADMIN"
+          ? [{ label: "Manajemen Pengguna", href: "/admin/users", icon: Users }]
+          : []),
         { label: "Audit Log", href: "/admin/audit", icon: Activity },
         { label: "Konfigurasi SMTP", href: "/admin/system/smtp", icon: Mail },
         { label: "Template Email", href: "/admin/system/templates", icon: Mail },
