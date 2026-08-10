@@ -40,9 +40,9 @@ func (r *repository) GetOfficialResult(ctx context.Context, eventID string) (*Of
 
 	// 4. Candidate Results & Total Votes
 	query := `
-		SELECT c.id, COALESCE(c.candidate_number, c.display_order, 0) as number, c.full_name as name, COUNT(v.id) as total_votes
+		SELECT c.id, COALESCE(c.candidate_number, c.display_order, 0) as number, c.full_name as name, COUNT(b.id) as total_votes
 		FROM candidates c
-		LEFT JOIN votes v ON c.id = v.candidate_id
+		LEFT JOIN ballots b ON c.id = b.candidate_id
 		WHERE c.deleted_at IS NULL
 		GROUP BY c.id, c.candidate_number, c.display_order, c.full_name
 		ORDER BY total_votes DESC, number ASC

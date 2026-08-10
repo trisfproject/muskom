@@ -28,7 +28,7 @@ func TestRepository_GetElectionResults(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow("Test Event"))
 
 		// Mock total votes
-		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes$").
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM ballots$").
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(100))
 
 		// Mock stats per candidate
@@ -64,7 +64,7 @@ func TestRepository_GetElectionResults(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow("Test Event"))
 
 		// Mock total votes
-		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes$").
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM ballots$").
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(150))
 
 		// Mock stats per candidate
@@ -102,7 +102,7 @@ func TestRepository_GetElectionResults(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow("Test Event"))
 
 		// Mock total votes
-		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes$").
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM ballots$").
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(100))
 
 		// Mock stats per candidate
@@ -139,7 +139,7 @@ func TestRepository_GetElectionResults(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow("Test Event"))
 
 		// Mock total votes - massive volume
-		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes$").
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM ballots$").
 			WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(500000))
 
 		// Mock stats per candidate (the database handles the aggregation, so the app only gets summary rows)
@@ -183,7 +183,7 @@ func TestRepository_GetElectionOverview(t *testing.T) {
 
 		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM participants").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(100))
 		mock.ExpectQuery("^SELECT COUNT\\(a\\.id\\) FROM attendance").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(80))
-		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM votes").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(60))
+		mock.ExpectQuery("^SELECT COUNT\\(id\\) FROM ballots").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(60))
 
 		res, err := repo.GetElectionOverview(ctx, eventID)
 		assert.NoError(t, err)

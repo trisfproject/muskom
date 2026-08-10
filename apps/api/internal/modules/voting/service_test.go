@@ -24,8 +24,8 @@ func (m *MockRepository) HasVoted(ctx context.Context, eventID, participantID st
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockRepository) CastVote(ctx context.Context, tx *sqlx.Tx, vote *Vote) error {
-	args := m.Called(ctx, tx, vote)
+func (m *MockRepository) CastVote(ctx context.Context, tx *sqlx.Tx, participantID, candidateID string) error {
+	args := m.Called(ctx, tx, participantID, candidateID)
 	return args.Error(0)
 }
 
@@ -56,6 +56,11 @@ func (m *MockRepository) GetUnvotedVerifiedVoterEmails(ctx context.Context, even
 
 func (m *MockRepository) IsParticipantEligible(ctx context.Context, eventID, participantID string) (bool, error) {
 	args := m.Called(ctx, eventID, participantID)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockRepository) IsCandidateValid(ctx context.Context, candidateID string) (bool, error) {
+	args := m.Called(ctx, candidateID)
 	return args.Bool(0), args.Error(1)
 }
 
@@ -120,10 +125,11 @@ func TestService_CastVote_EligibilityAndDuplicate(t *testing.T) {
 		
 		// Mock HasVoted
 		repo.On("HasVoted", ctx, eventID, participantID).Return(false, nil).Once()
+		repo.On("IsCandidateValid", ctx, candidateID).Return(true, nil).Once()
 		
 		// Mock DB Transaction
 		dbMock.ExpectBegin()
-		repo.On("CastVote", ctx, mock.AnythingOfType("*sqlx.Tx"), mock.AnythingOfType("*voting.Vote")).Return(nil).Once()
+		repo.On("CastVote", ctx, mock.AnythingOfType("*sqlx.Tx"), participantID, candidateID).Return(nil).Once()
 		dbMock.ExpectCommit()
 		
 		// Mock EventBus Publish

@@ -3,13 +3,14 @@ package voting
 import (
 	"context"
 	"database/sql"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
 
 type Repository interface {
 	HasVoted(ctx context.Context, eventID, participantID string) (bool, error)
-	CastVote(ctx context.Context, tx *sqlx.Tx, vote *Vote) error
+	CastVote(ctx context.Context, tx *sqlx.Tx, participantID, candidateID string) error
 
 	GetBallotCandidates(ctx context.Context, eventID string) ([]CandidateSnapshot, error)
 	GetResults(ctx context.Context, eventID string) ([]VoteResult, error)
@@ -18,6 +19,7 @@ type Repository interface {
 	GetVerifiedVoterEmails(ctx context.Context, eventID string) ([]string, error)
 	GetUnvotedVerifiedVoterEmails(ctx context.Context, eventID string) ([]string, error)
 	IsParticipantEligible(ctx context.Context, eventID, participantID string) (bool, error)
+	IsCandidateValid(ctx context.Context, candidateID string) (bool, error)
 	GetParticipantByRegNumber(ctx context.Context, regNum string) (*ParticipantEligibility, error)
 
 	UpdateSessionStatus(ctx context.Context, status SessionStatus) error
@@ -34,14 +36,25 @@ func NewRepository(db *sqlx.DB) Repository {
 
 func (r *repository) HasVoted(ctx context.Context, eventID, participantID string) (bool, error) {
 	var count int
-	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM votes WHERE participant_id = $1`, participantID)
+	err := r.db.GetContext(ctx, &count, `SELECT COUNT(*) FROM voter_receipts WHERE participant_id = $1`, participantID)
 	return count > 0, err
 }
 
-func (r *repository) CastVote(ctx context.Context, tx *sqlx.Tx, vote *Vote) error {
-	query := `INSERT INTO votes (participant_id, candidate_id) VALUES ($1, $2)`
-	_, err := tx.ExecContext(ctx, query, vote.ParticipantID, vote.CandidateID)
+func (r *repository) CastVote(ctx context.Context, tx *sqlx.Tx, participantID, candidateID string) error {
+	_, err := tx.ExecContext(ctx, `INSERT INTO voter_receipts (participant_id) VALUES ($1)`, participantID)
+	if err != nil {
+		// Postgres Unique Violation code is 23505
+		if err.Error() != "" && (contains(err.Error(), "23505") || contains(err.Error(), "unique constraint")) {
+			return ErrAlreadyVoted
+		}
+		return err
+	}
+	_, err = tx.ExecContext(ctx, `INSERT INTO ballots (candidate_id) VALUES ($1)`, candidateID)
 	return err
+}
+
+func contains(s, substr string) bool {
+	return strings.Contains(s, substr)
 }
 
 func (r *repository) GetBallotCandidates(ctx context.Context, eventID string) ([]CandidateSnapshot, error) {
@@ -80,9 +93,9 @@ func (r *repository) GetBallotCandidates(ctx context.Context, eventID string) ([
 
 func (r *repository) GetResults(ctx context.Context, eventID string) ([]VoteResult, error) {
 	query := `
-		SELECT c.id as candidate_id, c.full_name as name, COUNT(v.id) as total_votes
+		SELECT c.id as candidate_id, c.full_name as name, COUNT(b.id) as total_votes
 		FROM candidates c
-		LEFT JOIN votes v ON c.id = v.candidate_id
+		LEFT JOIN ballots b ON c.id = b.candidate_id
 		WHERE c.deleted_at IS NULL AND c.status IN ('Verified', 'VERIFIED', 'Approved', 'APPROVED')
 		GROUP BY c.id, c.full_name
 		ORDER BY total_votes DESC, c.full_name ASC
@@ -119,7 +132,7 @@ func (r *repository) GetUnvotedVerifiedVoterEmails(ctx context.Context, eventID 
 		  AND p.deleted_at IS NULL 
 		  AND p.email IS NOT NULL 
 		  AND p.email != ''
-		  AND p.id NOT IN (SELECT participant_id FROM votes)
+		  AND p.id NOT IN (SELECT participant_id FROM voter_receipts)
 	`
 	err := r.db.SelectContext(ctx, &emails, query)
 	return emails, err
@@ -138,6 +151,19 @@ func (r *repository) IsParticipantEligible(ctx context.Context, eventID, partici
 	`
 	// Using $1 for participantID, we don't strictly filter eventID here unless there are multiple events in one DB (which we assume there aren't for participants directly or we can ignore it since they are unique).
 	err := r.db.GetContext(ctx, &count, query, participantID)
+	return count > 0, err
+}
+
+func (r *repository) IsCandidateValid(ctx context.Context, candidateID string) (bool, error) {
+	var count int
+	query := `
+		SELECT COUNT(*) 
+		FROM candidates 
+		WHERE id = $1 
+		  AND status IN ('Verified', 'VERIFIED', 'Approved', 'APPROVED') 
+		  AND deleted_at IS NULL
+	`
+	err := r.db.GetContext(ctx, &count, query, candidateID)
 	return count > 0, err
 }
 

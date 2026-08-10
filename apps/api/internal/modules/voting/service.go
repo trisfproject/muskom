@@ -13,13 +13,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	ErrSessionClosed          = errors.New("voting session is closed")
-	ErrSessionNotRunning      = errors.New("voting session is not running")
-	ErrAlreadyVoted           = errors.New("participant has already voted")
-	ErrNotCheckedIn           = errors.New("participant is not checked in")
-	ErrParticipantNotEligible = errors.New("participant is not eligible to vote (not verified or not checked-in)")
-)
 
 type Service interface {
 	GetBallot(ctx context.Context, eventID string) (*Ballot, error)
@@ -89,6 +82,14 @@ func (s *service) CastVote(ctx context.Context, eventID, participantID, candidat
 		return ErrAlreadyVoted
 	}
 
+	validCandidate, err := s.repo.IsCandidateValid(ctx, candidateID)
+	if err != nil {
+		return err
+	}
+	if !validCandidate {
+		return ErrCandidateInvalid
+	}
+
 	// Begin Transaction
 	tx, err := s.db.BeginTxx(ctx, nil)
 	if err != nil {
@@ -96,13 +97,7 @@ func (s *service) CastVote(ctx context.Context, eventID, participantID, candidat
 	}
 	defer tx.Rollback()
 
-	vote := &Vote{
-		EventID:       eventID,
-		ParticipantID: participantID,
-		CandidateID:   candidateID,
-	}
-
-	err = s.repo.CastVote(ctx, tx, vote)
+	err = s.repo.CastVote(ctx, tx, participantID, candidateID)
 	if err != nil {
 		return err
 	}
@@ -114,7 +109,6 @@ func (s *service) CastVote(ctx context.Context, eventID, participantID, candidat
 	// Dispatch Domain Event
 	_ = s.bus.Publish(ctx, eventbus.NewEnvelope(eventID, eventbus.EventVoteSubmitted, map[string]string{
 		"participant_id": participantID,
-		"candidate_id":   candidateID,
 	}))
 
 	return nil

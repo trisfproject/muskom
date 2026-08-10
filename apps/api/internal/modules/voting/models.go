@@ -23,13 +23,15 @@ type VotingSession struct {
 	UpdatedAt time.Time     `db:"updated_at"`
 }
 
-type Vote struct {
+type VoterReceipt struct {
 	ID            string    `db:"id"`
-	EventID       string    `db:"event_id"`
 	ParticipantID string    `db:"participant_id"`
-	CandidateID   string    `db:"candidate_id"`
 	CreatedAt     time.Time `db:"created_at"`
-	UpdatedAt     time.Time `db:"updated_at"`
+}
+
+type BallotRecord struct {
+	ID          string `db:"id"`
+	CandidateID string `db:"candidate_id"`
 }
 
 type CandidateSnapshot struct {

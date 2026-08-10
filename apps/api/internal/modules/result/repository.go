@@ -30,7 +30,7 @@ func (r *repository) GetElectionResults(ctx context.Context, eventID uuid.UUID) 
 	}
 
 	var totalVotes int
-	totalQuery := `SELECT COUNT(id) FROM votes`
+	totalQuery := `SELECT COUNT(id) FROM ballots`
 	err = r.db.GetContext(ctx, &totalVotes, totalQuery)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (r *repository) GetElectionResults(ctx context.Context, eventID uuid.UUID) 
 			c.full_name as candidate_name,
 			COUNT(v.id) as vote_count
 		FROM candidates c
-		LEFT JOIN votes v ON v.candidate_id = c.id
+		LEFT JOIN ballots v ON v.candidate_id = c.id
 		WHERE c.deleted_at IS NULL AND c.status IN ('Verified', 'VERIFIED', 'Approved', 'APPROVED')
 		GROUP BY c.id, c.full_name
 		ORDER BY vote_count DESC
@@ -137,7 +137,7 @@ func (r *repository) GetElectionOverview(ctx context.Context, eventID uuid.UUID)
 	}
 
 	// Total Votes
-	err = r.db.GetContext(ctx, &overview.TotalVotes, `SELECT COUNT(id) FROM votes`)
+	err = r.db.GetContext(ctx, &overview.TotalVotes, `SELECT COUNT(id) FROM ballots`)
 	if err != nil {
 		return nil, err
 	}

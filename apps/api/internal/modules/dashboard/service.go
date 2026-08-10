@@ -112,7 +112,7 @@ func (s *service) GetDashboardData(ctx context.Context) (*DashboardData, error) 
 
 	s.db.GetContext(ctx, &data.Summary.TotalCandidates, `SELECT COUNT(*) FROM candidates WHERE deleted_at IS NULL AND publication_status = 'Published'`)
 	s.db.GetContext(ctx, &data.Summary.CheckedIn, `SELECT COUNT(*) FROM attendance WHERE undone_at IS NULL`)
-	s.db.GetContext(ctx, &data.Summary.VotesCast, `SELECT COUNT(*) FROM votes`)
+	s.db.GetContext(ctx, &data.Summary.VotesCast, `SELECT COUNT(*) FROM ballots`)
 	s.db.GetContext(ctx, &data.Summary.PendingNotifications, `SELECT COUNT(*) FROM notification_jobs WHERE status IN ('PENDING', 'QUEUED', 'PROCESSING')`)
 
 	limitVal, wlCap, modeVal := s.getRegistrationCapacitySettings(ctx)
@@ -249,7 +249,7 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 	// Eligible Voters
 	s.db.GetContext(ctx, &data.Voting.RemainingVoters, `SELECT count(*) FROM voting_eligibility WHERE can_vote = true`)
 	// Votes Cast
-	s.db.GetContext(ctx, &data.Voting.VotesSubmitted, `SELECT count(*) FROM votes`)
+	s.db.GetContext(ctx, &data.Voting.VotesSubmitted, `SELECT count(*) FROM ballots`)
 	
 	if data.Voting.RemainingVoters > 0 {
 		// RemainingVoters is total eligible in DB initially, let's just send Total Eligible as RemainingVoters
