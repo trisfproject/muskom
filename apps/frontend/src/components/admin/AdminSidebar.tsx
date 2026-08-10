@@ -110,7 +110,7 @@ export function AdminSidebar({
         { label: "Monitor E-Voting", href: "/admin/voting", icon: Activity },
       ],
     },
-    {
+    ...(user?.role === "SUPER_ADMIN" ? [{
       title: "Pengaturan Website",
       items: [
         { label: "Identitas Web", href: "/admin/website/identity", icon: Sliders },
@@ -118,19 +118,17 @@ export function AdminSidebar({
         { label: "Pengumuman", href: "/admin/website/announcements", icon: Megaphone },
         { label: "Panduan", href: "/admin/website/guides", icon: Info },
       ],
-    },
-    {
+    }] : []),
+    ...(user?.role === "SUPER_ADMIN" ? [{
       title: "Sistem",
       items: [
-        ...(user?.role === "SUPER_ADMIN"
-          ? [{ label: "Manajemen Pengguna", href: "/admin/users", icon: Users }]
-          : []),
+        { label: "Manajemen Pengguna", href: "/admin/users", icon: Users },
         { label: "Audit Log", href: "/admin/audit", icon: Activity },
         { label: "Konfigurasi SMTP", href: "/admin/system/smtp", icon: Mail },
         { label: "Template Email", href: "/admin/system/templates", icon: Mail },
         { label: "Log Email", href: "/admin/system/email-logs", icon: Activity },
       ],
-    },
+    }] : []),
   ];
 
   if (!mounted) return null; // Avoid hydration mismatch on initial render
