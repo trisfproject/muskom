@@ -157,16 +157,35 @@ func (s *service) GetSession(ctx context.Context, eventID string) (*VotingSessio
 }
 
 func (s *service) UpdateSessionStatus(ctx context.Context, eventID string, action string) (*VotingSession, error) {
+	currentStatus, err := s.repo.GetSessionStatus(ctx)
+	if err != nil {
+		currentStatus = SessionNotStarted
+	}
+
 	var status SessionStatus
 	switch action {
-	case "start", "resume":
+	case "start":
+		if currentStatus != SessionNotStarted {
+			return nil, errors.New("cannot start session: session has already been started or closed")
+		}
 		status = SessionRunning
 	case "pause":
+		if currentStatus != SessionRunning {
+			return nil, errors.New("cannot pause session: session is not running")
+		}
 		status = SessionPaused
+	case "resume":
+		if currentStatus != SessionPaused {
+			return nil, errors.New("cannot resume session: session is not paused")
+		}
+		status = SessionRunning
 	case "stop", "close":
+		if currentStatus == SessionClosed || currentStatus == SessionNotStarted {
+			return nil, errors.New("cannot close session: invalid current state")
+		}
 		status = SessionClosed
 	default:
-		status = SessionRunning
+		return nil, errors.New("invalid action")
 	}
 
 	if err := s.repo.UpdateSessionStatus(ctx, status); err != nil {

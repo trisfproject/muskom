@@ -14,19 +14,19 @@ const (
 )
 
 type VotingSession struct {
-	ID        string        `db:"id"`
-	EventID   string        `db:"event_id"`
-	Status    SessionStatus `db:"status"`
-	StartedAt *time.Time    `db:"started_at"`
-	ClosedAt  *time.Time    `db:"closed_at"`
-	CreatedAt time.Time     `db:"created_at"`
-	UpdatedAt time.Time     `db:"updated_at"`
+	ID        string        `db:"id" json:"id"`
+	EventID   string        `db:"event_id" json:"event_id"`
+	Status    SessionStatus `db:"status" json:"status"`
+	StartedAt *time.Time    `db:"started_at" json:"started_at"`
+	ClosedAt  *time.Time    `db:"closed_at" json:"closed_at"`
+	CreatedAt time.Time     `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time     `db:"updated_at" json:"updated_at"`
 }
 
 type VoterReceipt struct {
-	ID            string    `db:"id"`
-	ParticipantID string    `db:"participant_id"`
-	CreatedAt     time.Time `db:"created_at"`
+	ID            string    `db:"id" json:"id"`
+	ParticipantID string    `db:"participant_id" json:"participant_id"`
+	CreatedAt     time.Time `db:"created_at" json:"created_at"`
 }
 
 type BallotRecord struct {
