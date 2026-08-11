@@ -162,7 +162,18 @@ export default function EmailLogsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm pg-text font-medium truncate max-w-[200px]" title={log.template || "-"}>
-                        {log.template || "-"}
+                        {log.template ? (
+                          log.template === log.template.toUpperCase() ? (
+                            log.template
+                          ) : (
+                            <div className="flex flex-col leading-tight">
+                              <span>{log.template.replace(/^(participant_|candidate_)/i, '').toUpperCase()}</span>
+                              <span className="text-[10px] opacity-60 font-mono tracking-tight">{log.template}</span>
+                            </div>
+                          )
+                        ) : (
+                          "-"
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

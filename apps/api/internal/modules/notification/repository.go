@@ -154,15 +154,17 @@ func (r *repository) ListHistory(ctx context.Context, page, limit int) ([]Notifi
 			FROM email_logs
 			UNION ALL
 			SELECT 
-				id, 
-				job_id, 
-				channel, 
-				recipient, 
-				status, 
-				sent_at, 
-				error_message,
-				'' as template
-			FROM notification_history
+				nh.id, 
+				nh.job_id, 
+				nh.channel, 
+				nh.recipient, 
+				nh.status, 
+				nh.sent_at, 
+				nh.error_message,
+				COALESCE(nt.name, '') as template
+			FROM notification_history nh
+			LEFT JOIN notification_jobs nj ON nh.job_id = nj.id
+			LEFT JOIN notification_templates nt ON nj.template_id = nt.id
 		) as combined_logs
 		ORDER BY sent_at DESC NULLS LAST, id DESC
 		LIMIT $1 OFFSET $2
