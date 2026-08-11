@@ -475,12 +475,16 @@ func (s *service) AdminUpdateRegistrationStatus(ctx context.Context, id string, 
 	defer tx.Rollback()
 
 	if req.Status == "APPROVED" {
-		// 1. Generate Registration Number
-		max, err := s.repo.GetMaxRegistrationNumberTx(ctx, tx)
-		if err != nil {
-			return err
+		var newRegNum string
+		if reg.RegistrationNumber == "" {
+			max, err := s.repo.GetMaxRegistrationNumberTx(ctx, tx)
+			if err != nil {
+				return err
+			}
+			newRegNum = fmt.Sprintf("MUSKOM-%d-%04d", time.Now().Year(), max+1)
+		} else {
+			newRegNum = reg.RegistrationNumber
 		}
-		newRegNum := fmt.Sprintf("MUSKOM-%d-%04d", time.Now().Year(), max+1)
 
 		// 2. Update Status and Number
 		err = s.repo.UpdateRegistrationStatusAndNumberTx(ctx, tx, id, req.Status, newRegNum, adminUserID)
@@ -619,9 +623,8 @@ func (s *service) ResendEmail(ctx context.Context, registrationID string, req *R
 			templateName = "participant_registration_rejected"
 		}
 
-		baseURL := strings.TrimRight(s.cfg.AppBaseURL, "/")
 		rn := reg.RegistrationNumber
-		lookupURL := fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(rn))
+		lookupURL := fmt.Sprintf("/peserta/?q=%s", url.QueryEscape(rn))
 		payload := map[string]interface{}{
 			"full_name":              reg.ParticipantName,
 			"participant_name":        reg.ParticipantName,

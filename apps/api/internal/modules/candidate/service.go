@@ -764,7 +764,7 @@ func (s *service) AdminPublishCandidate(ctx context.Context, id string, adminUse
 		payload := map[string]interface{}{
 			"full_name":             c.FullName,
 			"event_name":            "MUSKOM 2026",
-			"candidate_profile_url": fmt.Sprintf("%s/kandidat/%d", s.cfg.AppBaseURL, cn),
+			"candidate_profile_url": fmt.Sprintf("/kandidat/%d", cn),
 		}
 		if s.notifSvc != nil {
 			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "candidate_published", c.Email, payload)

@@ -11,6 +11,11 @@ type MockRepository struct {
 	mock.Mock
 }
 
+func (m *MockRepository) GetMaxRegistrationNumberTx(ctx context.Context, tx *sqlx.Tx) (int, error) {
+	args := m.Called(ctx, tx)
+	return args.Int(0), args.Error(1)
+}
+
 func (m *MockRepository) GetVerifications(ctx context.Context, filter VerificationListRequest) ([]VerificationItemResponse, int, error) {
 	args := m.Called(ctx, filter)
 	if args.Get(0) != nil {

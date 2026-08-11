@@ -21,6 +21,7 @@ type Repository interface {
 	UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, registrationID string, status string, verifierID string, rejectionReason *string, regNumber *string) error
 	GetCandidateDetail(ctx context.Context, candidateID string) (*CandidateDetailResponse, error)
 	UpdateCandidateStatus(ctx context.Context, tx *sqlx.Tx, candidateID string, status string, verifierID string) error
+	GetMaxRegistrationNumberTx(ctx context.Context, tx *sqlx.Tx) (int, error)
 }
 
 type repository struct {
@@ -273,6 +274,28 @@ func (r *repository) UpdateParticipantStatus(ctx context.Context, tx *sqlx.Tx, r
 	}
 
 	return nil
+}
+
+func (r *repository) GetMaxRegistrationNumberTx(ctx context.Context, tx *sqlx.Tx) (int, error) {
+	query := `
+		SELECT COALESCE(
+			MAX(CAST(REGEXP_REPLACE(registration_number, '^MUSKOM-\d{4}-', '') AS INTEGER)), 
+			0
+		) 
+		FROM registrations 
+		WHERE registration_number LIKE 'MUSKOM-%'
+	`
+	var max int
+	var err error
+	if tx != nil {
+		err = tx.GetContext(ctx, &max, query)
+	} else {
+		err = r.db.GetContext(ctx, &max, query)
+	}
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return 0, err
+	}
+	return max, nil
 }
 
 func (r *repository) GetCandidateDetail(ctx context.Context, candidateID string) (*CandidateDetailResponse, error) {

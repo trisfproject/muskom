@@ -3,7 +3,7 @@ package voting
 import (
 	"context"
 	"errors"
-	"fmt"
+
 
 	"github.com/jmoiron/sqlx"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
@@ -242,7 +242,7 @@ func (s *service) BroadcastVotingInvitation(ctx context.Context, eventID string)
 	}
 	payload := map[string]interface{}{
 		"event_name": "MUSKOM 2026",
-		"voting_url": fmt.Sprintf("%s/voting", s.cfg.AppBaseURL),
+		"voting_url": "/voting",
 	}
 	return s.notifSvc.Broadcast(ctx, notification.ChannelEmail, "voting_invitation", emails, payload)
 }
@@ -254,7 +254,7 @@ func (s *service) SendVotingReminder(ctx context.Context, eventID string) error 
 	}
 	payload := map[string]interface{}{
 		"event_name": "MUSKOM 2026",
-		"voting_url": fmt.Sprintf("%s/voting", s.cfg.AppBaseURL),
+		"voting_url": "/voting",
 	}
 	return s.notifSvc.Broadcast(ctx, notification.ChannelEmail, "voting_reminder", emails, payload)
 }

@@ -3,6 +3,7 @@ package notification
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"go.uber.org/zap"
@@ -103,6 +104,18 @@ func (w *Worker) processJob(ctx context.Context, job NotificationJob) {
 		}
 		if eventLoc, ok := identity["event_location"].(string); ok && eventLoc != "" {
 			payload["event_location"] = eventLoc
+		}
+
+		var baseURL string
+		if b, ok := identity["website_base_url"].(string); ok && b != "" {
+			baseURL = strings.TrimRight(b, "/")
+		}
+		if baseURL != "" {
+			for _, key := range []string{"participant_url", "participant_lookup_url", "lookup_url", "candidate_profile_url", "voting_url"} {
+				if val, ok := payload[key].(string); ok && strings.HasPrefix(val, "/") {
+					payload[key] = baseURL + val
+				}
+			}
 		}
 	}
 

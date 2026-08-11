@@ -169,12 +169,16 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 				return nil // Already approved
 			}
 
-			// Generate official registration number
-			max, err := s.repo.GetMaxOfficialRegistrationNumberTx(ctx, tx)
-			if err != nil {
-				return err
+			var newRegNum string
+			if p.RegistrationNumber == "" {
+				max, err := s.repo.GetMaxOfficialRegistrationNumberTx(ctx, tx)
+				if err != nil {
+					return err
+				}
+				newRegNum = fmt.Sprintf("MUSKOM-%d-%04d", time.Now().Year(), max+1)
+			} else {
+				newRegNum = p.RegistrationNumber
 			}
-			newRegNum := fmt.Sprintf("MUSKOM-%d-%04d", time.Now().Year(), max+1)
 
 			err = s.repo.UpdateStatusAndNumberTx(ctx, tx, id, req.Status, newRegNum)
 			if err != nil {
@@ -186,8 +190,7 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 			finalP = p
 
 			// 5. Queue Approval Email in Tx
-			baseURL := strings.TrimRight(s.cfg.AppBaseURL, "/")
-			lookupURL := fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(p.RegistrationNumber))
+			lookupURL := fmt.Sprintf("/peserta/?q=%s", url.QueryEscape(p.RegistrationNumber))
 			payload := map[string]interface{}{
 				"full_name":              p.FullName,
 				"registration_number":    p.RegistrationNumber,

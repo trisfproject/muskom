@@ -7,8 +7,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-
-	"github.com/google/uuid"
+	"time"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
@@ -144,8 +143,14 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 			}
 		}
 
-		num := fmt.Sprintf("MK-%s-%s", strings.ToUpper(uuid.New().String()[:4]), strings.ToUpper(uuid.New().String()[:8]))
-		regNumber = &num
+		if detail.RegistrationNumber == "" {
+			max, err := s.repo.GetMaxRegistrationNumberTx(ctx, tx)
+			if err != nil {
+				return err
+			}
+			num := fmt.Sprintf("MUSKOM-%d-%04d", time.Now().Year(), max+1)
+			regNumber = &num
+		}
 	}
 
 	if err := s.repo.UpdateParticipantStatus(ctx, tx, id, req.Status, verifierID, req.RejectionReason, regNumber); err != nil {
@@ -176,8 +181,7 @@ func (s *service) VerifyParticipant(ctx context.Context, id string, req *VerifyP
 				rn = *regNumber
 			}
 			
-			baseURL := strings.TrimRight(s.cfg.AppBaseURL, "/")
-			lookupURL := fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(rn))
+			lookupURL := fmt.Sprintf("/peserta/?q=%s", url.QueryEscape(rn))
 			payload := map[string]interface{}{
 				"full_name":              detail.FullName,
 				"registration_number":    rn,

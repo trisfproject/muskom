@@ -123,6 +123,7 @@ func TestService_VerifyParticipant(t *testing.T) {
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 		mockRepo.On("GetParticipantLimitAndLockTx", mock.Anything, tx).Return(0, nil).Once()
+		mockRepo.On("GetMaxRegistrationNumberTx", mock.Anything, tx).Return(0, nil).Once()
 
 		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil), mock.Anything).Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_PARTICIPANT", "registrations", "reg1", "").Return(nil).Once()
@@ -172,6 +173,7 @@ func TestService_VerifyParticipant(t *testing.T) {
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 		mockRepo.On("GetParticipantLimitAndLockTx", mock.Anything, tx).Return(0, nil).Once()
+		mockRepo.On("GetMaxRegistrationNumberTx", mock.Anything, tx).Return(0, nil).Once()
 
 		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil), mock.Anything).Return(errors.New("db err")).Once()
 
@@ -187,6 +189,7 @@ func TestService_VerifyParticipant(t *testing.T) {
 		tx, _ := sqlxDB.BeginTxx(ctx, nil)
 		mockRepo.On("BeginTx", mock.Anything).Return(tx, nil).Once()
 		mockRepo.On("GetParticipantLimitAndLockTx", mock.Anything, tx).Return(0, nil).Once()
+		mockRepo.On("GetMaxRegistrationNumberTx", mock.Anything, tx).Return(0, nil).Once()
 
 		mockRepo.On("UpdateParticipantStatus", mock.Anything, tx, "reg1", "APPROVED", "u1", (*string)(nil), mock.Anything).Return(nil).Once()
 		mockRepo.On("LogAudit", mock.Anything, tx, "verification", "VERIFY_PARTICIPANT", "registrations", "reg1", "").Return(errors.New("db err")).Once()
