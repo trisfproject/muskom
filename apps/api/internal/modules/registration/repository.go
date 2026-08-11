@@ -199,7 +199,12 @@ func (r *repository) LogAudit(ctx context.Context, tx *sqlx.Tx, module, action, 
 		INSERT INTO audit_logs (module, action, entity, entity_id, metadata, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
 	`
-	_, err := tx.ExecContext(ctx, query, module, action, entity, entityID, metadata)
+	executor := r.db.ExecContext
+	if tx != nil {
+		executor = tx.ExecContext
+	}
+
+	_, err := executor(ctx, query, module, action, entity, entityID, metadata)
 	return err
 }
 
