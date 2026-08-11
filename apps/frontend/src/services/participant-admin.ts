@@ -132,7 +132,7 @@ export const adminParticipantService = {
   },
 
   async retryEmailLog(logId: string): Promise<void> {
-    await api.post(`/admin/emails/${logId}/retry`);
+    await api.post(`/admin/registrations/emails/${logId}/retry`);
   },
 
   async createParticipant(payload: any): Promise<AdminParticipantResponse> {
