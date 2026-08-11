@@ -195,7 +195,7 @@ func main() {
 	user.SetupRoutes(adminGroup.Group("/users"), db, log, val, checker)
 	candidate.SetupAdminRoutes(adminGroup.Group("/candidates"), checker.RequirePermission, db, redisClient, log, val, strg, cfg, nil /*notifSvc*/)
 	participant.SetupAdminRoutes(adminGroup.Group("/participants", checker.RequirePermission("participant.approve")), db, log, val, mailerSvc, nil /*notifSvc*/)
-	registration.SetupAdminRoutes(adminGroup.Group("/registrations", checker.RequirePermission("participant.approve")), db, log, val, strg, int64(bodyLimit), mailerSvc, cfg)
+	registration.SetupAdminRoutes(adminGroup.Group("/registrations", checker.RequirePermission("participant.approve")), db, log, val, strg, int64(bodyLimit), mailerSvc, cfg, notifSvc)
 
 	announcement.RegisterRoutes(v1, annHandler, auth.JWTMiddleware(cfg, log), checker.RequirePermission)
 

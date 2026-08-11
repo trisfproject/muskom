@@ -11,12 +11,14 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"go.uber.org/zap"
 
+	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/response"
@@ -75,10 +77,15 @@ type service struct {
 	maxSize   int64
 	mailerSvc mailer.Mailer
 	cfg       *config.Config
+	notifSvc  notification.Service
 }
 
-func NewService(repo Repository, log *zap.Logger, val *validator.Validator, strg storage.Storage, maxSize int64, mailerSvc mailer.Mailer, cfg *config.Config) Service {
-	return &service{repo: repo, log: log, validator: val, strg: strg, maxSize: maxSize, mailerSvc: mailerSvc, cfg: cfg}
+func NewService(repo Repository, log *zap.Logger, val *validator.Validator, strg storage.Storage, maxSize int64, mailerSvc mailer.Mailer, cfg *config.Config, notifSvc ...notification.Service) Service {
+	var ns notification.Service
+	if len(notifSvc) > 0 {
+		ns = notifSvc[0]
+	}
+	return &service{repo: repo, log: log, validator: val, strg: strg, maxSize: maxSize, mailerSvc: mailerSvc, cfg: cfg, notifSvc: ns}
 }
 
 func (s *service) RegisterParticipant(ctx context.Context, req *PublicRegistrationRequest) (*PublicRegistrationResponse, error) {
@@ -548,6 +555,10 @@ func (s *service) GetEmailHistory(ctx context.Context, registrationID string) ([
 			t := l.LastRetryAt.Format(time.RFC3339)
 			lastRetryAt = &t
 		}
+		var tplCode *string
+		if l.TemplateCode != nil && *l.TemplateCode != "" {
+			tplCode = l.TemplateCode
+		}
 		res = append(res, EmailLogResponse{
 			ID:             l.ID,
 			EmailType:      l.EmailType,
@@ -557,6 +568,8 @@ func (s *service) GetEmailHistory(ctx context.Context, registrationID string) ([
 			LastRetryAt:    lastRetryAt,
 			RetryCount:     l.RetryCount,
 			LastError:      l.LastError,
+			Source:         l.Source,
+			TemplateCode:   tplCode,
 		})
 	}
 	return res, nil
@@ -597,16 +610,45 @@ func (s *service) ResendEmail(ctx context.Context, registrationID string, req *R
 		return errors.New("rate limit exceeded: maximum 5 resends per day allowed")
 	}
 
-	// 3. Queue Email
-	emailLog := &EmailLog{
-		RegistrationID: reg.ID,
-		EmailType:      req.EmailType,
-		RecipientEmail: reg.Email,
-		Status:         "PENDING",
-		CreatedBy:      &adminID,
-	}
-	if err := s.repo.CreateEmailLog(ctx, nil, emailLog); err != nil {
-		return err
+	if s.notifSvc != nil {
+		ctxBG := context.Background()
+		templateName := "participant_registration_submitted"
+		if req.EmailType == "REGISTRATION_APPROVED" {
+			templateName = "participant_registration_approved"
+		} else if req.EmailType == "REGISTRATION_REJECTED" {
+			templateName = "participant_registration_rejected"
+		}
+
+		baseURL := strings.TrimRight(s.cfg.AppBaseURL, "/")
+		rn := reg.RegistrationNumber
+		lookupURL := fmt.Sprintf("%s/peserta?q=%s", baseURL, url.QueryEscape(rn))
+		payload := map[string]interface{}{
+			"full_name":              reg.ParticipantName,
+			"participant_name":        reg.ParticipantName,
+			"registration_number":    rn,
+			"event_name":             "MUSKOM 2026",
+			"participant_lookup_url": lookupURL,
+			"lookup_url":             lookupURL,
+			"participant_url":        lookupURL,
+			"event_date":             "Tanggal Acara",
+			"venue":                  "Lokasi Acara",
+		}
+		if err := s.notifSvc.QueueNotification(ctxBG, notification.ChannelEmail, templateName, reg.Email, payload); err != nil {
+			s.log.Error("Failed to queue resend notification job", zap.Error(err))
+			return err
+		}
+	} else {
+		// Fallback to legacy email_logs table
+		emailLog := &EmailLog{
+			RegistrationID: reg.ID,
+			EmailType:      req.EmailType,
+			RecipientEmail: reg.Email,
+			Status:         "PENDING",
+			CreatedBy:      &adminID,
+		}
+		if err := s.repo.CreateEmailLog(ctx, nil, emailLog); err != nil {
+			return err
+		}
 	}
 
 	// 4. Audit Log

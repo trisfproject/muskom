@@ -53,4 +53,6 @@ type EmailLog struct {
 	CreatedBy      *string    `db:"created_by"`
 	CreatedAt      time.Time  `db:"created_at"`
 	UpdatedAt      time.Time  `db:"updated_at"`
+	Source         string     `db:"source"`
+	TemplateCode   *string    `db:"template_code"`
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 
+	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 	"github.com/trisfproject/muskom/apps/api/platform/config"
 	"github.com/trisfproject/muskom/apps/api/platform/mailer"
 	"github.com/trisfproject/muskom/apps/api/platform/storage"
@@ -25,9 +26,13 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validat
 	router.Delete("/:registration_code/attachments/:attachment_id", handler.DeleteAttachment)
 }
 
-func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, strg storage.Storage, maxSize int64, mailerSvc mailer.Mailer, cfg *config.Config) {
+func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, val *validator.Validator, strg storage.Storage, maxSize int64, mailerSvc mailer.Mailer, cfg *config.Config, notifSvc ...notification.Service) {
+	var ns notification.Service
+	if len(notifSvc) > 0 {
+		ns = notifSvc[0]
+	}
 	repo := NewRepository(db)
-	svc := NewService(repo, log, val, strg, maxSize, mailerSvc, cfg)
+	svc := NewService(repo, log, val, strg, maxSize, mailerSvc, cfg, ns)
 	handler := NewHandler(svc)
 
 	router.Get("/", handler.AdminList)

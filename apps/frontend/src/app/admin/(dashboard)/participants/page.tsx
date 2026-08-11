@@ -618,7 +618,14 @@ export default function AdminParticipantsPage() {
                       className="text-xs p-3 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30"
                     >
                       <div className="flex items-start justify-between mb-1.5">
-                        <span className="font-semibold pg-text">{log.email_type}</span>
+                        <div>
+                          <span className="font-semibold pg-text block">{log.email_type}</span>
+                          {log.template_code && (
+                            <span className="text-[10px] text-slate-400 font-mono block">
+                              Template: {log.template_code}
+                            </span>
+                          )}
+                        </div>
                         <span
                           className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
                             log.status === "SENT"
@@ -634,7 +641,7 @@ export default function AdminParticipantsPage() {
                       <div className="grid grid-cols-2 gap-2 text-[11px] pg-muted">
                         <div>Penerima: {log.recipient_email}</div>
                         <div>Terkirim: {log.sent_at ? new Date(log.sent_at).toLocaleString('id-ID') : '-'}</div>
-                        <div>Upaya Gagal: {log.retry_count}</div>
+                        <div>Upaya Gagal: {log.retry_count || 0}</div>
                         <div>Last Retry: {log.last_retry_at ? new Date(log.last_retry_at).toLocaleString('id-ID') : '-'}</div>
                       </div>
                       {log.last_error && (
@@ -649,19 +656,23 @@ export default function AdminParticipantsPage() {
                           onClick={async () => {
                             setResendingEmail(true);
                             try {
-                              await adminParticipantService.retryEmailLog(log.id);
-                              toast.success("Email log berhasil di-reset untuk dikirim ulang.");
+                              if (log.source === "notification_jobs" || log.template_code) {
+                                await adminParticipantService.resendEmail(detailItem!.id, log.email_type);
+                              } else {
+                                await adminParticipantService.retryEmailLog(log.id);
+                              }
+                              toast.success("Email berhasil diantrekan untuk dikirim ulang.");
                               const emails = await adminParticipantService.getEmailHistory(detailItem!.id);
                               setEmailLogs(emails || []);
                             } catch (err: any) {
-                              toast.error(err?.response?.data?.message || "Gagal melakukan retry email log.");
+                              toast.error(err?.response?.data?.message || "Gagal melakukan kirim ulang email.");
                             } finally {
                               setResendingEmail(false);
                             }
                           }}
-                          className="px-2 py-1 text-[10px] font-semibold rounded bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50 flex items-center gap-1"
+                          className="px-2 py-1 text-[10px] font-semibold rounded bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50 flex items-center gap-1 cursor-pointer"
                         >
-                          <Send className="w-3 h-3" /> Kirim Ulang (Retry)
+                          <Send className="w-3 h-3" /> Kirim Ulang
                         </button>
                       </div>
                     </div>

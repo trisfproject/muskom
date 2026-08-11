@@ -101,6 +101,8 @@ type EmailLogResponse struct {
 	LastRetryAt    *string `json:"last_retry_at,omitempty"`
 	RetryCount     int     `json:"retry_count"`
 	LastError      *string `json:"last_error,omitempty"`
+	Source         string  `json:"source,omitempty"`
+	TemplateCode   *string `json:"template_code,omitempty"`
 }
 
 type ResendEmailRequest struct {

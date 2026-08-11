@@ -48,6 +48,8 @@ export interface EmailLogResponse {
   last_retry_at?: string;
   retry_count: number;
   last_error?: string;
+  source?: 'email_logs' | 'notification_jobs';
+  template_code?: string;
 }
 
 // ─── Dashboard / Stats types ──────────────────────────────────────────────────

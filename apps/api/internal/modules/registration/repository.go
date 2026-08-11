@@ -618,14 +618,77 @@ func (r *repository) CreateEmailLog(ctx context.Context, tx *sqlx.Tx, log *Email
 
 func (r *repository) GetEmailLogsByRegistration(ctx context.Context, registrationID string) ([]EmailLog, error) {
 	query := `
-		SELECT * FROM email_logs
-		WHERE registration_id = $1
+		WITH reg AS (
+			SELECT r.id AS reg_id, p.email AS recipient_email
+			FROM registrations r
+			JOIN persons p ON r.person_id = p.id
+			WHERE r.id = $1
+		),
+		legacy_emails AS (
+			SELECT 
+				el.id::text AS id,
+				el.registration_id::text AS registration_id,
+				el.email_type AS email_type,
+				el.recipient_email AS recipient_email,
+				el.status AS status,
+				el.sent_at AS sent_at,
+				el.last_retry_at AS last_retry_at,
+				el.retry_count AS retry_count,
+				el.max_retry AS max_retry,
+				el.last_error AS last_error,
+				el.next_retry_at AS next_retry_at,
+				COALESCE(el.created_by::text, '') AS created_by,
+				el.created_at AS created_at,
+				el.updated_at AS updated_at,
+				'email_logs' AS source,
+				'' AS template_code
+			FROM email_logs el, reg
+			WHERE el.registration_id = reg.reg_id OR LOWER(el.recipient_email) = LOWER(reg.recipient_email)
+		),
+		modern_jobs AS (
+			SELECT 
+				nj.id::text AS id,
+				$1::text AS registration_id,
+				CASE 
+					WHEN nt.name = 'participant_registration_approved' THEN 'REGISTRATION_APPROVED'
+					WHEN nt.name = 'participant_registration_submitted' THEN 'REGISTRATION_RECEIVED'
+					WHEN nt.name = 'participant_registration_rejected' THEN 'REGISTRATION_REJECTED'
+					ELSE UPPER(COALESCE(nt.name, 'NOTIFICATION'))
+				END AS email_type,
+				nj.recipient AS recipient_email,
+				nj.status AS status,
+				CASE WHEN nj.status = 'SENT' THEN nj.updated_at ELSE NULL END AS sent_at,
+				nj.updated_at AS last_retry_at,
+				nj.retry_count AS retry_count,
+				5 AS max_retry,
+				COALESCE(nj.error_message, '') AS last_error,
+				NULL::timestamptz AS next_retry_at,
+				'' AS created_by,
+				nj.created_at AS created_at,
+				nj.updated_at AS updated_at,
+				'notification_jobs' AS source,
+				COALESCE(nt.name, '') AS template_code
+			FROM notification_jobs nj
+			JOIN reg ON LOWER(nj.recipient) = LOWER(reg.recipient_email)
+			LEFT JOIN notification_templates nt ON nj.template_id = nt.id
+		)
+		SELECT * FROM legacy_emails
+		UNION ALL
+		SELECT * FROM modern_jobs mj
+		WHERE NOT EXISTS (
+			SELECT 1 FROM legacy_emails le 
+			WHERE le.email_type = mj.email_type 
+			  AND ABS(EXTRACT(EPOCH FROM (le.created_at - mj.created_at))) < 120
+		)
 		ORDER BY created_at DESC
 	`
 	var logs []EmailLog
 	err := r.db.SelectContext(ctx, &logs, query, registrationID)
 	if err == sql.ErrNoRows {
 		return []EmailLog{}, nil
+	}
+	if logs == nil {
+		logs = []EmailLog{}
 	}
 	return logs, err
 }
