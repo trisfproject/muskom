@@ -406,7 +406,7 @@ func (r *repository) ListRegistrations(ctx context.Context, filter AdminListRegi
 			p.full_name AS participant_name,
 			COALESCE(p.nickname, '') AS nickname,
 			p.email,
-			p.phone,
+			COALESCE(p.phone, '') AS phone,
 			p.company,
 			p.job_title,
 			COALESCE(r.region, '') AS region,
@@ -480,7 +480,7 @@ func (r *repository) GetRegistrationAdminByID(ctx context.Context, id string) (*
 			p.full_name AS participant_name,
 			COALESCE(p.nickname, '') AS nickname,
 			p.email,
-			p.phone,
+			COALESCE(p.phone, '') AS phone,
 			p.company,
 			p.job_title,
 			COALESCE(r.region, '') AS region,
@@ -604,7 +604,7 @@ func (r *repository) CreateEmailLog(ctx context.Context, tx *sqlx.Tx, log *Email
 		}
 		return errors.New("failed to insert email log")
 	}
-	
+
 	rows, err := r.db.NamedQueryContext(ctx, query, log)
 	if err != nil {
 		return err
