@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Building, ChevronLeft, MapPin } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+import { FormattedCandidateContent } from "@/components/ui/FormattedCandidateContent";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -129,13 +129,7 @@ export default async function CandidateDetailPage({ params }: Props) {
                 <div className="w-1 h-5 md:h-6 bg-primary rounded-full" />
                 <h2 className="text-[20px] md:text-[22px] font-bold text-slate-900 dark:text-white">Biografi Singkat</h2>
               </div>
-              <div className="prose dark:prose-invert prose-base max-w-none prose-slate text-slate-700 dark:text-slate-300 [&_p]:leading-[1.7] [&_li]:leading-[1.7] [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                {candidate.biography ? (
-                  <ReactMarkdown>{candidate.biography}</ReactMarkdown>
-                ) : (
-                  <p className="text-slate-400 italic">Belum tersedia.</p>
-                )}
-              </div>
+              <FormattedCandidateContent content={candidate.biography} />
             </section>
 
             <hr className="my-7 border-t border-slate-200 dark:border-slate-800" />
@@ -146,13 +140,7 @@ export default async function CandidateDetailPage({ params }: Props) {
                 <div className="w-1 h-5 md:h-6 bg-primary rounded-full" />
                 <h2 className="text-[20px] md:text-[22px] font-bold text-slate-900 dark:text-white">Visi</h2>
               </div>
-              <div className="prose dark:prose-invert prose-base max-w-none prose-slate text-slate-700 dark:text-slate-300 [&_p]:leading-[1.7] [&_li]:leading-[1.7] [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                {candidate.vision ? (
-                  <ReactMarkdown>{candidate.vision}</ReactMarkdown>
-                ) : (
-                  <p className="text-slate-400 italic">Belum tersedia.</p>
-                )}
-              </div>
+              <FormattedCandidateContent content={candidate.vision} />
             </section>
 
             <hr className="my-7 border-t border-slate-200 dark:border-slate-800" />
@@ -163,13 +151,7 @@ export default async function CandidateDetailPage({ params }: Props) {
                 <div className="w-1 h-5 md:h-6 bg-primary rounded-full" />
                 <h2 className="text-[20px] md:text-[22px] font-bold text-slate-900 dark:text-white">Misi</h2>
               </div>
-              <div className="prose dark:prose-invert prose-base max-w-none prose-slate text-slate-700 dark:text-slate-300 [&_p]:leading-[1.7] [&_li]:leading-[1.7] [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                {candidate.mission ? (
-                  <ReactMarkdown>{candidate.mission}</ReactMarkdown>
-                ) : (
-                  <p className="text-slate-400 italic">Belum tersedia.</p>
-                )}
-              </div>
+              <FormattedCandidateContent content={candidate.mission} />
             </section>
 
           </div>
