@@ -204,11 +204,11 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 					return err
 				}
 				// Optionally queue in-app (not critical to fail transaction but we'll do it for consistency)
-				_ = s.notifSvc.QueueNotificationTx(ctx, tx, notification.ChannelInApp, "participant_registration_approved", "system", map[string]interface{}{
-					"title":   "Participant Approved",
-					"message": p.FullName + " registration has been approved.",
-					"type":    "success",
-				})
+				// _ = s.notifSvc.QueueNotificationTx(ctx, tx, notification.ChannelInApp, "participant_registration_approved", "system", map[string]interface{}{
+				// 	"title":   "Participant Approved",
+				// 	"message": p.FullName + " registration has been approved.",
+				// 	"type":    "success",
+				// })
 			}
 
 			// 6. Audit Log in Tx
@@ -274,11 +274,11 @@ func (s *service) UpdateStatus(ctx context.Context, id string, req UpdateStatusR
 			}
 			if s.notifSvc != nil {
 				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_rejected", p.Email, payload)
-				_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "participant_registration_rejected", "system", map[string]interface{}{
-					"title":   "Participant Rejected",
-					"message": p.FullName + " registration has been rejected.",
-					"type":    "warning",
-				})
+				// _ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "participant_registration_rejected", "system", map[string]interface{}{
+				// 	"title":   "Participant Rejected",
+				// 	"message": p.FullName + " registration has been rejected.",
+				// 	"type":    "warning",
+				// })
 			}
 		}
 	}()
@@ -441,11 +441,11 @@ func (s *service) doRegister(ctx context.Context, req PublicRegisterParticipantR
 		}
 		if s.notifSvc != nil {
 			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelEmail, "participant_registration_submitted", p.Email, payload)
-			_ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "participant_registration_submitted", "system", map[string]interface{}{
-				"title":   "New Participant Registration",
-				"message": p.FullName + " has registered for MUSKOM 2026.",
-				"type":    "info",
-			})
+			// _ = s.notifSvc.QueueNotification(context.Background(), notification.ChannelInApp, "participant_registration_submitted", "system", map[string]interface{}{
+			// 	"title":   "New Participant Registration",
+			// 	"message": p.FullName + " has registered for MUSKOM 2026.",
+			// 	"type":    "info",
+			// })
 		}
 	}()
 
