@@ -32,6 +32,9 @@ type Config struct {
 	SmtpTls      bool   `env:"SMTP_TLS" envDefault:"true"`
 	MailEnabled  bool   `env:"MAIL_ENABLED" envDefault:"false"`
 
+	// E-Voting Access (Bilik Suara Digital)
+	EvotingAccessCode string `env:"EVOTING_ACCESS_CODE" envDefault:""`
+
 	// Bootstrap Admin
 	BootstrapAdminEnabled  bool   `env:"BOOTSTRAP_ADMIN_ENABLED" envDefault:"false"`
 	BootstrapAdminName     string `env:"BOOTSTRAP_ADMIN_NAME"`

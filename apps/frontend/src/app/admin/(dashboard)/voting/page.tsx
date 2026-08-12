@@ -165,7 +165,7 @@ export default function AdminVotingPage() {
         actions={
           <div className="flex flex-col sm:flex-row gap-3">
             <a
-              href="/admin/billick"
+              href="/evoting"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all font-semibold w-full sm:w-fit shadow-[0_0_15px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)]"

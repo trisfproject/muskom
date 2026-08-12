@@ -15,13 +15,22 @@ import {
   ArrowRight,
   ChevronRight,
   Fingerprint,
+  RefreshCw,
+  KeyRound,
 } from "lucide-react";
 import { toast } from "sonner";
-import api from "@/lib/api";
+import axios from "axios";
 import Image from "next/image";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
+
+// ─── Bilik API client (uses evoting_session cookie, NOT admin token) ──────────
+const bilikApi = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api/v1",
+  headers: { "Content-Type": "application/json" },
+  withCredentials: true,
+});
 
 interface EligibilityData {
   participant_id: string;
@@ -62,7 +71,159 @@ function CandidateAvatar({ name, number }: { name: string; number: number }) {
   );
 }
 
-export default function BilikSuaraPage() {
+// ─── Access Code Gate ─────────────────────────────────────────────────────────
+function AccessCodeGate({ onAuthenticated }: { onAuthenticated: () => void }) {
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!code.trim()) return;
+
+    try {
+      setLoading(true);
+      setError("");
+      const res = await bilikApi.post("/evoting/auth", { code: code.trim() });
+      if (res.data?.success) {
+        onAuthenticated();
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Kode akses tidak valid.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="h-1 bg-primary w-full" />
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-sm">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-2xl mb-5">
+              <Vote className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
+              Bilik Suara Digital
+            </h1>
+            <p className="text-sm text-slate-500">
+              Masukkan kode akses untuk membuka bilik suara.
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                Kode Akses
+              </label>
+              <div className="relative">
+                <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  ref={inputRef}
+                  type="password"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="Masukkan kode akses"
+                  className="w-full h-11 pl-10 pr-4 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm font-mono text-slate-900 font-semibold tracking-widest transition-all placeholder:text-slate-400 placeholder:font-sans placeholder:normal-case placeholder:tracking-normal"
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-rose-50 border border-rose-200 rounded-lg">
+                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                <p className="text-xs font-medium text-rose-700">{error}</p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading || !code.trim()}
+              className="w-full h-11 flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold text-sm transition-colors shadow-sm"
+            >
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  Buka Bilik
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Trust signals */}
+          <div className="mt-8 flex items-center justify-center gap-4 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3" /> Aman
+            </span>
+            <span className="text-slate-300">·</span>
+            <span className="flex items-center gap-1">
+              <Lock className="w-3 h-3" /> Rahasia
+            </span>
+            <span className="text-slate-300">·</span>
+            <span className="flex items-center gap-1">
+              <Scale className="w-3 h-3" /> Adil
+            </span>
+          </div>
+
+          <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-widest mt-6 text-center">
+            MUSKOM KOMITKABE 2026
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Bilik Suara Page ────────────────────────────────────────────────────
+export default function EvotingPage() {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  // On mount, check if evoting_session cookie is still valid
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await bilikApi.get("/evoting/session");
+        if (res.data?.success) {
+          setAuthenticated(true);
+        }
+      } catch {
+        // Session invalid or expired — show access code gate
+      } finally {
+        setCheckingSession(false);
+      }
+    };
+    checkSession();
+  }, []);
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return <AccessCodeGate onAuthenticated={() => setAuthenticated(true)} />;
+  }
+
+  return <BilikKiosk onSessionExpired={() => setAuthenticated(false)} />;
+}
+
+// ─── Bilik Kiosk (reuses existing Bilik Suara logic) ──────────────────────────
+function BilikKiosk({ onSessionExpired }: { onSessionExpired: () => void }) {
   const [scanToken, setScanToken] = useState("");
   const [loading, setLoading] = useState(false);
   const [eligibility, setEligibility] = useState<EligibilityData | null>(null);
@@ -77,7 +238,7 @@ export default function BilikSuaraPage() {
   const [scannerActive, setScannerActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const html5QrRef = useRef<Html5Qrcode | null>(null);
-  const scannerContainerId = "qr-reader-container-billick";
+  const scannerContainerId = "qr-reader-container-evoting";
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -88,12 +249,16 @@ export default function BilikSuaraPage() {
   useEffect(() => {
     const fetchBallot = async () => {
       try {
-        const res = await api.get("/admin/votes/ballot");
+        const res = await bilikApi.get("/evoting/ballot");
         if (res.data?.data) setBallot(res.data.data);
-      } catch (_) {}
+      } catch (err: any) {
+        if (err.response?.status === 401) {
+          onSessionExpired();
+        }
+      }
     };
     fetchBallot();
-  }, []);
+  }, [onSessionExpired]);
 
   useEffect(() => {
     if (!eligibility && !voteSuccess && !scannerActive) {
@@ -175,11 +340,15 @@ export default function BilikSuaraPage() {
       setEligibility(null);
       setSelectedCandidate(null);
       setVoteSuccess(false);
-      const res = await api.get(
-        `/admin/votes/eligibility?registration_number=${encodeURIComponent(token.trim())}`
+      const res = await bilikApi.get(
+        `/evoting/eligibility?registration_number=${encodeURIComponent(token.trim())}`
       );
       if (res.data?.success) setEligibility(res.data.data);
     } catch (err: any) {
+      if (err.response?.status === 401) {
+        onSessionExpired();
+        return;
+      }
       setEligibility({
         participant_id: "",
         registration_number: token.trim(),
@@ -203,7 +372,7 @@ export default function BilikSuaraPage() {
     if (!eligibility?.is_eligible || !selectedCandidate) return;
     try {
       setSubmitting(true);
-      const res = await api.post("/admin/votes/cast", {
+      const res = await bilikApi.post("/evoting/cast", {
         participant_id: eligibility.participant_id,
         candidate_id: selectedCandidate.id,
       });
@@ -213,6 +382,10 @@ export default function BilikSuaraPage() {
         setCountdown(5);
       }
     } catch (err: any) {
+      if (err.response?.status === 401) {
+        onSessionExpired();
+        return;
+      }
       toast.error("Gagal Memberikan Suara", {
         description: err.response?.data?.message || "Terjadi kesalahan sistem.",
       });
@@ -232,22 +405,23 @@ export default function BilikSuaraPage() {
     setTimeout(() => inputRef.current?.focus(), 100);
   };
 
+  const handleReload = () => {
+    window.location.reload();
+  };
+
   // ─── Success ─────────────────────────────────────────────────────────────────
   if (voteSuccess) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
-        {/* Thin top bar for branding continuity */}
         <div className="h-1 bg-primary w-full" />
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="w-full max-w-sm text-center">
-            {/* Icon */}
             <div className="relative inline-flex mb-8">
               <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center">
                 <CheckCircle2 className="w-10 h-10 text-emerald-600" />
               </div>
             </div>
 
-            {/* Text */}
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-3">
               Suara Berhasil Dicatat
             </h1>
@@ -256,7 +430,6 @@ export default function BilikSuaraPage() {
               rahasia.
             </p>
 
-            {/* CTA */}
             <button
               onClick={resetKiosk}
               className="w-full h-11 bg-primary hover:bg-primary-hover text-white rounded-xl font-semibold text-sm transition-colors"
@@ -264,7 +437,6 @@ export default function BilikSuaraPage() {
               Kembali ke Halaman Utama ({countdown}s)
             </button>
 
-            {/* Tagline */}
             <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-widest mt-8">
               MUSKOM KOMITKABE 2026
             </p>
@@ -318,6 +490,18 @@ export default function BilikSuaraPage() {
 
             <div className="hidden md:block h-4 w-px bg-slate-200" />
 
+            {/* Reload button */}
+            <button
+              onClick={handleReload}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+              title="Reload Bilik"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Reload</span>
+            </button>
+
+            <div className="h-4 w-px bg-slate-200" />
+
             {/* Session status */}
             <div className="flex items-center gap-2">
               <span
@@ -346,16 +530,13 @@ export default function BilikSuaraPage() {
         {!eligibility ? (
           // ─────────────────────────────────────────────────────────────────
           // STEP 1 — IDENTIFICATION
-          // Two-zone hero layout on desktop; stacked on mobile
           // ─────────────────────────────────────────────────────────────────
           <div className="flex-1 flex flex-col">
-            {/* Hero Zone */}
             <section className="flex-1 flex items-stretch">
               <div className="max-w-screen-xl mx-auto w-full px-5 sm:px-8 py-12 md:py-0 flex flex-col md:flex-row items-center gap-10 md:gap-16">
 
                 {/* LEFT — Context & branding */}
                 <div className="w-full md:w-1/2 flex flex-col justify-center md:py-16">
-                  {/* Event badge */}
                   <div className="inline-flex items-center self-start gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6">
                     <Vote className="w-3.5 h-3.5 text-primary" />
                     <span className="text-[11px] font-bold text-primary uppercase tracking-widest">
@@ -374,7 +555,6 @@ export default function BilikSuaraPage() {
                     secara aman.
                   </p>
 
-                  {/* Trust signals */}
                   <div className="space-y-3">
                     {[
                       { icon: ShieldCheck, label: "Aman & Rahasia", desc: "Identitas dan pilihan Anda tidak dapat dilacak." },
@@ -401,7 +581,6 @@ export default function BilikSuaraPage() {
                 {/* RIGHT — Input form */}
                 <div className="w-full md:w-5/12 lg:w-2/5 flex flex-col justify-center md:py-16">
                   <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-                    {/* Card header strip */}
                     <div className="px-6 pt-6 pb-5 border-b border-slate-100">
                       <div className="flex items-center gap-2.5 mb-1">
                         <Fingerprint className="w-5 h-5 text-primary" />
@@ -412,11 +591,9 @@ export default function BilikSuaraPage() {
                       </p>
                     </div>
 
-                    {/* Form body */}
                     <div className="px-6 py-6">
                       {!scannerActive ? (
                         <form onSubmit={handleManualCheck} className="space-y-4">
-                          {/* Input group */}
                           <div className="space-y-1.5">
                             <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
                               Nomor Registrasi
@@ -435,7 +612,6 @@ export default function BilikSuaraPage() {
                             />
                           </div>
 
-                          {/* Primary action */}
                           <button
                             type="submit"
                             disabled={loading || !scanToken.trim()}
@@ -451,7 +627,6 @@ export default function BilikSuaraPage() {
                             )}
                           </button>
 
-                          {/* Divider */}
                           <div className="relative py-1">
                             <div className="absolute inset-0 flex items-center">
                               <div className="w-full border-t border-slate-200" />
@@ -463,7 +638,6 @@ export default function BilikSuaraPage() {
                             </div>
                           </div>
 
-                          {/* Secondary action */}
                           <button
                             type="button"
                             onClick={startScanner}
@@ -574,7 +748,6 @@ export default function BilikSuaraPage() {
             {/* Ballot area */}
             {eligibility.is_eligible && (
               <>
-                {/* Section heading */}
                 <div className="pt-2">
                   <h2 className="text-xl font-bold text-slate-900 tracking-tight">
                     Pilih Ketua Umum
@@ -584,7 +757,6 @@ export default function BilikSuaraPage() {
                   </p>
                 </div>
 
-                {/* Voting closed state */}
                 {!ballot?.candidates ? (
                   <div className="flex flex-col items-center justify-center py-20 text-center">
                     <div className="w-14 h-14 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center mb-5">
@@ -599,7 +771,6 @@ export default function BilikSuaraPage() {
                     </p>
                   </div>
                 ) : (
-                  // Candidate grid
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                     {ballot.candidates.map((cand) => {
                       const isSelected = selectedCandidate?.id === cand.id;
@@ -616,7 +787,6 @@ export default function BilikSuaraPage() {
                               : "border-2 border-slate-200 hover:-translate-y-[2px] hover:border-slate-300 hover:shadow-md shadow-sm",
                           ].join(" ")}
                         >
-                          {/* Selected indicator */}
                           {isSelected && (
                             <div className="absolute top-4 right-4 z-20">
                               <div className="w-7 h-7 bg-primary rounded-full flex items-center justify-center shadow-sm">
@@ -625,7 +795,6 @@ export default function BilikSuaraPage() {
                             </div>
                           )}
 
-                          {/* LEFT: Photo area (1:1) */}
                           <div className="relative w-full sm:w-1/2 shrink-0 bg-slate-100" style={{ aspectRatio: "1 / 1" }}>
                             {cand.photo_url ? (
                               <Image
@@ -640,7 +809,6 @@ export default function BilikSuaraPage() {
                             )}
                           </div>
 
-                          {/* RIGHT: Information Panel */}
                           <div
                             className={`flex-1 flex flex-col p-6 sm:p-7 transition-colors ${
                               isSelected
@@ -655,7 +823,6 @@ export default function BilikSuaraPage() {
                             }`}
                           >
                             <div className="flex-1 flex flex-col">
-                              {/* Number Label */}
                               <div className="mb-5">
                                 <span className={`text-[11px] font-bold uppercase tracking-widest ${
                                   isSelected ? "text-primary" : "text-slate-400"
@@ -663,8 +830,8 @@ export default function BilikSuaraPage() {
                                   NO.
                                 </span>
                                 <div className={`text-4xl sm:text-5xl font-black tracking-tighter leading-none mt-1 ${
-                                  isSelected 
-                                    ? "text-primary" 
+                                  isSelected
+                                    ? "text-primary"
                                     : cand.number === 1
                                     ? "text-amber-600/60"
                                     : cand.number === 2
@@ -677,7 +844,6 @@ export default function BilikSuaraPage() {
                                 </div>
                               </div>
 
-                              {/* Candidate Name & Description */}
                               <div className="mb-6">
                                 <h3 className={`text-xl sm:text-2xl font-bold leading-snug mb-3 ${
                                   isSelected ? "text-primary-dark" : "text-slate-900"
@@ -688,15 +854,14 @@ export default function BilikSuaraPage() {
                                   {cand.vision || "Visi & misi belum tersedia."}
                                 </p>
                               </div>
-                            </div>
 
-                            {/* Selection Affordance */}
-                            <div className="mt-auto">
-                              <div className={`inline-flex items-center gap-2 text-sm font-bold transition-colors ${
-                                isSelected ? "text-primary" : "text-slate-400 group-hover:text-primary"
-                              }`}>
-                                {isSelected ? "Dipilih" : "Pilih Kandidat"}
-                                <ArrowRight className="w-4 h-4" />
+                              <div className="mt-auto">
+                                <div className={`inline-flex items-center gap-2 text-sm font-bold transition-colors ${
+                                  isSelected ? "text-primary" : "text-slate-400 group-hover:text-primary"
+                                }`}>
+                                  {isSelected ? "Dipilih" : "Pilih Kandidat"}
+                                  <ArrowRight className="w-4 h-4" />
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -706,11 +871,10 @@ export default function BilikSuaraPage() {
                   </div>
                 )}
 
-                {/* Action bar — shown when a candidate is selected */}
+                {/* Action bar */}
                 {selectedCandidate && !voteSuccess && (
                   <div className="mt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white border border-slate-200 rounded-2xl px-5 py-4 shadow-sm">
                     <div className="flex items-center gap-4 min-w-0">
-                      {/* Number badge */}
                       <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-black text-base shrink-0">
                         {selectedCandidate.number}
                       </div>
@@ -740,20 +904,16 @@ export default function BilikSuaraPage() {
       {/* ── Confirmation Modal ────────────────────────────────────────────────── */}
       {showConfirmModal && selectedCandidate && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             onClick={() => setShowConfirmModal(false)}
           />
 
-          {/* Modal panel */}
           <div className="relative bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
-            {/* Drag indicator on mobile */}
             <div className="sm:hidden flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 rounded-full bg-slate-200" />
             </div>
 
-            {/* Close */}
             <button
               onClick={() => setShowConfirmModal(false)}
               className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors z-10"
@@ -762,22 +922,18 @@ export default function BilikSuaraPage() {
             </button>
 
             <div className="px-6 pt-5 pb-6">
-              {/* Icon */}
               <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-5">
                 <Vote className="w-6 h-6 text-primary" />
               </div>
 
-              {/* Label */}
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                 Anda akan memberikan suara kepada:
               </p>
 
-              {/* Candidate name — focal point */}
               <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-tight mb-5">
                 {selectedCandidate.name}
               </h2>
 
-              {/* Warning */}
               <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6">
                 <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 <p className="text-xs text-amber-800 leading-relaxed">
@@ -787,7 +943,6 @@ export default function BilikSuaraPage() {
                 </p>
               </div>
 
-              {/* Actions */}
               <div className="flex flex-col gap-2.5">
                 <button
                   onClick={handleCastVote}

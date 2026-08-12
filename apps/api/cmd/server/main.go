@@ -18,6 +18,7 @@ import (
 	"github.com/trisfproject/muskom/apps/api/internal/modules/bootstrap"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/candidate"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/dashboard"
+	"github.com/trisfproject/muskom/apps/api/internal/modules/evoting"
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
 
 	"github.com/trisfproject/muskom/apps/api/internal/modules/participant"
@@ -168,6 +169,9 @@ func main() {
 	website.SetupPublicRoutes(v1.Group("/public"), db, redisClient, strg, val, log)
 	participant.SetupPublicRoutes(v1.Group("/public/participants"), db, redisClient, cfg, log, val, mailerSvc, nil /*notifSvc*/)
 	registration.SetupRoutes(v1.Group("/public/register"), db, log, val, strg, int64(bodyLimit), mailerSvc, cfg)
+
+	// Bilik Suara Access Routes (public, session-based auth)
+	evoting.SetupRoutes(v1.Group("/evoting"), db, log, bus, notifSvc, cfg)
 
 	// Protected Participant Routes - Activated for RC1 Event
 	participantGroup := v1.Group("/vote", auth.JWTMiddleware(cfg, log))
