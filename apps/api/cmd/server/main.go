@@ -97,7 +97,7 @@ func main() {
 	})
 
 	// 5. Global Middlewares
-	middleware.Setup(app, log)
+	middleware.Setup(app, cfg, log)
 
 	// 6. Common Utilities
 	val := validator.New()

@@ -22,6 +22,9 @@ type Config struct {
 	MaxUploadSize    int64         `env:"MAX_UPLOAD_SIZE" envDefault:"10485760"`
 	AppBaseURL       string        `env:"APP_BASE_URL"`
 
+	// CORS
+	CorsAllowedOrigins string `env:"CORS_ALLOWED_ORIGINS" envDefault:"*"`
+
 	// SMTP Settings
 	SmtpHost     string `env:"SMTP_HOST"`
 	SmtpPort     int    `env:"SMTP_PORT" envDefault:"587"`
