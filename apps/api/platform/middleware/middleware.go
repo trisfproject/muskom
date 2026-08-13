@@ -17,13 +17,14 @@ func Setup(app *fiber.App, cfg *config.Config, zapLogger *zap.Logger) {
 	// Recover from panics
 	app.Use(recover.New())
 
-	// CORS
+	// CORS — AllowCredentials cannot be true when origin is wildcard (CORS spec / Fiber enforcement)
 	origins := parseOrigins(cfg.CorsAllowedOrigins)
+	isWildcard := len(origins) == 1 && origins[0] == "*"
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     origins,
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Event-ID"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
-		AllowCredentials: true,
+		AllowCredentials: !isWildcard,
 		MaxAge:           3600,
 	}))
 
