@@ -204,14 +204,14 @@ export default function AdminVotingPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <button
                 onClick={() => handleUpdateStatus("start")}
-                disabled={actionLoading || session?.status === "RUNNING"}
+                disabled={actionLoading || session?.status !== "NOT_STARTED"}
                 className={`group relative overflow-hidden p-4 min-h-[90px] rounded-xl flex flex-col items-center justify-center gap-2 transition-all shadow-sm ${
-                  session?.status === "RUNNING" 
+                  session?.status !== "NOT_STARTED"
                     ? "bg-slate-100 dark:bg-slate-800 text-slate-400 opacity-50 cursor-not-allowed border border-slate-200 dark:border-slate-700" 
                     : "bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:-translate-y-0.5 border border-emerald-400/30"
                 }`}
               >
-                <Play className={`w-6 h-6 fill-current ${session?.status !== "RUNNING" ? "group-hover:scale-110 transition-transform" : ""}`} />
+                <Play className={`w-6 h-6 fill-current ${session?.status === "NOT_STARTED" ? "group-hover:scale-110 transition-transform" : ""}`} />
                 <span className="font-bold tracking-wide text-xs">BUKA SESI</span>
               </button>
               
@@ -243,14 +243,14 @@ export default function AdminVotingPage() {
               
               <button
                 onClick={() => setShowCloseConfirm(true)}
-                disabled={actionLoading || session?.status === "CLOSED" || session?.status === "NOT_STARTED"}
+                disabled={actionLoading || (session?.status !== "RUNNING" && session?.status !== "PAUSED")}
                 className={`group relative overflow-hidden p-4 min-h-[90px] rounded-xl flex flex-col items-center justify-center gap-2 transition-all shadow-sm ${
-                  session?.status === "CLOSED" || session?.status === "NOT_STARTED"
+                  (session?.status !== "RUNNING" && session?.status !== "PAUSED")
                     ? "bg-slate-100 dark:bg-slate-800 text-slate-400 opacity-50 cursor-not-allowed border border-slate-200 dark:border-slate-700" 
                     : "bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 text-white shadow-rose-500/20 hover:shadow-rose-500/40 hover:-translate-y-0.5 border border-rose-400/30"
                 }`}
               >
-                <Square className={`w-6 h-6 fill-current ${(session?.status !== "CLOSED" && session?.status !== "NOT_STARTED") ? "group-hover:scale-110 transition-transform" : ""}`} />
+                <Square className={`w-6 h-6 fill-current ${(session?.status === "RUNNING" || session?.status === "PAUSED") ? "group-hover:scale-110 transition-transform" : ""}`} />
                 <span className="font-bold tracking-wide text-xs">TUTUP FINAL</span>
               </button>
             </div>
