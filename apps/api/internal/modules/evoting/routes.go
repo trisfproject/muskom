@@ -3,6 +3,7 @@ package evoting
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/jmoiron/sqlx"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
 	"github.com/trisfproject/muskom/apps/api/internal/modules/notification"
@@ -12,10 +13,11 @@ import (
 )
 
 // SetupRoutes mounts the Bilik Suara Digital access and voting proxy routes.
-func SetupRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, bus eventbus.EventDispatcher, notifSvc notification.Service, cfg *config.Config) {
-	handler := NewHandler(cfg, log)
+func SetupRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, log *zap.Logger, bus eventbus.EventDispatcher, notifSvc notification.Service, cfg *config.Config) {
+	limiter := NewRedisRateLimiter(rdb)
+	handler := NewHandler(cfg, log, limiter)
 
-	// Public: authenticate with access code
+	// Public: authenticate with access code (rate-limited)
 	router.Post("/auth", handler.Authenticate)
 
 	// Protected by evoting session: voting proxy endpoints

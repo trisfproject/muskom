@@ -1,12 +1,15 @@
 package evoting
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
 	"github.com/trisfproject/muskom/apps/api/platform/config"
@@ -18,19 +21,89 @@ const (
 	CookieName = "evoting_session"
 	// Session TTL
 	SessionTTL = 4 * time.Hour
+
+	// Rate limiting constants
+	rateLimitMax    = 5
+	rateLimitWindow = 60 * time.Second
 )
 
-type Handler struct {
-	cfg *config.Config
-	log *zap.Logger
+// RateLimiter defines the interface for rate limiting operations.
+type RateLimiter interface {
+	// IncrementFailure increments the failure counter for the given key.
+	// Returns the current count after increment.
+	IncrementFailure(ctx context.Context, key string) (int64, error)
+	// GetFailureCount returns the current failure count for the given key.
+	GetFailureCount(ctx context.Context, key string) (int64, error)
 }
 
-func NewHandler(cfg *config.Config, log *zap.Logger) *Handler {
-	return &Handler{cfg: cfg, log: log}
+// RedisRateLimiter implements RateLimiter using Redis.
+type RedisRateLimiter struct {
+	client *redis.Client
+}
+
+func NewRedisRateLimiter(client *redis.Client) *RedisRateLimiter {
+	return &RedisRateLimiter{client: client}
+}
+
+func (r *RedisRateLimiter) IncrementFailure(ctx context.Context, key string) (int64, error) {
+	pipe := r.client.Pipeline()
+	incr := pipe.Incr(ctx, key)
+	pipe.Expire(ctx, key, rateLimitWindow)
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return incr.Val(), nil
+}
+
+func (r *RedisRateLimiter) GetFailureCount(ctx context.Context, key string) (int64, error) {
+	val, err := r.client.Get(ctx, key).Int64()
+	if err == redis.Nil {
+		return 0, nil
+	}
+	return val, err
+}
+
+type Handler struct {
+	cfg     *config.Config
+	log     *zap.Logger
+	limiter RateLimiter
+}
+
+func NewHandler(cfg *config.Config, log *zap.Logger, limiter RateLimiter) *Handler {
+	return &Handler{cfg: cfg, log: log, limiter: limiter}
+}
+
+// rateLimitKey returns the Redis key for the given client IP.
+func rateLimitKey(ip string) string {
+	return fmt.Sprintf("evoting:auth:fail:%s", ip)
+}
+
+// getClientIP returns the client IP using X-Real-IP header (set by nginx)
+// with fallback to Fiber's c.IP().
+func getClientIP(c fiber.Ctx) string {
+	if ip := c.Get("X-Real-IP"); ip != "" {
+		return ip
+	}
+	return c.IP()
 }
 
 // Authenticate validates the access code and issues a session cookie.
 func (h *Handler) Authenticate(c fiber.Ctx) error {
+	clientIP := getClientIP(c)
+
+	// Check rate limit before processing
+	if h.limiter != nil {
+		count, err := h.limiter.GetFailureCount(c.Context(), rateLimitKey(clientIP))
+		if err == nil && count >= rateLimitMax {
+			h.log.Warn("E-Voting auth rate limited",
+				zap.String("ip", clientIP),
+			)
+			c.Set("Retry-After", "60")
+			return response.SendError(c, fiber.StatusTooManyRequests, "Too many access attempts. Please try again later.", nil)
+		}
+	}
+
 	var req struct {
 		Code string `json:"code"`
 	}
@@ -49,7 +122,20 @@ func (h *Handler) Authenticate(c fiber.Ctx) error {
 	}
 
 	if req.Code != h.cfg.EvotingAccessCode {
-		h.log.Warn("Invalid e-voting access code attempt")
+		// Increment failure counter
+		if h.limiter != nil {
+			count, _ := h.limiter.IncrementFailure(c.Context(), rateLimitKey(clientIP))
+			if count >= rateLimitMax {
+				h.log.Warn("E-Voting auth rate limited after threshold",
+					zap.String("ip", clientIP),
+				)
+				c.Set("Retry-After", "60")
+				return response.SendError(c, fiber.StatusTooManyRequests, "Too many access attempts. Please try again later.", nil)
+			}
+		}
+		h.log.Warn("Invalid e-voting access code attempt",
+			zap.String("ip", clientIP),
+		)
 		return response.SendError(c, fiber.StatusUnauthorized, "Kode akses tidak valid", nil)
 	}
 
