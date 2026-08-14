@@ -82,6 +82,12 @@ type VotingStats struct {
 	ReceiptsCount    int    `json:"receipts_count"`
 	BallotsCount     int    `json:"ballots_count"`
 	ReconciliationOK bool   `json:"reconciliation_ok"`
+
+	// Operational failure counters (from Redis)
+	AuthFailures int64 `json:"auth_failures"`
+	RateLimited  int64 `json:"rate_limited"`
+	VoteFailures int64 `json:"vote_failures"`
+	AlreadyVoted int64 `json:"already_voted"`
 }
 
 type SystemHealthStats struct {

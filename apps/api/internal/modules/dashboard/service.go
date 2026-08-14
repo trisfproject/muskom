@@ -272,6 +272,14 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 	data.Voting.NotYetVoted = notYetVoted
 	data.Voting.RemainingVoters = notYetVoted
 
+	// Operational failure counters from Redis
+	if s.redisClient != nil {
+		data.Voting.AuthFailures, _ = s.redisClient.Get(ctx, "evoting:stats:auth_failures").Int64()
+		data.Voting.RateLimited, _ = s.redisClient.Get(ctx, "evoting:stats:rate_limited").Int64()
+		data.Voting.VoteFailures, _ = s.redisClient.Get(ctx, "evoting:stats:vote_failures").Int64()
+		data.Voting.AlreadyVoted, _ = s.redisClient.Get(ctx, "evoting:stats:already_voted").Int64()
+	}
+
 	// Fetch Recent Activity using existing repository
 	opEntries, _, _ := s.auditRepo.Search(ctx, audit.AuditFilter{
 		Page:  1,

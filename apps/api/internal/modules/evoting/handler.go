@@ -25,6 +25,12 @@ const (
 	// Rate limiting constants
 	rateLimitMax    = 5
 	rateLimitWindow = 60 * time.Second
+
+	// Operational stats Redis keys
+	StatsKeyAuthFailures = "evoting:stats:auth_failures"
+	StatsKeyRateLimited  = "evoting:stats:rate_limited"
+	StatsKeyVoteFailures = "evoting:stats:vote_failures"
+	StatsKeyAlreadyVoted = "evoting:stats:already_voted"
 )
 
 // RateLimiter defines the interface for rate limiting operations.
@@ -64,6 +70,11 @@ func (r *RedisRateLimiter) GetFailureCount(ctx context.Context, key string) (int
 	return val, err
 }
 
+// IncrStat increments an operational stats counter (no TTL).
+func (r *RedisRateLimiter) IncrStat(ctx context.Context, key string) {
+	r.client.Incr(ctx, key)
+}
+
 type Handler struct {
 	cfg     *config.Config
 	log     *zap.Logger
@@ -99,6 +110,9 @@ func (h *Handler) Authenticate(c fiber.Ctx) error {
 			h.log.Warn("E-Voting auth rate limited",
 				zap.String("ip", clientIP),
 			)
+			if rl, ok := h.limiter.(*RedisRateLimiter); ok {
+				rl.IncrStat(c.Context(), StatsKeyRateLimited)
+			}
 			c.Set("Retry-After", "60")
 			return response.SendError(c, fiber.StatusTooManyRequests, "Too many access attempts. Please try again later.", nil)
 		}
@@ -129,9 +143,16 @@ func (h *Handler) Authenticate(c fiber.Ctx) error {
 				h.log.Warn("E-Voting auth rate limited after threshold",
 					zap.String("ip", clientIP),
 				)
+				if rl, ok := h.limiter.(*RedisRateLimiter); ok {
+					rl.IncrStat(c.Context(), StatsKeyRateLimited)
+				}
 				c.Set("Retry-After", "60")
 				return response.SendError(c, fiber.StatusTooManyRequests, "Too many access attempts. Please try again later.", nil)
 			}
+		}
+		// Increment auth failure stats
+		if rl, ok := h.limiter.(*RedisRateLimiter); ok {
+			rl.IncrStat(c.Context(), StatsKeyAuthFailures)
 		}
 		h.log.Warn("Invalid e-voting access code attempt",
 			zap.String("ip", clientIP),

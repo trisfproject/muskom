@@ -32,6 +32,10 @@ interface IntegrityData {
   receipts_count: number;
   ballots_count: number;
   reconciliation_ok: boolean;
+  auth_failures: number;
+  rate_limited: number;
+  vote_failures: number;
+  already_voted: number;
 }
 
 export default function AdminVotingPage() {
@@ -76,6 +80,10 @@ export default function AdminVotingPage() {
             receipts_count: v.receipts_count ?? 0,
             ballots_count: v.ballots_count ?? 0,
             reconciliation_ok: v.reconciliation_ok ?? true,
+            auth_failures: v.auth_failures ?? 0,
+            rate_limited: v.rate_limited ?? 0,
+            vote_failures: v.vote_failures ?? 0,
+            already_voted: v.already_voted ?? 0,
           });
         }
       } catch (e) {
@@ -366,6 +374,26 @@ export default function AdminVotingPage() {
               </p>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Operational Failure Indicators */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-4 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Gagal Akses</p>
+          <p className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{integrity?.auth_failures ?? 0}</p>
+        </div>
+        <div className="p-4 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Rate Limited</p>
+          <p className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{integrity?.rate_limited ?? 0}</p>
+        </div>
+        <div className="p-4 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Gagal Submit</p>
+          <p className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{integrity?.vote_failures ?? 0}</p>
+        </div>
+        <div className="p-4 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Sudah Memilih</p>
+          <p className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{integrity?.already_voted ?? 0}</p>
         </div>
       </div>
 

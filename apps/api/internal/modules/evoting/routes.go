@@ -31,5 +31,27 @@ func SetupRoutes(router fiber.Router, db *sqlx.DB, rdb *redis.Client, log *zap.L
 
 	protected.Get("/ballot", votingHandler.GetBallot)
 	protected.Get("/eligibility", votingHandler.CheckEligibility)
-	protected.Post("/cast", votingHandler.CastVote)
+	protected.Post("/cast", castWithStats(votingHandler, rdb))
+}
+
+// castWithStats wraps the voting CastVote handler to record failure stats.
+func castWithStats(votingHandler *voting.Handler, rdb *redis.Client) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		err := votingHandler.CastVote(c)
+
+		// After the handler runs, check the response status to count failures.
+		// Fiber sets the status before returning from the handler.
+		status := c.Response().StatusCode()
+		if status >= 400 {
+			// Increment generic vote failures
+			rdb.Incr(c.Context(), StatsKeyVoteFailures)
+
+			// Check if it's specifically an already-voted error (409 Conflict)
+			if status == 409 {
+				rdb.Incr(c.Context(), StatsKeyAlreadyVoted)
+			}
+		}
+
+		return err
+	}
 }
