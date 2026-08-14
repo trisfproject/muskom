@@ -246,15 +246,31 @@ func (s *service) GetOperationsData(ctx context.Context) (*OperationsDashboardDa
 		data.Attendance.Percentage = (float64(data.Attendance.Present) / float64(totalApproved)) * 100.0
 	}
 	
-	// Eligible Voters
-	s.db.GetContext(ctx, &data.Voting.RemainingVoters, `SELECT count(*) FROM voting_eligibility WHERE can_vote = true`)
-	// Votes Cast
-	s.db.GetContext(ctx, &data.Voting.VotesSubmitted, `SELECT count(*) FROM ballots`)
-	
-	if data.Voting.RemainingVoters > 0 {
-		// RemainingVoters is total eligible in DB initially, let's just send Total Eligible as RemainingVoters
-		// Actually voting summary might need more precise calculation.
+	// Eligible Voters & Reconciliation
+	var checkedInCount int
+	_ = s.db.GetContext(ctx, &checkedInCount, `
+		SELECT COUNT(a.id) FROM attendance a
+		JOIN participants p ON a.participant_id = p.id
+		WHERE a.undone_at IS NULL AND p.deleted_at IS NULL
+	`)
+
+	var receiptsCount int
+	_ = s.db.GetContext(ctx, &receiptsCount, `SELECT COUNT(*) FROM voter_receipts`)
+
+	var ballotsCount int
+	_ = s.db.GetContext(ctx, &ballotsCount, `SELECT COUNT(*) FROM ballots`)
+
+	data.Voting.VotesSubmitted = ballotsCount
+	data.Voting.ReceiptsCount = receiptsCount
+	data.Voting.BallotsCount = ballotsCount
+	data.Voting.ReconciliationOK = (receiptsCount == ballotsCount)
+
+	notYetVoted := checkedInCount - receiptsCount
+	if notYetVoted < 0 {
+		notYetVoted = 0
 	}
+	data.Voting.NotYetVoted = notYetVoted
+	data.Voting.RemainingVoters = notYetVoted
 
 	// Fetch Recent Activity using existing repository
 	opEntries, _, _ := s.auditRepo.Search(ctx, audit.AuditFilter{

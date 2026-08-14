@@ -75,9 +75,13 @@ type AttendanceStats struct {
 }
 
 type VotingStats struct {
-	SessionState    string `json:"session_state"`
-	VotesSubmitted  int    `json:"votes_submitted"`
-	RemainingVoters int    `json:"remaining_voters"`
+	SessionState     string `json:"session_state"`
+	VotesSubmitted   int    `json:"votes_submitted"`
+	RemainingVoters  int    `json:"remaining_voters"`
+	NotYetVoted      int    `json:"not_yet_voted"`
+	ReceiptsCount    int    `json:"receipts_count"`
+	BallotsCount     int    `json:"ballots_count"`
+	ReconciliationOK bool   `json:"reconciliation_ok"`
 }
 
 type SystemHealthStats struct {

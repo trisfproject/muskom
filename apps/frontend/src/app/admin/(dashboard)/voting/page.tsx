@@ -27,9 +27,17 @@ interface SummaryData {
   results: VoteResult[];
 }
 
+interface IntegrityData {
+  not_yet_voted: number;
+  receipts_count: number;
+  ballots_count: number;
+  reconciliation_ok: boolean;
+}
+
 export default function AdminVotingPage() {
   const [session, setSession] = useState<VotingSession | null>(null);
   const [summary, setSummary] = useState<SummaryData | null>(null);
+  const [integrity, setIntegrity] = useState<IntegrityData | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
@@ -56,6 +64,22 @@ export default function AdminVotingPage() {
         }
       } catch (e) {
         console.warn("Failed to fetch voting summary", e);
+      }
+
+      // Fetch Integrity / Reconciliation
+      try {
+        const opsRes = await api.get("/admin/dashboard/operations");
+        if (opsRes.data?.data?.voting) {
+          const v = opsRes.data.data.voting;
+          setIntegrity({
+            not_yet_voted: v.not_yet_voted ?? 0,
+            receipts_count: v.receipts_count ?? 0,
+            ballots_count: v.ballots_count ?? 0,
+            reconciliation_ok: v.reconciliation_ok ?? true,
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to fetch integrity data", e);
       }
     } catch (err) {
       console.error(err);
@@ -292,6 +316,55 @@ export default function AdminVotingPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Voting Progress & Integrity Indicators */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Belum Memilih */}
+        <div className="p-5 rounded-2xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+            <Users className="w-6 h-6 text-amber-500" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Belum Memilih</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">
+              {integrity?.not_yet_voted ?? "-"}
+            </p>
+          </div>
+        </div>
+
+        {/* Integrity / Reconciliation */}
+        <div className={`p-5 rounded-2xl backdrop-blur-xl border shadow-sm flex items-center gap-4 ${
+          integrity && !integrity.reconciliation_ok
+            ? "bg-rose-50/50 dark:bg-rose-500/5 border-rose-300 dark:border-rose-500/30"
+            : "bg-white/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800"
+        }`}>
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+            integrity && !integrity.reconciliation_ok
+              ? "bg-rose-500/10"
+              : "bg-emerald-500/10"
+          }`}>
+            {integrity && !integrity.reconciliation_ok ? (
+              <AlertTriangle className="w-6 h-6 text-rose-500" />
+            ) : (
+              <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+            )}
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">
+              Integritas Data
+            </p>
+            {integrity && !integrity.reconciliation_ok ? (
+              <p className="text-sm font-bold text-rose-600 dark:text-rose-400">
+                ⚠ Mismatch — Receipt: {integrity.receipts_count} / Ballot: {integrity.ballots_count}
+              </p>
+            ) : (
+              <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                ✓ OK — Receipt: {integrity?.receipts_count ?? 0} = Ballot: {integrity?.ballots_count ?? 0}
+              </p>
+            )}
           </div>
         </div>
       </div>
