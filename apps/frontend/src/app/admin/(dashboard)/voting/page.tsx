@@ -125,6 +125,78 @@ export default function AdminVotingPage() {
     }
   };
 
+  const handleExportCSV = () => {
+    if (!summary && !integrity) {
+      toast.error("Data belum tersedia untuk di-export.");
+      return;
+    }
+
+    const escapeCSV = (val: string | number | boolean | null | undefined): string => {
+      const str = String(val ?? "");
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const lines: string[] = [];
+    const now = new Date();
+    const timestamp = now.toISOString().replace(/[:.]/g, "-").slice(0, 16);
+
+    // Section 1: Session
+    lines.push("SECTION,SESSION");
+    lines.push("Field,Value");
+    lines.push(`Session Status,${escapeCSV(session?.status ?? "UNKNOWN")}`);
+    lines.push(`Report Generated,${escapeCSV(now.toLocaleString("id-ID"))}`);
+    lines.push("");
+
+    // Section 2: Participation
+    lines.push("SECTION,PARTICIPATION");
+    lines.push("Field,Value");
+    lines.push(`Total DPT Hadir (Checked-in),${summary?.total_voters ?? 0}`);
+    lines.push(`Sudah Memilih,${summary?.votes_cast ?? 0}`);
+    lines.push(`Belum Memilih,${integrity?.not_yet_voted ?? 0}`);
+    lines.push(`Turnout (%),${summary?.participation_pct?.toFixed(1) ?? "0.0"}`);
+    lines.push("");
+
+    // Section 3: Integrity
+    lines.push("SECTION,INTEGRITY");
+    lines.push("Field,Value");
+    lines.push(`Voter Receipts,${integrity?.receipts_count ?? 0}`);
+    lines.push(`Ballots,${integrity?.ballots_count ?? 0}`);
+    lines.push(`Reconciliation,${integrity?.reconciliation_ok ? "OK" : "MISMATCH"}`);
+    lines.push(`Auth Failures,${integrity?.auth_failures ?? 0}`);
+    lines.push(`Rate Limited,${integrity?.rate_limited ?? 0}`);
+    lines.push(`Vote Failures,${integrity?.vote_failures ?? 0}`);
+    lines.push(`Already Voted Attempts,${integrity?.already_voted ?? 0}`);
+    lines.push("");
+
+    // Section 4: Results
+    lines.push("SECTION,RESULTS");
+    lines.push("Rank,Candidate,Vote Count,Percentage (%)");
+    if (summary?.results && summary.results.length > 0) {
+      const sorted = [...summary.results].sort((a, b) => b.total_votes - a.total_votes);
+      sorted.forEach((cand, idx) => {
+        const pct = summary.votes_cast > 0
+          ? ((cand.total_votes / summary.votes_cast) * 100).toFixed(1)
+          : "0.0";
+        lines.push(`${idx + 1},${escapeCSV(cand.candidate_name)},${cand.total_votes},${pct}`);
+      });
+    } else {
+      lines.push(",,Belum ada suara,");
+    }
+
+    // Generate and download
+    const csvContent = "\uFEFF" + lines.join("\r\n"); // BOM for Excel UTF-8
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `evoting-report-${timestamp}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const getStatusBanner = (st?: string) => {
     switch (st) {
       case "RUNNING":
@@ -211,6 +283,13 @@ export default function AdminVotingPage() {
             >
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> 
               <span>Refresh Tally</span>
+            </button>
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all font-semibold w-full sm:w-fit shadow-sm border border-slate-200 dark:border-slate-700"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export CSV</span>
             </button>
           </div>
         }
