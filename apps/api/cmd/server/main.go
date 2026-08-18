@@ -193,6 +193,11 @@ func main() {
 	
 	// Admin Voting and Result Routes - Activated for RC1 Event
 	voting.SetupAdminRoutes(adminGroup.Group("/votes", checker.RequirePermission("voting.manage")), db, log, bus, notifSvc, cfg)
+	
+	// Controlled Session Reopen (Super Admin only — separate from voting.manage)
+	reopenHandler := voting.NewReopenHandler(db)
+	adminGroup.Post("/votes/session/reopen", checker.RequirePermission("voting.reopen"), reopenHandler.ReopenSession)
+	
 	result.SetupAdminRoutes(adminGroup.Group("/result", checker.RequirePermission("voting.view")), db, log)
 	// reporting.SetupAdminRoutes(adminGroup.Group("/reporting", checker.RequirePermission("report.export")), db, log)
 	

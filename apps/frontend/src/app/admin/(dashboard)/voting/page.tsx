@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Vote, Play, Pause, Square, RefreshCw, BarChart2, Shield, Award, Users, Percent, Download, ExternalLink, AlertTriangle, CheckCircle2, User, ChevronRight } from "lucide-react";
+import { Vote, Play, Pause, Square, RefreshCw, BarChart2, Shield, Award, Users, Percent, Download, ExternalLink, AlertTriangle, CheckCircle2, User, ChevronRight, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface VotingSession {
   id: string;
@@ -45,6 +46,10 @@ export default function AdminVotingPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showReopenConfirm, setShowReopenConfirm] = useState(false);
+  const [reopenReason, setReopenReason] = useState("");
+  const [reopenPhrase, setReopenPhrase] = useState("");
+  const { user } = useAuth();
 
   const fetchVotingData = async () => {
     try {
@@ -195,6 +200,25 @@ export default function AdminVotingPage() {
     link.download = `evoting-report-${timestamp}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleReopenSession = async () => {
+    if (reopenPhrase !== "BUKA KEMBALI" || !reopenReason.trim()) return;
+    try {
+      setActionLoading(true);
+      const res = await api.post("/admin/votes/session/reopen", { reason: reopenReason.trim() });
+      if (res.data?.success) {
+        toast.success("Sesi pemilihan berhasil dibuka kembali.");
+        setShowReopenConfirm(false);
+        setReopenReason("");
+        setReopenPhrase("");
+        fetchVotingData();
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Gagal membuka kembali sesi.");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const getStatusBanner = (st?: string) => {
@@ -597,6 +621,76 @@ export default function AdminVotingPage() {
                 className="flex-1 px-4 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold shadow-[0_4px_14px_0_rgb(225,29,72,0.39)] hover:shadow-[0_6px_20px_rgba(225,29,72,0.23)] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {actionLoading ? <RefreshCw className="w-5 h-5 animate-spin" /> : "Ya, Tutup Sesi"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reopen Button — Super Admin only, CLOSED state */}
+      {session?.status === "CLOSED" && user?.role === "SUPER_ADMIN" && (
+        <div className="flex justify-center pt-2">
+          <button
+            onClick={() => setShowReopenConfirm(true)}
+            className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Buka Kembali Sesi
+          </button>
+        </div>
+      )}
+
+      {/* Reopen Confirmation Modal */}
+      {showReopenConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div className="w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-6 ring-4 ring-amber-50 dark:ring-amber-500/10">
+              <RotateCcw className="w-7 h-7" />
+            </div>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Buka Kembali Sesi Pemilihan?</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 leading-relaxed">
+              Sesi telah ditutup final. Tindakan ini akan mengembalikan status menjadi <strong className="text-slate-700 dark:text-slate-300">BELUM DIMULAI</strong>. Data suara yang telah masuk <strong className="text-slate-700 dark:text-slate-300">TIDAK akan dihapus</strong>.
+            </p>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Alasan Pembukaan Kembali *</label>
+                <textarea
+                  value={reopenReason}
+                  onChange={(e) => setReopenReason(e.target.value)}
+                  maxLength={500}
+                  rows={3}
+                  placeholder="Masukkan alasan pembukaan kembali sesi..."
+                  className="w-full mt-1.5 px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 resize-none"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">{reopenReason.length}/500</p>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Ketik &quot;BUKA KEMBALI&quot; untuk konfirmasi</label>
+                <input
+                  type="text"
+                  value={reopenPhrase}
+                  onChange={(e) => setReopenPhrase(e.target.value.toUpperCase())}
+                  placeholder="BUKA KEMBALI"
+                  className="w-full mt-1.5 px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-mono text-slate-900 dark:text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => { setShowReopenConfirm(false); setReopenReason(""); setReopenPhrase(""); }}
+                disabled={actionLoading}
+                className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleReopenSession}
+                disabled={actionLoading || reopenPhrase !== "BUKA KEMBALI" || !reopenReason.trim()}
+                className="flex-1 px-4 py-3 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {actionLoading ? <RefreshCw className="w-5 h-5 animate-spin" /> : "Konfirmasi"}
               </button>
             </div>
           </div>
