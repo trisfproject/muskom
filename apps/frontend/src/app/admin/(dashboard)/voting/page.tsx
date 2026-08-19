@@ -481,22 +481,22 @@ export default function AdminVotingPage() {
       </div>
 
       {/* Operational Failure Indicators */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Gagal Akses</p>
-          <p className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{integrity?.auth_failures ?? 0}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div className="px-4 py-5 sm:p-5 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 leading-tight">Gagal Akses</p>
+          <p className="text-xl font-black text-slate-900 dark:text-white tabular-nums leading-none">{integrity?.auth_failures ?? 0}</p>
         </div>
-        <div className="p-4 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Rate Limited</p>
-          <p className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{integrity?.rate_limited ?? 0}</p>
+        <div className="px-4 py-5 sm:p-5 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 leading-tight">Rate Limited</p>
+          <p className="text-xl font-black text-slate-900 dark:text-white tabular-nums leading-none">{integrity?.rate_limited ?? 0}</p>
         </div>
-        <div className="p-4 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Gagal Submit</p>
-          <p className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{integrity?.vote_failures ?? 0}</p>
+        <div className="px-4 py-5 sm:p-5 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 leading-tight">Gagal Submit</p>
+          <p className="text-xl font-black text-slate-900 dark:text-white tabular-nums leading-none">{integrity?.vote_failures ?? 0}</p>
         </div>
-        <div className="p-4 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Sudah Memilih</p>
-          <p className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{integrity?.already_voted ?? 0}</p>
+        <div className="px-4 py-5 sm:p-5 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 leading-tight">Sudah Memilih</p>
+          <p className="text-xl font-black text-slate-900 dark:text-white tabular-nums leading-none">{integrity?.already_voted ?? 0}</p>
         </div>
       </div>
 
