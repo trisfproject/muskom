@@ -51,7 +51,7 @@ export default function AdminVotingPage() {
   const [reopenPhrase, setReopenPhrase] = useState("");
   const { user } = useAuth();
 
-  const fetchVotingData = async () => {
+  const fetchVotingData = async (showToast = false) => {
     try {
       setLoading(true);
 
@@ -94,9 +94,15 @@ export default function AdminVotingPage() {
       } catch (e) {
         console.warn("Failed to fetch integrity data", e);
       }
+
+      if (showToast) {
+        toast.success("Data berhasil diperbarui", { duration: 1500 });
+      }
     } catch (err) {
       console.error(err);
-      toast.error("Gagal memuat data e-voting");
+      if (showToast) {
+        toast.error("Gagal memuat data e-voting");
+      }
     } finally {
       setLoading(false);
     }
@@ -302,7 +308,7 @@ export default function AdminVotingPage() {
               <span>Buka Bilik Suara</span>
             </a>
             <button
-              onClick={fetchVotingData}
+              onClick={() => fetchVotingData(true)}
               className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all font-semibold w-full sm:w-fit shadow-sm border border-slate-200 dark:border-slate-700"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> 
