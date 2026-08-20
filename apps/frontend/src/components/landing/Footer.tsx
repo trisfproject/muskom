@@ -193,7 +193,7 @@ export function Footer({ data }: { data?: HomeResponse | null }) {
           </div>
 
           <div className="flex items-center gap-4 mt-4 lg:mt-0">
-            <span>Crafted with ☕ by τяιѕƒ</span>
+            <span>Crafted with ☕ by <a href="https://trisf.id" className="hover:text-primary transition-colors">τяιѕƒ</a></span>
             <span>•</span>
             <span>Platform E-Voting Digital</span>
           </div>
