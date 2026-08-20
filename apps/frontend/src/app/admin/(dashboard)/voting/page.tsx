@@ -438,7 +438,20 @@ export default function AdminVotingPage() {
       </div>
 
       {/* Voting Progress & Integrity Indicators */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Sudah Memilih */}
+        <div className="p-5 rounded-2xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-0.5">Sudah Memilih</p>
+            <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">
+              {integrity?.receipts_count ?? 0}
+            </p>
+          </div>
+        </div>
+
         {/* Belum Memilih */}
         <div className="p-5 rounded-2xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
@@ -501,7 +514,7 @@ export default function AdminVotingPage() {
           <p className="text-xl font-black text-slate-900 dark:text-white tabular-nums leading-none">{integrity?.vote_failures ?? 0}</p>
         </div>
         <div className="px-4 py-5 sm:p-5 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 leading-tight">Sudah Memilih</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 leading-tight">Duplikat Vote</p>
           <p className="text-xl font-black text-slate-900 dark:text-white tabular-nums leading-none">{integrity?.already_voted ?? 0}</p>
         </div>
       </div>
