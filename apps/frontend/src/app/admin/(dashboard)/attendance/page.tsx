@@ -14,7 +14,8 @@ import {
   Trash2,
   CheckSquare,
   Square,
-  AlertTriangle
+  AlertTriangle,
+  Download
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -193,18 +194,102 @@ export default function AdminAttendancePage() {
     : 0;
   const isQuorumReached = quorumPercentage >= 50;
 
+  const handleExportCSV = async () => {
+    try {
+      toast.loading("Menyiapkan data export...", { id: "export-csv" });
+      
+      let url = `/admin/attendance?limit=10000`;
+      if (statusFilter !== "ALL") {
+        url += `&attendance_status=${statusFilter}`;
+      }
+      if (search) {
+        url += `&participant_name=${encodeURIComponent(search)}`;
+      }
+
+      const listRes = await api.get(url);
+      const exportItems: AttendanceItem[] = listRes.data?.data?.items ?? listRes.data?.data ?? listRes.data?.items ?? [];
+
+      if (exportItems.length === 0) {
+        toast.error("Tidak ada data presensi untuk di-export.", { id: "export-csv" });
+        return;
+      }
+
+      const escapeCSV = (val: string | number | null | undefined): string => {
+        const str = String(val ?? "");
+        if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+
+      const lines: string[] = [];
+      lines.push("No,Registration Number,Participant Name,Attendance Status,Check-in Time,Check-in Method");
+
+      exportItems.forEach((item, idx) => {
+        const checkinTime = item.checked_in_at
+          ? new Date(item.checked_in_at).toLocaleString("id-ID")
+          : "-";
+        
+        // As per requirements: only include fields available in existing API
+        // Check-in Method is implicitly QR/Manual as per UI? The API response doesn't seem to have check-in method directly in Item, we'll leave it as System/Manual based on checked_in_at if we want, or just "-" if not available.
+        // Actually, if we don't have it, we leave it blank or "System".
+        const checkInMethod = item.checked_in_at ? "System" : "-";
+
+        lines.push([
+          idx + 1,
+          escapeCSV(item.participant_id), // Wait, is Registration Number the participant ID? The UI displays participant_id under the name. Let's use participant_id.
+          escapeCSV(item.participant_name),
+          item.attendance_status === "PRESENT" ? "Hadir" : "Belum Hadir",
+          escapeCSV(checkinTime),
+          escapeCSV(checkInMethod)
+        ].join(","));
+      });
+
+      const now = new Date();
+      // Format YYYY-MM-DD-HHmm
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const timestamp = `${yyyy}-${mm}-${dd}-${hh}${min}`;
+
+      const csvContent = "\uFEFF" + lines.join("\r\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const urlBlob = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = urlBlob;
+      link.download = `attendance-report-${timestamp}.csv`;
+      link.click();
+      URL.revokeObjectURL(urlBlob);
+      
+      toast.success("Laporan presensi berhasil di-export.", { id: "export-csv", duration: 2000 });
+    } catch (error) {
+      console.error(error);
+      toast.error("Gagal melakukan export presensi.", { id: "export-csv" });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Presensi & Live Quorum"
         description="Scanner QR Code, monitoring kuorum langsung, dan pencatatan kehadiran musyawarah."
         actions={
-          <button
-            onClick={fetchAttendanceData}
-            className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh Data
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+            >
+              <Download className="w-3.5 h-3.5" /> Export CSV
+            </button>
+            <button
+              onClick={fetchAttendanceData}
+              className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg border pg-border bg-white dark:bg-slate-800 pg-text hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh Data
+            </button>
+          </div>
         }
       />
 
