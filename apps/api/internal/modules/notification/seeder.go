@@ -506,6 +506,52 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
 </body>
 </html>`,
 		},
+		{
+			Name:    "event_musyawarah_reminder",
+			Channel: ChannelEmail,
+			Subject: ptr("Pengingat Kehadiran — MUSYAWARAH KOMITKABE 2026"),
+			Body: `<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengingat Kehadiran</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #0f172a; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
+        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #64748b; }
+        @media (prefers-color-scheme: dark) {
+            body { color: #e2e8f0; background-color: #0f172a; }
+            .content { background-color: #1e293b; border-color: #334155; }
+            .footer { color: #94a3b8; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Pengingat Kehadiran Acara</h2>
+    </div>
+    <div class="content">
+        <p>Assalamu’alaikum warahmatullahi wabarakatuh.</p>
+        <p>Bapak/Ibu dan rekan-rekan KOMITKABE, kami mengingatkan kembali bahwa MUSYAWARAH KOMITKABE 2026 akan dilaksanakan:</p>
+        <p>
+            📅 Sabtu, 29 Agustus 2026<br/>
+            ⏰ 09.00 WIB – Selesai<br/>
+            📍 Kawana Golf Residence Jababeka
+        </p>
+        <p>Mohon QR Registrasi masing-masing dibawa saat hadir untuk memudahkan proses check-in.</p>
+        <p>Bagi yang belum memiliki QR Registrasi, QR dapat diunduh melalui:</p>
+        <p><a href="https://muskom.komitkabe.com/peserta">https://muskom.komitkabe.com/peserta</a></p>
+        <p>Sampai bertemu, berkumpul, dan bermusyawarah bersama di MUSYAWARAH KOMITKABE 2026. 🙏</p>
+        <p><em>Together We Shape the Future.</em></p>
+    </div>
+    <div class="footer">
+        <p>Email ini dihasilkan otomatis oleh sistem MUSKOM.</p>
+    </div>
+</body>
+</html>`,
+		},
 	}
 
 	for _, tpl := range defaultTemplates {

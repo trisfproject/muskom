@@ -36,6 +36,9 @@ type Service interface {
 	MarkInAppRead(ctx context.Context, id string) error
 	MarkAllInAppRead(ctx context.Context, userID *string) error
 	DeleteInAppNotification(ctx context.Context, id string) error
+
+	PreviewMusyawarahReminder(ctx context.Context) (map[string]interface{}, error)
+	BlastMusyawarahReminder(ctx context.Context, operatorID string) (int, error)
 }
 
 type service struct {
@@ -202,4 +205,52 @@ func (s *service) TestTemplate(ctx context.Context, id string, email string) err
 
 func (s *service) SeedDefaultTemplates(ctx context.Context) error {
 	return SeedDefaultTemplates(ctx, s.repo, s.log)
+}
+
+func (s *service) PreviewMusyawarahReminder(ctx context.Context) (map[string]interface{}, error) {
+	count, err := s.repo.CountEligibleReminderRecipients(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	tpl, err := s.repo.GetTemplateByName(ctx, "event_musyawarah_reminder", ChannelEmail)
+	if err != nil {
+		return nil, ErrTemplateNotFound
+	}
+
+	return map[string]interface{}{
+		"eligible_count": count,
+		"subject":        tpl.Subject,
+		"body":           tpl.Body, // It's just the raw template for preview, or rendered with dummies if needed.
+	}, nil
+}
+
+func (s *service) BlastMusyawarahReminder(ctx context.Context, operatorID string) (int, error) {
+	recipients, err := s.repo.GetEligibleReminderRecipients(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(recipients) == 0 {
+		return 0, nil
+	}
+
+	// We can queue them without a transaction if there are too many, or we can use the repository's DB directly for batch insert.
+	// Since QueueNotification creates them one by one, for a blast, it's safer to just range and QueueNotification. 
+	// The worker will pick them up.
+	queuedCount := 0
+	for _, rec := range recipients {
+		payload := map[string]interface{}{
+			"full_name":           rec.FullName,
+			"registration_number": rec.RegistrationNumber,
+		}
+		err := s.QueueNotification(ctx, ChannelEmail, "event_musyawarah_reminder", rec.Email, payload)
+		if err == nil {
+			queuedCount++
+		} else {
+			s.log.Error("Failed to queue reminder blast for recipient", zap.String("email", rec.Email), zap.Error(err))
+		}
+	}
+
+	return queuedCount, nil
 }

@@ -82,3 +82,11 @@ type InAppNotification struct {
 	ReadAt    *time.Time           `json:"read_at" db:"read_at"`
 	CreatedAt time.Time            `json:"created_at" db:"created_at"`
 }
+
+type ReminderRecipient struct {
+	ID                 string `db:"id"`
+	Email              string `db:"email"`
+	FullName           string `db:"full_name"`
+	RegistrationNumber string `db:"registration_number"`
+}
+

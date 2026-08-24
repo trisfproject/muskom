@@ -24,6 +24,9 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, m maile
 	router.Post("/jobs/:id/retry", handler.RetryJob)
 	router.Post("/smtp/test", handler.TestSMTP)
 	
+	router.Get("/musyawarah-reminder/preview", handler.PreviewMusyawarahReminder)
+	router.Post("/musyawarah-reminder/blast", handler.BlastMusyawarahReminder)
+	
 	// In-App Notification Routes
 	router.Get("/in-app", handler.ListInAppNotifications)
 	router.Get("/in-app/unread-count", handler.GetUnreadInAppCount)
@@ -47,6 +50,9 @@ func SetupAdminRoutesWithService(router fiber.Router, svc Service, hub *realtime
 	
 	router.Post("/jobs/:id/retry", handler.RetryJob)
 	router.Post("/smtp/test", handler.TestSMTP)
+	
+	router.Get("/musyawarah-reminder/preview", handler.PreviewMusyawarahReminder)
+	router.Post("/musyawarah-reminder/blast", handler.BlastMusyawarahReminder)
 	
 	// In-App Notification Routes
 	router.Get("/in-app", handler.ListInAppNotifications)

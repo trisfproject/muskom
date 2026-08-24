@@ -243,3 +243,32 @@ func (h *Handler) DeleteInAppNotification(c fiber.Ctx) error {
 	}
 	return response.SendSuccess(c, fiber.StatusOK, "Notification deleted", nil, nil)
 }
+
+func (h *Handler) PreviewMusyawarahReminder(c fiber.Ctx) error {
+	res, err := h.service.PreviewMusyawarahReminder(c.Context())
+	if err != nil {
+		if err == ErrTemplateNotFound {
+			return response.SendError(c, fiber.StatusNotFound, "Template event_musyawarah_reminder not found", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to generate reminder preview", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Preview generated", res, nil)
+}
+
+func (h *Handler) BlastMusyawarahReminder(c fiber.Ctx) error {
+	operatorID, ok := c.Locals("user_id").(string)
+	if !ok || operatorID == "" {
+		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized operator", nil)
+	}
+
+	queued, err := h.service.BlastMusyawarahReminder(c.Context(), operatorID)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to queue reminder blast", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Reminder blast queued successfully", fiber.Map{
+		"queued_count": queued,
+	}, nil)
+}
+

@@ -30,6 +30,8 @@ type Repository interface {
 	MarkAllInAppRead(ctx context.Context, userID *string) error
 	DeleteInAppNotification(ctx context.Context, id string) error
 	GetWebsiteIdentity(ctx context.Context) (map[string]interface{}, error)
+	GetEligibleReminderRecipients(ctx context.Context) ([]ReminderRecipient, error)
+	CountEligibleReminderRecipients(ctx context.Context) (int, error)
 }
 
 type repository struct {
@@ -273,3 +275,32 @@ func (r *repository) GetWebsiteIdentity(ctx context.Context) (map[string]interfa
 	}
 	return combined, nil
 }
+
+func (r *repository) GetEligibleReminderRecipients(ctx context.Context) ([]ReminderRecipient, error) {
+	query := `
+		SELECT id, email, full_name, registration_number
+		FROM participants
+		WHERE verification_status IN ('APPROVED', 'VERIFIED')
+		  AND email IS NOT NULL
+		  AND email != ''
+		  AND deleted_at IS NULL
+	`
+	var recipients []ReminderRecipient
+	err := r.db.SelectContext(ctx, &recipients, query)
+	return recipients, err
+}
+
+func (r *repository) CountEligibleReminderRecipients(ctx context.Context) (int, error) {
+	query := `
+		SELECT COUNT(*)
+		FROM participants
+		WHERE verification_status IN ('APPROVED', 'VERIFIED')
+		  AND email IS NOT NULL
+		  AND email != ''
+		  AND deleted_at IS NULL
+	`
+	var count int
+	err := r.db.GetContext(ctx, &count, query)
+	return count, err
+}
+

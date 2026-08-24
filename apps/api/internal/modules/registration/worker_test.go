@@ -159,6 +159,19 @@ func (m *MockNotifRepository) GetWebsiteIdentity(ctx context.Context) (map[strin
 	return args.Get(0).(map[string]interface{}), args.Error(1)
 }
 
+func (m *MockNotifRepository) CountEligibleReminderRecipients(ctx context.Context) (int, error) {
+	args := m.Called(ctx)
+	return args.Int(0), args.Error(1)
+}
+
+func (m *MockNotifRepository) GetEligibleReminderRecipients(ctx context.Context) ([]notification.ReminderRecipient, error) {
+	args := m.Called(ctx)
+	if args.Get(0) != nil {
+		return args.Get(0).([]notification.ReminderRecipient), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
 func TestEmailWorker_SendEmail_RegistrationReceived(t *testing.T) {
 	ctx := context.Background()
 	log := zaptest.NewLogger(t)

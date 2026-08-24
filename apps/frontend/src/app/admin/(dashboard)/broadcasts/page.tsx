@@ -5,6 +5,116 @@ import { BroadcastJob } from '@/types/announcement';
 import { announcementService } from '@/services/announcement';
 import { format } from 'date-fns';
 import { PageHeader } from '@/components/admin/PageHeader';
+import { Megaphone, Mail, Send, Eye, X } from 'lucide-react';
+import { toast } from 'sonner';
+import api from '@/lib/api';
+
+function ReminderBlastCard() {
+  const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState<{ eligible_count: number; subject: string; body: string } | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [blasting, setBlasting] = useState(false);
+
+  const fetchPreview = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/admin/notifications/musyawarah-reminder/preview');
+      setPreview(res.data?.data);
+      setShowPreviewModal(true);
+    } catch (error) {
+      console.error('Failed to load preview:', error);
+      toast.error('Gagal memuat pratinjau pengingat');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendReminder = async () => {
+    if (!preview) return;
+    if (!confirm(`Kirim pengingat ke ${preview.eligible_count} peserta?`)) {
+      return;
+    }
+    try {
+      setBlasting(true);
+      const res = await api.post('/admin/notifications/musyawarah-reminder/blast');
+      toast.success(`Berhasil! ${res.data?.data?.queued_count} email masuk ke antrean.`);
+      setShowPreviewModal(false);
+      // Optional: trigger refresh of jobs table if possible, but it relies on parent state. 
+      // For simplicity, we just show toast.
+    } catch (error) {
+      console.error('Failed to queue blast:', error);
+      toast.error('Gagal mengirim blast pengingat');
+    } finally {
+      setBlasting(false);
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <Megaphone className="w-5 h-5 text-indigo-600" /> MUSYAWARAH KOMITKABE 2026
+        </h3>
+        <p className="text-sm text-slate-500 mt-1">
+          Kirim blast email pengingat acara (Hadir & QR Registrasi) ke seluruh peserta terverifikasi.
+        </p>
+      </div>
+      <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
+        <button
+          onClick={fetchPreview}
+          disabled={loading || blasting}
+          className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-sm rounded-lg transition-colors"
+        >
+          <Eye className="w-4 h-4" /> {loading ? 'Memuat...' : 'Preview'}
+        </button>
+      </div>
+
+      {showPreviewModal && preview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+              <h3 className="font-bold text-lg text-slate-900 dark:text-white">Pratinjau Pengingat Acara</h3>
+              <button onClick={() => setShowPreviewModal(false)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-5 overflow-y-auto flex-1">
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 mb-4 border border-slate-200 dark:border-slate-700 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-semibold text-slate-500">Eligible Recipients:</span>
+                  <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full">{preview.eligible_count}</span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold text-slate-500">Subject:</span>
+                  <span className="text-sm font-medium text-slate-900 dark:text-white">{preview.subject}</span>
+                </div>
+              </div>
+              <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 bg-white dark:bg-slate-950 text-sm overflow-hidden">
+                <div dangerouslySetInnerHTML={{ __html: preview.body }} />
+              </div>
+            </div>
+            <div className="p-5 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3 bg-slate-50 dark:bg-slate-900/50">
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSendReminder}
+                disabled={blasting || preview.eligible_count === 0}
+                className="px-4 py-2 flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+              >
+                <Send className="w-4 h-4" />
+                {blasting ? 'Mengirim...' : 'Send Reminder'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function BroadcastsPage() {
   const [jobs, setJobs] = useState<BroadcastJob[]>([]);
@@ -32,6 +142,9 @@ export default function BroadcastsPage() {
         title="Broadcast Jobs"
         description="Monitor status dan riwayat pengiriman siaran pesan massal kepada peserta / panitia."
       />
+
+      <ReminderBlastCard />
+      
       
       <div className="mt-6 flow-root">
         <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
