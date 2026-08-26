@@ -154,7 +154,44 @@ func (r *repository) GetBroadcastJob(ctx context.Context, id string) (*Broadcast
 }
 
 func (r *repository) ListBroadcastJobs(ctx context.Context, limit int, offset int) ([]BroadcastJob, error) {
-	query := `SELECT * FROM broadcast_jobs ORDER BY created_at DESC LIMIT $1 OFFSET $2`
+	query := `
+		SELECT
+			id,
+			COALESCE(announcement_id::text, '') as announcement_id,
+			target_audience,
+			channels,
+			status,
+			total_targets,
+			successful_deliveries,
+			failed_deliveries,
+			error_message,
+			started_at,
+			completed_at,
+			created_by,
+			created_at,
+			updated_at
+		FROM broadcast_jobs
+		UNION ALL
+		SELECT
+			id,
+			'' as announcement_id,
+			recipient as target_audience,
+			'["EMAIL"]'::jsonb as channels,
+			status,
+			1 as total_targets,
+			CASE WHEN status = 'SENT' THEN 1 ELSE 0 END as successful_deliveries,
+			CASE WHEN status = 'FAILED' THEN 1 ELSE 0 END as failed_deliveries,
+			error_message,
+			created_at as started_at,
+			updated_at as completed_at,
+			NULL::uuid as created_by,
+			created_at,
+			updated_at
+		FROM notification_jobs
+		WHERE payload->>'campaign_id' IS NOT NULL
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2
+	`
 	var jobs []BroadcastJob
 	err := r.db.SelectContext(ctx, &jobs, query, limit, offset)
 	if err != nil {
