@@ -17,11 +17,13 @@ func RegisterRoutes(router fiber.Router, h *Handler, requireAuth fiber.Handler, 
 	// Announcements CRUD
 	admin.Get("/", requirePermission("announcement.view"), h.ListAdminAnnouncements)
 	admin.Post("/", requirePermission("announcement.create"), h.CreateAnnouncement)
+
+	// Broadcasts — must be BEFORE /:id to avoid capture as UUID
+	admin.Get("/broadcasts", requirePermission("broadcast.send"), h.ListBroadcastJobs)
+	admin.Post("/:id/broadcast", requirePermission("broadcast.send"), h.CreateBroadcast)
+
+	// Dynamic routes
 	admin.Get("/:id", requirePermission("announcement.view"), h.GetAnnouncement)
 	admin.Put("/:id", requirePermission("announcement.create"), h.UpdateAnnouncement)
 	admin.Delete("/:id", requirePermission("announcement.delete"), h.DeleteAnnouncement)
-	
-	// Broadcasts
-	admin.Get("/broadcasts", requirePermission("broadcast.send"), h.ListBroadcastJobs)
-	admin.Post("/:id/broadcast", requirePermission("broadcast.send"), h.CreateBroadcast)
 }

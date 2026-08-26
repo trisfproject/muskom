@@ -121,9 +121,9 @@ func main() {
 	notifSvc := notification.NewService(notifRepo, notifRegistry, log)
 	
 	// Seed default notification templates
-	// if err := notifSvc.SeedDefaultTemplates(context.Background()); err != nil {
-	// 	log.Error("Failed to seed default templates", zap.Error(err))
-	// }
+	if err := notification.SeedDefaultTemplates(context.Background(), notifRepo, log); err != nil {
+		log.Error("Failed to seed default templates", zap.Error(err))
+	}
 
 	// Create Announcement Service
 	annRepo := announcement.NewRepository(db, log)
