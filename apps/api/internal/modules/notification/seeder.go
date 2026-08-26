@@ -526,7 +526,7 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
       </tr>
       <tr>
         <td style="padding: 16px; border-bottom: 1px solid #e2e8f0;">
-          <strong>⏰ Waktu:</strong> 09.00 WIB – Selesai
+          <strong>⏰ Waktu:</strong> 08.00 WIB – Selesai
         </td>
       </tr>
       <tr>
