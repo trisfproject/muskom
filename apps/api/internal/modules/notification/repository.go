@@ -31,7 +31,13 @@ type Repository interface {
 	DeleteInAppNotification(ctx context.Context, id string) error
 	GetWebsiteIdentity(ctx context.Context) (map[string]interface{}, error)
 	GetEligibleReminderRecipients(ctx context.Context) ([]ReminderRecipient, error)
-	CountEligibleReminderRecipients(ctx context.Context) (int, error)
+	GetEligibleRecipientsByIDs(ctx context.Context, ids []string) ([]ReminderRecipient, error)
+	QueueUniqueCampaignJob(ctx context.Context, job *NotificationJob, campaignID string) (bool, error)
+	
+	// Draft Methods
+	SaveDraft(ctx context.Context, draft *BroadcastDraft) error
+	GetActiveDraft(ctx context.Context, campaignID string) (*BroadcastDraft, error)
+	MarkDraftAsSent(ctx context.Context, campaignID string) error
 }
 
 type repository struct {
@@ -42,6 +48,40 @@ func NewRepository(db *sqlx.DB) Repository {
 	return &repository{db: db}
 }
 
+// ... existing methods ...
+
+func (r *repository) SaveDraft(ctx context.Context, draft *BroadcastDraft) error {
+	query := `
+		INSERT INTO broadcast_drafts (campaign_id, subject, body_html, recipient_ids, status, created_by, updated_by)
+		VALUES ($1, $2, $3, $4, 'DRAFT', $5, $6)
+		ON CONFLICT (campaign_id) WHERE status = 'DRAFT'
+		DO UPDATE SET 
+			subject = EXCLUDED.subject, 
+			body_html = EXCLUDED.body_html, 
+			recipient_ids = EXCLUDED.recipient_ids,
+			updated_by = EXCLUDED.updated_by,
+			updated_at = CURRENT_TIMESTAMP
+		RETURNING id, created_at, updated_at
+	`
+	return r.db.QueryRowContext(ctx, query,
+		draft.CampaignID, draft.Subject, draft.BodyHTML, draft.RecipientIDs, draft.CreatedBy, draft.UpdatedBy,
+	).Scan(&draft.ID, &draft.CreatedAt, &draft.UpdatedAt)
+}
+
+func (r *repository) GetActiveDraft(ctx context.Context, campaignID string) (*BroadcastDraft, error) {
+	var draft BroadcastDraft
+	query := `SELECT * FROM broadcast_drafts WHERE campaign_id = $1 AND status = 'DRAFT'`
+	err := r.db.GetContext(ctx, &draft, query, campaignID)
+	return &draft, err
+}
+
+func (r *repository) MarkDraftAsSent(ctx context.Context, campaignID string) error {
+	query := `UPDATE broadcast_drafts SET status = 'SENT', updated_at = CURRENT_TIMESTAMP WHERE campaign_id = $1 AND status = 'DRAFT'`
+	_, err := r.db.ExecContext(ctx, query, campaignID)
+	return err
+}
+
+// ... existing code ...
 func (r *repository) GetTemplateByName(ctx context.Context, name string, channel Channel) (*NotificationTemplate, error) {
 	var tpl NotificationTemplate
 	// For architecture, returning the latest global or event-specific template
@@ -278,29 +318,103 @@ func (r *repository) GetWebsiteIdentity(ctx context.Context) (map[string]interfa
 
 func (r *repository) GetEligibleReminderRecipients(ctx context.Context) ([]ReminderRecipient, error) {
 	query := `
-		SELECT id, email, full_name, registration_number
-		FROM participants
-		WHERE verification_status IN ('APPROVED', 'VERIFIED')
-		  AND email IS NOT NULL
-		  AND email != ''
-		  AND deleted_at IS NULL
+		SELECT 
+			r.id, 
+			p.email, 
+			p.full_name, 
+			COALESCE(r.registration_number, '') AS registration_number, 
+			r.status
+		FROM registrations r
+		JOIN persons p ON r.person_id = p.id
+		WHERE UPPER(TRIM(r.status)) IN ('APPROVED', 'VERIFIED')
+		  AND p.email IS NOT NULL
+		  AND TRIM(p.email) != ''
+		ORDER BY r.registration_number ASC
 	`
 	var recipients []ReminderRecipient
 	err := r.db.SelectContext(ctx, &recipients, query)
 	return recipients, err
 }
 
-func (r *repository) CountEligibleReminderRecipients(ctx context.Context) (int, error) {
-	query := `
-		SELECT COUNT(*)
-		FROM participants
-		WHERE verification_status IN ('APPROVED', 'VERIFIED')
-		  AND email IS NOT NULL
-		  AND email != ''
-		  AND deleted_at IS NULL
+func (r *repository) GetEligibleRecipientsByIDs(ctx context.Context, ids []string) ([]ReminderRecipient, error) {
+	if len(ids) == 0 {
+		return []ReminderRecipient{}, nil
+	}
+	query, args, err := sqlx.In(`
+		SELECT 
+			r.id, 
+			p.email, 
+			p.full_name, 
+			COALESCE(r.registration_number, '') AS registration_number, 
+			r.status
+		FROM registrations r
+		JOIN persons p ON r.person_id = p.id
+		WHERE r.id IN (?)
+		  AND UPPER(TRIM(r.status)) IN ('APPROVED', 'VERIFIED')
+		  AND p.email IS NOT NULL
+		  AND TRIM(p.email) != ''
+		ORDER BY r.registration_number ASC
+	`, ids)
+	if err != nil {
+		return nil, err
+	}
+	query = r.db.Rebind(query)
+	var recipients []ReminderRecipient
+	err = r.db.SelectContext(ctx, &recipients, query, args...)
+	return recipients, err
+}
+
+// CountEligibleReminderRecipients is kept for any internal use but not in the Repository interface.
+
+func (r *repository) QueueUniqueCampaignJob(ctx context.Context, job *NotificationJob, campaignID string) (bool, error) {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+
+	// Advisory lock based on campaign + recipient
+	// Using Postgres pg_advisory_xact_lock with a hash. It will automatically release on commit/rollback.
+	// We use the builtin hashtext function in Postgres to avoid importing hash libraries in Go and converting to int64 safely.
+	_, err = tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock(hashtext($1))", campaignID+":"+job.Recipient)
+	if err != nil {
+		return false, err
+	}
+
+	// Check idempotency again within the lock
+	var exists bool
+	checkQuery := `
+		SELECT EXISTS (
+			SELECT 1 FROM notification_jobs
+			WHERE recipient = $1
+			  AND payload::jsonb ->> 'campaign_id' = $2
+			  AND status != 'FAILED'
+		)
 	`
-	var count int
-	err := r.db.GetContext(ctx, &count, query)
-	return count, err
+	err = tx.GetContext(ctx, &exists, checkQuery, job.Recipient, campaignID)
+	if err != nil {
+		return false, err
+	}
+	if exists {
+		return false, nil // Already exists, safely skip
+	}
+
+	// Insert the job, letting the database generate id, created_at, updated_at
+	insertQuery := `
+		INSERT INTO notification_jobs (
+			template_id, channel, recipient, payload, status, retry_count
+		) VALUES (
+			$1, $2, $3, $4, $5, $6
+		) RETURNING id, created_at, updated_at
+	`
+	err = tx.QueryRowContext(ctx, insertQuery,
+		job.TemplateID, job.Channel, job.Recipient, job.Payload, job.Status, job.RetryCount,
+	).Scan(&job.ID, &job.CreatedAt, &job.UpdatedAt)
+	if err != nil {
+		return false, err
+	}
+
+	err = tx.Commit()
+	return true, err
 }
 

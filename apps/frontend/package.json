@@ -29,6 +29,7 @@
     "react-hook-form": "^7.83.0",
     "react-markdown": "^10.1.0",
     "react-qr-code": "^2.2.0",
+    "react-simple-wysiwyg": "^3.4.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "zod": "^3.25.76"

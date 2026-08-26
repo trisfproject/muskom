@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"html/template"
 	"math/rand"
+	"mime"
+	"mime/quotedprintable"
 	"net/smtp"
 	"time"
 
@@ -92,10 +94,11 @@ func (m *smtpMailer) SendTestEmail(to string) error {
 
 	var body bytes.Buffer
 	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
-	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", m.cfg.SmtpFromName, m.cfg.SmtpFrom))
-	body.WriteString(fmt.Sprintf("Subject: %s\r\n", parsedSubject))
-	body.WriteString("MIME-version: 1.0;\r\n")
-	body.WriteString("Content-Type: text/html; charset=\"UTF-8\";\r\n\r\n")
+	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", mime.BEncoding.Encode("utf-8", m.cfg.SmtpFromName), m.cfg.SmtpFrom))
+	body.WriteString(fmt.Sprintf("Subject: %s\r\n", mime.BEncoding.Encode("utf-8", parsedSubject)))
+	body.WriteString("MIME-Version: 1.0\r\n")
+	body.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
+	body.WriteString("Content-Transfer-Encoding: 8bit\r\n\r\n")
 	body.WriteString(parsedBody)
 
 	return m.sendSMTP(to, body.Bytes())
@@ -125,13 +128,16 @@ func (m *smtpMailer) SendRawWithAttachments(to, subject, bodyHTML string, attach
 
 	var body bytes.Buffer
 	body.WriteString(fmt.Sprintf("To: %s\r\n", to))
-	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", m.cfg.SmtpFromName, m.cfg.SmtpFrom))
-	body.WriteString(fmt.Sprintf("Subject: %s\r\n", parsedSubject))
+	body.WriteString(fmt.Sprintf("From: %s <%s>\r\n", mime.BEncoding.Encode("utf-8", m.cfg.SmtpFromName), m.cfg.SmtpFrom))
+	body.WriteString(fmt.Sprintf("Subject: %s\r\n", mime.BEncoding.Encode("utf-8", parsedSubject)))
 	body.WriteString("MIME-Version: 1.0\r\n")
 
 	if len(attachments) == 0 {
-		body.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n\r\n")
-		body.WriteString(parsedBody)
+		body.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
+		body.WriteString("Content-Transfer-Encoding: quoted-printable\r\n\r\n")
+		w := quotedprintable.NewWriter(&body)
+		w.Write([]byte(parsedBody))
+		w.Close()
 	} else {
 		boundary := fmt.Sprintf("boundary_%d_%x", time.Now().UnixNano(), rand.Uint32())
 		body.WriteString(fmt.Sprintf("Content-Type: multipart/related; boundary=\"%s\"\r\n\r\n", boundary))
@@ -139,8 +145,10 @@ func (m *smtpMailer) SendRawWithAttachments(to, subject, bodyHTML string, attach
 		// HTML part
 		body.WriteString(fmt.Sprintf("--%s\r\n", boundary))
 		body.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
-		body.WriteString("Content-Transfer-Encoding: 8bit\r\n\r\n")
-		body.WriteString(parsedBody)
+		body.WriteString("Content-Transfer-Encoding: quoted-printable\r\n\r\n")
+		w := quotedprintable.NewWriter(&body)
+		w.Write([]byte(parsedBody))
+		w.Close()
 		body.WriteString("\r\n")
 
 		// Attachments / Inline Images

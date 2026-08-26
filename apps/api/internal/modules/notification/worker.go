@@ -119,7 +119,19 @@ func (w *Worker) processJob(ctx context.Context, job NotificationJob) {
 		}
 	}
 
-	renderedSubj, body, err := RenderTemplate(tpl.Subject, tpl.Body, payload)
+	// Allow per-job subject/body override stored in payload (e.g. admin-composed blast).
+	// These keys are written by BlastMusyawarahReminder when the admin edits the message.
+	// They do NOT modify the template in the database.
+	effectiveSubjectPtr := tpl.Subject
+	effectiveBody := tpl.Body
+	if cs, ok := payload["custom_subject"].(string); ok && cs != "" {
+		effectiveSubjectPtr = &cs
+	}
+	if cb, ok := payload["custom_body"].(string); ok && cb != "" {
+		effectiveBody = cb
+	}
+
+	renderedSubj, body, err := RenderTemplate(effectiveSubjectPtr, effectiveBody, payload)
 	if err != nil {
 		errMsg := "Template rendering failed: " + err.Error()
 		_ = w.repo.UpdateJobStatus(ctx, job.ID, StatusFailed, &errMsg)

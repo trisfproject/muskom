@@ -172,6 +172,36 @@ func (m *MockNotifRepository) GetEligibleReminderRecipients(ctx context.Context)
 	return nil, args.Error(1)
 }
 
+func (m *MockNotifRepository) QueueUniqueCampaignJob(ctx context.Context, job *notification.NotificationJob, campaignID string) (bool, error) {
+	args := m.Called(ctx, job, campaignID)
+	return args.Bool(0), args.Error(1)
+}
+
+func (m *MockNotifRepository) GetEligibleRecipientsByIDs(ctx context.Context, ids []string) ([]notification.ReminderRecipient, error) {
+	args := m.Called(ctx, ids)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]notification.ReminderRecipient), args.Error(1)
+}
+
+func (m *MockNotifRepository) SaveDraft(ctx context.Context, draft *notification.BroadcastDraft) error {
+	return m.Called(ctx, draft).Error(0)
+}
+
+func (m *MockNotifRepository) GetActiveDraft(ctx context.Context, campaignID string) (*notification.BroadcastDraft, error) {
+	args := m.Called(ctx, campaignID)
+	if args.Get(0) != nil {
+		return args.Get(0).(*notification.BroadcastDraft), args.Error(1)
+	}
+	return nil, args.Error(1)
+}
+
+func (m *MockNotifRepository) MarkDraftAsSent(ctx context.Context, campaignID string) error {
+	return m.Called(ctx, campaignID).Error(0)
+}
+
+
 func TestEmailWorker_SendEmail_RegistrationReceived(t *testing.T) {
 	ctx := context.Background()
 	log := zaptest.NewLogger(t)

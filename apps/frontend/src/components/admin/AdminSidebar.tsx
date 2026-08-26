@@ -22,6 +22,7 @@ import Cookies from "js-cookie";
 
 import { useSystemConfig } from "@/contexts/ConfigContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermission } from "@/providers/rbac/PermissionProvider";
 
 interface AdminSidebarProps {
   isOpen?: boolean; // For mobile/tablet offcanvas drawer
@@ -38,6 +39,7 @@ export function AdminSidebar({
   const pathname = usePathname();
   const { config } = useSystemConfig();
   const { user } = useAuth();
+  const { hasPermission } = usePermission();
 
   const [mounted, setMounted] = useState(false);
 
@@ -109,6 +111,12 @@ export function AdminSidebar({
         { label: "Monitor E-Voting", href: "/admin/voting", icon: Activity },
       ],
     },
+    ...(hasPermission('notification:send') || user?.role === 'SUPER_ADMIN' ? [{
+      title: "Komunikasi",
+      items: [
+        { label: "Broadcast Email", href: "/admin/broadcasts", icon: Mail },
+      ],
+    }] : []),
     ...(user?.role === "SUPER_ADMIN" ? [{
       title: "Pengaturan Website",
       items: [

@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"encoding/json"
 	"strconv"
 	"github.com/fasthttp/websocket"
 	"github.com/gofiber/fiber/v3"
@@ -256,19 +257,104 @@ func (h *Handler) PreviewMusyawarahReminder(c fiber.Ctx) error {
 	return response.SendSuccess(c, fiber.StatusOK, "Preview generated", res, nil)
 }
 
+func (h *Handler) ListMusyawarahReminderRecipients(c fiber.Ctx) error {
+	search := c.Query("search", "")
+	pageStr := c.Query("page", "1")
+	page, _ := strconv.Atoi(pageStr)
+	limitStr := c.Query("limit", "20")
+	limit, _ := strconv.Atoi(limitStr)
+	if limit > 100 {
+		limit = 100
+	}
+
+	recipients, total, err := h.service.ListMusyawarahReminderRecipients(c.Context(), search, page, limit)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to get recipient list", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Recipients retrieved", fiber.Map{
+		"items":    recipients,
+		"total":    total,
+		"page":     page,
+		"limit":    limit,
+		"has_more": total > page*limit,
+	}, nil)
+}
+
 func (h *Handler) BlastMusyawarahReminder(c fiber.Ctx) error {
 	operatorID, ok := c.Locals("user_id").(string)
 	if !ok || operatorID == "" {
 		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized operator", nil)
 	}
 
-	queued, err := h.service.BlastMusyawarahReminder(c.Context(), operatorID)
-	if err != nil {
-		return response.SendError(c, fiber.StatusInternalServerError, "Failed to queue reminder blast", nil)
+	var req BlastRequest
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+	if len(req.RecipientIDs) == 0 {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Pilih minimal satu penerima", nil)
+	}
+	if req.Subject == "" || req.Body == "" {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Subject dan body tidak boleh kosong", nil)
 	}
 
-	return response.SendSuccess(c, fiber.StatusOK, "Reminder blast queued successfully", fiber.Map{
-		"queued_count": queued,
+	result, err := h.service.BlastMusyawarahReminder(c.Context(), operatorID, req)
+	if err != nil {
+		if err == ErrNoRecipientsSelected {
+			return response.SendError(c, fiber.StatusUnprocessableEntity, "Pilih minimal satu penerima", nil)
+		}
+		if err == ErrTemplateNotFound {
+			return response.SendError(c, fiber.StatusNotFound, "Template pengingat tidak ditemukan", nil)
+		}
+		return response.SendError(c, fiber.StatusInternalServerError, "Gagal mengirim blast pengingat", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Reminder blast queued successfully", result, nil)
+}
+
+func (h *Handler) GetMusyawarahDraft(c fiber.Ctx) error {
+	draft, err := h.service.GetMusyawarahDraft(c.Context())
+	if err != nil {
+		return response.SendSuccess(c, fiber.StatusOK, "No draft found", nil, nil) // Returning 200 with nil data is safe for "no draft"
+	}
+	
+	// Parse back the recipient IDs for the frontend
+	var recipientIDs []string
+	if draft.RecipientIDs != nil {
+		_ = json.Unmarshal([]byte(*draft.RecipientIDs), &recipientIDs)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Draft retrieved", fiber.Map{
+		"subject":       draft.Subject,
+		"body_html":     draft.BodyHTML,
+		"recipient_ids": recipientIDs,
+		"status":        draft.Status,
+		"updated_at":    draft.UpdatedAt,
+	}, nil)
+}
+
+func (h *Handler) SaveMusyawarahDraft(c fiber.Ctx) error {
+	operatorID, ok := c.Locals("user_id").(string)
+	if !ok || operatorID == "" {
+		return response.SendError(c, fiber.StatusUnauthorized, "Unauthorized operator", nil)
+	}
+
+	var req DraftRequest
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.SendError(c, fiber.StatusBadRequest, "Invalid request payload", nil)
+	}
+	
+	if req.Subject == "" || req.BodyHTML == "" {
+		return response.SendError(c, fiber.StatusUnprocessableEntity, "Subject dan body tidak boleh kosong", nil)
+	}
+
+	draft, err := h.service.SaveMusyawarahDraft(c.Context(), operatorID, req)
+	if err != nil {
+		return response.SendError(c, fiber.StatusInternalServerError, "Failed to save draft", nil)
+	}
+
+	return response.SendSuccess(c, fiber.StatusOK, "Draft berhasil disimpan", fiber.Map{
+		"updated_at": draft.UpdatedAt,
 	}, nil)
 }
 

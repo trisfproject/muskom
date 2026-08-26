@@ -509,48 +509,49 @@ func SeedDefaultTemplates(ctx context.Context, repo Repository, log *zap.Logger)
 		{
 			Name:    "event_musyawarah_reminder",
 			Channel: ChannelEmail,
-			Subject: ptr("Pengingat Kehadiran — MUSYAWARAH KOMITKABE 2026"),
-			Body: `<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pengingat Kehadiran</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #0f172a; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
-        .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #64748b; }
-        @media (prefers-color-scheme: dark) {
-            body { color: #e2e8f0; background-color: #0f172a; }
-            .content { background-color: #1e293b; border-color: #334155; }
-            .footer { color: #94a3b8; }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h2>Pengingat Kehadiran Acara</h2>
+			Subject: ptr("Pengingat Kehadiran — KONGRES KOMITKABE 2026"),
+			Body: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+  <div style="background-color: #0f172a; color: #ffffff; padding: 24px; text-align: center;">
+    <h2 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: 0.5px;">KONGRES KOMITKABE 2026</h2>
+  </div>
+  <div style="background-color: #ffffff; padding: 32px 24px; color: #334155; line-height: 1.6; font-size: 15px;">
+    <p style="margin-top: 0;">Assalamu'alaikum warahmatullahi wabarakatuh.</p>
+    <p>Bapak/Ibu dan rekan-rekan KOMITKABE, kami mengingatkan kembali bahwa <strong>KONGRES KOMITKABE 2026</strong> akan segera dilaksanakan pada:</p>
+    
+    <table style="width: 100%; margin: 24px 0; border-collapse: collapse; background-color: #f1f5f9; border-radius: 8px; overflow: hidden;">
+      <tr>
+        <td style="padding: 16px; border-bottom: 1px solid #e2e8f0;">
+          <strong>📅 Tanggal:</strong> Sabtu, 29 Agustus 2026
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 16px; border-bottom: 1px solid #e2e8f0;">
+          <strong>⏰ Waktu:</strong> 09.00 WIB – Selesai
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 16px;">
+          <strong>📍 Lokasi:</strong> Kawana Golf Residence Jababeka
+        </td>
+      </tr>
+    </table>
+
+    <p>Mohon menyiapkan QR Registrasi Anda yang akan digunakan untuk proses <em>check-in</em> kehadiran di lokasi. Bagi yang belum mengunduh QR Registrasi, Anda dapat mengaksesnya melalui tautan di bawah ini:</p>
+    
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="https://muskom.komitkabe.com/peserta" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px;">Akses QR Registrasi Anda</a>
     </div>
-    <div class="content">
-        <p>Assalamu’alaikum warahmatullahi wabarakatuh.</p>
-        <p>Bapak/Ibu dan rekan-rekan KOMITKABE, kami mengingatkan kembali bahwa MUSYAWARAH KOMITKABE 2026 akan dilaksanakan:</p>
-        <p>
-            📅 Sabtu, 29 Agustus 2026<br/>
-            ⏰ 09.00 WIB – Selesai<br/>
-            📍 Kawana Golf Residence Jababeka
-        </p>
-        <p>Mohon QR Registrasi masing-masing dibawa saat hadir untuk memudahkan proses check-in.</p>
-        <p>Bagi yang belum memiliki QR Registrasi, QR dapat diunduh melalui:</p>
-        <p><a href="https://muskom.komitkabe.com/peserta">https://muskom.komitkabe.com/peserta</a></p>
-        <p>Sampai bertemu, berkumpul, dan bermusyawarah bersama di MUSYAWARAH KOMITKABE 2026. 🙏</p>
-        <p><em>Together We Shape the Future.</em></p>
-    </div>
-    <div class="footer">
-        <p>Email ini dihasilkan otomatis oleh sistem MUSKOM.</p>
-    </div>
-</body>
-</html>`,
+    
+    <p>Sampai bertemu, berkumpul, dan bermusyawarah bersama di KONGRES KOMITKABE 2026. 🙏</p>
+    
+    <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0;" />
+    
+    <p style="margin: 0; text-align: center; font-style: italic; color: #64748b;">"Together We Shape the Future."</p>
+  </div>
+  <div style="background-color: #f8fafc; padding: 16px; text-align: center; border-top: 1px solid #e2e8f0;">
+    <p style="margin: 0; font-size: 12px; color: #94a3b8;">Email ini dihasilkan otomatis oleh sistem MUSKOM.</p>
+  </div>
+</div>`,
 		},
 	}
 

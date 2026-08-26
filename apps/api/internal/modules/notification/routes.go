@@ -25,7 +25,10 @@ func SetupAdminRoutes(router fiber.Router, db *sqlx.DB, log *zap.Logger, m maile
 	router.Post("/smtp/test", handler.TestSMTP)
 	
 	router.Get("/musyawarah-reminder/preview", handler.PreviewMusyawarahReminder)
+	router.Get("/musyawarah-reminder/recipients", handler.ListMusyawarahReminderRecipients)
 	router.Post("/musyawarah-reminder/blast", handler.BlastMusyawarahReminder)
+	router.Get("/musyawarah-reminder/draft", handler.GetMusyawarahDraft)
+	router.Post("/musyawarah-reminder/draft", handler.SaveMusyawarahDraft)
 	
 	// In-App Notification Routes
 	router.Get("/in-app", handler.ListInAppNotifications)
@@ -52,7 +55,10 @@ func SetupAdminRoutesWithService(router fiber.Router, svc Service, hub *realtime
 	router.Post("/smtp/test", handler.TestSMTP)
 	
 	router.Get("/musyawarah-reminder/preview", handler.PreviewMusyawarahReminder)
+	router.Get("/musyawarah-reminder/recipients", handler.ListMusyawarahReminderRecipients)
 	router.Post("/musyawarah-reminder/blast", handler.BlastMusyawarahReminder)
+	router.Get("/musyawarah-reminder/draft", handler.GetMusyawarahDraft)
+	router.Post("/musyawarah-reminder/draft", handler.SaveMusyawarahDraft)
 	
 	// In-App Notification Routes
 	router.Get("/in-app", handler.ListInAppNotifications)
