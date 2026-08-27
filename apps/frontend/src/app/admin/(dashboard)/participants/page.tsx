@@ -37,6 +37,7 @@ import {
 } from "@/services/participant-admin";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/admin/PageHeader";
+import { WhatsAppBroadcastModal } from "@/components/admin/WhatsAppBroadcastModal";
 
 const STATUS_CFG: Record<string, { label: string; dot: string; badge: string }> = {
   PENDING: {
@@ -127,6 +128,9 @@ export default function AdminParticipantsPage() {
   // Delete Confirm Modal
   const [deleteTarget, setDeleteTarget] = useState<{ id?: string; bulk?: boolean; count?: number } | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // WA Broadcast
+  const [waBroadcastTarget, setWaBroadcastTarget] = useState<AdminParticipantResponse[] | null>(null);
 
   const [exporting, setExporting] = useState(false);
 
@@ -371,7 +375,13 @@ export default function AdminParticipantsPage() {
               {selectedIds.length} peserta terpilih
             </div>
             <div className="flex items-center gap-2">
-              {/* Verification actions have been moved to /admin/verifications */}
+              <button
+                onClick={() => setWaBroadcastTarget(paginatedData.filter(p => selectedIds.includes(p.id)))}
+                className="p-1.5 text-slate-500 hover:text-green-600 hover:bg-green-50 dark:text-slate-400 dark:hover:text-green-400 dark:hover:bg-green-900/50 rounded-lg transition-colors"
+                title="Kirim WhatsApp (Bulk)"
+              >
+                <Send className="w-5 h-5" />
+              </button>
               <button
                 onClick={() => setDeleteTarget({ bulk: true, count: selectedIds.length })}
                 className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -464,6 +474,13 @@ export default function AdminParticipantsPage() {
                             title="Lihat Detail"
                           >
                             <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setWaBroadcastTarget([p])}
+                            className="p-2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 hover:border-green-500 hover:text-green-600 transition-colors cursor-pointer text-slate-600 dark:text-slate-400"
+                            title="Kirim WhatsApp"
+                          >
+                            <Send className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => openEdit(p)}
@@ -887,6 +904,14 @@ export default function AdminParticipantsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* WA Broadcast Modal */}
+      {waBroadcastTarget && (
+        <WhatsAppBroadcastModal
+          recipients={waBroadcastTarget}
+          onClose={() => setWaBroadcastTarget(null)}
+        />
       )}
 
     </div>
